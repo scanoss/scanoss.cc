@@ -1,5 +1,4 @@
-import {useState} from 'react';
-import logo from './assets/images/logo-universal.png';
+import React, { useRef, useState } from 'react';
 import './App.css';
 import {
     Greet,
@@ -12,10 +11,10 @@ import {
 } from "../wailsjs/go/main/App";
 
 function App() {
-    const [resultText, setResultText] = useState("Please enter your name below 👇");
-    const [name, setName] = useState('');
-    const updateName = (e: any) => setName(e.target.value);
-    const updateResultText = (result: string) => setResultText(result);
+  const [fileName, setFileName] = useState('scanner.c');
+  const leftEditor = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const rightEditor = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const file = files[fileName];
 
     function greet() {
         GetFilesToBeCommited().then(m => console.log(m))
@@ -31,16 +30,46 @@ function App() {
 
     }
 
-    return (
-        <div id="App">
-            <img src={logo} id="logo" alt="logo"/>
-            <div id="result" className="result">{resultText}</div>
-            <div id="input" className="input-box">
-                <input id="name" className="input" onChange={updateName} autoComplete="off" name="input" type="text"/>
-                <button className="btn" onClick={greet}>Greet</button>
-            </div>
-        </div>
-    )
+  return (
+    <div
+      id="App"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        width: '100vw',
+        height: '100vh',
+      }}
+    >
+      <Button>alskdajsd</Button>
+      <Editor
+        height="100%"
+        width="50%"
+        options={{
+          minimap: { enabled: false },
+          readOnly: true,
+        }}
+        path={file.name}
+        defaultLanguage={file.language}
+        defaultValue={file.value}
+        theme="vs-dark"
+        onMount={handleLeftEditorMount}
+        language="c"
+      />
+      <Editor
+        height="100%"
+        width="50%"
+        options={{
+          minimap: { enabled: false },
+          readOnly: true,
+        }}
+        path={file.name}
+        defaultLanguage={file.language}
+        defaultValue={file.value}
+        theme="vs-dark"
+        language="c"
+      />
+    </div>
+  );
 }
 
-export default App
+export default App;

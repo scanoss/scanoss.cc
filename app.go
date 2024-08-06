@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"integration-git/main/pkg/common/config"
 	"integration-git/main/pkg/file/adapter"
+	"log"
 )
 
 // App struct
@@ -23,6 +25,16 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+
+	//Read config
+	_, err := config.LoadConfig("config.json")
+
+	if err != nil {
+		log.Fatalf("Error reading config: %v", err)
+	}
+	cfg := config.GetConfig()
+	fmt.Println(cfg.Scanoss.ApiToken)
+	fmt.Println(cfg.Scanoss.ApiUrl)
 
 }
 

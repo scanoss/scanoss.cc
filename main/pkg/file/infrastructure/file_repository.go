@@ -1,4 +1,4 @@
-package common
+package infrastructure
 
 import (
 	"errors"
@@ -10,15 +10,24 @@ var (
 )
 
 // fileRepository is a concrete implementation of the FileRepository interface.
-type fileRepository struct{}
+type FileRepository struct{}
 
 // NewFileRepository creates a new instance of fileRepository.
-func NewFileRepository() FileRepository {
-	return &fileRepository{}
+func NewFileRepository() *FileRepository {
+	return &FileRepository{}
 }
 
 // ReadFile reads the content of a file at the given path.
-func (r *fileRepository) ReadFile(path string) ([]byte, error) {
+func (r *FileRepository) ReadLocalFile(path string) ([]byte, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return []byte{}, ErrReadingFile
+	}
+	return data, nil
+}
+
+func (r *FileRepository) ReadRemoteFile(path string) ([]byte, error) {
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return []byte{}, ErrReadingFile

@@ -19,7 +19,6 @@ func NewConfigServiceReaderFactory() *ConfigFactory {
 
 func (f ConfigFactory) Create(path string) (use_cases.ReadConfigFileUseCase, error) {
 	ext := strings.ToLower(filepath.Ext(path))
-	fmt.Println("File extension:", ext)
 	switch ext {
 	case ".json":
 		return use_cases.NewReadJsonConfigFileUseCase(services.NewConfigService(infraestructure.NewConfigJsonRepository())), nil

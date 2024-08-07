@@ -55,10 +55,12 @@ func (a *App) GetFilesToBeCommited() []gitAdapter.GitFileDTO {
 
 // *****  FILE MODULE ***** //
 func (a *App) GetLocalFileContent(path string) adapter.FileDTO {
-	f, _ := a.fileModule.Controller.GetLocalFile()
+	f, _ := a.fileModule.Controller.GetLocalFile(path)
 	return f
 }
 
-func (a *App) FileRemoteFileContent(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
+func (a *App) FileRemoteFileContent(path string) adapter.FileDTO {
+
+	f, _ := a.fileModule.Controller.GetRemoteFile(path)
+	return f
 }

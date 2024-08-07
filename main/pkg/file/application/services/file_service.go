@@ -12,10 +12,10 @@ func NewFileService(r domain.FileRepository) *FileService {
 	return &FileService{repository: r}
 }
 
-func (fs *FileService) GetLocalFileContent(path string) {
-	fs.repository.ReadLocalFile(path)
+func (fs *FileService) GetLocalFileContent(path string) (domain.File, error) {
+	return fs.repository.ReadLocalFile(path)
 }
 
-func (fs *FileService) GetRemoteFileContent(path string) {
-	fs.repository.ReadRemoteFile(path)
+func (fs *FileService) GetRemoteFileContent(path string) (domain.File, error) {
+	return fs.repository.ReadRemoteFile(path)
 }

@@ -10,7 +10,7 @@ func NewGetRemoteFileUseCase(s *services.FileService) *GetRemoteFileUseCase {
 	return &GetRemoteFileUseCase{fileService: s}
 }
 
-func (s *GetRemoteFileUseCase) ReadFile(path string) {
+func (uc *GetRemoteFileUseCase) ReadFile(path string) {
 
-	s.fileService.GetRemoteFileContent(path)
+	uc.fileService.GetRemoteFileContent(path)
 }

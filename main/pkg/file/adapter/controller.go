@@ -18,12 +18,12 @@ func NewFileController(service *services.FileService) *Controller {
 }
 
 func (c *Controller) GetRemoteFile(path string) (FileDTO, error) {
-	//c.getRemoteFileUseCase.ReadFile(path)
+	file, err := c.getRemoteFileUseCase.ReadFile(path)
 	return FileDTO{
-		Name:    "main.c",
-		Path:    "src/main.c",
-		Content: "#include<stdio.h>\n void main() {\nreturn 0;}\n",
-	}, nil
+		Name:    file.GetName(),
+		Path:    file.GetPath(),
+		Content: file.GetRemoteContent(),
+	}, err
 }
 
 func (c *Controller) GetLocalFile(path string) (FileDTO, error) {
@@ -32,6 +32,6 @@ func (c *Controller) GetLocalFile(path string) (FileDTO, error) {
 	return FileDTO{
 		Name:    file.GetName(),
 		Path:    file.GetPath(),
-		Content: file.GetContent(),
+		Content: file.GetLocalContent(),
 	}, err
 }

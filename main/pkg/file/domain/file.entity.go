@@ -1,9 +1,10 @@
 package domain
 
 type File struct {
-	name    string
-	path    string
-	content string
+	name          string
+	path          string
+	localContent  string
+	remoteContent string
 }
 
 func NewFile() *File {
@@ -18,8 +19,12 @@ func (f *File) SetPath(path string) {
 	f.path = path
 }
 
-func (f *File) SetContent(content string) {
-	f.content = content
+func (f *File) SetLocalContent(content string) {
+	f.localContent = content
+}
+
+func (f *File) SetRemoteContent(content string) {
+	f.remoteContent = content
 }
 
 func (f *File) GetName() string {
@@ -30,6 +35,10 @@ func (f *File) GetPath() string {
 	return f.path
 }
 
-func (f *File) GetContent() string {
-	return f.content
+func (f *File) GetLocalContent() string {
+	return f.localContent
+}
+
+func (f *File) GetRemoteContent() string {
+	return f.remoteContent
 }

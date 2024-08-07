@@ -6,6 +6,12 @@ import (
 	"integration-git/main/pkg/file/infrastructure"
 )
 
-func init() {
-	adapter.NewFileController(services.NewFileService(infrastructure.NewFileRepository()))
+type Module struct {
+	Controller *adapter.Controller
+}
+
+func NewModule() *Module {
+	return &Module{
+		Controller: adapter.NewFileController(services.NewFileService(infrastructure.NewFileRepository())),
+	}
 }

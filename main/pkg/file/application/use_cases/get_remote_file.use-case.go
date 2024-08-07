@@ -11,6 +11,5 @@ func NewGetRemoteFileUseCase(s *services.FileService) *GetRemoteFileUseCase {
 }
 
 func (uc *GetRemoteFileUseCase) ReadFile(path string) {
-
 	uc.fileService.GetRemoteFileContent(path)
 }

@@ -15,10 +15,19 @@ func NewFileController(service *services.FileService) *Controller {
 	}
 }
 
-func (c *Controller) GetRemoteFile(path string) {
-	c.getRemoteFileUseCase.ReadFile(path)
+func (c *Controller) GetRemoteFile(path string) (FileDTO, error) {
+	//c.getRemoteFileUseCase.ReadFile(path)
+	return FileDTO{
+		Name:    "main.c",
+		Path:    "src/main.c",
+		Content: "#include<stdio.h>\n void main() {\nreturn 0;}\n",
+	}, nil
 }
 
-func (c *Controller) GetLocalFile() {
-
+func (c *Controller) GetLocalFile() (FileDTO, error) {
+	return FileDTO{
+		Name:    "main.c",
+		Path:    "src/main.c",
+		Content: "#include<stdio.h>\n void main() {\nreturn 0;}\n",
+	}, nil
 }

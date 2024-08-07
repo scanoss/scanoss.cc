@@ -31,43 +31,40 @@ function App() {
     }
 
   return (
-    <div
-      id="App"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        width: '100vw',
-        height: '100vh',
-      }}
-    >
-      <Button>alskdajsd</Button>
-      <Editor
-        height="100%"
-        width="50%"
-        options={{
-          minimap: { enabled: false },
-          readOnly: true,
-        }}
-        path={file.name}
-        defaultLanguage={file.language}
-        defaultValue={file.value}
-        theme="vs-dark"
-        onMount={handleLeftEditorMount}
-        language="c"
-      />
-      <Editor
-        height="100%"
-        width="50%"
-        options={{
-          minimap: { enabled: false },
-          readOnly: true,
-        }}
-        path={file.name}
-        defaultLanguage={file.language}
-        defaultValue={file.value}
-        theme="vs-dark"
-        language="c"
-      />
+    <div className="flex flex-row bg-slate-500 w-screen h-screen">
+      {/* TODO: Move to another component to isolate the monaco dependency */}
+      <div className="bg-red-50 w-1/4">Sidebar</div>
+      <div className="w-full h-full bg-red-500">
+        <Editor
+          height="100%"
+          width="50%"
+          options={{
+            minimap: { enabled: false },
+            readOnly: true,
+          }}
+          path={file.name}
+          defaultLanguage={file.language}
+          defaultValue={file.value}
+          theme="vs-dark"
+          onMount={handleLeftEditorMount}
+          // TODO: detect language from file extension
+          language="c"
+        />
+        <Editor
+          height="100%"
+          width="50%"
+          options={{
+            minimap: { enabled: false },
+            readOnly: true,
+          }}
+          path={file.name}
+          defaultLanguage={file.language}
+          defaultValue={file.value}
+          theme="vs-dark"
+          // TODO: detect language from file extension
+          language="c"
+        />
+      </div>
     </div>
   );
 }

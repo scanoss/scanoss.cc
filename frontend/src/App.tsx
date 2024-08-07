@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import logo from './assets/images/logo-universal.png';
 import './App.css';
-import {Greet, GetFilesToBeCommited} from "../wailsjs/go/main/App";
+import {Greet, GetFilesToBeCommited, GetLocalFileContent} from "../wailsjs/go/main/App";
 
 function App() {
     const [resultText, setResultText] = useState("Please enter your name below 👇");
@@ -12,6 +12,7 @@ function App() {
     function greet() {
         GetFilesToBeCommited().then(m => console.log(m))
         Greet(name).then(updateResultText);
+        GetLocalFileContent('main/pkg/file/adapter/controller.go').then((f)=> console.log(f))
     }
 
     return (

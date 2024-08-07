@@ -1,6 +1,6 @@
 package domain
 
 type FileRepository interface {
-	ReadLocalFile(path string) ([]byte, error)
-	ReadRemoteFile(path string) ([]byte, error)
+	ReadLocalFile(path string) (File, error)
+	ReadRemoteFile(path string) (File, error)
 }

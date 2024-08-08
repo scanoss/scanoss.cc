@@ -8,21 +8,25 @@ import (
 	"integration-git/main/pkg/file/adapter"
 	"integration-git/main/pkg/git"
 	gitAdapter "integration-git/main/pkg/git/adapter"
+	"integration-git/main/pkg/result"
+	resultAdapter "integration-git/main/pkg/result/common"
 	"log"
 )
 
 // App struct
 type App struct {
-	ctx        context.Context
-	fileModule *file.Module
-	gitModule  *git.Module
+	ctx          context.Context
+	fileModule   *file.Module
+	gitModule    *git.Module
+	resultModule *result.Module
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{
-		fileModule: file.NewModule(),
-		gitModule:  git.NewModule(),
+		fileModule:   file.NewModule(),
+		gitModule:    git.NewModule(),
+		resultModule: result.NewModule(),
 	}
 }
 
@@ -37,7 +41,7 @@ func (a *App) startup(ctx context.Context) {
 	if err != nil {
 		log.Fatalf("Error reading config: %v", err)
 	}
-	cfg := config.GetConfig()
+	cfg := config.Get()
 	fmt.Println(cfg.Scanoss.ApiToken)
 	fmt.Println(cfg.Scanoss.ApiUrl)
 
@@ -62,4 +66,10 @@ func (a *App) FileGetLocalContent(path string) adapter.FileDTO {
 func (a *App) FileGetRemoteContent(path string) adapter.FileDTO {
 	f, _ := a.fileModule.Controller.GetRemoteFile(path)
 	return f
+}
+
+// *****  RESULT MODULE ***** //
+func (a *App) ResultGetAll(dto *resultAdapter.RequestResultDTO) []resultAdapter.ResultDTO {
+	results, _ := a.resultModule.Controller.GetAll(dto)
+	return results
 }

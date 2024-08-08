@@ -5,7 +5,11 @@ import {
     Greet,
     GetFilesToBeCommited,
     FileGetLocalContent,
-    FileGetRemoteContent
+    FileGetRemoteContent,
+    ResultGetAll
+
+
+
 } from "../wailsjs/go/main/App";
 
 function App() {
@@ -19,6 +23,9 @@ function App() {
         Greet(name).then(updateResultText);
         FileGetLocalContent('main/pkg/file/adapter/controller.go').then((f)=> console.log("Local file content",f.content))
         FileGetRemoteContent('main/pkg/file/adapter/controller.go').then((f)=> console.log("Remote File content", f.content))
+       // Filter on matchType can be applied . example : { matchType: "file" } will return all the files with matchType equal to file
+        ResultGetAll( {} ).then((r)=> console.log("Results ", r))
+
     }
 
     return (

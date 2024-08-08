@@ -17,3 +17,7 @@ export function GetFilesToBeCommited() {
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
+
+export function ResultGetAll(arg1) {
+  return window['go']['main']['App']['ResultGetAll'](arg1);
+}

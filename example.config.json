@@ -1,7 +1,8 @@
 {
   "scanoss": {
     "apiToken": "455684238",
-    "apiUrl": "https://api.scanoss.com"
+    "apiUrl": "https://api.scanoss.com",
+    "resultFilePath": ""
   }
 
 }

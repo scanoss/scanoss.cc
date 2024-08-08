@@ -31,3 +31,34 @@ export namespace adapter {
 
 }
 
+export namespace common {
+	
+	export class RequestResultDTO {
+	    matchType?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new RequestResultDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.matchType = source["matchType"];
+	    }
+	}
+	export class ResultDTO {
+	    file: string;
+	    matchType: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResultDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.file = source["file"];
+	        this.matchType = source["matchType"];
+	    }
+	}
+
+}
+

@@ -36,7 +36,7 @@ func LoadConfig(filename string) (*domain.Config, error) {
 	return config, nil
 }
 
-// GetConfig returns the singleton instance of the configuration
-func GetConfig() *domain.Config {
+// Get returns the singleton instance of the configuration
+func Get() *domain.Config {
 	return config
 }

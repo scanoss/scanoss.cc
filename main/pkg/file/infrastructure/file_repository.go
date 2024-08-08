@@ -78,8 +78,8 @@ func (r *FileRepository) md5Hash(content string) string {
 }
 
 func (r *FileRepository) fetchContent(fileMD5 string) (string, error) {
-	baseUrl := config.GetConfig().Scanoss.ApiUrl
-	token := config.GetConfig().Scanoss.ApiToken
+	baseUrl := config.Get().Scanoss.ApiUrl
+	token := config.Get().Scanoss.ApiToken
 	// Create a new HTTP request
 	url := fmt.Sprintf("%s/%s/%s", baseUrl, "file_contents", fileMD5)
 

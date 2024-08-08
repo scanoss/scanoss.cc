@@ -13,54 +13,56 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as MainImport } from './routes/main'
+import { Route as HomeImport } from './routes/_home'
 
 // Create Virtual Routes
 
-const IndexLazyImport = createFileRoute('/')()
-const FilesFileIdLazyImport = createFileRoute('/files/$fileId')()
+const HomeIndexLazyImport = createFileRoute('/_home/')()
+const HomeFilesFilePathLazyImport = createFileRoute('/_home/files/$filePath')()
 
 // Create/Update Routes
 
-const MainRoute = MainImport.update({
-  path: '/main',
+const HomeRoute = HomeImport.update({
+  id: '/_home',
   getParentRoute: () => rootRoute,
 } as any)
 
-const IndexLazyRoute = IndexLazyImport.update({
+const HomeIndexLazyRoute = HomeIndexLazyImport.update({
   path: '/',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+  getParentRoute: () => HomeRoute,
+} as any).lazy(() => import('./routes/_home/index.lazy').then((d) => d.Route))
 
-const FilesFileIdLazyRoute = FilesFileIdLazyImport.update({
-  path: '/files/$fileId',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/files/$fileId.lazy').then((d) => d.Route))
+const HomeFilesFilePathLazyRoute = HomeFilesFilePathLazyImport.update({
+  path: '/files/$filePath',
+  getParentRoute: () => HomeRoute,
+} as any).lazy(() =>
+  import('./routes/_home/files/$filePath.lazy').then((d) => d.Route),
+)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_home': {
+      id: '/_home'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof HomeImport
+      parentRoute: typeof rootRoute
+    }
+    '/_home/': {
+      id: '/_home/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexLazyImport
-      parentRoute: typeof rootRoute
+      preLoaderRoute: typeof HomeIndexLazyImport
+      parentRoute: typeof HomeImport
     }
-    '/main': {
-      id: '/main'
-      path: '/main'
-      fullPath: '/main'
-      preLoaderRoute: typeof MainImport
-      parentRoute: typeof rootRoute
-    }
-    '/files/$fileId': {
-      id: '/files/$fileId'
-      path: '/files/$fileId'
-      fullPath: '/files/$fileId'
-      preLoaderRoute: typeof FilesFileIdLazyImport
-      parentRoute: typeof rootRoute
+    '/_home/files/$filePath': {
+      id: '/_home/files/$filePath'
+      path: '/files/$filePath'
+      fullPath: '/files/$filePath'
+      preLoaderRoute: typeof HomeFilesFilePathLazyImport
+      parentRoute: typeof HomeImport
     }
   }
 }
@@ -68,9 +70,10 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 export const routeTree = rootRoute.addChildren({
-  IndexLazyRoute,
-  MainRoute,
-  FilesFileIdLazyRoute,
+  HomeRoute: HomeRoute.addChildren({
+    HomeIndexLazyRoute,
+    HomeFilesFilePathLazyRoute,
+  }),
 })
 
 /* prettier-ignore-end */
@@ -81,19 +84,23 @@ export const routeTree = rootRoute.addChildren({
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
-        "/main",
-        "/files/$fileId"
+        "/_home"
       ]
     },
-    "/": {
-      "filePath": "index.lazy.tsx"
+    "/_home": {
+      "filePath": "_home.tsx",
+      "children": [
+        "/_home/",
+        "/_home/files/$filePath"
+      ]
     },
-    "/main": {
-      "filePath": "main.tsx"
+    "/_home/": {
+      "filePath": "_home/index.lazy.tsx",
+      "parent": "/_home"
     },
-    "/files/$fileId": {
-      "filePath": "files/$fileId.lazy.tsx"
+    "/_home/files/$filePath": {
+      "filePath": "_home/files/$filePath.lazy.tsx",
+      "parent": "/_home"
     }
   }
 }

@@ -1,7 +1,16 @@
-import files, { FileMatch } from '@/files';
+import {
+  GetFilesToBeCommited,
+  GetLocalFileContent,
+} from '../../../../wailsjs/go/main/App';
+import { GitFile } from '../domain';
+import { mapToGitFile, mapToLocalFile } from './mappers';
 
 export default class FileService {
-  static getAll(): Record<string, FileMatch> {
-    return files;
+  static async getAllFilesToBeCommited(): Promise<GitFile[]> {
+    return GetFilesToBeCommited().then(mapToGitFile);
+  }
+
+  static async getLocalFileContent(path: string) {
+    return GetLocalFileContent(path).then(mapToLocalFile);
   }
 }

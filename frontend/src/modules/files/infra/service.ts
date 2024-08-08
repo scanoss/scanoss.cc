@@ -6,7 +6,7 @@ import { GitFile } from '../domain';
 import { mapToGitFile, mapToLocalFile } from './mappers';
 
 export default class FileService {
-  static async getAllFilesToBeCommited(): Promise<GitFile[]> {
+  static async getAllToBeCommited(): Promise<GitFile[]> {
     return GetFilesToBeCommited().then(mapToGitFile);
   }
 

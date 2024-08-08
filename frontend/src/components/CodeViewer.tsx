@@ -1,7 +1,19 @@
 import { Editor } from '@monaco-editor/react';
 import React from 'react';
 
-export default function CodeViewer() {
+interface CodeViewerProps {
+  content: string;
+  language: string | null;
+  width?: string;
+  height?: string;
+}
+
+export default function CodeViewer({
+  width = '100%',
+  height = '100%',
+  content,
+  language,
+}: CodeViewerProps) {
   // const [fileName] = useState('scanner.c');
   // const leftEditor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   // // const rightEditor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -40,19 +52,16 @@ export default function CodeViewer() {
 
   return (
     <Editor
-      height="100%"
-      width="50%"
+      height={height}
+      width={width}
+      defaultValue={content}
+      theme="vs-dark"
+      // onMount={handleLeftEditorMount}
+      {...(language ? { language } : {})}
       options={{
         minimap: { enabled: false },
         readOnly: true,
       }}
-      // path={file.name}
-      // defaultLanguage={file.language}
-      // defaultValue={file.value}
-      theme="vs-dark"
-      // onMount={handleLeftEditorMount}
-      // TODO: detect language from file extension
-      language="c"
     />
   );
 }

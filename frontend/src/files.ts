@@ -957,13 +957,13 @@ void scanner_object_free(scanner_object_t * scanner)
     free(scanner);
 }`;
 
-interface File {
+export interface FileMatch {
   name: string;
   language: string;
   value: string;
 }
 
-const files: Record<string, File> = {
+const files: Record<string, FileMatch> = {
   'scanner.c': {
     name: 'scanner.c',
     language: 'c',

@@ -4,17 +4,16 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { decodeFilePath, encodeFilePath } from '@/lib/utils';
-import FileService from '@/modules/files/infra/service';
+import ResultService from '@/modules/results/infra/service';
 
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function Sidebar() {
   const { filePath } = useParams();
 
-  // TODO: Add loading and error states
   const { data: files } = useQuery({
-    queryKey: ['filesToBeCommited'],
-    queryFn: () => FileService.getAllToBeCommited(),
+    queryKey: ['results'],
+    queryFn: () => ResultService.getAll(),
   });
 
   return (
@@ -39,7 +38,7 @@ export default function Sidebar() {
                       ? 'hover:bg-primary hover:text-primary-foreground bg-primary text-primary-foreground'
                       : 'hover:bg-primary/10'
                   )}
-                  to={`files/${encodedFilePath}`}
+                  to={`files/${encodedFilePath}?matchType=${file.matchType}`}
                 >
                   {file.path}
                 </Link>

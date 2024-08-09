@@ -1,6 +1,6 @@
 import {
+  FileGetLocalContent,
   GetFilesToBeCommited,
-  GetLocalFileContent,
 } from '../../../../wailsjs/go/main/App';
 import { GitFile } from '../domain';
 import { mapToGitFile, mapToLocalFile } from './mappers';
@@ -11,6 +11,6 @@ export default class FileService {
   }
 
   static async getLocalFileContent(path: string) {
-    return GetLocalFileContent(path).then(mapToLocalFile);
+    return FileGetLocalContent(path).then(mapToLocalFile);
   }
 }

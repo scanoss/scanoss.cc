@@ -1,47 +1,88 @@
-import { useQuery } from '@tanstack/react-query';
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 import CodeViewer from '@/components/CodeViewer';
 import { decodeFilePath } from '@/lib/utils';
 import FileInfoCard from '@/modules/files/components/FileInfoCard';
 import MatchInfoCard from '@/modules/files/components/MatchInfoCard';
-import MatchSkeleton from '@/modules/files/components/MatchSkeleton';
-import FileService from '@/modules/files/infra/service';
+import { MatchType } from '@/modules/results/domain';
+
+const testContent = `
+export default function Root() {
+  return (
+    <div className="flex h-screen w-full overflow-hidden">
+      <div className="w-[330px] h-full">
+        <Sidebar />
+      </div>
+      <div className="flex flex-col p-6 flex-1 bg-muted">
+        <Outlet />
+      </div>
+    </div>
+  );
+}
+`;
 
 export default function FileMatchRoute() {
   const { filePath } = useParams();
+  const [searchParams] = useSearchParams();
+  const matchType = searchParams.get('matchType');
 
   const decodedFilePath = decodeFilePath(filePath ?? '');
 
-  const { data: localFile } = useQuery({
-    queryKey: ['localFile', decodedFilePath],
-    queryFn: () => FileService.getLocalFileContent(decodedFilePath),
-    enabled: !!decodedFilePath,
-  });
-
-  if (!localFile) {
-    return <MatchSkeleton />;
+  if (!matchType) {
+    return <div>Error loading match</div>;
   }
 
+  if (matchType === MatchType.None) {
+    return (
+      <div className="w-full h-full flex justify-center items-center">
+        <p className="text-lg font-semibold text-muted-foreground">
+          No match found for this file. Select another one
+        </p>
+      </div>
+    );
+  }
+
+  if (matchType === MatchType.File) {
+    return (
+      <Wrapper localFilePath={decodedFilePath} remoteFilePath={decodedFilePath}>
+        <CodeViewer content={testContent} language="javascript" />
+      </Wrapper>
+    );
+  }
+
+  if (matchType === MatchType.Snippet) {
+    return (
+      <Wrapper localFilePath={decodedFilePath} remoteFilePath={decodedFilePath}>
+        <div className="flex flex-1 gap-4">
+          <CodeViewer content={testContent} language="javascript" />
+          <CodeViewer content={testContent} language="javascript" />
+        </div>
+      </Wrapper>
+    );
+  }
+}
+
+interface WrapperProps {
+  children: React.ReactNode;
+  localFilePath: string;
+  remoteFilePath: string;
+}
+
+function Wrapper({ children, localFilePath, remoteFilePath }: WrapperProps) {
   return (
-    <div className="w-full h-full flex flex-col gap-2 bg-red-50 overflow-auto">
+    <div className="w-full h-full flex flex-col gap-4 overflow-auto">
       <MatchInfoCard />
-      <div className="flex flex-1 gap-8 h-full">
-        <div className="flex flex-col flex-1">
-          <FileInfoCard title="Source file" subtitle={localFile?.path} />
-          <CodeViewer
-            language={localFile?.language}
-            content={localFile?.content}
-          />
+      <div className="flex flex-1 flex-col h-full">
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <FileInfoCard title="Source file" subtitle={localFilePath} />
+          </div>
+          <div className="flex-1">
+            <FileInfoCard title="Component file" subtitle={remoteFilePath} />
+          </div>
         </div>
-        <div className="flex flex-col flex-1">
-          <FileInfoCard title="Component file" subtitle={localFile?.path} />
-          <CodeViewer
-            language={localFile?.language}
-            content={localFile?.content}
-          />
-        </div>
+        {children}
       </div>
     </div>
   );

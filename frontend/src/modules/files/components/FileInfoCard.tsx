@@ -7,7 +7,7 @@ interface FileInfoCardProps {
 
 export default function FileInfoCard({ title, subtitle }: FileInfoCardProps) {
   return (
-    <div className="flex flex-col bg-background p-3 rounded-md border mb-4">
+    <div className="flex flex-col p-3 rounded-sm border border-border mb-4 text-sm">
       <p className="font-semibold">{title}</p>
       <p className="text-muted-foreground">{subtitle}</p>
     </div>

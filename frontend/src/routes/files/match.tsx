@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import CodeViewer from '@/components/CodeViewer';
+import EmptyState from '@/components/EmptyState';
 import { decodeFilePath } from '@/lib/utils';
 import FileInfoCard from '@/modules/files/components/FileInfoCard';
 import MatchInfoCard from '@/modules/files/components/MatchInfoCard';
@@ -36,9 +37,10 @@ export default function FileMatchRoute() {
   if (matchType === MatchType.None) {
     return (
       <div className="w-full h-full flex justify-center items-center">
-        <p className="text-lg font-semibold text-muted-foreground">
-          No match found for this file. Select another one
-        </p>
+        <EmptyState
+          title="No matches"
+          subtitle="There are no matches found for this file, please select another one."
+        />
       </div>
     );
   }

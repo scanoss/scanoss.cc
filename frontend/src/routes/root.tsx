@@ -9,7 +9,7 @@ export default function Root() {
       <div className="w-[330px] h-full">
         <Sidebar />
       </div>
-      <div className="flex flex-col p-6 flex-1 bg-muted">
+      <div className="flex flex-col p-6 flex-1">
         <Outlet />
       </div>
     </div>

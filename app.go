@@ -3,14 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
-	"integration-git/main/pkg/common/config"
 	"integration-git/main/pkg/file"
 	"integration-git/main/pkg/file/adapter"
 	"integration-git/main/pkg/git"
-	gitAdapter "integration-git/main/pkg/git/adapter"
+	git_module_adapter "integration-git/main/pkg/git/adapter"
+	module_result_adapter "integration-git/main/pkg/result/common"
+	"integration-git/main/pkg/scan"
 	"integration-git/main/pkg/result"
-	resultAdapter "integration-git/main/pkg/result/common"
-	"log"
+
 )
 
 // App struct
@@ -19,14 +19,18 @@ type App struct {
 	fileModule   *file.Module
 	gitModule    *git.Module
 	resultModule *result.Module
+	scanModule *scan.Module
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{
-		fileModule:   file.NewModule(),
-		gitModule:    git.NewModule(),
+		fileModule: file.NewModule(),
+		gitModule:  git.NewModule(),
+		scanModule: scan.NewModule(),
 		resultModule: result.NewModule(),
+
+
 	}
 }
 
@@ -34,17 +38,6 @@ func NewApp() *App {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-
-	//Read config
-	_, err := config.LoadConfig("config.json")
-
-	if err != nil {
-		log.Fatalf("Error reading config: %v", err)
-	}
-	cfg := config.Get()
-	fmt.Println(cfg.Scanoss.ApiToken)
-	fmt.Println(cfg.Scanoss.ApiUrl)
-
 }
 
 func (a *App) Greet(name string) string {
@@ -52,7 +45,7 @@ func (a *App) Greet(name string) string {
 }
 
 // *****  GIT MODULE ***** //
-func (a *App) GetFilesToBeCommited() []gitAdapter.GitFileDTO {
+func (a *App) GetFilesToBeCommited() []git_module_adapter.GitFileDTO {
 	f, _ := a.gitModule.Controller.GetFilesToBeCommited()
 	return f
 }
@@ -69,7 +62,7 @@ func (a *App) FileGetRemoteContent(path string) adapter.FileDTO {
 }
 
 // *****  RESULT MODULE ***** //
-func (a *App) ResultGetAll(dto *resultAdapter.RequestResultDTO) []resultAdapter.ResultDTO {
+func (a *App) ResultGetAll(dto *module_result_adapter.RequestResultDTO) []module_result_adapter.ResultDTO {
 	results, _ := a.resultModule.Controller.GetAll(dto)
 	return results
 }

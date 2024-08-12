@@ -12,6 +12,6 @@ type Module struct {
 
 func NewModule() *Module {
 	return &Module{
-		Controller: adapter.NewResultController(services.NewResultService(infraestructure.NewInMemoryResultRepository())),
+		Controller: adapter.NewResultController(services.NewResultService(infraestructure.NewJsonResultRepository())),
 	}
 }

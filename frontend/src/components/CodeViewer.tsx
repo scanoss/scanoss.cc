@@ -1,11 +1,15 @@
 import { Editor } from '@monaco-editor/react';
 import React from 'react';
 
+import { Skeleton } from './ui/skeleton';
+
 interface CodeViewerProps {
-  content: string;
-  language: string | null;
+  content: string | undefined;
+  language: string | null | undefined;
   width?: string;
   height?: string;
+  isLoading: boolean;
+  isError: boolean;
 }
 
 export default function CodeViewer({
@@ -13,6 +17,8 @@ export default function CodeViewer({
   height = '100%',
   content,
   language,
+  isLoading,
+  isError,
 }: CodeViewerProps) {
   // const [fileName] = useState('scanner.c');
   // const leftEditor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -50,17 +56,30 @@ export default function CodeViewer({
   //   leftEditor.current?.deltaDecorations([], decorations);
   // };
 
+  if (isLoading) {
+    return <Skeleton className="w-full h-full" />;
+  }
+
+  if (isError) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <p className="text-red-500">Error loading file</p>
+      </div>
+    );
+  }
+
   return (
     <Editor
       height={height}
       width={width}
-      defaultValue={content}
+      value={content}
       theme="vs-dark"
       // onMount={handleLeftEditorMount}
       {...(language ? { language } : {})}
       options={{
         minimap: { enabled: false },
         readOnly: true,
+        wordWrap: 'on',
       }}
     />
   );

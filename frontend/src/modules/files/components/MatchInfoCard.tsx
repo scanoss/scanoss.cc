@@ -7,34 +7,47 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Component } from '@/modules/results/domain';
 
-export default function MatchInfoCard() {
-  // TODO: Get match info from backend
+interface MatchInfoCardProps {
+  component: Component;
+}
 
+export default function MatchInfoCard({ component }: MatchInfoCardProps) {
   return (
     <div className="bg-primary rounded-sm p-3 cursor-pointer border border-primary-foreground flex justify-between items-center">
       <div className="flex gap-8 items-center">
         <div>
           <div className="text-primary-foreground font-bold">
-            scancode-toolkit
+            {component.file}
           </div>
-          <div className="text-sm">pkg:github/nexb/scancode-toolkit</div>
+          {component.purl?.map((purl) => (
+            <div key={purl} className="text-sm">
+              {purl}
+            </div>
+          ))}
         </div>
-        <div>
-          <div className="text-muted-foreground text-sm">Version</div>
-          <div className="text-sm">32.1.0</div>
-        </div>
-        <div>
-          <div className="text-muted-foreground text-sm">License</div>
-          <div className="text-sm">MIT</div>
-        </div>
+        {component.version && (
+          <div>
+            <div className="text-muted-foreground text-sm">Version</div>
+            <div className="text-sm">{component.version}</div>
+          </div>
+        )}
+        {component.licenses?.length ? (
+          <div>
+            <div className="text-muted-foreground text-sm">License</div>
+            <div className="text-sm">{component.licenses?.pop().name}</div>
+          </div>
+        ) : null}
         <div>
           <div className="text-muted-foreground text-sm">Detected</div>
-          <div className="text-sm text-green-500">File</div>
+          <div className="text-sm text-green-500 first-letter:uppercase">
+            {component.id}
+          </div>
         </div>
         <div>
           <div className="text-muted-foreground text-sm">Match</div>
-          <div className="text-sm">100%</div>
+          <div className="text-sm">{component.matched}</div>
         </div>
       </div>
       <div className="flex gap-2">

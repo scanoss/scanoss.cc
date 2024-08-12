@@ -3,6 +3,8 @@
 import {adapter} from '../models';
 import {common} from '../models';
 
+export function ComponentGet(arg1:string):Promise<adapter.ComponentDTO>;
+
 export function FileGetLocalContent(arg1:string):Promise<adapter.FileDTO>;
 
 export function FileGetRemoteContent(arg1:string):Promise<adapter.FileDTO>;

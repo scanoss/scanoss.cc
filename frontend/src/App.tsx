@@ -6,8 +6,7 @@ import {
     GetFilesToBeCommited,
     FileGetLocalContent,
     FileGetRemoteContent,
-    ResultGetAll
-
+    ResultGetAll, ComponentGet
 
 
 } from "../wailsjs/go/main/App";
@@ -25,6 +24,10 @@ function App() {
         FileGetRemoteContent('main/pkg/file/adapter/controller.go').then((f)=> console.log("Remote File content", f.content))
        // Filter on matchType can be applied . example : { matchType: "file" } will return all the files with matchType equal to file
         ResultGetAll( {} ).then((r)=> console.log("Results ", r))
+
+        ComponentGet( '/external/inc/json.h' ).then((c)=> console.log("Result with matched component ", c))
+        ComponentGet( '/external/inc/crc32c.h' ).then((c)=> console.log("Result without match ", c))
+
 
     }
 

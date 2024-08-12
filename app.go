@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"integration-git/main/pkg/component"
+	componentAdapter "integration-git/main/pkg/component/adapter"
 	"integration-git/main/pkg/file"
 	"integration-git/main/pkg/file/adapter"
 	"integration-git/main/pkg/git"
@@ -10,27 +12,26 @@ import (
 	module_result_adapter "integration-git/main/pkg/result/common"
 	"integration-git/main/pkg/scan"
 	"integration-git/main/pkg/result"
-
 )
 
 // App struct
 type App struct {
-	ctx          context.Context
-	fileModule   *file.Module
-	gitModule    *git.Module
-	resultModule *result.Module
+	ctx             context.Context
+	fileModule      *file.Module
+	gitModule       *git.Module
+	resultModule    *result.Module
+	componentModule *component.Module
 	scanModule *scan.Module
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{
-		fileModule: file.NewModule(),
-		gitModule:  git.NewModule(),
+		fileModule:      file.NewModule(),
+		gitModule:       git.NewModule(),
+		resultModule:    result.NewModule(),
+		componentModule: component.NewModule(),
 		scanModule: scan.NewModule(),
-		resultModule: result.NewModule(),
-
-
 	}
 }
 
@@ -65,4 +66,10 @@ func (a *App) FileGetRemoteContent(path string) adapter.FileDTO {
 func (a *App) ResultGetAll(dto *module_result_adapter.RequestResultDTO) []module_result_adapter.ResultDTO {
 	results, _ := a.resultModule.Controller.GetAll(dto)
 	return results
+}
+
+// *****  COMPONENT MODULE ***** //
+func (a *App) ComponentGet(filePath string) componentAdapter.ComponentDTO {
+	comp, _ := a.componentModule.Controller.GetComponentByPath(filePath)
+	return comp
 }

@@ -12,10 +12,12 @@ export default function MatchInfoCard() {
   // TODO: Get match info from backend
 
   return (
-    <div className="bg-background rounded-md p-3 cursor-pointer border border-blue-400 flex justify-between items-center">
+    <div className="bg-primary rounded-sm p-3 cursor-pointer border border-primary-foreground flex justify-between items-center">
       <div className="flex gap-8 items-center">
         <div>
-          <div className="text-indigo-500 font-bold">scancode-toolkit</div>
+          <div className="text-primary-foreground font-bold">
+            scancode-toolkit
+          </div>
           <div className="text-sm">pkg:github/nexb/scancode-toolkit</div>
         </div>
         <div>

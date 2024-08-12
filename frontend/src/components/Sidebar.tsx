@@ -31,14 +31,15 @@ export default function Sidebar() {
   });
 
   return (
-    <div className="flex flex-col border-r bg-background h-full gap-4">
+    <div className="flex flex-col bg-black/20 border-[#272d3c] backdrop-blur-sm border-r h-full gap-4">
       <h2 className="text-sm font-semibold px-4 pt-6">
         {files?.length
           ? `${files.length} change${files.length > 1 ? 's' : ''} in working directory`
           : 'You have no changes in working directory'}
       </h2>
 
-      <hr />
+      <hr className="border-border" />
+
       <div className="px-4 flex flex-col gap-1">
         <span className="text-xs font-semibold">Filter by match type</span>
         <Select
@@ -68,7 +69,7 @@ export default function Sidebar() {
                   className={clsx(
                     'flex w-full items-center gap-2 text-sm text-muted-foreground px-4 py-1 transition-all',
                     isActive
-                      ? 'hover:bg-primary hover:text-primary-foreground bg-primary text-primary-foreground'
+                      ? 'hover:bg-primary hover:text-primary-foreground bg-primary text-primary-foreground border-r-2 border-primary-foreground'
                       : 'hover:bg-primary/10'
                   )}
                   to={`files/${encodedFilePath}?matchType=${file.matchType}`}

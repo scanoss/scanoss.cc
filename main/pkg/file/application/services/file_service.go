@@ -16,6 +16,6 @@ func (fs *FileService) GetLocalFileContent(path string) (domain.File, error) {
 	return fs.repository.ReadLocalFile(path)
 }
 
-func (fs *FileService) GetRemoteFileContent(path string) (domain.File, error) {
-	return fs.repository.ReadRemoteFile(path)
+func (fs *FileService) GetRemoteFileContent(fileHash string) (domain.File, error) {
+	return fs.repository.ReadRemoteFile(fileHash)
 }

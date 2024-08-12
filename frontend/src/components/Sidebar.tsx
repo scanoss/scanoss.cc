@@ -37,6 +37,7 @@ export default function Sidebar() {
           ? `${files.length} change${files.length > 1 ? 's' : ''} in working directory`
           : 'You have no changes in working directory'}
       </h2>
+
       <hr />
       <div className="px-4 flex flex-col gap-1">
         <span className="text-xs font-semibold">Filter by match type</span>
@@ -72,7 +73,12 @@ export default function Sidebar() {
                   )}
                   to={`files/${encodedFilePath}?matchType=${file.matchType}`}
                 >
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                  <div
+                    className={clsx(
+                      'w-1.5 h-1.5 rounded-full',
+                      matchTypeColors[file.matchType]
+                    )}
+                  ></div>
                   <span className="overflow-hidden text-ellipsis max-w-[80%]">
                     {file.path}
                   </span>
@@ -88,3 +94,9 @@ export default function Sidebar() {
     </div>
   );
 }
+
+const matchTypeColors: Record<MatchType, string> = {
+  [MatchType.File]: 'bg-cyan-500',
+  [MatchType.Snippet]: 'bg-yellow-500',
+  [MatchType.None]: 'bg-gray-500',
+};

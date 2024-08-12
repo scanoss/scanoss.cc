@@ -1,11 +1,11 @@
 package infrastructure
 
 import (
-	"crypto/md5"
 	"errors"
 	"fmt"
 	"integration-git/main/pkg/common/config"
 	"integration-git/main/pkg/file/domain"
+	"integration-git/main/pkg/utils"
 	"io"
 	"net/http"
 	"os"
@@ -17,6 +17,11 @@ var (
 	ErrReadingFile     = errors.New("error reading file")
 	ErrFetchingContent = errors.New("Error fetching remote file")
 )
+
+type Component struct {
+	FileHash string `json:"file_hash"`
+	File     string `json:"file"`
+}
 
 // fileRepository is a concrete implementation of the FileRepository interface.
 type FileRepository struct{}
@@ -47,34 +52,17 @@ func (r *FileRepository) ReadLocalFile(filePath string) (domain.File, error) {
 	return *file, nil
 }
 
-func (r *FileRepository) ReadRemoteFile(path string) (domain.File, error) {
-	file, err := r.ReadLocalFile(path)
-	if err != nil {
-		return domain.File{}, err
-	}
-	fileMD5 := r.md5Hash(file.GetLocalContent())
-	remoteFileContent, err := r.fetchContent(fileMD5)
-	if err != nil {
-		return domain.File{}, err
-	}
+func (r *FileRepository) ReadRemoteFile(filePath string) (domain.File, error) {
+	file := domain.File{}
+	file.SetPath(filePath)
+	resultsBytes, _ := utils.ReadFile(config.Get().Scanoss.ResultFilePath)
+	results, _ := utils.JSONParse[Component](resultsBytes)
+	component := results[filePath][0]
+	remoteFileContent, _ := r.fetchContent(component.FileHash)
+	file.SetName(component.File)
 	file.SetRemoteContent(remoteFileContent)
+
 	return file, nil
-}
-
-func (r *FileRepository) md5Hash(content string) string {
-	// Create a new hash.Hash computing the MD5 checksum
-	hash := md5.New()
-
-	// Write the string content into the hash
-	if _, err := io.WriteString(hash, content); err != nil {
-		fmt.Println("Error writing content:", err)
-		return ""
-	}
-	// Get the MD5 checksum as a byte slice
-	checksum := hash.Sum(nil)
-	// Convert the byte slice to a hexadecimal string
-	checksumStr := fmt.Sprintf("%x", checksum)
-	return checksumStr
 }
 
 func (r *FileRepository) fetchContent(fileMD5 string) (string, error) {

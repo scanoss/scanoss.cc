@@ -7,6 +7,7 @@ import (
 	"integration-git/main/pkg/common/config"
 	"integration-git/main/pkg/result/common"
 	"integration-git/main/pkg/result/domain"
+	"integration-git/main/pkg/utils"
 	"io"
 	"os"
 )
@@ -31,7 +32,7 @@ func (r *JsonResultRepository) GetResults(filter common.ResultFilter) ([]domain.
 	// Path to your JSON file
 	resultFilePath := config.Get().Scanoss.ResultFilePath
 
-	resultByte, err := r.readResultFile(resultFilePath)
+	resultByte, err := utils.ReadFile(resultFilePath)
 	if err != nil {
 		return []domain.Result{}, ErrReadingResultFile
 	}

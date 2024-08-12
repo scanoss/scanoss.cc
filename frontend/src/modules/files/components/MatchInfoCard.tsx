@@ -7,41 +7,54 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Component } from '@/modules/results/domain';
 
-export default function MatchInfoCard() {
-  // TODO: Get match info from backend
+interface MatchInfoCardProps {
+  component: Component;
+}
 
+export default function MatchInfoCard({ component }: MatchInfoCardProps) {
   return (
-    <div className="flex cursor-pointer items-center justify-between rounded-sm border border-primary-foreground bg-primary p-3">
-      <div className="flex items-center gap-8">
+    <div className="bg-primary rounded-sm p-3 cursor-pointer border border-primary-foreground flex justify-between items-center">
+      <div className="flex gap-8 items-center">
         <div>
-          <div className="font-bold text-primary-foreground">
-            scancode-toolkit
+          <div className="text-primary-foreground font-bold">
+            {component.file}
           </div>
-          <div className="text-sm">pkg:github/nexb/scancode-toolkit</div>
+          {component.purl?.map((purl) => (
+            <div key={purl} className="text-sm">
+              {purl}
+            </div>
+          ))}
+        </div>
+        {component.version && (
+          <div>
+            <div className="text-muted-foreground text-sm">Version</div>
+            <div className="text-sm">{component.version}</div>
+          </div>
+        )}
+        {component.licenses?.length ? (
+          <div>
+            <div className="text-muted-foreground text-sm">License</div>
+            <div className="text-sm">{component.licenses?.pop().name}</div>
+          </div>
+        ) : null}
+        <div>
+          <div className="text-muted-foreground text-sm">Detected</div>
+          <div className="text-sm text-green-500 first-letter:uppercase">
+            {component.id}
+          </div>
         </div>
         <div>
-          <div className="text-sm text-muted-foreground">Version</div>
-          <div className="text-sm">32.1.0</div>
-        </div>
-        <div>
-          <div className="text-sm text-muted-foreground">License</div>
-          <div className="text-sm">MIT</div>
-        </div>
-        <div>
-          <div className="text-sm text-muted-foreground">Detected</div>
-          <div className="text-sm text-green-500">File</div>
-        </div>
-        <div>
-          <div className="text-sm text-muted-foreground">Match</div>
-          <div className="text-sm">100%</div>
+          <div className="text-muted-foreground text-sm">Match</div>
+          <div className="text-sm">{component.matched}</div>
         </div>
       </div>
       <div className="flex gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button size="icon" variant="ghost">
-              <Check className="h-6 w-6 stroke-green-500" />
+              <Check className="w-6 h-6 stroke-green-500" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">Identify</TooltipContent>
@@ -49,7 +62,7 @@ export default function MatchInfoCard() {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button size="icon" variant="ghost">
-              <Ban className="h-5 w-5 stroke-muted-foreground" />
+              <Ban className="w-5 h-5 stroke-muted-foreground" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">Mark as original</TooltipContent>

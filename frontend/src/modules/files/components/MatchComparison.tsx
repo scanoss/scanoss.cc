@@ -28,7 +28,7 @@ function Wrapper({ children, component, localFilePath }: WrapperProps) {
             <FileInfoCard
               title="Component file"
               subtitle={component.file}
-              noMatch={component.id === 'none'}
+              noMatch={component.id === MatchType.None}
             />
           </div>
         </div>

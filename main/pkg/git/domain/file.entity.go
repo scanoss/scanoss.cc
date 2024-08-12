@@ -9,7 +9,7 @@ var (
 	ErrFilePathCannotBeEmpty = errors.New("file path can not be empty")
 )
 
-// TODO: Add NewPath and OldPath. When the state is renamed is used, otherwise both are equal
+// TODO: Add NewPath and OldPath. To be used when the state is renamed, otherwise both are equal
 // File represents a file in the Git repository
 type File struct {
 	Name          string
@@ -44,6 +44,8 @@ func (f *File) GetWorkingStatus() FileStatus {
 }
 
 func (f *File) ToBeCommitted() bool {
-	//TODO: finish implementation
-	return true
+	if f.GetStagingStatus().IsAdded() || f.GetStagingStatus().IsModified() {
+		return true
+	}
+	return false
 }

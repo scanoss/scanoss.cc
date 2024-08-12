@@ -9,9 +9,9 @@ import (
 	"integration-git/main/pkg/file/adapter"
 	"integration-git/main/pkg/git"
 	git_module_adapter "integration-git/main/pkg/git/adapter"
+	"integration-git/main/pkg/result"
 	module_result_adapter "integration-git/main/pkg/result/common"
 	"integration-git/main/pkg/scan"
-	"integration-git/main/pkg/result"
 )
 
 // App struct
@@ -21,7 +21,7 @@ type App struct {
 	gitModule       *git.Module
 	resultModule    *result.Module
 	componentModule *component.Module
-	scanModule *scan.Module
+	scanModule      *scan.Module
 }
 
 // NewApp creates a new App application struct
@@ -31,7 +31,7 @@ func NewApp() *App {
 		gitModule:       git.NewModule(),
 		resultModule:    result.NewModule(),
 		componentModule: component.NewModule(),
-		scanModule: scan.NewModule(),
+		scanModule:      scan.NewModule(),
 	}
 }
 

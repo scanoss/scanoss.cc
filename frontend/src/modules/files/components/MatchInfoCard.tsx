@@ -21,7 +21,7 @@ export default function MatchInfoCard({ component }: MatchInfoCardProps) {
           <div className="text-primary-foreground font-bold">
             {component.component}
           </div>
-          <div className="text-sm">{component.purl?.slice(0, 1)}</div>
+          <div className="text-sm">{component.purl?.[0]}</div>
         </div>
         {component.version && (
           <div>
@@ -32,7 +32,7 @@ export default function MatchInfoCard({ component }: MatchInfoCardProps) {
         {component.licenses?.length ? (
           <div>
             <div className="text-muted-foreground text-sm">License</div>
-            <div className="text-sm">{component.licenses?.pop().name}</div>
+            <div className="text-sm">{component.licenses?.[0]}</div>
           </div>
         ) : null}
         <div>

@@ -3,35 +3,23 @@ package main
 import (
 	"context"
 	"fmt"
-	"integration-git/main/pkg/component"
-	componentAdapter "integration-git/main/pkg/component/adapter"
-	"integration-git/main/pkg/file"
-	"integration-git/main/pkg/file/adapter"
-	"integration-git/main/pkg/git"
-	git_module_adapter "integration-git/main/pkg/git/adapter"
-	"integration-git/main/pkg/result"
-	module_result_adapter "integration-git/main/pkg/result/common"
-	"integration-git/main/pkg/scan"
+	"integration-git/main/cmd"
+	componentadapter "integration-git/main/pkg/component/adapter"
+	fileadapter "integration-git/main/pkg/file/adapter"
+	gitmoduleadapter "integration-git/main/pkg/git/adapter"
+	moduleresultadapter "integration-git/main/pkg/result/common"
 )
 
 // App struct
 type App struct {
-	ctx             context.Context
-	fileModule      *file.Module
-	gitModule       *git.Module
-	resultModule    *result.Module
-	componentModule *component.Module
-	scanModule      *scan.Module
+	ctx    context.Context
+	server *cmd.Server
 }
 
 // NewApp creates a new App application struct
-func NewApp() *App {
+func NewApp(container *cmd.Server) *App {
 	return &App{
-		fileModule:      file.NewModule(),
-		gitModule:       git.NewModule(),
-		resultModule:    result.NewModule(),
-		componentModule: component.NewModule(),
-		scanModule:      scan.NewModule(),
+		server: container,
 	}
 }
 
@@ -46,30 +34,30 @@ func (a *App) Greet(name string) string {
 }
 
 // *****  GIT MODULE ***** //
-func (a *App) GetFilesToBeCommited() []git_module_adapter.GitFileDTO {
-	f, _ := a.gitModule.Controller.GetFilesToBeCommited()
+func (a *App) GetFilesToBeCommited() []gitmoduleadapter.GitFileDTO {
+	f, _ := a.server.GitModule.Controller.GetFilesToBeCommited()
 	return f
 }
 
 // *****  FILE MODULE ***** //
-func (a *App) FileGetLocalContent(path string) adapter.FileDTO {
-	f, _ := a.fileModule.Controller.GetLocalFile(path)
+func (a *App) FileGetLocalContent(path string) fileadapter.FileDTO {
+	f, _ := a.server.FileModule.Controller.GetLocalFile(path)
 	return f
 }
 
-func (a *App) FileGetRemoteContent(path string) adapter.FileDTO {
-	f, _ := a.fileModule.Controller.GetRemoteFile(path)
+func (a *App) FileGetRemoteContent(path string) fileadapter.FileDTO {
+	f, _ := a.server.FileModule.Controller.GetRemoteFile(path)
 	return f
 }
 
 // *****  RESULT MODULE ***** //
-func (a *App) ResultGetAll(dto *module_result_adapter.RequestResultDTO) []module_result_adapter.ResultDTO {
-	results, _ := a.resultModule.Controller.GetAll(dto)
+func (a *App) ResultGetAll(dto *moduleresultadapter.RequestResultDTO) []moduleresultadapter.ResultDTO {
+	results, _ := a.server.ResultModule.Controller.GetAll(dto)
 	return results
 }
 
 // *****  COMPONENT MODULE ***** //
-func (a *App) ComponentGet(filePath string) componentAdapter.ComponentDTO {
-	comp, _ := a.componentModule.Controller.GetComponentByPath(filePath)
+func (a *App) ComponentGet(filePath string) componentadapter.ComponentDTO {
+	comp, _ := a.server.ComponentModule.Controller.GetComponentByPath(filePath)
 	return comp
 }

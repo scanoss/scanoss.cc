@@ -6,10 +6,10 @@ import Sidebar from '@/components/Sidebar';
 export default function Root() {
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <div className="w-[330px] h-full">
+      <div className="h-full w-[330px]">
         <Sidebar />
       </div>
-      <div className="flex flex-col p-6 flex-1">
+      <div className="flex flex-1 flex-col p-6">
         <Outlet />
       </div>
     </div>

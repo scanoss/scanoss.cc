@@ -31,7 +31,7 @@ export default function Sidebar() {
   });
 
   return (
-    <div className="flex flex-col bg-black/20 border-[#272d3c] backdrop-blur-sm border-r h-full gap-4">
+    <div className="flex flex-col bg-black/20 border-border backdrop-blur-sm border-r h-full gap-4 z-10">
       <h2 className="text-sm font-semibold px-4 pt-6">
         {files?.length
           ? `${files.length} change${files.length > 1 ? 's' : ''} in working directory`

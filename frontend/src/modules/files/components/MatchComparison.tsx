@@ -89,12 +89,14 @@ export default function MatchComparison({
             isError={isErrorLocalFileContent}
             isLoading={isLoadingLocalFileContent}
             language={localFileContent?.language}
+            highlightLines={component.lines}
           />
           <CodeViewer
             content={remoteFileContent?.content}
             isError={isErrorRemoteFileContent}
             isLoading={isLoadingRemoteFileContent}
             language={remoteFileContent?.language}
+            highlightLines={component.oss_lines}
           />
         </div>
       </Wrapper>

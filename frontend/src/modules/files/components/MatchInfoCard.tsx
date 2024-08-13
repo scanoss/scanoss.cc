@@ -19,13 +19,9 @@ export default function MatchInfoCard({ component }: MatchInfoCardProps) {
       <div className="flex gap-8 items-center">
         <div>
           <div className="text-primary-foreground font-bold">
-            {component.file}
+            {component.component}
           </div>
-          {component.purl?.map((purl) => (
-            <div key={purl} className="text-sm">
-              {purl}
-            </div>
-          ))}
+          <div className="text-sm">{component.purl?.slice(0, 1)}</div>
         </div>
         {component.version && (
           <div>

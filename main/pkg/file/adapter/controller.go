@@ -21,8 +21,8 @@ func (c *Controller) GetRemoteFile(path string) (FileDTO, error) {
 	file, err := c.getRemoteFileUseCase.ReadFile(path)
 	return FileDTO{
 		Name:    file.GetName(),
-		Path:    file.GetPath(),
-		Content: file.GetRemoteContent(),
+		Path:    file.GetRelativePath(),
+		Content: string(file.GetContent()),
 	}, err
 }
 
@@ -31,7 +31,7 @@ func (c *Controller) GetLocalFile(path string) (FileDTO, error) {
 
 	return FileDTO{
 		Name:    file.GetName(),
-		Path:    file.GetPath(),
-		Content: file.GetLocalContent(),
+		Path:    file.GetRelativePath(),
+		Content: string(file.GetContent()),
 	}, err
 }

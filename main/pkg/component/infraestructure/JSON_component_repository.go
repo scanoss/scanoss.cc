@@ -1,12 +1,10 @@
 package infraestructure
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"integration-git/main/pkg/component/domain"
-	"io"
-	"os"
+	"integration-git/main/pkg/utils"
+	"sort"
 )
 
 var (
@@ -15,54 +13,47 @@ var (
 )
 
 type JSONComponentRepository struct {
-	resultFilePath string
+	resultFilePath     string
+	licenseSourceOrder map[string]int
 }
 
 func NewComponentRepository(resultFilePath string) *JSONComponentRepository {
 	return &JSONComponentRepository{
 		resultFilePath: resultFilePath,
+		licenseSourceOrder: map[string]int{
+			"component_declared": 1,
+			"file_header":        2,
+			"scancode":           3,
+			"license_file":       4,
+			"file_spdx_tag":      5,
+		},
 	}
 }
 
 func (r *JSONComponentRepository) FindByFilePath(path string) (domain.Component, error) {
 
-	resultFileBytes, err := r.readResultFile()
+	resultFileBytes, err := utils.ReadFile(r.resultFilePath)
 	if err != nil {
 		return domain.Component{}, err
 	}
-	results, err := r.parseScanResults(resultFileBytes)
+	results, err := utils.JSONParse[domain.Component](resultFileBytes)
 	if err != nil {
 		return domain.Component{}, err
 	}
 
+	// Gets components from results
 	components := results[path]
+
+	// Order component licenses by source
+	if len(components[0].Licenses) > 0 {
+		r.orderComponentLicensesBySourceType(&components[0])
+	}
+
 	return components[0], nil
 }
 
-func (r *JSONComponentRepository) readResultFile() ([]byte, error) {
-	// Open and read the JSON file
-	jsonFile, err := os.Open(r.resultFilePath)
-	if err != nil {
-		return []byte{}, ErrOpeningResult
-	}
-	defer jsonFile.Close()
-
-	byteValue, err := io.ReadAll(jsonFile)
-	if err != nil {
-		fmt.Println("Error reading JSON file:", err)
-		return []byte{}, ErrReadingResult
-	}
-
-	return byteValue, nil
-}
-
-func (r *JSONComponentRepository) parseScanResults(resultByte []byte) (map[string][]domain.Component, error) {
-	var intermediateMap map[string][]domain.Component
-
-	if err := json.Unmarshal(resultByte, &intermediateMap); err != nil {
-		fmt.Println("Error unmarshalling JSON:", err)
-		return intermediateMap, err
-	}
-
-	return intermediateMap, nil
+func (r *JSONComponentRepository) orderComponentLicensesBySourceType(component *domain.Component) {
+	sort.Slice(component.Licenses, func(i, j int) bool {
+		return r.licenseSourceOrder[component.Licenses[i].Source] < r.licenseSourceOrder[component.Licenses[j].Source]
+	})
 }

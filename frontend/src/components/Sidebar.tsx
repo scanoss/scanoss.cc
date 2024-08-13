@@ -31,8 +31,8 @@ export default function Sidebar() {
   });
 
   return (
-    <div className="flex h-full flex-col gap-4 border-r border-[#272d3c] bg-black/20 backdrop-blur-sm">
-      <h2 className="px-4 pt-6 text-sm font-semibold">
+    <div className="flex flex-col bg-black/20 border-border backdrop-blur-sm border-r h-full gap-4 z-10">
+      <h2 className="text-sm font-semibold px-4 pt-6">
         {files?.length
           ? `${files.length} change${files.length > 1 ? 's' : ''} in working directory`
           : 'You have no changes in working directory'}
@@ -40,7 +40,7 @@ export default function Sidebar() {
 
       <hr className="border-border" />
 
-      <div className="flex flex-col gap-1 px-4">
+      <div className="px-4 flex flex-col gap-1">
         <span className="text-xs font-semibold">Filter by match type</span>
         <Select
           onValueChange={(value) => setFilterByMatchType(value as MatchType)}
@@ -67,20 +67,20 @@ export default function Sidebar() {
               <TooltipTrigger asChild>
                 <Link
                   className={clsx(
-                    'flex w-full items-center gap-2 px-4 py-1 text-sm text-muted-foreground transition-all',
+                    'flex w-full items-center gap-2 text-sm text-muted-foreground px-4 py-1 transition-all',
                     isActive
-                      ? 'border-r-2 border-primary-foreground bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
+                      ? 'hover:bg-primary hover:text-primary-foreground bg-primary text-primary-foreground border-r-2 border-primary-foreground'
                       : 'hover:bg-primary/10'
                   )}
                   to={`files/${encodedFilePath}?matchType=${file.matchType}`}
                 >
                   <div
                     className={clsx(
-                      'h-1.5 w-1.5 rounded-full',
+                      'w-1.5 h-1.5 rounded-full',
                       matchTypeColors[file.matchType]
                     )}
                   ></div>
-                  <span className="max-w-[80%] overflow-hidden text-ellipsis">
+                  <span className="overflow-hidden text-ellipsis max-w-[80%]">
                     {file.path}
                   </span>
                 </Link>

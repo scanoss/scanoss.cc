@@ -12,28 +12,28 @@ export default function MatchInfoCard() {
   // TODO: Get match info from backend
 
   return (
-    <div className="bg-primary rounded-sm p-3 cursor-pointer border border-primary-foreground flex justify-between items-center">
-      <div className="flex gap-8 items-center">
+    <div className="flex cursor-pointer items-center justify-between rounded-sm border border-primary-foreground bg-primary p-3">
+      <div className="flex items-center gap-8">
         <div>
-          <div className="text-primary-foreground font-bold">
+          <div className="font-bold text-primary-foreground">
             scancode-toolkit
           </div>
           <div className="text-sm">pkg:github/nexb/scancode-toolkit</div>
         </div>
         <div>
-          <div className="text-muted-foreground text-sm">Version</div>
+          <div className="text-sm text-muted-foreground">Version</div>
           <div className="text-sm">32.1.0</div>
         </div>
         <div>
-          <div className="text-muted-foreground text-sm">License</div>
+          <div className="text-sm text-muted-foreground">License</div>
           <div className="text-sm">MIT</div>
         </div>
         <div>
-          <div className="text-muted-foreground text-sm">Detected</div>
+          <div className="text-sm text-muted-foreground">Detected</div>
           <div className="text-sm text-green-500">File</div>
         </div>
         <div>
-          <div className="text-muted-foreground text-sm">Match</div>
+          <div className="text-sm text-muted-foreground">Match</div>
           <div className="text-sm">100%</div>
         </div>
       </div>
@@ -41,7 +41,7 @@ export default function MatchInfoCard() {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button size="icon" variant="ghost">
-              <Check className="w-6 h-6 stroke-green-500" />
+              <Check className="h-6 w-6 stroke-green-500" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">Identify</TooltipContent>
@@ -49,7 +49,7 @@ export default function MatchInfoCard() {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button size="icon" variant="ghost">
-              <Ban className="w-5 h-5 stroke-muted-foreground" />
+              <Ban className="h-5 w-5 stroke-muted-foreground" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">Mark as original</TooltipContent>

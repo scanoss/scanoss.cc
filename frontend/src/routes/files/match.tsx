@@ -36,7 +36,7 @@ export default function FileMatchRoute() {
 
   if (matchType === MatchType.None) {
     return (
-      <div className="w-full h-full flex justify-center items-center">
+      <div className="flex h-full w-full items-center justify-center">
         <EmptyState
           title="No matches"
           subtitle="There are no matches found for this file, please select another one."
@@ -73,9 +73,9 @@ interface WrapperProps {
 
 function Wrapper({ children, localFilePath, remoteFilePath }: WrapperProps) {
   return (
-    <div className="w-full h-full flex flex-col gap-4 overflow-auto">
+    <div className="flex h-full w-full flex-col gap-4 overflow-auto">
       <MatchInfoCard />
-      <div className="flex flex-1 flex-col h-full">
+      <div className="flex h-full flex-1 flex-col">
         <div className="flex gap-4">
           <div className="flex-1">
             <FileInfoCard title="Source file" subtitle={localFilePath} />

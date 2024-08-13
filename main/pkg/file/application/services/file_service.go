@@ -1,21 +1,34 @@
 package services
 
 import (
+	"integration-git/main/pkg/component/application/services"
 	"integration-git/main/pkg/file/domain"
 )
 
 type FileService struct {
-	repository domain.FileRepository
+	componentService *services.ComponentService
+	repository       domain.FileRepository
 }
 
-func NewFileService(r domain.FileRepository) *FileService {
-	return &FileService{repository: r}
+func NewFileService(r domain.FileRepository, componentService *services.ComponentService) *FileService {
+	return &FileService{
+		repository:       r,
+		componentService: componentService,
+	}
 }
 
-func (fs *FileService) GetLocalFileContent(path string) (domain.File, error) {
-	return fs.repository.ReadLocalFile(path)
+func (s *FileService) GetLocalFileContent(path string) (domain.File, error) {
+	return s.repository.ReadLocalFile(path)
 }
 
-func (fs *FileService) GetRemoteFileContent(fileHash string) (domain.File, error) {
-	return fs.repository.ReadRemoteFile(fileHash)
+func (s *FileService) GetRemoteFileContent(path string) (domain.File, error) {
+	component, err := s.componentService.GetComponentByPath(path)
+
+	if err != nil {
+		return domain.File{}, err
+	}
+
+	f, err := s.repository.ReadRemoteFileByMD5(path, component.FileHash)
+
+	return f, err
 }

@@ -1,7 +1,7 @@
 package domain
 
 type FileRepository interface {
-	ReadRemoteFile(path string) (File, error)
+	ReadRemoteFileByMD5(path string, md5 string) (File, error)
 
 	ReadLocalFile(path string) (File, error)
 }

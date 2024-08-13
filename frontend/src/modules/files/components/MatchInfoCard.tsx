@@ -32,7 +32,7 @@ export default function MatchInfoCard({ component }: MatchInfoCardProps) {
         {component.licenses?.length ? (
           <div>
             <div className="text-muted-foreground text-sm">License</div>
-            <div className="text-sm">{component.licenses?.[0]}</div>
+            <div className="text-sm">{component.licenses?.[0].name}</div>
           </div>
         ) : null}
         <div>

@@ -5,6 +5,7 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"integration-git/main/cmd"
 	"integration-git/main/pkg/common/config"
 	module_scan_adapter "integration-git/main/pkg/scan/adapter"
 	"os"
@@ -16,6 +17,11 @@ var assets embed.FS
 func main() {
 	//Read config
 	_, err := config.LoadConfig("config.json")
+
+	// Inputs from  will override config.json if they are different
+	if err := cmd.Execute(); err != nil {
+		panic(err)
+	}
 
 	// Create an instance of the app structure
 	app := NewApp()

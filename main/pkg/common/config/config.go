@@ -13,6 +13,15 @@ var (
 	configLock sync.Mutex
 )
 
+var defaultConfigFile domain.Config = domain.Config{
+	Scanoss: domain.ScanossConfig{
+		ScanRoot:       "",
+		ResultFilePath: "./scanoss/result.json",
+		ApiToken:       "",
+		ApiUrl:         "",
+	},
+}
+
 // LoadConfig reads the configuration and sets it as the singleton instance
 func LoadConfig(filename string) (*domain.Config, error) {
 	configLock.Lock()
@@ -22,8 +31,7 @@ func LoadConfig(filename string) (*domain.Config, error) {
 		cfgReader, _ := adapter.NewConfigServiceReaderFactory().Create(filename)
 		cfg, err := cfgReader.ReadConfig(filename)
 		if err != nil {
-			config = nil
-			return
+			config = &defaultConfigFile
 		}
 
 		config = &cfg

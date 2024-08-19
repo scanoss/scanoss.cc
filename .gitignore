@@ -2,5 +2,4 @@ build/bin
 node_modules
 frontend/dist
 .idea
-config.json
 .scanoss

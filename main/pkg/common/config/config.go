@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"integration-git/main/pkg/common/config/adapter"
 	"integration-git/main/pkg/common/config/domain"
+	"os"
 	"sync"
 )
 
@@ -12,15 +13,6 @@ var (
 	once       sync.Once
 	configLock sync.Mutex
 )
-
-var defaultConfigFile domain.Config = domain.Config{
-	Scanoss: domain.ScanossConfig{
-		ScanRoot:       "",
-		ResultFilePath: "./scanoss/result.json",
-		ApiToken:       "",
-		ApiUrl:         "",
-	},
-}
 
 // LoadConfig reads the configuration and sets it as the singleton instance
 func LoadConfig(filename string) (*domain.Config, error) {
@@ -31,7 +23,8 @@ func LoadConfig(filename string) (*domain.Config, error) {
 		cfgReader, _ := adapter.NewConfigServiceReaderFactory().Create(filename)
 		cfg, err := cfgReader.ReadConfig(filename)
 		if err != nil {
-			config = &defaultConfigFile
+			fmt.Println("Config file does not exist, please add the 'scanoss-lui-settings.json' in $HOME/.scanoss/")
+			os.Exit(1)
 		}
 
 		config = &cfg

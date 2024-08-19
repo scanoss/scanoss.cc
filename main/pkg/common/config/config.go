@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"integration-git/main/pkg/common/config/adapter"
 	"integration-git/main/pkg/common/config/domain"
+	"os"
 	"sync"
 )
 
@@ -22,8 +23,8 @@ func LoadConfig(filename string) (*domain.Config, error) {
 		cfgReader, _ := adapter.NewConfigServiceReaderFactory().Create(filename)
 		cfg, err := cfgReader.ReadConfig(filename)
 		if err != nil {
-			config = nil
-			return
+			fmt.Println("Config file does not exist, please add the 'scanoss-lui-settings.json' in $HOME/.scanoss/")
+			os.Exit(1)
 		}
 
 		config = &cfg

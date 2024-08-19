@@ -13,6 +13,6 @@ type Module struct {
 
 func NewModule() *Module {
 	return &Module{
-		Controller: adapter.NewComponentController(services.NewComponentService(infraestructure.NewComponentRepository(config.Get().Scanoss.ResultFilePath))),
+		Controller: adapter.NewComponentController(services.NewComponentService(infraestructure.NewComponentRepository(config.Get().ResultFilePath))),
 	}
 }

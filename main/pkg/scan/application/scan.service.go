@@ -50,7 +50,7 @@ func (ss *ScanService) Scan(input domain.ScanInputPaths) (domain.ScanResult, err
 		return domain.ScanResult{}, ErrScanFailed
 	}
 
-	err = os.WriteFile(config.Get().Scanoss.ResultFilePath, scanResult, 0777)
+	err = os.WriteFile(config.Get().ResultFilePath, scanResult, 0777)
 	if err != nil {
 		return domain.ScanResult{}, ErrStoringResult
 	}

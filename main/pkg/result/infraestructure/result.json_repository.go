@@ -30,7 +30,7 @@ func NewJsonResultRepository() *JsonResultRepository {
 
 func (r *JsonResultRepository) GetResults(filter common.ResultFilter) ([]domain.Result, error) {
 	// Path to your JSON file
-	resultFilePath := config.Get().Scanoss.ResultFilePath
+	resultFilePath := config.Get().ResultFilePath
 
 	resultByte, err := utils.ReadFile(resultFilePath)
 	if err != nil {

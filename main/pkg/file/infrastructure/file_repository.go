@@ -31,9 +31,8 @@ func NewFileRepository() *FileRepository {
 
 // ReadFile reads the content of a file at the given path.
 func (r *FileRepository) ReadLocalFile(filePath string) (domain.File, error) {
-	currentPath, err := os.Getwd()
+	currentPath := config.Get().ScanRoot
 	absolutePath := path.Join(currentPath, filePath)
-
 	content, err := os.ReadFile(absolutePath)
 	if err != nil {
 		return domain.File{}, ErrReadingFile
@@ -43,8 +42,8 @@ func (r *FileRepository) ReadLocalFile(filePath string) (domain.File, error) {
 }
 
 func (r *FileRepository) ReadRemoteFileByMD5(path string, md5 string) (domain.File, error) {
-	baseURL := config.Get().Scanoss.ApiUrl
-	token := config.Get().Scanoss.ApiToken
+	baseURL := config.Get().ApiUrl
+	token := config.Get().ApiToken
 
 	url := fmt.Sprintf("%s/file_contents/%s", baseURL, md5)
 

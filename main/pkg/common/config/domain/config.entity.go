@@ -1,9 +1,8 @@
 package domain
 
 type Config struct {
-	Scanoss struct {
-		ApiToken       string `json:"apiToken"`
-		ApiUrl         string `json:"apiUrl"`
-		ResultFilePath string `json:"resultFilePath"`
-	} `json:"scanoss"`
+	ApiToken       string `json:"apiToken"`
+	ApiUrl         string `json:"apiUrl"`
+	ResultFilePath string `json:"resultFilePath:omitempty"`
+	ScanRoot       string `json:"scanRoot:omitempty"`
 }

@@ -23,3 +23,16 @@ Ubuntu 24.04 does includes webkit 4.1 and wails is expecting webkit 4.0
 `Perhaps you should add the directory containing 'webkit2gtk-4.0.pc'`
 
 Solution: `wails dev -tags webkit2_41`
+
+
+## Live Development environment with parameters
+Parameters
+- **scanRoot** (Optional): Path to scanned project.
+- **input** (Optional): Path to result.json file of the scanned project (Default ./scanoss/result.json) 
+- **configuration** (Optional): Path to configuration file. (Default .config.json)
+
+To start the application with specific arguments, use the following command:
+### Example
+```
+ wails dev -appargs "app --input <resultPath>" 
+```

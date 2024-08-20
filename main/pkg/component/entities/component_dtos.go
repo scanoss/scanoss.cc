@@ -64,7 +64,7 @@ type FilterAction string
 
 const (
 	Include FilterAction = "include"
-	Ignore  FilterAction = "ignore"
+	Remove  FilterAction = "remove"
 )
 
 type ComponentFilterDTO struct {

@@ -18,3 +18,7 @@ func NewComponentUseCase(repo repositories.ComponentRepository) ComponentUsecase
 func (u *ComponentUsecaseImpl) GetComponentByFilePath(filePath string) (entities.Component, error) {
 	return u.repo.FindByFilePath(filePath)
 }
+
+func (u *ComponentUsecaseImpl) FilterComponent(dto entities.ComponentFilterDTO) error {
+	return u.repo.InsertComponentFilter(&dto)
+}

@@ -56,16 +56,25 @@ type Component struct {
 	} `json:"server"`
 }
 
+type ComponentFilterUsage string
+
+const (
+	File    ComponentFilterUsage = "file"
+	Snippet ComponentFilterUsage = "snippet"
+)
+
 type ComponentFilter struct {
-	Path    string `json:"path"`
-	Purl    string `json:"purl"`
-	Usage   string `json:"usage,omitempty"`
-	Version string `json:"version"`
+	Path    string               `json:"path"`
+	Purl    string               `json:"purl"`
+	Usage   ComponentFilterUsage `json:"usage,omitempty"`
+	Version string               `json:"version"`
+}
+
+type Bom struct {
+	Include []ComponentFilter `json:"include"`
+	Remove  []ComponentFilter `json:"remove"`
 }
 
 type ScanSettingsFile struct {
-	Bom struct {
-		Ignore  []ComponentFilter `json:"ignore"`
-		Include []ComponentFilter `json:"include"`
-	} `json:"bom"`
+	Bom Bom `json:"bom"`
 }

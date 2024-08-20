@@ -1,6 +1,7 @@
 package file
 
 import (
+	"integration-git/main/pkg/common/config"
 	"integration-git/main/pkg/component/repositories"
 	"integration-git/main/pkg/component/usecases"
 	"integration-git/main/pkg/file/adapter"
@@ -13,7 +14,7 @@ type Module struct {
 }
 
 func NewModule() *Module {
-	componentRepository := repositories.NewComponentRepository()
+	componentRepository := repositories.NewComponentRepository(config.Get())
 	componentUsecase := usecases.NewComponentUseCase(componentRepository)
 
 	return &Module{

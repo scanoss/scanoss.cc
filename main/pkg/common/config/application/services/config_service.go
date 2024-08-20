@@ -16,6 +16,6 @@ func NewConfigService(r domain.ConfigRepository) *ConfigService {
 }
 
 func (s ConfigService) ReadFromJson(path string) (domain.Config, error) {
-	fmt.Printf("Path: %s\n", path)
+	fmt.Printf("Config path: %s\n", path)
 	return s.repository.Read(path)
 }

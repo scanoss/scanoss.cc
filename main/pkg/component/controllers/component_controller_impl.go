@@ -19,3 +19,7 @@ func (c *ComponentControllerImpl) GetComponentByPath(filePath string) (entities.
 	component, _ := c.componentUseCase.GetComponentByFilePath(filePath)
 	return adaptToComponentDTO(component), nil
 }
+
+func (c *ComponentControllerImpl) FilterComponent(dto entities.ComponentFilterDTO) error {
+	return nil
+}

@@ -3,7 +3,6 @@ package repositories
 import (
 	"errors"
 	"fmt"
-	"integration-git/main/pkg/common/config"
 	"integration-git/main/pkg/common/config/domain"
 	"integration-git/main/pkg/component/entities"
 	"integration-git/main/pkg/utils"
@@ -27,9 +26,9 @@ type JSONComponentRepository struct {
 	config *domain.Config
 }
 
-func NewComponentRepository() *JSONComponentRepository {
+func NewComponentRepository(config *domain.Config) *JSONComponentRepository {
 	return &JSONComponentRepository{
-		config: config.Get(),
+		config: config,
 	}
 }
 
@@ -66,7 +65,7 @@ func (r *JSONComponentRepository) InsertComponentFilter(dto *entities.ComponentF
 	newFilter := &entities.ComponentFilter{
 		Path:    dto.Path,
 		Purl:    dto.Purl,
-		Usage:   dto.Usage,
+		Usage:   entities.ComponentFilterUsage(dto.Usage),
 		Version: dto.Version,
 	}
 
@@ -95,10 +94,10 @@ func insertNewComponentFilter(file *entities.ScanSettingsFile, newFilter *entiti
 	switch action {
 	case entities.Include:
 		file.Bom.Include = append(file.Bom.Include, *newFilter)
-	case entities.Ignore:
-		file.Bom.Ignore = append(file.Bom.Ignore, *newFilter)
+	case entities.Remove:
+		file.Bom.Remove = append(file.Bom.Remove, *newFilter)
 	default:
-		return fmt.Errorf("Uknown action %s", action)
+		return fmt.Errorf("uknown action %s", action)
 	}
 
 	return nil

@@ -6,4 +6,5 @@ import (
 
 type ComponentUsecase interface {
 	GetComponentByFilePath(filePath string) (entities.Component, error)
+	FilterComponent(dto entities.ComponentFilterDTO) error
 }

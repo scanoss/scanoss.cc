@@ -21,5 +21,5 @@ func (c *ComponentControllerImpl) GetComponentByPath(filePath string) (entities.
 }
 
 func (c *ComponentControllerImpl) FilterComponent(dto entities.ComponentFilterDTO) error {
-	return nil
+	return c.componentUseCase.FilterComponent(dto)
 }

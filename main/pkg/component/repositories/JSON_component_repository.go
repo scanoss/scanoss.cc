@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"errors"
-	"fmt"
 	"integration-git/main/pkg/common/config/domain"
 	"integration-git/main/pkg/component/entities"
 	"integration-git/main/pkg/utils"
@@ -10,8 +9,9 @@ import (
 )
 
 var (
-	ErrOpeningResult = errors.New("error opening result file")
-	ErrReadingResult = errors.New("error reading result file")
+	ErrOpeningResult       = errors.New("error opening result file")
+	ErrReadingResult       = errors.New("error reading result file")
+	ErrInvalidFilterAction = errors.New("invalid filter action")
 )
 
 var licenseSourceOrder = map[string]int{
@@ -97,7 +97,7 @@ func insertNewComponentFilter(file *entities.ScanSettingsFile, newFilter *entiti
 	case entities.Remove:
 		file.Bom.Remove = append(file.Bom.Remove, *newFilter)
 	default:
-		return fmt.Errorf("uknown action %s", action)
+		return ErrInvalidFilterAction
 	}
 
 	return nil

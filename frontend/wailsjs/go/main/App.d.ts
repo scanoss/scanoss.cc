@@ -4,6 +4,8 @@ import {entities} from '../models';
 import {adapter} from '../models';
 import {common} from '../models';
 
+export function ComponentFilter(arg1:entities.ComponentFilterDTO):Promise<void>;
+
 export function ComponentGet(arg1:string):Promise<entities.ComponentDTO>;
 
 export function FileGetLocalContent(arg1:string):Promise<adapter.FileDTO>;

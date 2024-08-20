@@ -73,3 +73,7 @@ func (a *App) ComponentGet(filePath string) componentEntities.ComponentDTO {
 	comp, _ := a.componentModule.Controller.GetComponentByPath(filePath)
 	return comp
 }
+
+func (a *App) ComponentFilter(dto componentEntities.ComponentFilterDTO) error {
+	return a.componentModule.Controller.FilterComponent(dto)
+}

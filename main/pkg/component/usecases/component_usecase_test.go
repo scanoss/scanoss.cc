@@ -2,10 +2,9 @@ package usecases_test
 
 import (
 	"encoding/json"
-	"integration-git/main/pkg/common/config/domain"
+	internal_test "integration-git/main/internal"
 	"integration-git/main/pkg/component/entities"
 	"integration-git/main/pkg/component/repositories"
-	"integration-git/main/pkg/utils"
 	"os"
 	"slices"
 	"testing"
@@ -13,44 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupTestFiles(t *testing.T) (string, func()) {
-	scanSettingsFile, err := os.CreateTemp("", "scanoss-*.json")
-	if err != nil {
-		t.Fatalf("Failed to create temp file: %v", err)
-	}
-	scanSettingsFilePath := scanSettingsFile.Name()
-
-	initialScanSettings := entities.ScanSettingsFile{
-		Bom: entities.Bom{
-			Include: []entities.ComponentFilter{},
-			Remove:  []entities.ComponentFilter{},
-		},
-	}
-	scanSettingsFile.Close()
-	if err := utils.WriteJsonFile(scanSettingsFilePath, initialScanSettings); err != nil {
-		t.Fatalf("Failed to write initial scan settings file: %v", err)
-	}
-
-	cleanup := func() {
-		os.Remove(scanSettingsFilePath)
-	}
-
-	return scanSettingsFilePath, cleanup
-}
-
-func initializeConfig(scanSettingsFilePath string) *domain.Config {
-	config := &domain.Config{
-		ScanSettingsFilePath: scanSettingsFilePath,
-	}
-
-	return config
-}
-
 func TestInsertComponentFilterActions(t *testing.T) {
-	scanSettingsFilePath, cleanup := setupTestFiles(t)
+	config, cleanup := internal_test.InitializeTestEnvironment(t)
 	defer cleanup()
-
-	config := initializeConfig(scanSettingsFilePath)
 
 	repo := repositories.NewComponentRepository(config)
 
@@ -82,7 +46,7 @@ func TestInsertComponentFilterActions(t *testing.T) {
 			require.NoError(t, err)
 
 			var scanSettings entities.ScanSettingsFile
-			fileBytes, err := os.ReadFile(scanSettingsFilePath)
+			fileBytes, err := os.ReadFile(config.ScanSettingsFilePath)
 			if err != nil {
 				t.Fatalf("Failed to read scan settings file: %v", err)
 			}

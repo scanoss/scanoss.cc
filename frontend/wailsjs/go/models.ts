@@ -136,6 +136,26 @@ export namespace entities {
 		    return a;
 		}
 	}
+	export class ComponentFilterDTO {
+	    path: string;
+	    purl: string;
+	    usage?: string;
+	    version: string;
+	    action: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ComponentFilterDTO(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.path = source["path"];
+	        this.purl = source["purl"];
+	        this.usage = source["usage"];
+	        this.version = source["version"];
+	        this.action = source["action"];
+	    }
+	}
 
 }
 

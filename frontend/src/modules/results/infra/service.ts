@@ -1,4 +1,4 @@
-import { adapter } from 'wailsjs/go/models';
+import { entities } from 'wailsjs/go/models';
 
 import { ComponentGet, ResultGetAll } from '../../../../wailsjs/go/main/App';
 import { MatchType, Result } from '../domain';
@@ -9,7 +9,7 @@ export default class ResultService {
     return ResultGetAll({ matchType }).then(mapToResult);
   }
 
-  static async getComponent(filePath: string): Promise<adapter.ComponentDTO> {
+  static async getComponent(filePath: string): Promise<entities.ComponentDTO> {
     return ComponentGet(filePath);
   }
 }

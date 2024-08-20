@@ -1,4 +1,4 @@
-package domain
+package entities
 
 type Component struct {
 	ID          string   `json:"id"`
@@ -54,4 +54,18 @@ type Component struct {
 		Flags    string `json:"flags,omitempty"`
 		Elapsed  string `json:"elapsed,omitempty"`
 	} `json:"server"`
+}
+
+type ComponentFilter struct {
+	Path    string `json:"path"`
+	Purl    string `json:"purl"`
+	Usage   string `json:"usage,omitempty"`
+	Version string `json:"version"`
+}
+
+type ScanSettingsFile struct {
+	Bom struct {
+		Ignore  []ComponentFilter `json:"ignore"`
+		Include []ComponentFilter `json:"include"`
+	} `json:"bom"`
 }

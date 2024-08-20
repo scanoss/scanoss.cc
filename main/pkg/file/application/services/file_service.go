@@ -1,19 +1,19 @@
 package services
 
 import (
-	"integration-git/main/pkg/component/application/services"
+	"integration-git/main/pkg/component/usecases"
 	"integration-git/main/pkg/file/domain"
 )
 
 type FileService struct {
-	componentService *services.ComponentService
+	componentUsecase usecases.ComponentUsecase
 	repository       domain.FileRepository
 }
 
-func NewFileService(r domain.FileRepository, componentService *services.ComponentService) *FileService {
+func NewFileService(r domain.FileRepository, componentUsecase usecases.ComponentUsecase) *FileService {
 	return &FileService{
 		repository:       r,
-		componentService: componentService,
+		componentUsecase: componentUsecase,
 	}
 }
 
@@ -22,7 +22,7 @@ func (s *FileService) GetLocalFileContent(path string) (domain.File, error) {
 }
 
 func (s *FileService) GetRemoteFileContent(path string) (domain.File, error) {
-	component, err := s.componentService.GetComponentByPath(path)
+	component, err := s.componentUsecase.GetComponentByFilePath(path)
 
 	if err != nil {
 		return domain.File{}, err

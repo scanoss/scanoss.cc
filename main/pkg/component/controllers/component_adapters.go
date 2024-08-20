@@ -1,10 +1,10 @@
-package adapter
+package controllers
 
-import "integration-git/main/pkg/component/domain"
+import "integration-git/main/pkg/component/entities"
 
-func adaptToComponentDTO(componentEntity domain.Component) ComponentDTO {
+func adaptToComponentDTO(componentEntity entities.Component) entities.ComponentDTO {
 
-	dto := ComponentDTO{
+	dto := entities.ComponentDTO{
 		ID:          componentEntity.ID,
 		URL:         componentEntity.URL,
 		Status:      componentEntity.Status,
@@ -27,11 +27,11 @@ func adaptToComponentDTO(componentEntity domain.Component) ComponentDTO {
 		Latest:      componentEntity.Latest,
 	}
 
-	var licenses []License
+	var licenses []entities.License
 	if len(componentEntity.Licenses) > 0 {
 		for _, l := range componentEntity.Licenses {
 			// patentHints ,copyleft0 checklistURL string, osadlUpdated string, source string, url string, incompatibleWith string
-			licenses = append(licenses, NewLicenseDTO(l.Name, l.PatentHints, l.Copyleft, l.ChecklistURL, l.OsadlUpdated, l.Source, l.URL, l.IncompatibleWith))
+			licenses = append(licenses, entities.NewLicenseDTO(l.Name, l.PatentHints, l.Copyleft, l.ChecklistURL, l.OsadlUpdated, l.Source, l.URL, l.IncompatibleWith))
 		}
 		dto.Licenses = licenses
 	}

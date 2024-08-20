@@ -16,10 +16,11 @@ var (
 type ConfigJsonRepository struct{}
 
 var defaultConfigFile domain.Config = domain.Config{
-	ScanRoot:       "",
-	ResultFilePath: "./scanoss/results.json",
-	ApiToken:       "",
-	ApiUrl:         "",
+	ScanRoot:             "",
+	ResultFilePath:       "./scanoss/results.json",
+	ApiToken:             "",
+	ApiUrl:               "",
+	ScanSettingsFilePath: "scanoss.json",
 }
 
 // NewFileRepository creates a new instance of fileRepository.

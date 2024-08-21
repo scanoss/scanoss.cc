@@ -1,0 +1,232 @@
+{
+  "app.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "frontend/src/modules/results/domain/index.ts": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "frontend/src/modules/results/infra/service.ts": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "frontend/wailsjs/go/main/App.d.ts": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "frontend/wailsjs/go/models.ts": [
+    {
+      "component": "acdc-app",
+      "file": "frontend/wailsjs/go/models.ts",
+      "file_hash": "6ecfc387c9bfa811e58e4863c0b72493",
+      "file_url": "https://api.osskb.org/file_contents/6ecfc387c9bfa811e58e4863c0b72493",
+      "id": "snippet",
+      "latest": "0.3.0-alpha",
+      "licenses": [],
+      "lines": "15-57,97-97,126-134",
+      "matched": "37%",
+      "oss_lines": "1539-1581,1539-1539,1551-1559",
+      "purl": [
+        "pkg:github/deslaughter/acdc-app"
+      ],
+      "release_date": "2024-05-13",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      },
+      "source_hash": "56b597c91b3ac4f691e074f32f2e5934",
+      "status": "pending",
+      "url": "https://github.com/deslaughter/acdc-app",
+      "url_hash": "a9f99123e0ae69b48df665e4afd1630f",
+      "url_stats": {
+        "ignored_files": 5,
+        "indexed_files": 179,
+        "package_size": 1374692,
+        "source_files": 79,
+        "total_files": 184
+      },
+      "vendor": "deslaughter",
+      "version": "0.3.0-alpha"
+    }
+  ],
+  "main/pkg/common/config/domain/config.entity.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "main/pkg/common/config/infraestructure/config_json_repository.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "main/pkg/component/controllers/component_controller.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "main/pkg/component/controllers/component_controller_impl.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "main/pkg/component/module.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "main/pkg/component/repositories/JSON_component_repository.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "main/pkg/component/repositories/component_repository.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "main/pkg/component/usecases/component_usecase.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "main/pkg/component/usecases/component_usecase_impl.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "main/pkg/file/application/services/file_service.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "main/pkg/file/module.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ],
+  "main/pkg/utils/file_utils.go": [
+    {
+      "id": "none",
+      "server": {
+        "kb_version": {
+          "daily": "24.08.20",
+          "monthly": "24.07"
+        },
+        "version": "5.4.8"
+      }
+    }
+  ]
+}

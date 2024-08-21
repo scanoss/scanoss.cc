@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"integration-git/main/pkg/component"
-	componentAdapter "integration-git/main/pkg/component/adapter"
+	componentEntities "integration-git/main/pkg/component/entities"
 	"integration-git/main/pkg/file"
 	"integration-git/main/pkg/file/adapter"
 	"integration-git/main/pkg/git"
@@ -69,7 +69,11 @@ func (a *App) ResultGetAll(dto *module_result_adapter.RequestResultDTO) []module
 }
 
 // *****  COMPONENT MODULE ***** //
-func (a *App) ComponentGet(filePath string) componentAdapter.ComponentDTO {
+func (a *App) ComponentGet(filePath string) componentEntities.ComponentDTO {
 	comp, _ := a.componentModule.Controller.GetComponentByPath(filePath)
 	return comp
+}
+
+func (a *App) ComponentFilter(dto componentEntities.ComponentFilterDTO) error {
+	return a.componentModule.Controller.FilterComponent(dto)
 }

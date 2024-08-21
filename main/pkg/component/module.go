@@ -2,17 +2,20 @@ package component
 
 import (
 	"integration-git/main/pkg/common/config"
-	"integration-git/main/pkg/component/adapter"
-	"integration-git/main/pkg/component/application/services"
-	"integration-git/main/pkg/component/infraestructure"
+	"integration-git/main/pkg/component/controllers"
+	"integration-git/main/pkg/component/repositories"
+	"integration-git/main/pkg/component/usecases"
 )
 
 type Module struct {
-	Controller *adapter.ComponentController
+	Controller controllers.ComponentController
 }
 
 func NewModule() *Module {
+	componentRepository := repositories.NewComponentRepository(config.Get())
+	componentUsecase := usecases.NewComponentUseCase(componentRepository)
+
 	return &Module{
-		Controller: adapter.NewComponentController(services.NewComponentService(infraestructure.NewComponentRepository(config.Get().ResultFilePath))),
+		Controller: controllers.NewComponentController(componentUsecase),
 	}
 }

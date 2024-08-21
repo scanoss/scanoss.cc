@@ -2,8 +2,8 @@ package file
 
 import (
 	"integration-git/main/pkg/common/config"
-	service "integration-git/main/pkg/component/application/services"
-	"integration-git/main/pkg/component/infraestructure"
+	"integration-git/main/pkg/component/repositories"
+	"integration-git/main/pkg/component/usecases"
 	"integration-git/main/pkg/file/adapter"
 	"integration-git/main/pkg/file/application/services"
 	"integration-git/main/pkg/file/infrastructure"
@@ -14,10 +14,10 @@ type Module struct {
 }
 
 func NewModule() *Module {
-
-	componentService := service.NewComponentService(infraestructure.NewComponentRepository(config.Get().ResultFilePath))
+	componentRepository := repositories.NewComponentRepository(config.Get())
+	componentUsecase := usecases.NewComponentUseCase(componentRepository)
 
 	return &Module{
-		Controller: adapter.NewFileController(services.NewFileService(infrastructure.NewFileRepository(), componentService)),
+		Controller: adapter.NewFileController(services.NewFileService(infrastructure.NewFileRepository(), componentUsecase)),
 	}
 }

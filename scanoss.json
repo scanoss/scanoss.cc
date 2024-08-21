@@ -1,0 +1,24 @@
+{
+  "bom": {
+    "self": {
+      "name": "scanoss-lui",
+      "license": "GPL",
+      "description": "Lightweight User Interface for Scanoss"
+    },
+    "include": [],
+    "ignore": [],
+    "remove": [],
+    "replace": []
+  },
+  "settings": {
+    "flags": [],
+    "folders": {
+      "include": [],
+      "exclude": []
+    },
+    "output": {
+      "format": "cyclonedx",
+      "path": "SBOM.json"
+    }
+  }
+}

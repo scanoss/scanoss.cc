@@ -1,4 +1,4 @@
-import { adapter } from 'wailsjs/go/models';
+import { entities } from 'wailsjs/go/models';
 
 export interface Result {
   path: string;
@@ -11,4 +11,4 @@ export enum MatchType {
   None = 'none',
 }
 
-export type Component = adapter.ComponentDTO;
+export type Component = entities.ComponentDTO;

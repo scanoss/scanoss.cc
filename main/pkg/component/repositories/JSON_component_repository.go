@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"errors"
-	"integration-git/main/pkg/common/config/domain"
+	"integration-git/main/pkg/common/config"
 	"integration-git/main/pkg/component/entities"
 	"integration-git/main/pkg/utils"
 	"sort"
@@ -23,17 +23,14 @@ var licenseSourceOrder = map[string]int{
 }
 
 type JSONComponentRepository struct {
-	config *domain.Config
 }
 
-func NewComponentRepository(config *domain.Config) *JSONComponentRepository {
-	return &JSONComponentRepository{
-		config: config,
-	}
+func NewComponentRepository() *JSONComponentRepository {
+	return &JSONComponentRepository{}
 }
 
 func (r *JSONComponentRepository) FindByFilePath(path string) (entities.Component, error) {
-	resultFilePath := r.config.ResultFilePath
+	resultFilePath := config.Get().ResultFilePath
 
 	resultFileBytes, err := utils.ReadFile(resultFilePath)
 	if err != nil {
@@ -69,7 +66,7 @@ func (r *JSONComponentRepository) InsertComponentFilter(dto *entities.ComponentF
 		Version: dto.Version,
 	}
 
-	scanSettingsFileBytes, err := utils.ReadFile(r.config.ScanSettingsFilePath)
+	scanSettingsFileBytes, err := utils.ReadFile(config.Get().ScanSettingsFilePath)
 	if err != nil {
 		return err
 	}
@@ -83,7 +80,7 @@ func (r *JSONComponentRepository) InsertComponentFilter(dto *entities.ComponentF
 		return err
 	}
 
-	if err := utils.WriteJsonFile(r.config.ScanSettingsFilePath, parsedFile); err != nil {
+	if err := utils.WriteJsonFile(config.Get().ScanSettingsFilePath, parsedFile); err != nil {
 		return err
 	}
 

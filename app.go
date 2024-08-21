@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"integration-git/main/pkg/common/config"
 	"integration-git/main/pkg/component"
 	componentEntities "integration-git/main/pkg/component/entities"
 	"integration-git/main/pkg/file"
@@ -12,6 +14,8 @@ import (
 	"integration-git/main/pkg/result"
 	module_result_adapter "integration-git/main/pkg/result/common"
 	"integration-git/main/pkg/scan"
+	"os"
+	"path/filepath"
 )
 
 // App struct
@@ -32,6 +36,85 @@ func NewApp() *App {
 		resultModule:    result.NewModule(),
 		componentModule: component.NewModule(),
 		scanModule:      scan.NewModule(),
+	}
+}
+
+func (a *App) Init() {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("Unable to read user home directory")
+		os.Exit(1)
+	}
+	var defaultScanossFolder = homeDir + string(os.PathSeparator) + "." + config.GetDefaultGlobalFolder() + string(os.PathSeparator) + config.GetDefaultConfigFileName()
+
+	a.createScanossFolder(defaultScanossFolder)
+	a.createConfigFile(defaultScanossFolder)
+	a.initScanSettingsFile()
+
+}
+
+func (r *App) createScanossFolder(path string) {
+	// Get the directory path
+	dirPath := filepath.Dir(path)
+	// Check if the directory exists
+	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+		// Directory does not exist, create it
+		err := os.MkdirAll(dirPath, os.ModePerm)
+		if err != nil {
+			fmt.Printf("Failed to create .scanoss directory: %v\n", err)
+			os.Exit(1)
+		}
+	}
+}
+
+func (a *App) createConfigFile(path string) {
+
+	_, err := os.Stat(path)
+	if err == nil {
+		return // File exists
+	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		fmt.Printf("Failed to create configuration file: %v\n", err)
+		os.Exit(1)
+	}
+	defer file.Close()
+
+	content := fmt.Sprintf(`{ "apiToken": "" , "apiUrl": "%s"}`, config.GetDefaultApiURL())
+	// Write the content to the file
+	_, err = file.WriteString(content)
+	if err != nil {
+		fmt.Printf("Failed to write configuration file: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func (a *App) initScanSettingsFile() {
+	scanSettingsFilePath := config.GetScanSettingDefaultLocation()
+	dirPath := filepath.Dir(scanSettingsFilePath)
+	// Check if the directory exists
+	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+		// Directory does not exist, create it
+		err := os.MkdirAll(dirPath, os.ModePerm)
+		if err != nil {
+			fmt.Printf("Failed to create .scanoss directory: %v\n", err)
+			os.Exit(1)
+		}
+		file, err := os.Create(scanSettingsFilePath)
+		defer file.Close()
+		defaultScanSettings := componentEntities.ScanSettingsFile{
+			Bom: componentEntities.Bom{
+				Include: []componentEntities.ComponentFilter{},
+				Remove:  []componentEntities.ComponentFilter{},
+			},
+		}
+
+		jsonData, err := json.Marshal(defaultScanSettings)
+		if err != nil {
+			fmt.Printf("Failed to write configuration file: %v\n", err)
+		}
+		_, err = file.WriteString(string(jsonData))
 	}
 }
 

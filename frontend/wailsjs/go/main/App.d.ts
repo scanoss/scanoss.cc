@@ -16,4 +16,6 @@ export function GetFilesToBeCommited():Promise<Array<adapter.GitFileDTO>>;
 
 export function Greet(arg1:string):Promise<string>;
 
+export function Init():Promise<void>;
+
 export function ResultGetAll(arg1:common.RequestResultDTO):Promise<Array<common.ResultDTO>>;

@@ -14,13 +14,15 @@ var assets embed.FS
 
 func main() {
 
+	// Create an instance of the app structure
+	app := NewApp()
+
+	app.Init()
+
 	// Inputs provided will override the values in configuration if they differ.
 	if err := cmd.Execute(); err != nil {
 		panic(err)
 	}
-
-	// Create an instance of the app structure
-	app := NewApp()
 
 	//Create application with options
 	err := wails.Run(&options.App{

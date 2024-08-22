@@ -1,4 +1,7 @@
+import { entities } from 'wailsjs/go/models';
+
 import {
+  ComponentFilter,
   FileGetLocalContent,
   FileGetRemoteContent,
   GetFilesToBeCommited,
@@ -17,5 +20,9 @@ export default class FileService {
 
   static async getRemoteFileContent(path: string) {
     return FileGetRemoteContent(path).then(mapToLocalFile);
+  }
+
+  static async filterComponentByPath(dto: entities.ComponentFilterDTO) {
+    return ComponentFilter(dto);
   }
 }

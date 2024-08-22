@@ -140,7 +140,7 @@ export namespace entities {
 	    path: string;
 	    purl: string;
 	    usage?: string;
-	    version: string;
+	    version?: string;
 	    action: string;
 	
 	    static createFrom(source: any = {}) {

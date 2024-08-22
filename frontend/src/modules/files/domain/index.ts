@@ -8,3 +8,8 @@ export interface LocalFile {
   content: string;
   language: string | null;
 }
+
+export enum FilterAction {
+  Include = 'include',
+  Remove = 'remove',
+}

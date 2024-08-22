@@ -6,6 +6,7 @@ import EmptyState from '@/components/EmptyState';
 import { Component, MatchType } from '@/modules/results/domain';
 
 import FileService from '../infra/service';
+import FileActionsMenu from './FileActionsMenu';
 import FileInfoCard from './FileInfoCard';
 import MatchInfoCard from './MatchInfoCard';
 
@@ -17,16 +18,18 @@ interface WrapperProps {
 
 function Wrapper({ children, component, localFilePath }: WrapperProps) {
   return (
-    <div className="w-full h-full flex flex-col gap-4 overflow-auto">
-      <MatchInfoCard component={component} />
-      <div className="flex flex-1 flex-col h-full gap-4">
+    <div className="flex h-full w-full flex-col">
+      <FileActionsMenu component={component} />
+
+      <div className="flex flex-1 flex-col gap-4 p-6">
+        <MatchInfoCard component={component} />
         <div className="flex gap-4">
           <div className="flex-1">
             <FileInfoCard title="Source file" subtitle={localFilePath} />
           </div>
           <div className="flex-1">
             <FileInfoCard
-              title="Component file"
+              title="Remote file"
               subtitle={component.file}
               noMatch={component.id === MatchType.None}
             />
@@ -104,7 +107,7 @@ export default function MatchComparison({
   }
 
   return (
-    <div className="w-full h-full flex justify-center items-center">
+    <div className="flex h-full w-full items-center justify-center">
       <EmptyState
         title="No matches"
         subtitle="There are no matches found for this file, please select another one."

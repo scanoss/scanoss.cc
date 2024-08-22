@@ -62,9 +62,6 @@ func setInputFile(resultFile string) {
 			}
 		}
 	}
-
-	fmt.Println("CONFIG", config.Get())
-
 }
 
 func setScanRoot(root string) {

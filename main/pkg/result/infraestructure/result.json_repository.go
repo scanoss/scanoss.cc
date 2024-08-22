@@ -43,6 +43,10 @@ func (r *JsonResultRepository) GetResults(filter common.ResultFilter) ([]domain.
 	if filter != nil {
 		var filteredResults []domain.Result
 		for _, result := range scanResults {
+			if result.IsEmpty() {
+				continue
+			}
+
 			if filter.IsValid(result) {
 				filteredResults = append(filteredResults, result)
 			}

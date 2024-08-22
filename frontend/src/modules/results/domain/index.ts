@@ -8,7 +8,6 @@ export interface Result {
 export enum MatchType {
   File = 'file',
   Snippet = 'snippet',
-  None = 'none',
 }
 
 export type Component = entities.ComponentDTO;

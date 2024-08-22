@@ -3,7 +3,6 @@ package common
 type MatchType string
 
 const (
-	NoMatch MatchType = "none"
 	File    MatchType = "file"
 	Snippet MatchType = "snippet"
 )

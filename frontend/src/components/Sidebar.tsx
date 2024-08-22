@@ -52,7 +52,6 @@ export default function Sidebar() {
           <SelectContent>
             <SelectItem value={MatchType.File}>File</SelectItem>
             <SelectItem value={MatchType.Snippet}>Snippet</SelectItem>
-            <SelectItem value={MatchType.None}>No match</SelectItem>
             <SelectItem value="all">All</SelectItem>
           </SelectContent>
         </Select>
@@ -99,5 +98,4 @@ export default function Sidebar() {
 const matchTypeColors: Record<MatchType, string> = {
   [MatchType.File]: 'bg-cyan-500',
   [MatchType.Snippet]: 'bg-yellow-500',
-  [MatchType.None]: 'bg-gray-500',
 };

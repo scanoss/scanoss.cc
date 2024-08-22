@@ -31,7 +31,7 @@ function Wrapper({ children, component, localFilePath }: WrapperProps) {
             <FileInfoCard
               title="Remote file"
               subtitle={component.file}
-              noMatch={component.id === MatchType.None}
+              noMatch={false}
             />
           </div>
         </div>

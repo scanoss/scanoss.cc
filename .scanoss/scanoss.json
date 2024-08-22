@@ -1,12 +1,1 @@
-{
- "bom": {
-  "include": [
-   {
-    "path": "src/winnowing.c",
-    "purl": "pkg:github/scanoss/engine",
-    "version": ""
-   }
-  ],
-  "remove": []
- }
-}
+{"bom":{"include":[],"remove":[]}}

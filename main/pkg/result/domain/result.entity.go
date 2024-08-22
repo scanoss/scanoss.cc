@@ -24,3 +24,10 @@ func (r *Result) GetMatchType() string {
 func (r *Result) GetFile() string {
 	return r.file
 }
+
+func (r *Result) IsEmpty() bool {
+	if r.matchType == "none" {
+		return true
+	}
+	return false
+}

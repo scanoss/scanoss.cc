@@ -2,7 +2,6 @@ package usecases_test
 
 import (
 	"encoding/json"
-	internal_test "integration-git/main/internal"
 	"integration-git/main/pkg/component/entities"
 	"integration-git/main/pkg/component/repositories"
 	"os"
@@ -13,10 +12,10 @@ import (
 )
 
 func TestInsertComponentFilterActions(t *testing.T) {
-	config, cleanup := internal_test.InitializeTestEnvironment(t)
-	defer cleanup()
+	//config, cleanup := internal_test.InitializeTestEnvironment(t)
+	// defer cleanup()
 
-	repo := repositories.NewComponentRepository(config)
+	repo := repositories.NewComponentRepository()
 
 	tests := []struct {
 		name string

@@ -15,7 +15,7 @@ func TestFilterComponent_Integration(t *testing.T) {
 	config, cleanup := internal_test.InitializeTestEnvironment(t)
 	defer cleanup()
 
-	repo := repositories.NewComponentRepository(config)
+	repo := repositories.NewComponentRepository()
 	useCase := usecases.NewComponentUseCase(repo)
 	controller := controllers.NewComponentController(useCase)
 

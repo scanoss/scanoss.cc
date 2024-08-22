@@ -13,8 +13,6 @@ var configurationPath string
 var scanRoot string
 
 const ROOT_FOLDER = "."
-const GLOBAL_CONFIG_FILE_NAME = "scanoss-lui-settings.json"
-const GLOBAL_CONFIG_FOLDER = "scanoss"
 
 var rootCmd = &cobra.Command{
 	Use:   "integration-git",
@@ -41,12 +39,12 @@ func setConfigFile(configFile string) {
 			fmt.Println("Unable to read user home directory")
 			os.Exit(1)
 		}
-		pathToConfig = homeDir + string(os.PathSeparator) + ROOT_FOLDER + GLOBAL_CONFIG_FOLDER + string(os.PathSeparator) + GLOBAL_CONFIG_FILE_NAME
+		pathToConfig = homeDir + string(os.PathSeparator) + ROOT_FOLDER + config.GetDefaultGlobalFolder() + string(os.PathSeparator) + config.GetDefaultConfigFileName()
 	}
 
 	// Load the config
 	if _, err := config.LoadConfig(pathToConfig); err != nil {
-		fmt.Printf("Make sure you have a %s file in the root of your project", GLOBAL_CONFIG_FILE_NAME)
+		fmt.Printf("Make sure you have a %s file in the root of your project", config.GetDefaultConfigFileName())
 		os.Exit(1)
 	}
 }
@@ -64,7 +62,6 @@ func setInputFile(resultFile string) {
 			}
 		}
 	}
-
 }
 
 func setScanRoot(root string) {

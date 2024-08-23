@@ -6,4 +6,5 @@ export const mapToResult = (response: common.ResultDTO[]): Result[] =>
   response.map((res) => ({
     path: res.file,
     matchType: res.matchType as MatchType,
+    state: 'unstaged',
   }));

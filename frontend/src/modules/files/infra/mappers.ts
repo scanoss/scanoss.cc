@@ -6,6 +6,7 @@ const languages: Record<string, string> = {
   sol: 'solidity',
   js: 'javascript',
   ts: 'typescript',
+  tsx: 'typescript',
   py: 'python',
   rb: 'ruby',
   sh: 'bash',

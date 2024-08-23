@@ -49,12 +49,12 @@ export default function CodeViewer({
   };
 
   if (isLoading) {
-    return <Skeleton className="w-full h-full" />;
+    return <Skeleton className="h-full w-full" />;
   }
 
   if (isError) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="flex h-full w-full items-center justify-center">
         <p className="text-red-500">Error loading file</p>
       </div>
     );
@@ -68,7 +68,7 @@ export default function CodeViewer({
       value={content}
       width={width}
       {...(language ? { language } : {})}
-      loading={<Skeleton className="w-full h-full" />}
+      loading={<Skeleton className="h-full w-full" />}
       options={{
         minimap: { enabled: false },
         readOnly: true,

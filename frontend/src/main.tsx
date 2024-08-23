@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 
 import ConfirmDialog from './components/ConfirmDialog';
+import { Toaster } from './components/ui/toaster';
 import { TooltipProvider } from './components/ui/tooltip';
 import { ResultsProvider } from './modules/results/providers/ResultsProvider';
 import { ConfirmDialogProvider } from './providers/ConfirmDialogProvider';
@@ -39,9 +40,10 @@ if (!rootElement.innerHTML) {
       <TooltipProvider>
         <QueryClientProvider client={queryClient}>
           <ConfirmDialogProvider>
-            <ConfirmDialog />
             <ResultsProvider>
               <RouterProvider router={router} />
+              <ConfirmDialog />
+              <Toaster />
             </ResultsProvider>
           </ConfirmDialogProvider>
         </QueryClientProvider>

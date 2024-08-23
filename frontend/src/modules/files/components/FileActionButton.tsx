@@ -13,8 +13,10 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/components/ui/use-toast';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Component } from '@/modules/results/domain';
+import { useResults } from '@/modules/results/providers/ResultsProvider';
 
 import { FilterAction } from '../domain';
 import useLocalFilePath from '../hooks/useLocalFilePath';
@@ -42,7 +44,9 @@ export default function FileActionButton({
   icon,
   isDisabled = false,
 }: FileActionButtonProps) {
+  const { toast } = useToast();
   const { ask } = useConfirm();
+  const { handleStageResult } = useResults();
   const localFilePath = useLocalFilePath();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -59,6 +63,13 @@ export default function FileActionButton({
         path,
         purl,
       }),
+    onSuccess: () => {
+      handleStageResult(localFilePath);
+      toast({
+        title: 'Success',
+        description: `The file ${localFilePath} has been filtered for ${action}`,
+      });
+    },
   });
 
   const handleFilterByFile = async (path: string, purl: string) => {

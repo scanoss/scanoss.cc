@@ -14,6 +14,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from './ui/collapsible';
+import { ScrollArea } from './ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -24,10 +25,10 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function Sidebar() {
+  const { setResults, results, stagedResults, unstagedResults } = useResults();
   const [filterByMatchType, setFilterByMatchType] = useState<MatchType | 'all'>(
     'all'
   );
-  const { setResults, results } = useResults();
 
   const { data } = useQuery({
     queryKey: ['results', filterByMatchType],
@@ -42,12 +43,6 @@ export default function Sidebar() {
       setResults(data);
     }
   }, [data]);
-
-  const unstagedResults = results.filter(
-    (result) => result.state === 'unstaged'
-  );
-
-  const stagedResults = results.filter((result) => result.state === 'staged');
 
   return (
     <aside className="z-10 flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-sm">
@@ -85,44 +80,46 @@ export default function Sidebar() {
           </SelectContent>
         </Select>
       </div>
-      <div className="flex flex-1 flex-col gap-2">
-        <Collapsible defaultOpen>
-          <CollapsibleTrigger className="group w-full">
-            <div className="flex items-center gap-1 border-b border-border px-3 pb-1">
-              <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
-              <span className="text-sm text-muted-foreground">
-                Pending files{' '}
-                <span className="text-xs">({unstagedResults?.length})</span>
-              </span>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="flex flex-col gap-1 overflow-y-auto">
-              {unstagedResults?.map((result) => {
-                return <SidebarItem key={result.path} result={result} />;
-              })}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-        <Collapsible defaultOpen>
-          <CollapsibleTrigger className="group w-full">
-            <div className="flex items-center gap-1 border-b border-border px-3 pb-1">
-              <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
-              <span className="text-sm text-muted-foreground">
-                Worked files{' '}
-                <span className="text-xs">({stagedResults?.length})</span>
-              </span>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="flex flex-1 flex-col gap-1 overflow-y-auto py-6">
-            <div>
-              {stagedResults?.map((result) => {
-                return <SidebarItem key={result.path} result={result} />;
-              })}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+      <ScrollArea>
+        <div className="flex flex-1 flex-col gap-2">
+          <Collapsible defaultOpen className="flex-1">
+            <CollapsibleTrigger className="group w-full">
+              <div className="flex items-center gap-1 border-b border-border px-3 pb-1">
+                <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
+                <span className="text-sm text-muted-foreground">
+                  Pending files{' '}
+                  <span className="text-xs">({unstagedResults?.length})</span>
+                </span>
+              </div>
+            </CollapsibleTrigger>
+            {unstagedResults.length ? (
+              <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
+                {unstagedResults.map((result) => {
+                  return <SidebarItem key={result.path} result={result} />;
+                })}
+              </CollapsibleContent>
+            ) : null}
+          </Collapsible>
+          <Collapsible defaultOpen className="flex-1">
+            <CollapsibleTrigger className="group w-full">
+              <div className="flex items-center gap-1 border-b border-border px-3 pb-1">
+                <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
+                <span className="text-sm text-muted-foreground">
+                  Completed files{' '}
+                  <span className="text-xs">({stagedResults?.length})</span>
+                </span>
+              </div>
+            </CollapsibleTrigger>
+            {stagedResults.length ? (
+              <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
+                {stagedResults.map((result) => {
+                  return <SidebarItem key={result.path} result={result} />;
+                })}
+              </CollapsibleContent>
+            ) : null}
+          </Collapsible>
+        </div>
+      </ScrollArea>
     </aside>
   );
 }

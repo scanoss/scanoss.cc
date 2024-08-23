@@ -5,7 +5,9 @@ import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 
+import ConfirmDialog from './components/ConfirmDialog';
 import { TooltipProvider } from './components/ui/tooltip';
+import { ConfirmDialogProvider } from './providers/ConfirmDialogProvider';
 import Index from './routes';
 import FileComparison from './routes/files/match';
 import Root from './routes/root';
@@ -35,7 +37,10 @@ if (!rootElement.innerHTML) {
     <StrictMode>
       <TooltipProvider>
         <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
+          <ConfirmDialogProvider>
+            <ConfirmDialog />
+            <RouterProvider router={router} />
+          </ConfirmDialogProvider>
         </QueryClientProvider>
       </TooltipProvider>
     </StrictMode>

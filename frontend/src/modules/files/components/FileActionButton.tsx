@@ -11,11 +11,19 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useConfirm } from '@/hooks/useConfirm';
 import { Component } from '@/modules/results/domain';
 
 import { FilterAction } from '../domain';
 import useLocalFilePath from '../hooks/useLocalFilePath';
 import FileService from '../infra/service';
+
+const getActionPersistKey = (action: FilterAction) =>
+  `filter-action-${action}-dont-ask-again`;
+const isFilterActionPersisted = (action: FilterAction) =>
+  localStorage.getItem(getActionPersistKey(action)) === 'true';
+const persistAction = (action: FilterAction) =>
+  localStorage.setItem(getActionPersistKey(action), 'true');
 
 interface FileActionButtonProps {
   action: FilterAction;
@@ -32,6 +40,7 @@ export default function FileActionButton({
   icon,
   isDisabled = false,
 }: FileActionButtonProps) {
+  const { ask } = useConfirm();
   const localFilePath = useLocalFilePath();
   const purl = component.purl?.[0];
 
@@ -40,15 +49,29 @@ export default function FileActionButton({
   }
 
   const { mutate } = useMutation({
-    mutationFn: () =>
+    mutationFn: ({ path, purl }: { path: string; purl: string }) =>
       FileService.filterComponentByPath({
         action,
-        path: localFilePath,
+        path,
         purl,
       }),
   });
 
-  const handleFilterByFile = () => mutate();
+  const handleFilterByFile = async (path: string, purl: string) => {
+    const isPersisted = isFilterActionPersisted(action);
+    if (isPersisted) {
+      mutate({ path, purl });
+    } else {
+      const res = await ask(
+        // TODO: Define proper descriptions
+        'You are about to filter this file for future scans. Are you sure you want to proceed?',
+        () => persistAction(action)
+      );
+      if (res) {
+        mutate({ path, purl });
+      }
+    }
+  };
 
   return (
     <DropdownMenu>
@@ -80,7 +103,9 @@ export default function FileActionButton({
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />
-        <DropdownMenuItem onClick={handleFilterByFile}>
+        <DropdownMenuItem
+          onClick={() => handleFilterByFile(localFilePath, purl)}
+        >
           <div className="flex flex-col">
             <span className="text-sm">File</span>
             <span className="text-xs text-muted-foreground">

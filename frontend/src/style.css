@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
 @layer base {
   :root {
     --background: 222 28% 7%;
@@ -68,9 +77,4 @@
   background: rgba(76, 105, 9, 0.94);
   width: 3px !important;
   margin-left: 10px;
-}
-
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
 }

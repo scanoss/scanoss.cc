@@ -1,4 +1,4 @@
-import { Ban, Check } from 'lucide-react';
+import { Check, PackageMinus, RefreshCwOff, Replace } from 'lucide-react';
 
 import { Component } from '@/modules/results/domain';
 
@@ -12,16 +12,32 @@ interface FileActionsMenuProps {
 export default function FileActionsMenu({ component }: FileActionsMenuProps) {
   return (
     <div className="flex h-[65px] justify-center border-b border-b-border px-4">
-      <div className="flex gap-1">
+      <div className="flex gap-2">
         <FileActionButton
           action={FilterAction.Include}
           component={component}
           icon={<Check className="h-5 w-5 stroke-green-500" />}
+          description="By including a file/component, you force the engine to consider it with priority in future scans."
         />
         <FileActionButton
           action={FilterAction.Remove}
           component={component}
-          icon={<Ban className="h-5 w-4 stroke-red-500" />}
+          description="Removing a file/component will exclude it from future scans."
+          icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
+        />
+        <FileActionButton
+          action={FilterAction.Ignore}
+          component={component}
+          icon={<RefreshCwOff className="h-5 w-5 stroke-amber-500" />}
+          description="By ignoring a file/component, you prevent the engine from considering it in future scans."
+          isDisabled
+        />
+        <FileActionButton
+          action={FilterAction.Replace}
+          component={component}
+          icon={<Replace className="h-5 w-5 stroke-cyan-500" />}
+          description="Replace a file/component with another one."
+          isDisabled
         />
       </div>
     </div>

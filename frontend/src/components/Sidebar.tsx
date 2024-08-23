@@ -56,7 +56,7 @@ export default function Sidebar() {
           </SelectContent>
         </Select>
       </div>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 overflow-y-auto pb-6">
         {files?.map((file) => {
           const isActive = decodeFilePath(filePath ?? '') === file.path;
           const encodedFilePath = encodeFilePath(file.path);

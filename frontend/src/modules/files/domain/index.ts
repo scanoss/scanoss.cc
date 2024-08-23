@@ -10,6 +10,8 @@ export interface LocalFile {
 }
 
 export enum FilterAction {
+  Ignore = 'ignore',
   Include = 'include',
   Remove = 'remove',
+  Replace = 'replace',
 }

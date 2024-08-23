@@ -20,13 +20,17 @@ import FileService from '../infra/service';
 interface FileActionButtonProps {
   action: FilterAction;
   component: Component;
+  description: string;
   icon: React.ReactNode;
+  isDisabled?: boolean;
 }
 
 export default function FileActionButton({
   action,
   component,
+  description,
   icon,
+  isDisabled = false,
 }: FileActionButtonProps) {
   const localFilePath = useLocalFilePath();
   const purl = component.purl?.[0];
@@ -52,23 +56,27 @@ export default function FileActionButton({
         <Button
           variant="ghost"
           size="lg"
-          className="h-full w-14 rounded-none group-hover:bg-accent group-hover:text-accent-foreground"
+          className="h-full w-14 rounded-none enabled:group-hover:bg-accent enabled:group-hover:text-accent-foreground"
+          disabled={isDisabled}
         >
           <div className="flex flex-col items-center justify-center gap-1">
             <span className="text-xs first-letter:uppercase">{action}</span>
             {icon}
           </div>
         </Button>
-        <DropdownMenuTrigger>
-          <div className="flex h-full w-4 cursor-pointer items-center transition-colors hover:bg-accent">
-            <ChevronDown className="h-4 w-4 stroke-muted-foreground hover:stroke-accent-foreground" />
-          </div>
+        <DropdownMenuTrigger disabled={isDisabled}>
+          <button
+            className="flex h-full w-4 items-center transition-colors enabled:hover:bg-accent"
+            disabled={isDisabled}
+          >
+            <ChevronDown className="h-4 w-4 stroke-muted-foreground enabled:hover:stroke-accent-foreground" />
+          </button>
         </DropdownMenuTrigger>
       </div>
       <DropdownMenuContent className="max-w-[400px]">
         <DropdownMenuLabel>
           <span className="text-xs font-normal text-muted-foreground">
-            Here should go a description of the action explaining what it does
+            {description}
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />

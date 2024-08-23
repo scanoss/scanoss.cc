@@ -1,5 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
+import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +44,8 @@ export default function FileActionButton({
 }: FileActionButtonProps) {
   const { ask } = useConfirm();
   const localFilePath = useLocalFilePath();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   const purl = component.purl?.[0];
 
   if (!purl || !localFilePath) {
@@ -74,7 +78,7 @@ export default function FileActionButton({
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={setDropdownOpen}>
       <div className="group flex h-full">
         <Button
           variant="ghost"
@@ -87,12 +91,17 @@ export default function FileActionButton({
             {icon}
           </div>
         </Button>
-        <DropdownMenuTrigger disabled={isDisabled}>
+        <DropdownMenuTrigger disabled={isDisabled} asChild>
           <button
-            className="flex h-full w-4 items-center transition-colors enabled:hover:bg-accent"
+            className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent"
             disabled={isDisabled}
           >
-            <ChevronDown className="h-4 w-4 stroke-muted-foreground enabled:hover:stroke-accent-foreground" />
+            <ChevronDown
+              className={clsx(
+                'h-4 w-4 stroke-muted-foreground transition-transform enabled:hover:stroke-accent-foreground',
+                dropdownOpen && 'rotate-180 transform'
+              )}
+            />
           </button>
         </DropdownMenuTrigger>
       </div>

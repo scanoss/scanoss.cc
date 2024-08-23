@@ -1,4 +1,4 @@
-import { Check, FileWarning, PackageMinus, Replace } from 'lucide-react';
+import { Check, PackageMinus, RefreshCwOff, Replace } from 'lucide-react';
 
 import { Component } from '@/modules/results/domain';
 
@@ -28,7 +28,7 @@ export default function FileActionsMenu({ component }: FileActionsMenuProps) {
         <FileActionButton
           action={FilterAction.Ignore}
           component={component}
-          icon={<FileWarning className="h-5 w-5 stroke-amber-500" />}
+          icon={<RefreshCwOff className="h-5 w-5 stroke-amber-500" />}
           description="By ignoring a file/component, you prevent the engine from considering it in future scans."
           isDisabled
         />

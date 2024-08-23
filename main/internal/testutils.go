@@ -2,7 +2,7 @@ package internal_test
 
 import (
 	"integration-git/main/pkg/common/config/domain"
-	"integration-git/main/pkg/component/entities"
+	entities2 "integration-git/main/pkg/common/scanoss_bom/application/entities"
 	"integration-git/main/pkg/utils"
 	"os"
 	"testing"
@@ -17,10 +17,10 @@ func SetupTestFiles(t *testing.T) string {
 	}
 	scanSettingsFilePath := scanSettingsFile.Name()
 
-	initialScanSettings := entities.ScanSettingsFile{
-		Bom: entities.Bom{
-			Include: []entities.ComponentFilter{},
-			Remove:  []entities.ComponentFilter{},
+	initialScanSettings := entities2.BomFile{
+		Bom: entities2.Bom{
+			Include: []entities2.ComponentFilter{},
+			Remove:  []entities2.ComponentFilter{},
 		},
 	}
 	scanSettingsFile.Close()

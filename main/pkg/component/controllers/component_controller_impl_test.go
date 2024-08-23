@@ -2,6 +2,9 @@ package controllers_test
 
 import (
 	internal_test "integration-git/main/internal"
+	"integration-git/main/pkg/common/config"
+	entities2 "integration-git/main/pkg/common/scanoss_bom/application/entities"
+	modules "integration-git/main/pkg/common/scanoss_bom/module"
 	"integration-git/main/pkg/component/controllers"
 	"integration-git/main/pkg/component/entities"
 	"integration-git/main/pkg/component/repositories"
@@ -12,13 +15,16 @@ import (
 )
 
 func TestFilterComponent_Integration(t *testing.T) {
-	config, cleanup := internal_test.InitializeTestEnvironment(t)
+	mockedConfig, cleanup := internal_test.InitializeTestEnvironment(t)
 	defer cleanup()
+
+	config.SetConfig(mockedConfig)
 
 	repo := repositories.NewComponentRepository()
 	useCase := usecases.NewComponentUseCase(repo)
 	controller := controllers.NewComponentController(useCase)
 
+	modules.NewScanossBomModule().Init(&entities2.BomFile{})
 	dto := entities.ComponentFilterDTO{
 		Path:    "test/path",
 		Purl:    "test:purl",

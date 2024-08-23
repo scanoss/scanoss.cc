@@ -21,27 +21,33 @@ const SCAN_SETTINGS_DEFAULT_LOCATION = ".scanoss/scanoss.json"
 const ROOT_FOLDER = "."
 const DEFAULT_API_URL = "https://api.osskb.org"
 
-// LoadConfig reads the configuration and sets it as the singleton instance
-func LoadConfig(filename string) (*domain.Config, error) {
-	configLock.Lock()
-	defer configLock.Unlock()
-
-	once.Do(func() {
-		cfgReader, _ := adapter.NewConfigServiceReaderFactory().Create(filename)
-		cfg, err := cfgReader.ReadConfig(filename)
-		if err != nil {
-			fmt.Println("Config file does not exist, please add the 'scanoss-lui-settings.json' in $HOME/.scanoss/")
-			os.Exit(1)
-		}
-
-		config = &cfg
-	})
-
-	if config == nil {
-		return nil, fmt.Errorf("failed to load config")
+// Read reads the configuration from the specified file and sets it in the application.
+//
+// If the configuration file does not exist, the program will terminate with an error message.
+//
+// Parameters:
+// - filename: The name of the configuration file to read.
+//
+// Returns a pointer to the Config struct containing the configuration, or an error if reading fails.
+func Read(filename string) (*domain.Config, error) {
+	cfgReader, _ := adapter.NewConfigServiceReaderFactory().Create(filename)
+	cfg, err := cfgReader.ReadConfig(filename)
+	if err != nil {
+		fmt.Println("Config file does not exist, please add the 'scanoss-lui-settings.json' in $HOME/.scanoss/")
+		os.Exit(1)
 	}
+	SetConfig(&cfg)
 
 	return config, nil
+}
+
+func SetConfig(cfg *domain.Config) *domain.Config {
+	configLock.Lock()
+	defer configLock.Unlock()
+	once.Do(func() {
+		config = cfg
+	})
+	return config
 }
 
 // Get returns the singleton instance of the configuration

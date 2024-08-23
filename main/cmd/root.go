@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"integration-git/main/pkg/common/config"
 	"os"
-	"strings"
-	"runtime"
-	"github.com/spf13/cobra"
 	"regexp"
+	"runtime"
+	"strings"
 )
 
 var inputFile string
@@ -40,7 +40,7 @@ func setConfigFile(configFile string) {
 	}
 
 	// Load the config
-	if _, err := config.LoadConfig(config.GetDefaultConfigLocation()); err != nil {
+	if _, err := config.Read(config.GetDefaultConfigLocation()); err != nil {
 		fmt.Printf("Make sure you have a %s file in the root of your project", config.GetDefaultConfigFileName())
 		os.Exit(1)
 	}
@@ -64,7 +64,7 @@ func setInputFile(resultFile string) {
 
 func setScanRoot(root string) {
 	if root != "" {
-			// Win OS only
+		// Win OS only
 		if runtime.GOOS == "windows" {
 			// Create a regex pattern to match double slashes
 			re := regexp.MustCompile(`\\+`)

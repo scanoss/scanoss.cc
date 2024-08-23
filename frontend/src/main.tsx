@@ -1,12 +1,14 @@
 import './style.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React, { StrictMode } from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 
 import ConfirmDialog from './components/ConfirmDialog';
+import { Toaster } from './components/ui/toaster';
 import { TooltipProvider } from './components/ui/tooltip';
+import { ResultsProvider } from './modules/results/providers/ResultsProvider';
 import { ConfirmDialogProvider } from './providers/ConfirmDialogProvider';
 import Index from './routes';
 import FileComparison from './routes/files/match';
@@ -38,8 +40,11 @@ if (!rootElement.innerHTML) {
       <TooltipProvider>
         <QueryClientProvider client={queryClient}>
           <ConfirmDialogProvider>
-            <ConfirmDialog />
-            <RouterProvider router={router} />
+            <ResultsProvider>
+              <RouterProvider router={router} />
+              <ConfirmDialog />
+              <Toaster />
+            </ResultsProvider>
           </ConfirmDialogProvider>
         </QueryClientProvider>
       </TooltipProvider>

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"integration-git/main/pkg/common/config"
+	"integration-git/main/pkg/common/scanoss_bom"
 	"integration-git/main/pkg/component"
 	componentEntities "integration-git/main/pkg/component/entities"
 	"integration-git/main/pkg/file"
@@ -45,6 +46,9 @@ func (a *App) Init() {
 		fmt.Println("Unable to read user home directory")
 		os.Exit(1)
 	}
+
+	scanoss_bom.Init()
+
 	var defaultScanossFolder = homeDir + string(os.PathSeparator) + "." + config.GetDefaultGlobalFolder() + string(os.PathSeparator) + config.GetDefaultConfigFileName()
 
 	a.createScanossFolder(defaultScanossFolder)
@@ -103,10 +107,10 @@ func (a *App) initScanSettingsFile() {
 		}
 		file, err := os.Create(scanSettingsFilePath)
 		defer file.Close()
-		defaultScanSettings := componentEntities.ScanSettingsFile{
-			Bom: componentEntities.Bom{
-				Include: []componentEntities.ComponentFilter{},
-				Remove:  []componentEntities.ComponentFilter{},
+		defaultScanSettings := scanoss_bom.BomFile{
+			Bom: scanoss_bom.Bom{
+				Include: []scanoss_bom.ComponentFilter{},
+				Remove:  []scanoss_bom.ComponentFilter{},
 			},
 		}
 
@@ -148,6 +152,7 @@ func (a *App) FileGetRemoteContent(path string) adapter.FileDTO {
 // *****  RESULT MODULE ***** //
 func (a *App) ResultGetAll(dto *module_result_adapter.RequestResultDTO) []module_result_adapter.ResultDTO {
 	results, _ := a.resultModule.Controller.GetAll(dto)
+	fmt.Println("RESULT RESPONSE", results)
 	return results
 }
 

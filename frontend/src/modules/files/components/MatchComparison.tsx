@@ -78,6 +78,7 @@ export default function MatchComparison({
           isError={isErrorLocalFileContent}
           isLoading={isLoadingLocalFileContent}
           language={localFileContent?.language}
+          highlightAll
         />
       </Wrapper>
     );

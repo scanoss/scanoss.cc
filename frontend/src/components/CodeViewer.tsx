@@ -1,6 +1,6 @@
 import { Editor } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
-import React, { useRef } from 'react';
+import { memo, useCallback, useRef } from 'react';
 
 import { getHighlightLineRanges } from '@/modules/results/utils';
 
@@ -9,6 +9,7 @@ import { Skeleton } from './ui/skeleton';
 interface CodeViewerProps {
   content: string | undefined;
   height?: string;
+  highlightAll?: boolean;
   highlightLines?: string;
   isError: boolean;
   isLoading: boolean;
@@ -16,9 +17,10 @@ interface CodeViewerProps {
   width?: string;
 }
 
-export default function CodeViewer({
+const CodeViewer = memo(function CodeViewer({
   content,
   height = '100%',
+  highlightAll,
   highlightLines,
   isError,
   isLoading,
@@ -27,26 +29,48 @@ export default function CodeViewer({
 }: CodeViewerProps) {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
-  const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
-    if (!highlightLines) {
-      return;
-    }
+  const handleEditorMount = useCallback(
+    (editor: monaco.editor.IStandaloneCodeEditor) => {
+      editorRef.current = editor;
 
-    editorRef.current = editor;
+      if (highlightAll) {
+        const totalLines = editor.getModel()?.getLineCount();
 
-    const ranges = getHighlightLineRanges(highlightLines);
+        if (!totalLines) return;
 
-    const decorations = ranges.map(({ start, end }) => ({
-      range: new monaco.Range(start, 1, end, 1),
-      options: {
-        isWholeLine: true,
-        className: 'lineHighlightDecoration',
-        linesDecorationsClassName: 'lineRangeDecoration',
-      },
-    }));
+        const decorations = [
+          {
+            range: new monaco.Range(1, 1, totalLines, 1),
+            options: {
+              isWholeLine: true,
+              className: 'lineHighlightDecoration',
+              linesDecorationsClassName: 'lineRangeDecoration',
+            },
+          },
+        ];
 
-    editorRef.current?.deltaDecorations([], decorations);
-  };
+        editorRef.current?.createDecorationsCollection(decorations);
+
+        return;
+      }
+
+      if (!highlightLines) return;
+
+      const ranges = getHighlightLineRanges(highlightLines);
+
+      const decorations = ranges.map(({ start, end }) => ({
+        range: new monaco.Range(start, 1, end, 1),
+        options: {
+          isWholeLine: true,
+          className: 'lineHighlightDecoration',
+          linesDecorationsClassName: 'lineRangeDecoration',
+        },
+      }));
+
+      editorRef.current?.createDecorationsCollection(decorations);
+    },
+    []
+  );
 
   if (isLoading) {
     return <Skeleton className="h-full w-full" />;
@@ -76,4 +100,6 @@ export default function CodeViewer({
       }}
     />
   );
-}
+});
+
+export default CodeViewer;

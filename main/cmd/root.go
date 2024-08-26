@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"integration-git/main/pkg/common/config"
 	"os"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 var inputFile string
@@ -15,7 +16,7 @@ var scanRoot string
 const ROOT_FOLDER = "."
 
 var rootCmd = &cobra.Command{
-	Use:   "integration-git",
+	Use:   "scanoss-lui",
 	Short: "Lightweight UI, that presents the findings from the latest scan and prompt the user to review pending identifications.",
 	Run: func(cmd *cobra.Command, args []string) {
 		setConfigFile(configurationPath)

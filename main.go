@@ -37,6 +37,7 @@ func main() {
 		Bind: []interface{}{
 			app,
 		},
+		OnShutdown: app.onShutDown,
 	})
 
 	if err != nil {

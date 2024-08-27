@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"integration-git/main/pkg/common/config"
+	"integration-git/main/pkg/common/scanoss_bom"
 	"os"
 	"strings"
 
@@ -48,6 +49,9 @@ func setConfigFile(configFile string) {
 		fmt.Printf("Make sure you have a %s file in the root of your project", config.GetDefaultConfigFileName())
 		os.Exit(1)
 	}
+
+	// Scanoss bom file should be read after config is loaded. Not before
+	scanoss_bom.NewScanossBom().Read()
 }
 
 func setInputFile(resultFile string) {

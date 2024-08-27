@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"integration-git/main/pkg/common/config"
 	"integration-git/main/pkg/common/scanoss_bom"
@@ -47,13 +46,12 @@ func (a *App) Init() {
 		os.Exit(1)
 	}
 
-	scanoss_bom.Init()
-
 	var defaultScanossFolder = homeDir + string(os.PathSeparator) + "." + config.GetDefaultGlobalFolder() + string(os.PathSeparator) + config.GetDefaultConfigFileName()
 
 	a.createScanossFolder(defaultScanossFolder)
 	a.createConfigFile(defaultScanossFolder)
-	a.initScanSettingsFile()
+
+	scanoss_bom.NewScanossBom().Init()
 
 }
 
@@ -94,38 +92,18 @@ func (a *App) createConfigFile(path string) {
 	}
 }
 
-func (a *App) initScanSettingsFile() {
-	scanSettingsFilePath := config.GetScanSettingDefaultLocation()
-	dirPath := filepath.Dir(scanSettingsFilePath)
-	// Check if the directory exists
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		// Directory does not exist, create it
-		err := os.MkdirAll(dirPath, os.ModePerm)
-		if err != nil {
-			fmt.Printf("Failed to create .scanoss directory: %v\n", err)
-			os.Exit(1)
-		}
-		file, err := os.Create(scanSettingsFilePath)
-		defer file.Close()
-		defaultScanSettings := scanoss_bom.BomFile{
-			Bom: scanoss_bom.Bom{
-				Include: []scanoss_bom.ComponentFilter{},
-				Remove:  []scanoss_bom.ComponentFilter{},
-			},
-		}
-
-		jsonData, err := json.Marshal(defaultScanSettings)
-		if err != nil {
-			fmt.Printf("Failed to write configuration file: %v\n", err)
-		}
-		_, err = file.WriteString(string(jsonData))
-	}
-}
-
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+}
+
+func (a *App) onShutDown(ctx context.Context) {
+	a.ctx = ctx
+	_, err := scanoss_bom.NewScanossBom().Save()
+	if err != nil {
+		fmt.Println("scanoss.json file not saved!")
+	}
 }
 
 func (a *App) Greet(name string) string {
@@ -152,7 +130,6 @@ func (a *App) FileGetRemoteContent(path string) adapter.FileDTO {
 // *****  RESULT MODULE ***** //
 func (a *App) ResultGetAll(dto *module_result_adapter.RequestResultDTO) []module_result_adapter.ResultDTO {
 	results, _ := a.resultModule.Controller.GetAll(dto)
-	fmt.Println("RESULT RESPONSE", results)
 	return results
 }
 

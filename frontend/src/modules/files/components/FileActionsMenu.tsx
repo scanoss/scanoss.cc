@@ -1,5 +1,9 @@
-import { Check, PackageMinus, RefreshCwOff, Replace } from 'lucide-react';
+import { ReloadIcon } from '@radix-ui/react-icons';
+import { useMutation } from '@tanstack/react-query';
+import { Check, PackageMinus, RefreshCwOff, Replace, Save } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 import { Component } from '@/modules/results/domain';
 
 import { FilterAction } from '../domain';
@@ -10,9 +14,36 @@ interface FileActionsMenuProps {
 }
 
 export default function FileActionsMenu({ component }: FileActionsMenuProps) {
+  const { toast } = useToast();
+
+  const { mutate: saveChanges, isPending } = useMutation({
+    mutationFn: () => {
+      return new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 1000);
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: `Your changes have been successfully saved.`,
+      });
+    },
+    onError: (e) => {
+      toast({
+        title: 'Error',
+        description:
+          e instanceof Error
+            ? e.message
+            : 'An error occurred while trying to save changes.',
+      });
+    },
+  });
+
   return (
     <div className="flex h-[65px] justify-center border-b border-b-border px-4">
-      <div className="flex gap-2">
+      <div className="ml-auto flex gap-2">
         <FileActionButton
           action={FilterAction.Include}
           component={component}
@@ -39,6 +70,16 @@ export default function FileActionsMenu({ component }: FileActionsMenuProps) {
           description="Replace a file/component with another one."
           isDisabled
         />
+      </div>
+      <div className="ml-auto flex items-center">
+        <Button size="sm" onClick={() => saveChanges()} disabled={isPending}>
+          {isPending ? (
+            <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
+          <span>Save Changes</span>
+        </Button>
       </div>
     </div>
   );

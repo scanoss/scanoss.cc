@@ -13,6 +13,7 @@ import { MatchType, Result } from '@/modules/results/domain';
 export interface ResultsContext {
   handleStageResult: (path: string) => void;
   results: Result[];
+  saveChanges: () => void;
   setResults: Dispatch<SetStateAction<Result[]>>;
   stagedResults: Result[];
   unstagedResults: Result[];
@@ -71,11 +72,17 @@ export const ResultsProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const saveChanges = () => {
+    // Save changes
+    console.log('saving changes...');
+  };
+
   return (
     <ResultsContext.Provider
       value={{
         handleStageResult,
         results: orderedResults,
+        saveChanges,
         setResults,
         stagedResults: groupedResultsByState.staged ?? [],
         unstagedResults: groupedResultsByState.unstaged ?? [],

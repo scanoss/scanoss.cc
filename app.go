@@ -51,7 +51,7 @@ func (a *App) Init() {
 	a.createScanossFolder(defaultScanossFolder)
 	a.createConfigFile(defaultScanossFolder)
 
-	scanoss_bom.NewScanossBom().Init()
+	scanoss_bom.Init()
 
 }
 
@@ -100,7 +100,7 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) onShutDown(ctx context.Context) {
 	a.ctx = ctx
-	_, err := scanoss_bom.NewScanossBom().Save()
+	_, err := scanoss_bom.Bom.Save()
 	if err != nil {
 		fmt.Println("scanoss.json file not saved!")
 	}
@@ -141,4 +141,11 @@ func (a *App) ComponentGet(filePath string) componentEntities.ComponentDTO {
 
 func (a *App) ComponentFilter(dto componentEntities.ComponentFilterDTO) error {
 	return a.componentModule.Controller.FilterComponent(dto)
+}
+
+// *****  SCANOSS BOM MODULE ***** //
+
+func (a *App) SaveScanossBomFile() error {
+	_, err := scanoss_bom.Bom.Save()
+	return err
 }

@@ -9,49 +9,50 @@ import (
 )
 
 type ScanossBom struct {
-	readScanossJsonUseCase   *use_cases.ReadScanossJsonUseCase
-	createScanossJsonUseCase *use_cases.CreateScanossJsonUseCase
-	saveScanossJsonUseCase   *use_cases.SaveScanossJsonUseCase
+	readScanossJsonUseCase *use_cases.ReadScanossJsonUseCase
+	saveScanossJsonUseCase *use_cases.SaveScanossJsonUseCase
+	BomFile                *entities.BomFile
 }
 
 func NewScanossBom() *ScanossBom {
 	return &ScanossBom{
-		readScanossJsonUseCase:   use_cases.NewReadScanossJsonUseCase(services.NewScanossBomService()),
-		createScanossJsonUseCase: use_cases.NewCreateScanossJsonUseCase(services.NewScanossBomService()),
-		saveScanossJsonUseCase:   use_cases.NewSaveScanossJsonUseCase(services.NewScanossBomService()),
+		readScanossJsonUseCase: use_cases.NewReadScanossJsonUseCase(services.NewScanossBomService()),
+		saveScanossJsonUseCase: use_cases.NewSaveScanossJsonUseCase(services.NewScanossBomService()),
 	}
 }
 
 var (
-	bom        *entities.BomFile
+	Bom        *ScanossBom
 	once       sync.Once
 	configLock sync.Mutex
 )
 
-// LoadConfig reads the configuration and sets it as the singleton instance
-func (sc *ScanossBom) Read() (*entities.BomFile, error) {
-	fmt.Println("Initializing in memory bom")
+func Read() {
 	configLock.Lock()
 	defer configLock.Unlock()
-	var scanossBom, err = sc.readScanossJsonUseCase.Read()
+	scanossBom := NewScanossBom()
+	_, err := scanossBom.read()
 	if err != nil {
-		scanossBom, _ = sc.createScanossJsonUseCase.Create()
+		fmt.Println(err)
 	}
-
 	once.Do(func() {
-		bom = &scanossBom
+		Bom = scanossBom
 	})
-	return bom, nil
 }
 
-func (sc *ScanossBom) Init() {
-	sc.createScanossJsonUseCase.Create()
+// LoadConfig reads the configuration and sets it as the singleton instance
+func (sc *ScanossBom) read() (*ScanossBom, error) {
+	fmt.Println("Initializing in memory bom")
+	var scanossBomFile, _ = sc.readScanossJsonUseCase.Read()
+	sc.BomFile = &scanossBomFile
+	return sc, nil
 }
 
-func Get() *entities.BomFile {
-	return bom
+func Init() {
+	createScanossJsonUseCase := use_cases.NewCreateScanossJsonUseCase(services.NewScanossBomService())
+	createScanossJsonUseCase.Create()
 }
 
 func (sc *ScanossBom) Save() (entities.BomFile, error) {
-	return sc.saveScanossJsonUseCase.Save(*bom)
+	return sc.saveScanossJsonUseCase.Save(*sc.BomFile)
 }

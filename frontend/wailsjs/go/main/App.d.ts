@@ -19,3 +19,5 @@ export function Greet(arg1:string):Promise<string>;
 export function Init():Promise<void>;
 
 export function ResultGetAll(arg1:common.RequestResultDTO):Promise<Array<common.ResultDTO>>;
+
+export function SaveScanossBomFile():Promise<void>;

@@ -67,7 +67,7 @@ func (r *JSONComponentRepository) InsertComponentFilter(dto *entities.ComponentF
 		Usage:   bomEntities.ComponentFilterUsage(dto.Usage),
 		Version: dto.Version,
 	}
-	bomFile := scanoss_bom.Get()
+	bomFile := scanoss_bom.Bom.BomFile
 
 	if err := insertNewComponentFilter(bomFile, newFilter, dto.Action); err != nil {
 		return err

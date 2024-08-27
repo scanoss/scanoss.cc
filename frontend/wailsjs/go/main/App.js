@@ -33,3 +33,7 @@ export function Init() {
 export function ResultGetAll(arg1) {
   return window['go']['main']['App']['ResultGetAll'](arg1);
 }
+
+export function SaveScanossBomFile() {
+  return window['go']['main']['App']['SaveScanossBomFile']();
+}

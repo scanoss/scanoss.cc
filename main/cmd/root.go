@@ -51,7 +51,7 @@ func setConfigFile(configFile string) {
 	}
 
 	// Scanoss bom file should be read after config is loaded. Not before
-	scanoss_bom.NewScanossBom().Read()
+	scanoss_bom.Read()
 }
 
 func setInputFile(resultFile string) {

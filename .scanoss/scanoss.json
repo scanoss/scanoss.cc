@@ -5,8 +5,19 @@
     "path": "src/winnowing.c",
     "purl": "pkg:github/scanoss/engine",
     "version": ""
+   },
+   {
+    "path": "src/json.c",
+    "purl": "pkg:github/scanoss/scanner.c",
+    "version": ""
    }
   ],
-  "remove": null
+  "remove": [
+   {
+    "path": "inc/json.h",
+    "purl": "pkg:github/scanoss/scanner.c",
+    "version": ""
+   }
+  ]
  }
 }

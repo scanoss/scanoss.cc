@@ -1,6 +1,6 @@
 import { Editor } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
-import { memo, useCallback, useRef } from 'react';
+import { memo, useRef } from 'react';
 
 import { getHighlightLineRanges } from '@/modules/results/utils';
 
@@ -8,8 +8,8 @@ import { Skeleton } from './ui/skeleton';
 
 interface CodeViewerProps {
   content: string | undefined;
+  editorType: 'local' | 'remote';
   height?: string;
-  highlightAll?: boolean;
   highlightLines?: string;
   isError: boolean;
   isLoading: boolean;
@@ -17,60 +17,61 @@ interface CodeViewerProps {
   width?: string;
 }
 
-const CodeViewer = memo(function CodeViewer({
+export default memo(function CodeViewer({
   content,
+  editorType,
   height = '100%',
-  highlightAll,
   highlightLines,
   isError,
   isLoading,
   language,
   width = '100%',
 }: CodeViewerProps) {
+  const highlightAll = highlightLines === 'all';
+  const isLocalEditor = editorType === 'local';
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
-  const handleEditorMount = useCallback(
-    (editor: monaco.editor.IStandaloneCodeEditor) => {
-      editorRef.current = editor;
+  console.log(highlightLines);
 
-      if (highlightAll) {
-        const totalLines = editor.getModel()?.getLineCount();
+  const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+    editorRef.current = editor;
 
-        if (!totalLines) return;
+    if (highlightAll) {
+      const totalLines = editor.getModel()?.getLineCount();
 
-        const decorations = [
-          {
-            range: new monaco.Range(1, 1, totalLines, 1),
-            options: {
-              isWholeLine: true,
-              className: 'lineHighlightDecoration',
-              linesDecorationsClassName: 'lineRangeDecoration',
-            },
+      if (!totalLines) return;
+
+      const decorations: monaco.editor.IModelDeltaDecoration[] = [
+        {
+          range: new monaco.Range(1, 1, totalLines, 1),
+          options: {
+            isWholeLine: true,
+            className: 'line-highlight-decoration',
           },
-        ];
+        },
+      ];
 
-        editorRef.current?.createDecorationsCollection(decorations);
+      editorRef.current?.createDecorationsCollection(decorations);
 
-        return;
-      }
+      return;
+    }
 
-      if (!highlightLines) return;
+    if (!highlightLines) return;
 
-      const ranges = getHighlightLineRanges(highlightLines);
+    const ranges = getHighlightLineRanges(highlightLines);
 
-      const decorations = ranges.map(({ start, end }) => ({
+    const decorations: monaco.editor.IModelDeltaDecoration[] = ranges.map(
+      ({ start, end }) => ({
         range: new monaco.Range(start, 1, end, 1),
         options: {
           isWholeLine: true,
-          className: 'lineHighlightDecoration',
-          linesDecorationsClassName: 'lineRangeDecoration',
+          className: 'line-highlight-decoration',
         },
-      }));
+      })
+    );
 
-      editorRef.current?.createDecorationsCollection(decorations);
-    },
-    []
-  );
+    editorRef.current?.createDecorationsCollection(decorations);
+  };
 
   if (isLoading) {
     return <Skeleton className="h-full w-full" />;
@@ -89,6 +90,7 @@ const CodeViewer = memo(function CodeViewer({
       height={height}
       onMount={handleEditorMount}
       theme="vs-dark"
+      className={`editor-${isLocalEditor ? 'local' : 'remote'}`}
       value={content}
       width={width}
       {...(language ? { language } : {})}
@@ -97,9 +99,8 @@ const CodeViewer = memo(function CodeViewer({
         minimap: { enabled: false },
         readOnly: true,
         wordWrap: 'on',
+        smoothScrolling: true,
       }}
     />
   );
 });
-
-export default CodeViewer;

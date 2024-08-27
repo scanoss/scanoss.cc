@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import React from 'react';
 
 import CodeViewer from '@/components/CodeViewer';
-import EmptyState from '@/components/EmptyState';
-import { Component, MatchType } from '@/modules/results/domain';
+import { Component } from '@/modules/results/domain';
 
+import useLocalFilePath from '../hooks/useLocalFilePath';
 import FileService from '../infra/service';
 import FileActionsMenu from './FileActionsMenu';
 import FileInfoCard from './FileInfoCard';
@@ -13,10 +12,11 @@ import MatchInfoCard from './MatchInfoCard';
 interface WrapperProps {
   children: React.ReactNode;
   component: Component;
-  localFilePath: string;
 }
 
-function Wrapper({ children, component, localFilePath }: WrapperProps) {
+function Wrapper({ children, component }: WrapperProps) {
+  const localFilePath = useLocalFilePath();
+
   return (
     <div className="flex h-full w-full flex-col">
       <FileActionsMenu component={component} />
@@ -25,7 +25,7 @@ function Wrapper({ children, component, localFilePath }: WrapperProps) {
         <MatchInfoCard component={component} />
         <div className="flex gap-4">
           <div className="flex-1">
-            <FileInfoCard title="Source file" subtitle={localFilePath} />
+            <FileInfoCard title="Local file" subtitle={localFilePath} />
           </div>
           <div className="flex-1">
             <FileInfoCard
@@ -42,15 +42,11 @@ function Wrapper({ children, component, localFilePath }: WrapperProps) {
 }
 
 interface MatchComparisonProps {
-  localFilePath: string;
   component: Component;
 }
 
-export default function MatchComparison({
-  localFilePath,
-  component,
-}: MatchComparisonProps) {
-  const matchType = component.id;
+export default function MatchComparison({ component }: MatchComparisonProps) {
+  const localFilePath = useLocalFilePath();
 
   const {
     data: localFileContent,
@@ -70,49 +66,26 @@ export default function MatchComparison({
     queryFn: () => FileService.getRemoteFileContent(localFilePath),
   });
 
-  if (matchType === MatchType.File) {
-    return (
-      <Wrapper localFilePath={localFilePath} component={component}>
+  return (
+    <Wrapper component={component}>
+      <div className="flex flex-1 gap-4">
         <CodeViewer
           content={localFileContent?.content}
           isError={isErrorLocalFileContent}
           isLoading={isLoadingLocalFileContent}
           language={localFileContent?.language}
-          highlightAll
+          highlightLines={component.lines}
+          editorType="local"
         />
-      </Wrapper>
-    );
-  }
-
-  if (matchType === MatchType.Snippet) {
-    return (
-      <Wrapper localFilePath={localFilePath} component={component}>
-        <div className="flex flex-1 gap-4">
-          <CodeViewer
-            content={localFileContent?.content}
-            isError={isErrorLocalFileContent}
-            isLoading={isLoadingLocalFileContent}
-            language={localFileContent?.language}
-            highlightLines={component.lines}
-          />
-          <CodeViewer
-            content={remoteFileContent?.content}
-            isError={isErrorRemoteFileContent}
-            isLoading={isLoadingRemoteFileContent}
-            language={remoteFileContent?.language}
-            highlightLines={component.oss_lines}
-          />
-        </div>
-      </Wrapper>
-    );
-  }
-
-  return (
-    <div className="flex h-full w-full items-center justify-center">
-      <EmptyState
-        title="No matches"
-        subtitle="There are no matches found for this file, please select another one."
-      />
-    </div>
+        <CodeViewer
+          content={remoteFileContent?.content}
+          isError={isErrorRemoteFileContent}
+          isLoading={isLoadingRemoteFileContent}
+          language={remoteFileContent?.language}
+          highlightLines={component.oss_lines}
+          editorType="remote"
+        />
+      </div>
+    </Wrapper>
   );
 }

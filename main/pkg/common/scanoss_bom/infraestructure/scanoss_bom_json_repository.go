@@ -1,4 +1,4 @@
-package services
+package infraestructure
 
 import (
 	"encoding/json"
@@ -10,34 +10,21 @@ import (
 	"path/filepath"
 )
 
-type ScanossBomService struct {
+type ScanossBomJsonRepository struct {
 }
 
-func NewScanossBomService() *ScanossBomService {
-	return &ScanossBomService{}
+func NewScanossBomJonRepository() *ScanossBomJsonRepository {
+	return &ScanossBomJsonRepository{}
 }
 
-func (s *ScanossBomService) Read() (entities.BomFile, error) {
-
-	if config.Get() == nil {
-		return entities.BomFile{}, fmt.Errorf("config is nil")
+func (r *ScanossBomJsonRepository) Save(bomFile entities.BomFile) error {
+	if err := utils.WriteJsonFile(config.Get().ScanSettingsFilePath, bomFile); err != nil {
+		return err
 	}
-
-	scanSettingsFileBytes, err := utils.ReadFile(config.Get().ScanSettingsFilePath)
-	if err != nil {
-		return entities.BomFile{}, err
-	}
-
-	scanossBom, err := utils.JSONParse[entities.BomFile](scanSettingsFileBytes)
-	if err != nil {
-		return entities.BomFile{}, err
-	}
-
-	return scanossBom, nil
-
+	return nil
 }
 
-func (s *ScanossBomService) Create() (entities.BomFile, error) {
+func (r *ScanossBomJsonRepository) Init() (entities.BomFile, error) {
 	scanSettingsFilePath := config.GetScanSettingDefaultLocation()
 	dirPath := filepath.Dir(scanSettingsFilePath)
 	// Check if the directory exists
@@ -68,9 +55,21 @@ func (s *ScanossBomService) Create() (entities.BomFile, error) {
 	return entities.BomFile{}, nil
 }
 
-func (s *ScanossBomService) Save(bomFile entities.BomFile) (entities.BomFile, error) {
-	if err := utils.WriteJsonFile(config.Get().ScanSettingsFilePath, bomFile); err != nil {
+func (r *ScanossBomJsonRepository) Read() (entities.BomFile, error) {
+
+	if config.Get() == nil {
+		return entities.BomFile{}, fmt.Errorf("config is nil")
+	}
+
+	scanSettingsFileBytes, err := utils.ReadFile(config.Get().ScanSettingsFilePath)
+	if err != nil {
 		return entities.BomFile{}, err
 	}
-	return bomFile, nil
+
+	scanossBom, err := utils.JSONParse[entities.BomFile](scanSettingsFileBytes)
+	if err != nil {
+		return entities.BomFile{}, err
+	}
+
+	return scanossBom, nil
 }

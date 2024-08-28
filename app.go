@@ -20,22 +20,24 @@ import (
 
 // App struct
 type App struct {
-	ctx             context.Context
-	fileModule      *file.Module
-	gitModule       *git.Module
-	resultModule    *result.Module
-	componentModule *component.Module
-	scanModule      *scan.Module
+	ctx               context.Context
+	fileModule        *file.Module
+	gitModule         *git.Module
+	resultModule      *result.Module
+	componentModule   *component.Module
+	scanModule        *scan.Module
+	scannossBomModule *scanoss_bom.Module
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{
-		fileModule:      file.NewModule(),
-		gitModule:       git.NewModule(),
-		resultModule:    result.NewModule(),
-		componentModule: component.NewModule(),
-		scanModule:      scan.NewModule(),
+		fileModule:        file.NewModule(),
+		gitModule:         git.NewModule(),
+		resultModule:      result.NewModule(),
+		componentModule:   component.NewModule(),
+		scanModule:        scan.NewModule(),
+		scannossBomModule: scanoss_bom.NewModule(),
 	}
 }
 
@@ -50,8 +52,6 @@ func (a *App) Init() {
 
 	a.createScanossFolder(defaultScanossFolder)
 	a.createConfigFile(defaultScanossFolder)
-
-	scanoss_bom.Init()
 
 }
 
@@ -100,10 +100,7 @@ func (a *App) startup(ctx context.Context) {
 
 func (a *App) onShutDown(ctx context.Context) {
 	a.ctx = ctx
-	_, err := scanoss_bom.Bom.Save()
-	if err != nil {
-		fmt.Println("scanoss.json file not saved!")
-	}
+	a.scannossBomModule.Controller.Save()
 }
 
 func (a *App) Greet(name string) string {
@@ -146,6 +143,6 @@ func (a *App) ComponentFilter(dto componentEntities.ComponentFilterDTO) error {
 // *****  SCANOSS BOM MODULE ***** //
 
 func (a *App) SaveScanossBomFile() error {
-	_, err := scanoss_bom.Bom.Save()
-	return err
+	a.scannossBomModule.Controller.Save()
+	return nil
 }

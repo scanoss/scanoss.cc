@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Component } from '@/modules/results/domain';
 
 import { FilterAction } from '../domain';
+import FileService from '../infra/service';
 import FileActionButton from './FileActionButton';
 
 interface FileActionsMenuProps {
@@ -17,13 +18,7 @@ export default function FileActionsMenu({ component }: FileActionsMenuProps) {
   const { toast } = useToast();
 
   const { mutate: saveChanges, isPending } = useMutation({
-    mutationFn: () => {
-      return new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 1000);
-      });
-    },
+    mutationFn: () => FileService.saveBomChanges(),
     onSuccess: () => {
       toast({
         title: 'Success',
@@ -33,6 +28,7 @@ export default function FileActionsMenu({ component }: FileActionsMenuProps) {
     onError: (e) => {
       toast({
         title: 'Error',
+        variant: 'destructive',
         description:
           e instanceof Error
             ? e.message

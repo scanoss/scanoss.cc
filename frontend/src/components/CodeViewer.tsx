@@ -90,7 +90,7 @@ export default memo(function CodeViewer({
       height={height}
       onMount={handleEditorMount}
       theme="vs-dark"
-      className={`editor-${isLocalEditor ? 'local' : 'remote'}`}
+      className={`editor-${editorType}`}
       value={content}
       width={width}
       {...(language ? { language } : {})}

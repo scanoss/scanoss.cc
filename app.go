@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"integration-git/main/pkg/common/config"
+	"integration-git/main/pkg/common/scanoss_bom"
 	"integration-git/main/pkg/component"
 	componentEntities "integration-git/main/pkg/component/entities"
 	"integration-git/main/pkg/file"
@@ -20,22 +20,24 @@ import (
 
 // App struct
 type App struct {
-	ctx             context.Context
-	fileModule      *file.Module
-	gitModule       *git.Module
-	resultModule    *result.Module
-	componentModule *component.Module
-	scanModule      *scan.Module
+	ctx               context.Context
+	fileModule        *file.Module
+	gitModule         *git.Module
+	resultModule      *result.Module
+	componentModule   *component.Module
+	scanModule        *scan.Module
+	scannossBomModule *scanoss_bom.Module
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{
-		fileModule:      file.NewModule(),
-		gitModule:       git.NewModule(),
-		resultModule:    result.NewModule(),
-		componentModule: component.NewModule(),
-		scanModule:      scan.NewModule(),
+		fileModule:        file.NewModule(),
+		gitModule:         git.NewModule(),
+		resultModule:      result.NewModule(),
+		componentModule:   component.NewModule(),
+		scanModule:        scan.NewModule(),
+		scannossBomModule: scanoss_bom.NewModule(),
 	}
 }
 
@@ -45,11 +47,11 @@ func (a *App) Init() {
 		fmt.Println("Unable to read user home directory")
 		os.Exit(1)
 	}
+
 	var defaultScanossFolder = homeDir + string(os.PathSeparator) + "." + config.GetDefaultGlobalFolder() + string(os.PathSeparator) + config.GetDefaultConfigFileName()
 
 	a.createScanossFolder(defaultScanossFolder)
 	a.createConfigFile(defaultScanossFolder)
-	a.initScanSettingsFile()
 
 }
 
@@ -90,38 +92,15 @@ func (a *App) createConfigFile(path string) {
 	}
 }
 
-func (a *App) initScanSettingsFile() {
-	scanSettingsFilePath := config.GetScanSettingDefaultLocation()
-	dirPath := filepath.Dir(scanSettingsFilePath)
-	// Check if the directory exists
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		// Directory does not exist, create it
-		err := os.MkdirAll(dirPath, os.ModePerm)
-		if err != nil {
-			fmt.Printf("Failed to create .scanoss directory: %v\n", err)
-			os.Exit(1)
-		}
-		file, err := os.Create(scanSettingsFilePath)
-		defer file.Close()
-		defaultScanSettings := componentEntities.ScanSettingsFile{
-			Bom: componentEntities.Bom{
-				Include: []componentEntities.ComponentFilter{},
-				Remove:  []componentEntities.ComponentFilter{},
-			},
-		}
-
-		jsonData, err := json.Marshal(defaultScanSettings)
-		if err != nil {
-			fmt.Printf("Failed to write configuration file: %v\n", err)
-		}
-		_, err = file.WriteString(string(jsonData))
-	}
-}
-
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+}
+
+func (a *App) onShutDown(ctx context.Context) {
+	a.ctx = ctx
+	a.scannossBomModule.Controller.Save()
 }
 
 func (a *App) Greet(name string) string {
@@ -159,4 +138,11 @@ func (a *App) ComponentGet(filePath string) componentEntities.ComponentDTO {
 
 func (a *App) ComponentFilter(dto componentEntities.ComponentFilterDTO) error {
 	return a.componentModule.Controller.FilterComponent(dto)
+}
+
+// *****  SCANOSS BOM MODULE ***** //
+
+func (a *App) SaveScanossBomFile() error {
+	a.scannossBomModule.Controller.Save()
+	return nil
 }

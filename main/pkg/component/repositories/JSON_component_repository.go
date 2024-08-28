@@ -3,6 +3,8 @@ package repositories
 import (
 	"errors"
 	"integration-git/main/pkg/common/config"
+	bomEntities "integration-git/main/pkg/common/scanoss_bom/application/entities"
+	"integration-git/main/pkg/common/scanoss_bom/module"
 	"integration-git/main/pkg/component/entities"
 	"integration-git/main/pkg/utils"
 	"sort"
@@ -59,35 +61,22 @@ func (r *JSONComponentRepository) orderComponentLicensesBySourceType(component *
 }
 
 func (r *JSONComponentRepository) InsertComponentFilter(dto *entities.ComponentFilterDTO) error {
-	newFilter := &entities.ComponentFilter{
+	newFilter := &bomEntities.ComponentFilter{
 		Path:    dto.Path,
 		Purl:    dto.Purl,
-		Usage:   entities.ComponentFilterUsage(dto.Usage),
+		Usage:   bomEntities.ComponentFilterUsage(dto.Usage),
 		Version: dto.Version,
 	}
+	bomFile := modules.Bom.BomFile
 
-	scanSettingsFileBytes, err := utils.ReadFile(config.Get().ScanSettingsFilePath)
-	if err != nil {
-		return err
-	}
-
-	parsedFile, err := utils.JSONParse[entities.ScanSettingsFile](scanSettingsFileBytes)
-	if err != nil {
-		return err
-	}
-
-	if err := insertNewComponentFilter(&parsedFile, newFilter, dto.Action); err != nil {
-		return err
-	}
-
-	if err := utils.WriteJsonFile(config.Get().ScanSettingsFilePath, parsedFile); err != nil {
+	if err := insertNewComponentFilter(bomFile, newFilter, dto.Action); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func findComponent(newComponent *entities.ComponentFilter, components []entities.ComponentFilter) *entities.ComponentFilter {
+func findComponent(newComponent *bomEntities.ComponentFilter, components []bomEntities.ComponentFilter) *bomEntities.ComponentFilter {
 	for _, c := range components {
 		if newComponent.Path == c.Path && newComponent.Purl == c.Purl && newComponent.Version == c.Version && newComponent.Usage == c.Usage {
 			return &c
@@ -96,7 +85,7 @@ func findComponent(newComponent *entities.ComponentFilter, components []entities
 	return nil
 }
 
-func deleteComponent(newComponent *entities.ComponentFilter, components *[]entities.ComponentFilter) {
+func deleteComponent(newComponent *bomEntities.ComponentFilter, components *[]bomEntities.ComponentFilter) {
 	for i := range *components {
 		if (*components)[i].Path == newComponent.Path && (*components)[i].Version == newComponent.Version && (*components)[i].Usage == newComponent.Usage && (*components)[i].Purl == newComponent.Purl {
 			*components = append((*components)[:i], (*components)[i+1:]...)
@@ -105,7 +94,7 @@ func deleteComponent(newComponent *entities.ComponentFilter, components *[]entit
 	}
 }
 
-func insertComponent(newComponent *entities.ComponentFilter, a *[]entities.ComponentFilter, b *[]entities.ComponentFilter) {
+func insertComponent(newComponent *bomEntities.ComponentFilter, a *[]bomEntities.ComponentFilter, b *[]bomEntities.ComponentFilter) {
 	if findComponent(newComponent, *a) == nil {
 		*a = append((*a), *newComponent)
 
@@ -117,12 +106,12 @@ func insertComponent(newComponent *entities.ComponentFilter, a *[]entities.Compo
 	}
 }
 
-func insertNewComponentFilter(file *entities.ScanSettingsFile, newFilter *entities.ComponentFilter, action entities.FilterAction) error {
+func insertNewComponentFilter(bomFile *bomEntities.BomFile, newFilter *bomEntities.ComponentFilter, action entities.FilterAction) error {
 	switch action {
 	case entities.Include:
-		insertComponent(newFilter, &file.Bom.Include, &file.Bom.Remove)
+		insertComponent(newFilter, &bomFile.Bom.Include, &bomFile.Bom.Remove)
 	case entities.Remove:
-		insertComponent(newFilter, &file.Bom.Remove, &file.Bom.Include)
+		insertComponent(newFilter, &bomFile.Bom.Remove, &bomFile.Bom.Include)
 	default:
 		return ErrInvalidFilterAction
 	}

@@ -28,12 +28,11 @@ export default memo(function CodeViewer({
   width = '100%',
 }: CodeViewerProps) {
   const highlightAll = highlightLines === 'all';
-  const isLocalEditor = editorType === 'local';
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
 
-  console.log(highlightLines);
-
-  const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
+  const handleEditorMount = async (
+    editor: monaco.editor.IStandaloneCodeEditor
+  ) => {
     editorRef.current = editor;
 
     if (highlightAll) {
@@ -66,6 +65,7 @@ export default memo(function CodeViewer({
         options: {
           isWholeLine: true,
           className: 'line-highlight-decoration',
+          inlineClassName: 'inline-highlight-decoration',
         },
       })
     );
@@ -87,14 +87,14 @@ export default memo(function CodeViewer({
 
   return (
     <Editor
+      className={`editor-${editorType}`}
       height={height}
+      loading={<Skeleton className="h-full w-full" />}
       onMount={handleEditorMount}
       theme="vs-dark"
-      className={`editor-${editorType}`}
       value={content}
       width={width}
       {...(language ? { language } : {})}
-      loading={<Skeleton className="h-full w-full" />}
       options={{
         minimap: { enabled: false },
         readOnly: true,

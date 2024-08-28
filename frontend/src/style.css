@@ -80,12 +80,20 @@ body {
 
 .editor-local {
   .line-highlight-decoration {
-    background-color: rgba(204, 153, 0, 0.15);
+    background-color: #392428;
+  }
+
+  .inline-highlight-decoration {
+    background-color: #592b2d;
   }
 }
 
 .editor-remote {
   .line-highlight-decoration {
-    background-color: rgb(54, 86, 60, 0.6);
+    background-color: #26352c;
+  }
+
+  .inline-highlight-decoration {
+    background-color: #324f36;
   }
 }

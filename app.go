@@ -141,8 +141,6 @@ func (a *App) ComponentFilter(dto componentEntities.ComponentFilterDTO) error {
 }
 
 // *****  SCANOSS BOM MODULE ***** //
-
 func (a *App) SaveScanossBomFile() error {
-	a.scannossBomModule.Controller.Save()
-	return nil
+	return a.scannossBomModule.Controller.Save()
 }

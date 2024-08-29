@@ -38,6 +38,16 @@ body {
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    --file: 220 60% 15%;
+    --file-foreground: 0 0% 100%;
+    --file-accent: 200 70% 50%;
+    --file-border: 220 50% 30%;
+
+    --snippet: 30 70% 15%;
+    --snippet-foreground: 0 0% 100%;
+    --snippet-accent: 30 100% 50%;
+    --snippet-border: 30 60% 30%;
   }
 
   .dark {
@@ -68,13 +78,22 @@ body {
   }
 }
 
-.lineHighlightDecoration {
-  background: rgba(9, 31, 105, 0.2);
-  filter: saturate(3);
+.editor-local {
+  .line-highlight-decoration {
+    background-color: #392428;
+  }
+
+  .inline-highlight-decoration {
+    background-color: #592b2d;
+  }
 }
 
-.lineHighlightLineDecoration {
-  background: rgba(76, 105, 9, 0.94);
-  width: 3px !important;
-  margin-left: 10px;
+.editor-remote {
+  .line-highlight-decoration {
+    background-color: #26352c;
+  }
+
+  .inline-highlight-decoration {
+    background-color: #324f36;
+  }
 }

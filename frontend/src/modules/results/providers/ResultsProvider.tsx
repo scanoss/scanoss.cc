@@ -28,19 +28,19 @@ export const ResultsProvider = ({ children }: { children: ReactNode }) => {
   const [results, setResults] = useState<Result[]>([]);
 
   const groupedResultsByMatchType = useMemo(
-     () =>
-        results.reduce(
-            (acc, result) => {
-                if (!acc[result.matchType]) {
-                    acc[result.matchType] = [];
-                }
+    () =>
+      results.reduce(
+        (acc, result) => {
+          if (!acc[result.matchType]) {
+            acc[result.matchType] = [];
+          }
 
-                acc[result.matchType].push(result);
+          acc[result.matchType].push(result);
 
-                return acc;
-            },
-            {} as Record<MatchType, Result[]>
-        ),
+          return acc;
+        },
+        {} as Record<MatchType, Result[]>
+      ),
     [results]
   );
 
@@ -50,18 +50,18 @@ export const ResultsProvider = ({ children }: { children: ReactNode }) => {
 
   const groupedResultsByState = useMemo(
     () =>
-        orderedResults.reduce(
-            (acc, result) => {
-                if (!acc[result.state]) {
-                    acc[result.state] = [];
-                }
+      orderedResults.reduce(
+        (acc, result) => {
+          if (!acc[result.state]) {
+            acc[result.state] = [];
+          }
 
-                acc[result.state].push(result);
+          acc[result.state].push(result);
 
-                return acc;
-            },
-            {} as Record<string, Result[]>
-        ),
+          return acc;
+        },
+        {} as Record<string, Result[]>
+      ),
     [orderedResults]
   );
 

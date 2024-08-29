@@ -65,9 +65,12 @@ export default function FileActionButton({
       }),
     onSuccess: () => {
       handleStageResult(localFilePath);
+    },
+    onError: (e) => {
       toast({
-        title: 'Success',
-        description: `The file ${localFilePath} has been filtered for ${action}`,
+        title: 'Error',
+        variant: 'destructive',
+        description: e instanceof Error ? e.message : 'An error occurred.',
       });
     },
   });

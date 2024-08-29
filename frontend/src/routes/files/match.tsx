@@ -24,7 +24,5 @@ export default function FileMatchRoute() {
     return <div>Error: {error.message}</div>;
   }
 
-  return (
-    <MatchComparison localFilePath={localFilePath} component={component} />
-  );
+  return <MatchComparison component={component} />;
 }

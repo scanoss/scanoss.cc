@@ -18,6 +18,6 @@ func NewScanossBomController() *ScanossBomController {
 	}
 }
 
-func (c *ScanossBomController) Save() {
-	c.scanossBomUseCase.Save()
+func (c *ScanossBomController) Save() error {
+	return c.scanossBomUseCase.Save()
 }

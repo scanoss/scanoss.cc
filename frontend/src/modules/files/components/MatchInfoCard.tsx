@@ -1,41 +1,83 @@
-import { Component } from '@/modules/results/domain';
+import clsx from 'clsx';
+
+import { Badge } from '@/components/ui/badge';
+import {
+  Component,
+  MatchType,
+  matchTypePresentation,
+  resultStatusPresentation,
+} from '@/modules/results/domain';
+import { useResults } from '@/modules/results/providers/ResultsProvider';
+
+import useLocalFilePath from '../hooks/useLocalFilePath';
 
 interface MatchInfoCardProps {
   component: Component;
 }
 
 export default function MatchInfoCard({ component }: MatchInfoCardProps) {
+  const { results } = useResults();
+  const localFilePath = useLocalFilePath();
+
+  const status = results.find((result) => result.path === localFilePath)?.state;
+  const matchPresentation = matchTypePresentation[component.id as MatchType];
+
   return (
-    <div className="flex cursor-pointer items-center justify-between rounded-sm border border-primary-foreground bg-primary p-3">
-      <div className="flex items-center gap-8">
+    <div
+      className={clsx(
+        'flex items-center justify-between rounded-sm p-3',
+        matchPresentation.background,
+        matchPresentation.foreground
+      )}
+    >
+      <div className="flex items-center gap-8 text-sm">
         <div>
-          <div className="font-bold text-primary-foreground">
+          <div
+            className={clsx(
+              'text-lg font-bold leading-tight',
+              matchPresentation.accent
+            )}
+          >
             {component.component}
           </div>
-          <div className="text-sm">{component.purl?.[0]}</div>
+          <div>{component.purl?.[0]}</div>
         </div>
         {component.version && (
           <div>
-            <div className="text-sm text-muted-foreground">Version</div>
-            <div className="text-sm">{component.version}</div>
+            <div className={matchPresentation.muted}>Version</div>
+            <div>{component.version}</div>
           </div>
         )}
         {component.licenses?.length ? (
           <div>
-            <div className="text-sm text-muted-foreground">License</div>
-            <div className="text-sm">{component.licenses?.[0].name}</div>
+            <div className={matchPresentation.muted}>License</div>
+            <div>{component.licenses?.[0].name}</div>
           </div>
         ) : null}
         <div>
-          <div className="text-sm text-muted-foreground">Detected</div>
-          <div className="text-sm text-green-500 first-letter:uppercase">
-            {component.id}
+          <div className={matchPresentation.muted}>Detected</div>
+          <div className={matchPresentation.accent}>
+            {matchPresentation.label}
           </div>
         </div>
         <div>
-          <div className="text-sm text-muted-foreground">Match</div>
-          <div className="text-sm">{component.matched}</div>
+          <div className={matchPresentation.muted}>Match</div>
+          <div>{component.matched}</div>
         </div>
+        {status && (
+          <div>
+            <div className={matchPresentation.muted}>Status</div>
+            <Badge
+              className={clsx(
+                'flex items-center gap-1 font-normal',
+                resultStatusPresentation[status].badgeStyles
+              )}
+            >
+              {resultStatusPresentation[status].icon}
+              {resultStatusPresentation[status].label}
+            </Badge>
+          </div>
+        )}
       </div>
     </div>
   );

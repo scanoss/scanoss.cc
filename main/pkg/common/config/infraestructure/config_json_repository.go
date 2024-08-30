@@ -59,13 +59,12 @@ func (r *ConfigJsonRepository) Read(path string) (domain.Config, error) {
 
 func getDefaultConfigFile() domain.Config {
 	workingDir, _ := os.Getwd()
-	fmt.Println("WORKING DIR", workingDir)
 	var defaultConfigFile domain.Config = domain.Config{
 		ScanRoot:             "",
-		ResultFilePath:   workingDir + string(os.PathSeparator) + ".scanoss" + string(os.PathSeparator) + "results.json",
+		ResultFilePath:       workingDir + string(os.PathSeparator) + ".scanoss" + string(os.PathSeparator) + "results.json",
 		ApiToken:             "",
 		ApiUrl:               "https://api.osskb.org",
-		ScanSettingsFilePath: workingDir + string(os.PathSeparator) + ".scanoss" + string(os.PathSeparator) +  "scanoss.json",
+		ScanSettingsFilePath: workingDir + string(os.PathSeparator) + "scanoss.json",
 	}
 
 	return defaultConfigFile

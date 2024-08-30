@@ -3,8 +3,6 @@ package cmd
 import (
 	"fmt"
 	"integration-git/main/pkg/common/config"
-	"integration-git/main/pkg/common/scanoss_bom/infraestructure"
-	"integration-git/main/pkg/common/scanoss_bom/module"
 	"os"
 	"strings"
 	"runtime"
@@ -38,24 +36,15 @@ func init() {
 func setConfigFile(configFile string) {
 	pathToConfig := configFile
 	if pathToConfig == "" {
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			fmt.Println("Unable to read user home directory")
-			os.Exit(1)
-		}
-		pathToConfig = homeDir + string(os.PathSeparator) + ROOT_FOLDER + config.GetDefaultGlobalFolder() + string(os.PathSeparator) + config.GetDefaultConfigFileName()
+		pathToConfig = config.GetDefaultConfigLocation()
 	}
 
 	// Load the config
-	if _, err := config.LoadConfig(pathToConfig); err != nil {
+	if _, err := config.LoadConfig(config.GetDefaultConfigLocation()); err != nil {
 		fmt.Printf("Make sure you have a %s file in the root of your project", config.GetDefaultConfigFileName())
 		os.Exit(1)
 	}
 
-	// Scanoss bom file should be read after config is loaded. Not before
-	// Read current scanoss.json file and init ScanossBom module to use as singleton
-	bomFile, _ := infraestructure.NewScanossBomJonRepository().Read()
-	modules.NewScanossBomModule().Init(&bomFile)
 }
 
 func setInputFile(resultFile string) {

@@ -1,23 +1,21 @@
 import { entities } from 'wailsjs/go/models';
 
-import {
-  ComponentFilter,
-  FileGetLocalContent,
-  FileGetRemoteContent,
-  GetFilesToBeCommited,
-  SaveScanossBomFile,
-} from '../../../../wailsjs/go/main/App';
-import { GitFile } from '../domain';
-import { mapToGitFile, mapToLocalFile } from './mappers';
+import {ComponentFilter} from "../../../../wailsjs/go/handler/ComponentHandler";
+import {FileGetLocalContent, FileGetRemoteContent} from "../../../../wailsjs/go/handler/FileHandler";
+
+import { mapToLocalFile } from './mappers';
+import {SaveScanossBomFile} from "../../../../wailsjs/go/handler/ScanossBomHandler";
+
+
 
 export default class FileService {
-  static async getAllToBeCommited(): Promise<GitFile[]> {
+/*  static async getAllToBeCommited(): Promise<GitFile[]> {
     return GetFilesToBeCommited()
       .then(mapToGitFile)
       .catch((e) => {
         throw new Error(e);
       });
-  }
+  }*/
 
   static async getLocalFileContent(path: string) {
     return FileGetLocalContent(path)

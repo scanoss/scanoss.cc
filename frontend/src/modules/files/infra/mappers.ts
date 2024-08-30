@@ -1,6 +1,7 @@
-import { adapter } from 'wailsjs/go/models';
+import {GitFile, LocalFile} from "@/modules/files/domain";
+import {adapter} from "../../../../wailsjs/go/models";
+import FileDTO = adapter.FileDTO;
 
-import { GitFile, LocalFile } from '../domain';
 
 const languages: Record<string, string> = {
   sol: 'solidity',
@@ -40,12 +41,14 @@ const extractFileLanguage = (path: string): string | null => {
   return languages[fileExtension];
 };
 
-export const mapToGitFile = (response: adapter.GitFileDTO[]): GitFile[] =>
+/*
+export const mapToGitFile = (response: GitFileDTO[]): GitFile[] =>
   response.map((file) => ({
     path: file.path,
   }));
+*/
 
-export const mapToLocalFile = (response: adapter.FileDTO): LocalFile => {
+export const mapToLocalFile = (response: FileDTO): LocalFile => {
   return {
     content: response.content,
     name: response.name,

@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"integration-git/handler"
 	"integration-git/main/cmd"
 
 	"github.com/wailsapp/wails/v2"
@@ -16,7 +17,6 @@ func main() {
 
 	// Create an instance of the app structure
 	app := NewApp()
-
 	app.Init()
 
 	// Inputs provided will override the values in configuration if they differ.
@@ -24,6 +24,7 @@ func main() {
 		panic(err)
 	}
 
+	scanossBomHandler := handler.NewScanossBomHandler()
 	//Create application with options
 	err := wails.Run(&options.App{
 		Title:  "scanoss-lui",
@@ -36,8 +37,12 @@ func main() {
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
+			handler.NewFileHandler(),
+			handler.NewResultHandler(),
+			handler.NewComponentHandler(),
+			scanossBomHandler,
 		},
-		OnShutdown: app.onShutDown,
+		OnShutdown: scanossBomHandler.OnShutDown,
 	})
 
 	if err != nil {

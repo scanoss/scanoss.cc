@@ -7,8 +7,9 @@ import (
 	"integration-git/main/pkg/common/scanoss_bom/module"
 	"os"
 	"strings"
-
+	"runtime"
 	"github.com/spf13/cobra"
+	"regexp"
 )
 
 var inputFile string
@@ -74,7 +75,15 @@ func setInputFile(resultFile string) {
 
 func setScanRoot(root string) {
 	if root != "" {
-		config.Get().ScanRoot = root
+			// Win OS only
+		if runtime.GOOS == "windows" {
+			// Create a regex pattern to match double slashes
+			re := regexp.MustCompile(`\\+`)
+			pathForwardSlash := re.ReplaceAllString(root, "/")
+			config.Get().ScanRoot = pathForwardSlash
+		} else {
+			config.Get().ScanRoot = root
+		}
 	}
 	if config.Get().ScanRoot == ROOT_FOLDER || config.Get().ScanRoot == "" {
 		currentDir, _ := os.Getwd()

@@ -1,1 +1,6 @@
-{"bom":{"include":[],"remove":[]}}
+{
+ "bom": {
+  "include": [],
+  "remove": []
+ }
+}

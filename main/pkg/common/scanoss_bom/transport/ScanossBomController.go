@@ -3,6 +3,7 @@ package transport
 import (
 	"integration-git/main/pkg/common/scanoss_bom/application/use_cases"
 	"integration-git/main/pkg/common/scanoss_bom/infraestructure"
+	modules "integration-git/main/pkg/common/scanoss_bom/module"
 )
 
 type ScanossBomController struct {
@@ -12,6 +13,10 @@ type ScanossBomController struct {
 func NewScanossBomController() *ScanossBomController {
 	// Init Scanoss bom repository.
 	r := infraestructure.NewScanossBomJonRepository()
+	r.Init()
+	bomFile, _ := r.Read()
+	// Init scanoss bom module. Set current bom file to singleton
+	modules.NewScanossBomModule().Init(&bomFile)
 	return &ScanossBomController{
 		scanossBomUseCase: use_cases.NewScanossBomUseCase(r),
 	}

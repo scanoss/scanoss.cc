@@ -3,8 +3,6 @@ package cmd
 import (
 	"fmt"
 	"integration-git/main/pkg/common/config"
-	"integration-git/main/pkg/common/scanoss_bom/infraestructure"
-	modules "integration-git/main/pkg/common/scanoss_bom/module"
 	"os"
 	"strings"
 	"runtime"
@@ -46,14 +44,6 @@ func setConfigFile(configFile string) {
 		fmt.Printf("Make sure you have a %s file in the root of your project", config.GetDefaultConfigFileName())
 		os.Exit(1)
 	}
-
-	// Scanoss bom file should be initialozed and read after config is loaded. Not before
-
-	r := infraestructure.NewScanossBomJonRepository()
-	r.Init()
-	bomFile, _ := r.Read()
-	// Init scanoss bom module. Set current bom file to singleton
-	modules.NewScanossBomModule().Init(&bomFile)
 
 }
 

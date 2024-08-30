@@ -1,6 +1,6 @@
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { useMutation } from '@tanstack/react-query';
-import { Check, PackageMinus, RefreshCwOff, Replace, Save } from 'lucide-react';
+import { Check, PackageMinus, Replace, Save } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -51,13 +51,6 @@ export default function FileActionsMenu({ component }: FileActionsMenuProps) {
           component={component}
           description="Dismissing a file/component will exclude it from future scan results."
           icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
-        />
-        <FileActionButton
-          action={FilterAction.Ignore}
-          component={component}
-          icon={<RefreshCwOff className="h-5 w-5 stroke-amber-500" />}
-          description="By ignoring a file/component, you prevent the engine from considering it in future scans."
-          isDisabled
         />
         <FileActionButton
           action={FilterAction.Replace}

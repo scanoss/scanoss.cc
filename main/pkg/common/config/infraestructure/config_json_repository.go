@@ -58,6 +58,7 @@ func (r *ConfigJsonRepository) Read(path string) (domain.Config, error) {
 }
 
 func getDefaultConfigFile() domain.Config {
+
 	workingDir, _ := os.Getwd()
 	fmt.Println("WORKING DIR", workingDir)
 	var defaultConfigFile domain.Config = domain.Config{

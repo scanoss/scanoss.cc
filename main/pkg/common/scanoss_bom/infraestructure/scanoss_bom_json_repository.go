@@ -7,7 +7,6 @@ import (
 	"integration-git/main/pkg/common/scanoss_bom/application/entities"
 	"integration-git/main/pkg/utils"
 	"os"
-	"path/filepath"
 )
 
 type ScanossBomJsonRepository struct {
@@ -25,16 +24,10 @@ func (r *ScanossBomJsonRepository) Save(bomFile entities.BomFile) error {
 }
 
 func (r *ScanossBomJsonRepository) Init() (entities.BomFile, error) {
-	scanSettingsFilePath := config.GetScanSettingDefaultLocation()
-	dirPath := filepath.Dir(scanSettingsFilePath)
+	scanSettingsFilePath := config.Get().ScanSettingsFilePath
+
 	// Check if the directory exists
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		// Directory does not exist, create it
-		err := os.MkdirAll(dirPath, os.ModePerm)
-		if err != nil {
-			fmt.Printf("Failed to create .scanoss directory: %v\n", err)
-			os.Exit(1)
-		}
+	if _, err := os.Stat(scanSettingsFilePath); os.IsNotExist(err) {
 		file, err := os.Create(scanSettingsFilePath)
 		defer file.Close()
 		defaultScanSettings := entities.BomFile{

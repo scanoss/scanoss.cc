@@ -32,7 +32,9 @@ func NewFileRepository() *FileRepository {
 // ReadFile reads the content of a file at the given path.
 func (r *FileRepository) ReadLocalFile(filePath string) (domain.File, error) {
 	currentPath := config.Get().ScanRoot
+
 	absolutePath := path.Join(currentPath, filePath)
+
 	content, err := os.ReadFile(absolutePath)
 	if err != nil {
 		return domain.File{}, ErrReadingFile

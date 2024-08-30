@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +19,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { Component } from '@/modules/results/domain';
 import { useResults } from '@/modules/results/providers/ResultsProvider';
 
-import { FilterAction } from '../domain';
+import { FilterAction, filterActionLabelMap } from '../domain';
 import useLocalFilePath from '../hooks/useLocalFilePath';
 import FileService from '../infra/service';
 
@@ -44,6 +45,7 @@ export default function FileActionButton({
   icon,
   isDisabled = false,
 }: FileActionButtonProps) {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { ask } = useConfirm();
   const { handleStageResult } = useResults();
@@ -64,7 +66,10 @@ export default function FileActionButton({
         purl,
       }),
     onSuccess: () => {
-      handleStageResult(localFilePath);
+      const nextResultRoute = handleStageResult(localFilePath);
+      if (nextResultRoute) {
+        navigate(nextResultRoute);
+      }
     },
     onError: (e) => {
       toast({
@@ -101,7 +106,7 @@ export default function FileActionButton({
           disabled={isDisabled}
         >
           <div className="flex flex-col items-center justify-center gap-1">
-            <span className="text-xs first-letter:uppercase">{action}</span>
+            <span className="text-xs">{filterActionLabelMap[action]}</span>
             {icon}
           </div>
         </Button>

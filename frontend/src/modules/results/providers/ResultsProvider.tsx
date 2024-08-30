@@ -8,10 +8,11 @@ import {
   useState,
 } from 'react';
 
+import { encodeFilePath } from '@/lib/utils';
 import { MatchType, Result } from '@/modules/results/domain';
 
 export interface ResultsContext {
-  handleStageResult: (path: string) => void;
+  handleStageResult: (path: string) => string | null;
   results: Result[];
   setResults: Dispatch<SetStateAction<Result[]>>;
   stagedResults: Result[];
@@ -65,10 +66,32 @@ export const ResultsProvider = ({ children }: { children: ReactNode }) => {
     [orderedResults]
   );
 
-  const handleStageResult = (path: string) => {
+  const stagedResults = groupedResultsByState.staged ?? [];
+  const unstagedResults = groupedResultsByState.unstaged ?? [];
+
+  const handleStageResult = (path: string): string | null => {
     setResults((results) =>
       results.map((r) => (r.path === path ? { ...r, state: 'staged' } : r))
     );
+    return getNextUnstagedResultPathRoute(path);
+  };
+
+  const getNextUnstagedResultPathRoute = (path: string): string | null => {
+    const currentSelectedIndex = unstagedResults.findIndex(
+      (r) => r.path === path
+    );
+
+    const isLast = currentSelectedIndex === unstagedResults.length - 1;
+
+    if (currentSelectedIndex === -1) return null;
+
+    if (isLast && unstagedResults.length > 0) {
+      return `/files/${encodeFilePath(unstagedResults[0].path)}`;
+    }
+
+    const nextUnstagedResult = unstagedResults[currentSelectedIndex + 1];
+
+    return `/files/${encodeFilePath(nextUnstagedResult.path)}`;
   };
 
   return (
@@ -77,8 +100,8 @@ export const ResultsProvider = ({ children }: { children: ReactNode }) => {
         handleStageResult,
         results: orderedResults,
         setResults,
-        stagedResults: groupedResultsByState.staged ?? [],
-        unstagedResults: groupedResultsByState.unstaged ?? [],
+        stagedResults,
+        unstagedResults,
       }}
     >
       {children}

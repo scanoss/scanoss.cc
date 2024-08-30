@@ -15,3 +15,10 @@ export enum FilterAction {
   Remove = 'remove',
   Replace = 'replace',
 }
+
+export const filterActionLabelMap: Record<FilterAction, string> = {
+  [FilterAction.Ignore]: 'Omit / Skip',
+  [FilterAction.Include]: 'Include',
+  [FilterAction.Remove]: 'Dismiss',
+  [FilterAction.Replace]: 'Replace',
+};

@@ -49,7 +49,7 @@ export default function FileActionsMenu({ component }: FileActionsMenuProps) {
         <FileActionButton
           action={FilterAction.Remove}
           component={component}
-          description="Removing a file/component will exclude it from future scans."
+          description="Dismissing a file/component will exclude it from future scan results."
           icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
         />
         <FileActionButton

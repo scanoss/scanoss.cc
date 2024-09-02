@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"integration-git/main/pkg/common/config"
 	"os"
-	"strings"
-	"runtime"
-	"github.com/spf13/cobra"
 	"regexp"
+	"runtime"
+	"strings"
 )
 
 var inputFile string
@@ -30,7 +30,6 @@ func init() {
 	rootCmd.Flags().StringVarP(&inputFile, "input", "i", "", "Path to the input file")
 	rootCmd.Flags().StringVarP(&configurationPath, "configuration", "c", "", "Path to the configuration file")
 	rootCmd.Flags().StringVarP(&scanRoot, "scanRoot", "s", "", "Path to scanned project")
-
 }
 
 func setConfigFile(configFile string) {
@@ -44,7 +43,6 @@ func setConfigFile(configFile string) {
 		fmt.Printf("Make sure you have a %s file in the root of your project", config.GetDefaultConfigFileName())
 		os.Exit(1)
 	}
-
 }
 
 func setInputFile(resultFile string) {
@@ -64,7 +62,7 @@ func setInputFile(resultFile string) {
 
 func setScanRoot(root string) {
 	if root != "" {
-			// Win OS only
+		// Win OS only
 		if runtime.GOOS == "windows" {
 			// Create a regex pattern to match double slashes
 			re := regexp.MustCompile(`\\+`)
@@ -78,7 +76,6 @@ func setScanRoot(root string) {
 		currentDir, _ := os.Getwd()
 		config.Get().ScanRoot = currentDir
 	}
-
 }
 
 func Execute() error {

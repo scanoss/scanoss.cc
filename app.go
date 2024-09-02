@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"integration-git/main/pkg/common/config"
 	"os"
 	"path/filepath"
@@ -11,24 +12,10 @@ import (
 // App struct
 type App struct {
 	ctx context.Context
-	/*	fileModule        *file.Module
-		gitModule         *git.Module
-		resultModule      *result.Module
-		componentModule   *component.Module
-		scanModule        *scan.Module
-		scannossBomModule *scanoss_bom.Module*/
 }
 
 // NewApp creates a new App application struct
 func NewApp() *App {
-	/*	return &App{
-		fileModule:        file.NewModule(),
-		gitModule:         git.NewModule(),
-		resultModule:      result.NewModule(),
-		componentModule:   component.NewModule(),
-		scanModule:        scan.NewModule(),
-		scannossBomModule: scanoss_bom.NewModule(),
-	}*/
 	return &App{}
 }
 
@@ -87,4 +74,7 @@ func (a *App) createConfigFile(path string) {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	runtime.LogInfo(ctx, "Config file path: "+config.GetConfigPath())
+	runtime.LogInfo(ctx, "Results file path: "+config.Get().ResultFilePath)
+	runtime.LogInfo(ctx, "Scan Root file path: "+config.Get().ScanRoot)
 }

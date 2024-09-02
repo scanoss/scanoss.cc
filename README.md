@@ -30,6 +30,8 @@ Parameters
 - **scanRoot** (Optional): Path to scanned project.
 - **input** (Optional): Path to result.json file of the scanned project (Default ./scanoss/result.json) 
 - **configuration** (Optional): Path to configuration file. (Default .config.json)
+- **apiUrl** (Optional): Api URL. (Default https://api.osskb.org)
+- **apiKey** (Optional): Api Key. (Default empty)
 
 To start the application with specific arguments, use the following command:
 ### Example

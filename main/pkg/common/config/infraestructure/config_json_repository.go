@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"integration-git/main/pkg/common/config/domain"
+	"integration-git/main/pkg/utils"
 	"os"
 )
 
@@ -14,15 +15,26 @@ var (
 )
 
 // fileRepository is a concrete implementation of the FileRepository interface.
-type ConfigJsonRepository struct{}
-
-// NewFileRepository creates a new instance of fileRepository.
-func NewConfigJsonRepository() *ConfigJsonRepository {
-	return &ConfigJsonRepository{}
+type ConfigJsonRepository struct {
+	configPath string
 }
 
-func (r *ConfigJsonRepository) Read(path string) (domain.Config, error) {
-	fileData, err := os.ReadFile(path)
+// NewFileRepository creates a new instance of fileRepository.
+func NewConfigJsonRepository(path string) *ConfigJsonRepository {
+	return &ConfigJsonRepository{
+		configPath: path,
+	}
+}
+
+func (r *ConfigJsonRepository) Save(config *domain.Config) {
+	selectedData := make(map[string]string)
+	selectedData["apiUrl"] = config.ApiUrl
+	selectedData["apiToken"] = config.ApiToken
+	utils.WriteJsonFile(r.configPath, selectedData)
+}
+
+func (r *ConfigJsonRepository) Read() (domain.Config, error) {
+	fileData, err := os.ReadFile(r.configPath)
 
 	if err != nil {
 		fmt.Printf("Unable to read configuration file %v\n", err)
@@ -53,7 +65,6 @@ func (r *ConfigJsonRepository) Read(path string) (domain.Config, error) {
 	if err := json.Unmarshal(mergedBytes, &cfg); err != nil {
 		return domain.Config{}, err
 	}
-
 	return cfg, nil
 }
 
@@ -68,4 +79,28 @@ func getDefaultConfigFile() domain.Config {
 	}
 
 	return defaultConfigFile
+}
+
+func (r *ConfigJsonRepository) Init() {
+
+	_, err := os.Stat(r.configPath)
+	if err == nil {
+		return // File exists
+	}
+
+	file, err := os.Create(r.configPath)
+	if err != nil {
+		fmt.Printf("Failed to create configuration file: %v\n", err)
+		os.Exit(1)
+	}
+	defer file.Close()
+
+	defaultConfig := getDefaultConfigFile()
+	content := fmt.Sprintf(`{ "apiToken": "" , "apiUrl": "%s"}`, defaultConfig.ApiUrl)
+	// Write the content to the file
+	_, err = file.WriteString(content)
+	if err != nil {
+		fmt.Printf("Failed to write configuration file: %v\n", err)
+		os.Exit(1)
+	}
 }

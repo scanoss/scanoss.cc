@@ -1,6 +1,6 @@
 {
  "bom": {
-  "include": [],
-  "remove": []
+  "include": null,
+  "remove": null
  }
 }

@@ -20,17 +20,8 @@ func NewApp() *App {
 }
 
 func (a *App) Init() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println("Unable to read user home directory")
-		os.Exit(1)
-	}
-
-	var defaultScanossFolder = homeDir + string(os.PathSeparator) + "." + config.GetDefaultGlobalFolder() + string(os.PathSeparator) + config.GetDefaultConfigFileName()
-
-	a.createScanossFolder(defaultScanossFolder)
-	a.createConfigFile(defaultScanossFolder)
-
+	// Creates .scanoss hidden folder in home dir
+	a.createScanossFolder(config.GetDefaultConfigLocation())
 }
 
 func (r *App) createScanossFolder(path string) {
@@ -44,29 +35,6 @@ func (r *App) createScanossFolder(path string) {
 			fmt.Printf("Failed to create .scanoss directory: %v\n", err)
 			os.Exit(1)
 		}
-	}
-}
-
-func (a *App) createConfigFile(path string) {
-
-	_, err := os.Stat(path)
-	if err == nil {
-		return // File exists
-	}
-
-	file, err := os.Create(path)
-	if err != nil {
-		fmt.Printf("Failed to create configuration file: %v\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	content := fmt.Sprintf(`{ "apiToken": "" , "apiUrl": "%s"}`, config.GetDefaultApiURL())
-	// Write the content to the file
-	_, err = file.WriteString(content)
-	if err != nil {
-		fmt.Printf("Failed to write configuration file: %v\n", err)
-		os.Exit(1)
 	}
 }
 

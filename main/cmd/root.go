@@ -13,6 +13,8 @@ import (
 var inputFile string
 var configurationPath string
 var scanRoot string
+var apiKey string
+var apiUrl string
 
 const ROOT_FOLDER = "."
 
@@ -23,6 +25,8 @@ var rootCmd = &cobra.Command{
 		setConfigFile(configurationPath)
 		setInputFile(inputFile)
 		setScanRoot(scanRoot)
+		setApiKey(apiKey)
+		setApiUrl(apiUrl)
 	},
 }
 
@@ -30,6 +34,9 @@ func init() {
 	rootCmd.Flags().StringVarP(&inputFile, "input", "i", "", "Path to the input file")
 	rootCmd.Flags().StringVarP(&configurationPath, "configuration", "c", "", "Path to the configuration file")
 	rootCmd.Flags().StringVarP(&scanRoot, "scanRoot", "s", "", "Path to scanned project")
+	rootCmd.Flags().StringVarP(&apiKey, "key", "k", "", "API KEY")
+	rootCmd.Flags().StringVarP(&apiUrl, "apiUrl", "u", "", "API URL")
+
 }
 
 func setConfigFile(configFile string) {
@@ -38,8 +45,10 @@ func setConfigFile(configFile string) {
 		pathToConfig = config.GetDefaultConfigLocation()
 	}
 
+	c := config.NewConfigModule(pathToConfig)
+	c.Init()
 	// Load the config
-	if _, err := config.LoadConfig(config.GetDefaultConfigLocation()); err != nil {
+	if err := c.LoadConfig(); err != nil {
 		fmt.Printf("Make sure you have a %s file in the root of your project", config.GetDefaultConfigFileName())
 		os.Exit(1)
 	}
@@ -76,6 +85,23 @@ func setScanRoot(root string) {
 		currentDir, _ := os.Getwd()
 		config.Get().ScanRoot = currentDir
 	}
+
+}
+
+func setApiKey(apiKey string) {
+	if apiKey == "" {
+		return
+	}
+	config.Get().ApiToken = apiKey
+	// Sets Scanoss premium URL
+	config.Get().ApiUrl = config.SCNOSS_PREMIUM_API_URL
+}
+
+func setApiUrl(apiUrl string) {
+	if apiUrl == "" {
+		return
+	}
+	config.Get().ApiUrl = apiUrl
 }
 
 func Execute() error {

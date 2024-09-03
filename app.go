@@ -42,6 +42,7 @@ func (r *App) createScanossFolder(path string) {
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	runtime.WindowSetTitle(ctx, fmt.Sprintf("Scanoss Lui %s", version))
 	runtime.LogInfo(ctx, "Config file path: "+config.GetConfigPath())
 	runtime.LogInfo(ctx, "Results file path: "+config.Get().ResultFilePath)
 	runtime.LogInfo(ctx, "Scan Root file path: "+config.Get().ScanRoot)

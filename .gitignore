@@ -3,4 +3,4 @@ node_modules
 frontend/dist
 .idea
 
-.scanoss/results.json
+.scanoss

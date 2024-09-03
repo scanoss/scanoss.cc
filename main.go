@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -12,8 +13,11 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+var version = "0.1.0"
+
 func main() {
 
+	fmt.Println("App Version: ", version)
 	// Create an instance of the app structure
 	app := NewApp()
 	app.Init()

@@ -7,6 +7,7 @@ import (
 	"integration-git/main/pkg/common/config/domain"
 	"integration-git/main/pkg/utils"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -81,11 +82,38 @@ func getDefaultConfigFile() domain.Config {
 	return defaultConfigFile
 }
 
-func (r *ConfigJsonRepository) Init() {
+func (r *ConfigJsonRepository) Init() error {
 
-	_, err := os.Stat(r.configPath)
-	if err == nil {
-		return // File exists
+	err := utils.FileExist(r.configPath)
+	if err != nil {
+		fmt.Println("Configuration file does not exists. Creating default config file...")
+		err = r.createConfigFile()
+		if err != nil {
+			return err
+		}
+		if utils.IsWritableFile(r.configPath) != true {
+			return errors.New(fmt.Sprintf("File %s is not writable\n", r.configPath))
+		}
+		return nil
+	}
+
+	if utils.IsWritableFile(r.configPath) != true {
+		return errors.New(fmt.Sprintf("File %s is not writable\n", r.configPath))
+	}
+
+	return nil
+}
+
+func (r *ConfigJsonRepository) createConfigFile() error {
+	// Get the directory path
+	dirPath := filepath.Dir(r.configPath)
+	// Check if the directory exists
+	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+		// Directory does not exist, create it
+		err := os.MkdirAll(dirPath, os.ModePerm)
+		if err != nil {
+			return err
+		}
 	}
 
 	file, err := os.Create(r.configPath)
@@ -100,7 +128,7 @@ func (r *ConfigJsonRepository) Init() {
 	// Write the content to the file
 	_, err = file.WriteString(content)
 	if err != nil {
-		fmt.Printf("Failed to write configuration file: %v\n", err)
-		os.Exit(1)
+		return err
 	}
+	return nil
 }

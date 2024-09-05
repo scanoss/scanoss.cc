@@ -1,14 +1,11 @@
 package handlers
 
 import (
-	"context"
-
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 )
 
 type ResultHandler struct {
-	ctx          context.Context
 	resultModule *result.Module
 }
 

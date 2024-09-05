@@ -1,7 +1,7 @@
-import {GitFile, LocalFile} from "@/modules/files/domain";
-import {adapter} from "../../../../wailsjs/go/models";
-import FileDTO = adapter.FileDTO;
+import { LocalFile } from '@/modules/files/domain';
 
+import { entities } from '../../../../wailsjs/go/models';
+import FileDTO = entities.FileDTO;
 
 const languages: Record<string, string> = {
   sol: 'solidity',

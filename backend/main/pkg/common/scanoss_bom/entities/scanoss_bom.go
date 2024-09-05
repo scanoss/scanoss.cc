@@ -38,8 +38,8 @@ type ScanossBom struct {
 func (sc *ScanossBom) Init(bomFile *BomFile) {
 	configLock.Lock()
 	defer configLock.Unlock()
-	once.Do(func() {
-		sc.BomFile = bomFile
-		BomJson = sc
-	})
+	// once.Do(func() {
+	// 	sc.BomFile = bomFile
+	// 	BomJson = sc
+	// })
 }

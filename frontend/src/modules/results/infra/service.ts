@@ -1,7 +1,7 @@
 import { entities } from 'wailsjs/go/models';
 
-import {ComponentGet} from "../../../../wailsjs/go/handler/ComponentHandler";
-import {ResultGetAll} from "../../../../wailsjs/go/handler/ResultHandler";
+import { ComponentGet } from '../../../../wailsjs/go/handlers/ComponentHandler';
+import { ResultGetAll } from '../../../../wailsjs/go/handlers/ResultHandler';
 import { MatchType, Result } from '../domain';
 import { mapToResult } from './mappers';
 

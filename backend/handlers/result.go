@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result"
-	module_result_adapter "github.com/scanoss/scanoss.lui/backend/main/pkg/result/adapter"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 )
 
 type ResultHandler struct {
@@ -19,7 +19,7 @@ func NewResultHandler() *ResultHandler {
 }
 
 // *****  RESULT MODULE ***** //
-func (rh *ResultHandler) ResultGetAll(dto *module_result_adapter.RequestResultDTO) []module_result_adapter.ResultDTO {
+func (rh *ResultHandler) ResultGetAll(dto *entities.RequestResultDTO) []entities.ResultDTO {
 	results, _ := rh.resultModule.Controller.GetAll(dto)
 	return results
 }

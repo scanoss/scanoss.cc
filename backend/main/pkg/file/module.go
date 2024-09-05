@@ -1,22 +1,25 @@
 package file
 
 import (
-	"integration-git/main/pkg/component/repositories"
-	"integration-git/main/pkg/component/usecases"
-	"integration-git/main/pkg/file/adapter"
-	"integration-git/main/pkg/file/application/services"
-	"integration-git/main/pkg/file/infrastructure"
+	componentRepository "github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
+	componentService "github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/file/controllers"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/file/repository"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/file/service"
 )
 
 type Module struct {
-	Controller *adapter.Controller
+	Controller controllers.FileController
 }
 
 func NewModule() *Module {
-	componentRepository := repositories.NewComponentRepository()
-	componentUsecase := usecases.NewComponentUseCase(componentRepository)
+	repo := repository.NewFileRepositoryImpl()
+	service := service.NewFileService(repo)
+
+	cRepo := componentRepository.NewJSONComponentRepository()
+	cService := componentService.NewComponentService(cRepo)
 
 	return &Module{
-		Controller: adapter.NewFileController(services.NewFileService(infrastructure.NewFileRepository(), componentUsecase)),
+		Controller: controllers.NewFileController(service, cService),
 	}
 }

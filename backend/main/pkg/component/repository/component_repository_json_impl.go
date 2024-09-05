@@ -28,7 +28,7 @@ var licenseSourceOrder = map[string]int{
 type JSONComponentRepository struct {
 }
 
-func NewComponentRepository() *JSONComponentRepository {
+func NewJSONComponentRepository() *JSONComponentRepository {
 	return &JSONComponentRepository{}
 }
 

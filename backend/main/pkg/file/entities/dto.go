@@ -1,4 +1,4 @@
-package adapter
+package entities
 
 type FileDTO struct {
 	Name    string `json:"name"`

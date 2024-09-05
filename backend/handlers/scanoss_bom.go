@@ -17,7 +17,6 @@ func NewScanossBomHandler() *ScanossBomHandler {
 	}
 }
 
-// *****  SCANOSS BOM MODULE ***** //
 func (sh *ScanossBomHandler) SaveScanossBomFile() error {
 	return sh.scannossBomModule.Controller.Save()
 }

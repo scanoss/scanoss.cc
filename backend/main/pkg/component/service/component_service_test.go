@@ -15,7 +15,7 @@ func TestInsertComponentFilterActions(t *testing.T) {
 	//config, cleanup := internal_test.InitializeTestEnvironment(t)
 	// defer cleanup()
 
-	repo := repository.NewComponentRepository()
+	repo := repository.NewJSONComponentRepository()
 
 	tests := []struct {
 		name string

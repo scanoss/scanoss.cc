@@ -15,11 +15,11 @@ func NewComponentHandler() *ComponentHandler {
 	}
 }
 
-func (ch *ComponentHandler) ComponentGet(filePath string) entities.ComponentDTO {
-	comp, _ := ch.componentModule.Controller.GetComponentByPath(filePath)
+func (h *ComponentHandler) ComponentGet(filePath string) entities.ComponentDTO {
+	comp, _ := h.componentModule.Controller.GetComponentByPath(filePath)
 	return comp
 }
 
-func (ch *ComponentHandler) ComponentFilter(dto entities.ComponentFilterDTO) error {
-	return ch.componentModule.Controller.FilterComponent(dto)
+func (h *ComponentHandler) ComponentFilter(dto entities.ComponentFilterDTO) error {
+	return h.componentModule.Controller.FilterComponent(dto)
 }

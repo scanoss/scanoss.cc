@@ -15,8 +15,8 @@ func TestFilterComponent_Integration(t *testing.T) {
 	_, cleanup := internal_test.InitializeTestEnvironment(t)
 	defer cleanup()
 
-	repo := repository.NewComponentRepository()
-	useCase := service.NewComponentUseCase(repo)
+	repo := repository.NewJSONComponentRepository()
+	useCase := service.NewComponentService(repo)
 	controller := controllers.NewComponentController(useCase)
 
 	dto := entities.ComponentFilterDTO{

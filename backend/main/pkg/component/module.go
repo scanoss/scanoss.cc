@@ -11,8 +11,8 @@ type Module struct {
 }
 
 func NewModule() *Module {
-	repo := repository.NewComponentRepository()
-	service := service.NewComponentUseCase(repo)
+	repo := repository.NewJSONComponentRepository()
+	service := service.NewComponentService(repo)
 
 	return &Module{
 		Controller: controllers.NewComponentController(service),

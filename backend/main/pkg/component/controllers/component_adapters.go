@@ -1,6 +1,6 @@
 package controllers
 
-import "integration-git/main/pkg/component/entities"
+import "github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 
 func adaptToComponentDTO(componentEntity entities.Component) entities.ComponentDTO {
 

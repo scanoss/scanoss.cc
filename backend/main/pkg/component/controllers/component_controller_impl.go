@@ -1,25 +1,25 @@
 package controllers
 
 import (
-	"integration-git/main/pkg/component/entities"
-	"integration-git/main/pkg/component/usecases"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
 )
 
 type ComponentControllerImpl struct {
-	componentUseCase usecases.ComponentUsecase
+	service service.ComponentService
 }
 
-func NewComponentController(componentUsecase usecases.ComponentUsecase) ComponentController {
+func NewComponentController(service service.ComponentService) ComponentController {
 	return &ComponentControllerImpl{
-		componentUseCase: componentUsecase,
+		service: service,
 	}
 }
 
 func (c *ComponentControllerImpl) GetComponentByPath(filePath string) (entities.ComponentDTO, error) {
-	component, _ := c.componentUseCase.GetComponentByFilePath(filePath)
+	component, _ := c.service.GetComponentByFilePath(filePath)
 	return adaptToComponentDTO(component), nil
 }
 
 func (c *ComponentControllerImpl) FilterComponent(dto entities.ComponentFilterDTO) error {
-	return c.componentUseCase.FilterComponent(dto)
+	return c.service.FilterComponent(dto)
 }

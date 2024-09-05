@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/scanoss/scanoss.lui/backend/main/internal/common/config"
-	"github.com/scanoss/scanoss.lui/backend/main/internal/common/scanoss_bom/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_bom/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 )
 

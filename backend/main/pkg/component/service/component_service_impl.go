@@ -1,16 +1,15 @@
-package usecases
+package service
 
 import (
-	"integration-git/main/pkg/component/entities"
-
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repositories"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
 )
 
 type ComponentUsecaseImpl struct {
-	repo repositories.ComponentRepository
+	repo repository.ComponentRepository
 }
 
-func NewComponentUseCase(repo repositories.ComponentRepository) ComponentUsecase {
+func NewComponentUseCase(repo repository.ComponentRepository) ComponentService {
 	return &ComponentUsecaseImpl{
 		repo: repo,
 	}

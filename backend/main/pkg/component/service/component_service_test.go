@@ -1,13 +1,13 @@
-package usecases_test
+package service_test
 
 import (
 	"encoding/json"
-	"integration-git/main/pkg/component/entities"
-	"integration-git/main/pkg/component/repositories"
 	"os"
 	"slices"
 	"testing"
 
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,7 +15,7 @@ func TestInsertComponentFilterActions(t *testing.T) {
 	//config, cleanup := internal_test.InitializeTestEnvironment(t)
 	// defer cleanup()
 
-	repo := repositories.NewComponentRepository()
+	repo := repository.NewComponentRepository()
 
 	tests := []struct {
 		name string

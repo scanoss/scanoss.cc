@@ -1,22 +1,22 @@
 package controllers_test
 
 import (
-	internal_test "integration-git/main/internal"
-	"integration-git/main/pkg/component/controllers"
-	"integration-git/main/pkg/component/entities"
-	"integration-git/main/pkg/component/repositories"
-	"integration-git/main/pkg/component/usecases"
 	"testing"
 
+	internal_test "github.com/scanoss/scanoss.lui/backend/main/internal"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/controllers"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFilterComponent_Integration(t *testing.T) {
-	config, cleanup := internal_test.InitializeTestEnvironment(t)
+	_, cleanup := internal_test.InitializeTestEnvironment(t)
 	defer cleanup()
 
-	repo := repositories.NewComponentRepository()
-	useCase := usecases.NewComponentUseCase(repo)
+	repo := repository.NewComponentRepository()
+	useCase := service.NewComponentUseCase(repo)
 	controller := controllers.NewComponentController(useCase)
 
 	dto := entities.ComponentFilterDTO{
@@ -40,7 +40,7 @@ func TestFilterComponent_Integration(t *testing.T) {
 		},
 		{
 			name:          "Wrong action",
-			expectedError: repositories.ErrInvalidFilterAction,
+			expectedError: repository.ErrInvalidFilterAction,
 			dto: entities.ComponentFilterDTO{
 				Path:    "test/path",
 				Purl:    "pkg:purl.com/test",

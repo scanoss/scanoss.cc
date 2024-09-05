@@ -1,13 +1,14 @@
-package repositories
+package repository
 
 import (
 	"errors"
-	"integration-git/main/pkg/common/config"
-	bomEntities "integration-git/main/pkg/common/scanoss_bom/application/entities"
-	"integration-git/main/pkg/common/scanoss_bom/module"
-	"integration-git/main/pkg/component/entities"
-	"integration-git/main/pkg/utils"
 	"sort"
+
+	bomEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_bom/entities"
+
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 )
 
 var (
@@ -67,7 +68,7 @@ func (r *JSONComponentRepository) InsertComponentFilter(dto *entities.ComponentF
 		Usage:   bomEntities.ComponentFilterUsage(dto.Usage),
 		Version: dto.Version,
 	}
-	bomFile := modules.Bom.BomFile
+	bomFile := bomEntities.BomJson.BomFile
 
 	if err := insertNewComponentFilter(bomFile, newFilter, dto.Action); err != nil {
 		return err

@@ -1,6 +1,6 @@
 package controllers
 
-import "integration-git/main/pkg/component/entities"
+import "github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 
 type ComponentController interface {
 	GetComponentByPath(filePath string) (entities.ComponentDTO, error)

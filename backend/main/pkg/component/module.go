@@ -2,8 +2,8 @@ package component
 
 import (
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/controllers"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repositories"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/usecases"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
 )
 
 type Module struct {
@@ -11,10 +11,10 @@ type Module struct {
 }
 
 func NewModule() *Module {
-	componentRepository := repositories.NewComponentRepository()
-	componentUsecase := usecases.NewComponentUseCase(componentRepository)
+	repo := repository.NewComponentRepository()
+	service := service.NewComponentUseCase(repo)
 
 	return &Module{
-		Controller: controllers.NewComponentController(componentUsecase),
+		Controller: controllers.NewComponentController(service),
 	}
 }

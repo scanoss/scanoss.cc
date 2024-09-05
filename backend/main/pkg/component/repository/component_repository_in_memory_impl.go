@@ -1,9 +1,10 @@
-package repositories
+package repository
 
 import (
 	"encoding/json"
 	"fmt"
-	"integration-git/main/pkg/component/entities"
+
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 )
 
 type InMemoryComponentRepository struct {

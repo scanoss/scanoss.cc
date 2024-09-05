@@ -1,6 +1,6 @@
 package controllers
 
-import "github.com/scanoss/scanoss.lui/backend/main/internal/common/scanoss_bom/service"
+import "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_bom/service"
 
 type ScanossBomControllerImpl struct {
 	service service.ScanossBomService

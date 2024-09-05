@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"integration-git/main/pkg/common/config"
 	"os"
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
+	"github.com/spf13/cobra"
 )
 
 var inputFile string

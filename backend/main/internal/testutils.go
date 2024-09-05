@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	configEntities "github.com/scanoss/scanoss.lui/backend/main/internal/common/config/entities"
-	"github.com/scanoss/scanoss.lui/backend/main/internal/common/scanoss_bom/entities"
+	configEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/config/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_bom/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 )
 

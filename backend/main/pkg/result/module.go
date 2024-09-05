@@ -1,17 +1,20 @@
 package result
 
 import (
-	"integration-git/main/pkg/result/adapter"
-	"integration-git/main/pkg/result/application/services"
-	"integration-git/main/pkg/result/infraestructure"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/controllers"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/repository"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/service"
 )
 
 type Module struct {
-	Controller *adapter.ResultController
+	Controller controllers.ResultController
 }
 
 func NewModule() *Module {
+	repo := repository.NewResultRepositoryJsonImpl()
+	serv := service.NewResultServiceImpl(repo)
+
 	return &Module{
-		Controller: adapter.NewResultController(services.NewResultService(infraestructure.NewJsonResultRepository())),
+		Controller: controllers.NewResultController(serv),
 	}
 }

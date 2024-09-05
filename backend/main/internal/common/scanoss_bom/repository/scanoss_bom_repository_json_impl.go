@@ -1,21 +1,23 @@
-package infraestructure
+package repository
 
 import (
 	"fmt"
-	"integration-git/main/pkg/common/config"
-	"integration-git/main/pkg/common/scanoss_bom/application/entities"
-	"integration-git/main/pkg/utils"
+	"os"
+
+	"github.com/scanoss/scanoss.lui/backend/main/internal/common/config"
+	"github.com/scanoss/scanoss.lui/backend/main/internal/common/scanoss_bom/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 )
 
 type ScanossBomJsonRepository struct {
 }
 
-func NewScanossBomJonRepository() *ScanossBomJsonRepository {
+func NewScanossBomJsonRepository() *ScanossBomJsonRepository {
 	return &ScanossBomJsonRepository{}
 }
 
-func (r *ScanossBomJsonRepository) Save(bomFile entities.BomFile) error {
-	if err := utils.WriteJsonFile(config.Get().ScanSettingsFilePath, bomFile); err != nil {
+func (r *ScanossBomJsonRepository) Save() error {
+	if err := utils.WriteJsonFile(config.Get().ScanSettingsFilePath, entities.BomJson); err != nil {
 		return err
 	}
 	return nil

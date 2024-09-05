@@ -1,4 +1,4 @@
-package domain
+package entities
 
 type Config struct {
 	ApiToken             string `json:"apiToken"`

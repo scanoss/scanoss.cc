@@ -1,9 +1,9 @@
 package component
 
 import (
-	"integration-git/main/pkg/component/controllers"
-	"integration-git/main/pkg/component/repositories"
-	"integration-git/main/pkg/component/usecases"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/controllers"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repositories"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/usecases"
 )
 
 type Module struct {

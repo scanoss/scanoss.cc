@@ -1,13 +1,14 @@
-package infraestructure
+package repository
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"integration-git/main/pkg/common/config/domain"
-	"integration-git/main/pkg/utils"
 	"os"
 	"path/filepath"
+
+	"github.com/scanoss/scanoss.lui/backend/main/internal/common/config/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 )
 
 var (
@@ -15,26 +16,24 @@ var (
 	ErrUnmarshallingFile = errors.New("error unmarshalling file file")
 )
 
-// fileRepository is a concrete implementation of the FileRepository interface.
 type ConfigJsonRepository struct {
 	configPath string
 }
 
-// NewFileRepository creates a new instance of fileRepository.
 func NewConfigJsonRepository(path string) *ConfigJsonRepository {
 	return &ConfigJsonRepository{
 		configPath: path,
 	}
 }
 
-func (r *ConfigJsonRepository) Save(config *domain.Config) {
+func (r *ConfigJsonRepository) Save(config *entities.Config) {
 	selectedData := make(map[string]string)
 	selectedData["apiUrl"] = config.ApiUrl
 	selectedData["apiToken"] = config.ApiToken
 	utils.WriteJsonFile(r.configPath, selectedData)
 }
 
-func (r *ConfigJsonRepository) Read() (domain.Config, error) {
+func (r *ConfigJsonRepository) Read() (entities.Config, error) {
 	fileData, err := os.ReadFile(r.configPath)
 
 	if err != nil {
@@ -45,33 +44,33 @@ func (r *ConfigJsonRepository) Read() (domain.Config, error) {
 	// Marshal the default config into JSON
 	defaultConfig, err := json.Marshal(getDefaultConfigFile())
 	if err != nil {
-		return domain.Config{}, err
+		return entities.Config{}, err
 	}
 
 	// Merge the JSON by unmarshalling the file's content into the default JSON
 	var mergedData map[string]json.RawMessage
 	if err := json.Unmarshal(defaultConfig, &mergedData); err != nil {
-		return domain.Config{}, err
+		return entities.Config{}, err
 	}
 	if err := json.Unmarshal(fileData, &mergedData); err != nil {
-		return domain.Config{}, err
+		return entities.Config{}, err
 	}
 
 	// Marshal the merged JSON back into the config struct
-	var cfg domain.Config
+	var cfg entities.Config
 	mergedBytes, err := json.Marshal(mergedData)
 	if err != nil {
-		return domain.Config{}, err
+		return entities.Config{}, err
 	}
 	if err := json.Unmarshal(mergedBytes, &cfg); err != nil {
-		return domain.Config{}, err
+		return entities.Config{}, err
 	}
 	return cfg, nil
 }
 
-func getDefaultConfigFile() domain.Config {
+func getDefaultConfigFile() entities.Config {
 	workingDir, _ := os.Getwd()
-	var defaultConfigFile domain.Config = domain.Config{
+	var defaultConfigFile entities.Config = entities.Config{
 		ScanRoot:             "",
 		ResultFilePath:       workingDir + string(os.PathSeparator) + ".scanoss" + string(os.PathSeparator) + "results.json",
 		ApiToken:             "",

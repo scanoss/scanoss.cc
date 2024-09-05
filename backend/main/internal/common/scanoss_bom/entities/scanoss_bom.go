@@ -1,6 +1,14 @@
 package entities
 
+import "sync"
+
 type ComponentFilterUsage string
+
+var (
+	BomJson    *ScanossBom
+	once       sync.Once
+	configLock sync.Mutex
+)
 
 const (
 	File    ComponentFilterUsage = "file"
@@ -21,4 +29,17 @@ type Bom struct {
 
 type BomFile struct {
 	Bom Bom `json:"bom"`
+}
+
+type ScanossBom struct {
+	BomFile *BomFile
+}
+
+func (sc *ScanossBom) Init(bomFile *BomFile) {
+	configLock.Lock()
+	defer configLock.Unlock()
+	once.Do(func() {
+		sc.BomFile = bomFile
+		BomJson = sc
+	})
 }

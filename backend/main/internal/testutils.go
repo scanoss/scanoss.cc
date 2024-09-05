@@ -1,11 +1,12 @@
 package internal_test
 
 import (
-	"integration-git/main/pkg/common/config/domain"
-	"integration-git/main/pkg/component/entities"
-	"integration-git/main/pkg/utils"
 	"os"
 	"testing"
+
+	configEntities "github.com/scanoss/scanoss.lui/backend/main/internal/common/config/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/internal/common/scanoss_bom/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 )
 
 func SetupTestFiles(t *testing.T) string {
@@ -17,7 +18,7 @@ func SetupTestFiles(t *testing.T) string {
 	}
 	scanSettingsFilePath := scanSettingsFile.Name()
 
-	initialScanSettings := entities.ScanSettingsFile{
+	initialScanSettings := entities.BomFile{
 		Bom: entities.Bom{
 			Include: []entities.ComponentFilter{},
 			Remove:  []entities.ComponentFilter{},
@@ -31,15 +32,15 @@ func SetupTestFiles(t *testing.T) string {
 	return scanSettingsFilePath
 }
 
-func InitializeConfig(scanSettingsFilePath string) *domain.Config {
-	config := &domain.Config{
+func InitializeConfig(scanSettingsFilePath string) *configEntities.Config {
+	config := &configEntities.Config{
 		ScanSettingsFilePath: scanSettingsFilePath,
 	}
 
 	return config
 }
 
-func InitializeTestEnvironment(t *testing.T) (*domain.Config, func()) {
+func InitializeTestEnvironment(t *testing.T) (*configEntities.Config, func()) {
 	t.Helper()
 
 	scanSettingsFilePath := SetupTestFiles(t)

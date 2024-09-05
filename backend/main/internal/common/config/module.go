@@ -1,12 +1,11 @@
 package config
 
 import (
-	"fmt"
-	"integration-git/main/pkg/common/config/adapter"
-	"integration-git/main/pkg/common/config/domain"
-	"integration-git/main/pkg/common/config/infraestructure"
 	"os"
 	"sync"
+
+	"github.com/scanoss/scanoss.lui/backend/main/internal/common/config/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/internal/common/config/repository"
 )
 
 var (
@@ -16,8 +15,8 @@ var (
 )
 
 type ConfigModule struct {
-	Config *domain.Config
-	repo   infraestructure.ConfigRepository
+	Config *entities.Config
+	repo   repository.ConfigRepository
 	path   string
 }
 
@@ -39,7 +38,7 @@ func (m *ConfigModule) Init() error {
 	configLock.Lock()
 	defer configLock.Unlock()
 	once.Do(func() {
-		repo, _ := adapter.Create(m.path)
+		repo, _ := repository.Create(m.path)
 		m.repo = repo
 		err := repo.Init()
 		if err != nil {
@@ -65,7 +64,7 @@ func (m *ConfigModule) LoadConfig() error {
 }
 
 // Get returns the singleton instance of the configuration
-func Get() *domain.Config {
+func Get() *entities.Config {
 	return configModule.Config
 }
 

@@ -2,7 +2,8 @@ package usecases
 
 import (
 	"integration-git/main/pkg/component/entities"
-	"integration-git/main/pkg/component/repositories"
+
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repositories"
 )
 
 type ComponentUsecaseImpl struct {

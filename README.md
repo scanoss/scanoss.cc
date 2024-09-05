@@ -36,5 +36,5 @@ Parameters
 To start the application with specific arguments, use the following command:
 ### Example
 ```
- wails dev -appargs "app --input <resultPath>" 
+ wails dev -appargs "--input <resultPath>" 
 ```

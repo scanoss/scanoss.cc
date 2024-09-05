@@ -22,25 +22,80 @@ const ROOT_FOLDER = "."
 var rootCmd = &cobra.Command{
 	Use:   "scanoss-lui",
 	Short: "Lightweight UI, that presents the findings from the latest scan and prompt the user to review pending identifications.",
+	Example: `
+	--apiUrl SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct)
+	--apiKey SCANOSS API Key token (optional - not required for default OSSKB URL)
+	--scanRoot Path to scanned folder
+	--input Path to results.json file`,
 	Run: func(cmd *cobra.Command, args []string) {
-		setConfigFile(configurationPath)
+		initConfigModule(configurationPath)
 		setInputFile(inputFile)
 		setScanRoot(scanRoot)
 		setApiKey(apiKey)
 		setApiUrl(apiUrl)
 	},
 }
+var configureCmd = &cobra.Command{
+	Use:   "configure",
+	Short: "Configure the SCANOSS LUI application",
+	Example: `
+	configure --apiUrl SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct)
+	configure --apiKey SCANOSS API Key token (optional - not required for default OSSKB URL)`,
+	PostRun: func(cmd *cobra.Command, args []string) {
+		os.Exit(0)
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+
+		initConfigModule(configurationPath)
+		setApiKey(apiKey)
+		setApiUrl(apiUrl)
+
+		if apiKey == "" && apiUrl == "" {
+			os.Exit(0)
+		}
+
+		config.GetInstance().Save()
+
+		fmt.Println("API URL: ", config.GetInstance().Config.ApiUrl)
+		fmt.Println("API KEY: ", config.GetInstance().Config.ApiToken)
+		fmt.Println("Configuration saved successfully!")
+
+	},
+}
 
 func init() {
-	rootCmd.Flags().StringVarP(&inputFile, "input", "i", "", "Path to the input file")
+	rootCmd.Flags().StringVarP(&inputFile, "input", "i", "", "Path to results.json file")
 	rootCmd.Flags().StringVarP(&configurationPath, "configuration", "c", "", "Path to the configuration file")
-	rootCmd.Flags().StringVarP(&scanRoot, "scanRoot", "s", "", "Path to scanned project")
-	rootCmd.Flags().StringVarP(&apiKey, "key", "k", "", "API KEY")
-	rootCmd.Flags().StringVarP(&apiUrl, "apiUrl", "u", "", "API URL")
+	rootCmd.Flags().StringVarP(&scanRoot, "scanRoot", "s", "", "Path to scanned folder")
+	rootCmd.Flags().StringVarP(&apiKey, "key", "k", "", "SCANOSS API Key token (optional - not required for default OSSKB URL)")
+	rootCmd.Flags().StringVarP(&apiUrl, "apiUrl", "u", "", "SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct)")
+
+	// Add configure subcommand
+	rootCmd.AddCommand(configureCmd)
+	// Configure commands
+	configureCmd.Flags().StringVarP(&apiKey, "apiKey", "k", "", "SCANOSS API Key token (optional - not required for default OSSKB URL)")
+	configureCmd.Flags().StringVarP(&apiUrl, "apiUrl", "u", "", "SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct)")
 
 }
 
-func setConfigFile(configFile string) {
+func Init() {
+	// Workaround to exit app if configure flag or --help flag is set only
+	if len(os.Args) > 1 && os.Args[1] == "configure" || (len(os.Args) > 1 && (os.Args[1] == "--help") || (len(os.Args) > 1 && os.Args[1] == "-h")) {
+		if err := rootCmd.Execute(); err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
+		os.Exit(0)
+
+	} else {
+		if err := rootCmd.Execute(); err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
+	}
+}
+
+func initConfigModule(configFile string) {
 	pathToConfig := configFile
 	if pathToConfig == "" {
 		pathToConfig = config.GetDefaultConfigLocation()

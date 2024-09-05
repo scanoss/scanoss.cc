@@ -11,14 +11,12 @@ func ReadFile(filePath string) ([]byte, error) {
 	// Open and read the JSON file
 	file, err := os.Open(filePath)
 	if err != nil {
-		fmt.Println("Error reading file:", err)
 		return []byte{}, err
 	}
 	defer file.Close()
 
 	byteValue, err := io.ReadAll(file)
 	if err != nil {
-		fmt.Println("Error reading file:", err)
 		return []byte{}, err
 	}
 

@@ -6,6 +6,8 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
+	scanossBomEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_bom/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
 	"github.com/stretchr/testify/require"
@@ -44,8 +46,8 @@ func TestInsertComponentFilterActions(t *testing.T) {
 			err := repo.InsertComponentFilter(&tc.dto)
 			require.NoError(t, err)
 
-			var scanSettings entities.ScanSettingsFile
-			fileBytes, err := os.ReadFile(config.ScanSettingsFilePath)
+			var scanSettings scanossBomEntities.BomFile
+			fileBytes, err := os.ReadFile(config.Get().ScanSettingsFilePath)
 			if err != nil {
 				t.Fatalf("Failed to read scan settings file: %v", err)
 			}
@@ -59,7 +61,7 @@ func TestInsertComponentFilterActions(t *testing.T) {
 				filters = scanSettings.Bom.Remove
 			}
 
-			i := slices.IndexFunc(filters, func(cf entities.ComponentFilter) bool {
+			i := slices.IndexFunc(filters, func(cf scanossBomEntities.ComponentFilter) bool {
 				return cf.Path == tc.dto.Path
 			})
 

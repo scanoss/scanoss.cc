@@ -12,11 +12,12 @@ type Module struct {
 }
 
 func NewModule() *Module {
-	// Init repository to read singleton bom file
 	repository := repository.NewScanossBomJsonRepository()
-	repository.Init()
 	bomFile, _ := repository.Read()
-	entities.BomJson.Init(&bomFile)
+
+	entities.BomJson = &entities.ScanossBom{
+		BomFile: &bomFile,
+	}
 
 	service := service.NewScanossBomService(repository)
 

@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
 	"github.com/wailsapp/wails/v2/pkg/runtime"

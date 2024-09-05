@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_bom/entities"
@@ -17,7 +16,7 @@ func NewScanossBomJsonRepository() *ScanossBomJsonRepository {
 }
 
 func (r *ScanossBomJsonRepository) Save() error {
-	if err := utils.WriteJsonFile(config.Get().ScanSettingsFilePath, entities.BomJson); err != nil {
+	if err := utils.WriteJsonFile(config.Get().ScanSettingsFilePath, entities.BomJson.BomFile); err != nil {
 		return err
 	}
 	return nil

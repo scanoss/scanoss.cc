@@ -13,9 +13,8 @@ type ScanossBomController struct {
 func NewScanossBomController() *ScanossBomController {
 	// Init Scanoss bom repository.
 	r := infraestructure.NewScanossBomJonRepository()
-	r.Init()
 	bomFile, _ := r.Read()
-	// Init scanoss bom module. Set current bom file to singleton
+	// Init Scanoss bom module. Set current bom file to singleton
 	modules.NewScanossBomModule().Init(&bomFile)
 	return &ScanossBomController{
 		scanossBomUseCase: use_cases.NewScanossBomUseCase(r),

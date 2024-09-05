@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"integration-git/main/pkg/common/config/adapter"
 	"integration-git/main/pkg/common/config/domain"
 	"integration-git/main/pkg/common/config/infraestructure"
@@ -40,11 +41,11 @@ func (m *ConfigModule) Init() error {
 	once.Do(func() {
 		repo, _ := adapter.Create(m.path)
 		m.repo = repo
-		repo.Init()
-		/*		if err != nil {
-				fmt.Println("Config file does not exist, please add the 'scanoss-lui-settings.json' in $HOME/.scanoss/")
-				os.Exit(1)
-			}*/
+		err := repo.Init()
+		if err != nil {
+			fmt.Println("Config file does not exist or cannot be created, please add the 'scanoss-lui-settings.json' in $HOME/.scanoss/")
+			os.Exit(1)
+		}
 
 		configModule = m
 	})
@@ -60,22 +61,6 @@ func (m *ConfigModule) LoadConfig() error {
 		return err
 	}
 	m.Config = &cfg
-	/*configLock.Lock()
-	defer configLock.Unlock()
-	configPath = filename
-	once.Do(func() {
-		repo, _ := adapter.Create(filename)
-		m.repo = repo
-		cfg, err := repo.Read(filename)
-		m.Config = &cfg
-		if err != nil {
-			fmt.Println("Config file does not exist, please add the 'scanoss-lui-settings.json' in $HOME/.scanoss/")
-			os.Exit(1)
-		}
-
-		configModule = m
-	})
-	*/
 	return nil
 }
 
@@ -109,8 +94,8 @@ func (m *ConfigModule) Save() {
 	m.repo.Save(m.Config)
 }
 
-func GetConfigPath() string {
-	return configPath
+func (m *ConfigModule) GetConfigPath() string {
+	return m.path
 }
 
 func GetDefaultApiURL() string {

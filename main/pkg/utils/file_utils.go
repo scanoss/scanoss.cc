@@ -67,3 +67,24 @@ func WriteFile(filename string, data []byte) error {
 
 	return nil
 }
+
+func FileExist(path string) error {
+	_, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func IsWritableFile(path string) bool {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	mode := fileInfo.Mode()
+	if mode&os.ModePerm == os.ModePerm {
+		return false
+	}
+
+	return true
+}

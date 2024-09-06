@@ -24,8 +24,8 @@ var rootCmd = &cobra.Command{
 	Short: "Lightweight UI, that presents the findings from the latest scan and prompt the user to review pending identifications.",
 	Example: `
 	--apiUrl SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct)
-	--apiKey SCANOSS API Key token (optional - not required for default OSSKB URL)
-	--scanRoot Path to scanned folder
+	--key SCANOSS API Key token (optional - not required for default OSSKB URL)
+	--scan-root Scanned folder
 	--input Path to results.json file`,
 	Run: func(cmd *cobra.Command, args []string) {
 		initConfigModule(configurationPath)
@@ -40,7 +40,7 @@ var configureCmd = &cobra.Command{
 	Short: "Configure the SCANOSS LUI application",
 	Example: `
 	configure --apiUrl SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct)
-	configure --apiKey SCANOSS API Key token (optional - not required for default OSSKB URL)`,
+	configure --key SCANOSS API Key token (optional - not required for default OSSKB URL)`,
 	PostRun: func(cmd *cobra.Command, args []string) {
 		os.Exit(0)
 	},
@@ -57,7 +57,7 @@ var configureCmd = &cobra.Command{
 		config.GetInstance().Save()
 
 		fmt.Println("API URL: ", config.GetInstance().Config.ApiUrl)
-		fmt.Println("API KEY: ", config.GetInstance().Config.ApiToken)
+		fmt.Println("KEY: ", config.GetInstance().Config.ApiToken)
 		fmt.Println("Configuration saved successfully!")
 
 	},
@@ -66,14 +66,14 @@ var configureCmd = &cobra.Command{
 func init() {
 	rootCmd.Flags().StringVarP(&inputFile, "input", "i", "", "Path to results.json file")
 	rootCmd.Flags().StringVarP(&configurationPath, "configuration", "c", "", "Path to the configuration file")
-	rootCmd.Flags().StringVarP(&scanRoot, "scanRoot", "s", "", "Path to scanned folder")
+	rootCmd.Flags().StringVarP(&scanRoot, "scan-root", "s", "", "Scanned folder")
 	rootCmd.Flags().StringVarP(&apiKey, "key", "k", "", "SCANOSS API Key token (optional - not required for default OSSKB URL)")
 	rootCmd.Flags().StringVarP(&apiUrl, "apiUrl", "u", "", "SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct)")
 
 	// Add configure subcommand
 	rootCmd.AddCommand(configureCmd)
 	// Configure commands
-	configureCmd.Flags().StringVarP(&apiKey, "apiKey", "k", "", "SCANOSS API Key token (optional - not required for default OSSKB URL)")
+	configureCmd.Flags().StringVarP(&apiKey, "key", "k", "", "SCANOSS API Key token (optional - not required for default OSSKB URL)")
 	configureCmd.Flags().StringVarP(&apiUrl, "apiUrl", "u", "", "SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct)")
 
 }

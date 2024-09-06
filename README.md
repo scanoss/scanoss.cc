@@ -27,12 +27,11 @@ Solution: `wails dev -tags webkit2_41`
 
 ## Live Development environment with parameters
 Parameters
-- **scanRoot** (Optional): Path to scanned project.
-- **input** (Optional): Path to result.json file of the scanned project (Default ./scanoss/result.json) 
-- **configuration** (Optional): Path to configuration file. (Default .config.json)
-- **apiUrl** (Optional): Api URL. (Default https://api.osskb.org)
-- **apiKey** (Optional): Api Key. (Default empty)
-
+- **scan-root** Scanned folder (optional - default root folder).
+- **input**  ath to result.json file of the scanned project (optional - default ./scanoss/result.json) 
+- **configuration** Path to configuration file. (optional)
+- **apiUrl** SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct)
+- **key** SCANOSS API Key token (optional - not required for default OSSKB URL)
 To start the application with specific arguments, use the following command:
 ### Example
 ```

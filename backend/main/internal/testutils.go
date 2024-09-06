@@ -1,6 +1,8 @@
 package internal_test
 
 import (
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_bom/repository"
 	"os"
 	"testing"
 
@@ -40,16 +42,27 @@ func InitializeConfig(scanSettingsFilePath string) *configEntities.Config {
 	return config
 }
 
-func InitializeTestEnvironment(t *testing.T) (*configEntities.Config, func()) {
+func InitializeTestEnvironment(t *testing.T) func() {
 	t.Helper()
 
 	scanSettingsFilePath := SetupTestFiles(t)
 
-	config := InitializeConfig(scanSettingsFilePath)
+	InitializeConfig(scanSettingsFilePath)
 
 	cleanup := func() {
 		os.Remove(scanSettingsFilePath)
 	}
 
-	return config, cleanup
+	cfg := config.NewConfigModule(scanSettingsFilePath)
+	cfg.Init()
+	cfg.LoadConfig()
+
+	r := repository.NewScanossBomJsonRepository()
+	bomFile, _ := r.Read()
+	// Init Scanoss bom module. Set current bom file to singleton
+	entities.BomJson = &entities.ScanossBom{
+		BomFile: &bomFile,
+	}
+
+	return cleanup
 }

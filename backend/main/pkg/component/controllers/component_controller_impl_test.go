@@ -12,7 +12,7 @@ import (
 )
 
 func TestFilterComponent_Integration(t *testing.T) {
-	_, cleanup := internal_test.InitializeTestEnvironment(t)
+	cleanup := internal_test.InitializeTestEnvironment(t)
 	defer cleanup()
 
 	repo := repository.NewJSONComponentRepository()

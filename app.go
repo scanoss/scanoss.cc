@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-	"integration-git/main/pkg/common/config"
 )
 
 // App struct

@@ -1,4 +1,4 @@
-module integration-git
+module github.com/scanoss/scanoss.lui
 
 go 1.21
 

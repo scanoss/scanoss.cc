@@ -3,11 +3,12 @@ package main
 import (
 	"embed"
 	"fmt"
+
+	"github.com/scanoss/scanoss.lui/backend/handlers"
+	"github.com/scanoss/scanoss.lui/backend/main/cmd"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
-	"integration-git/handler"
-	"integration-git/main/cmd"
 )
 
 //go:embed all:frontend/dist
@@ -26,7 +27,7 @@ func main() {
 		panic(err)
 	}
 
-	scanossBomHandler := handler.NewScanossBomHandler()
+	scanossBomHandler := handlers.NewScanossBomHandler()
 	//Create application with options
 	err := wails.Run(&options.App{
 		Title:  "scanoss-lui",
@@ -39,9 +40,9 @@ func main() {
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
-			handler.NewFileHandler(),
-			handler.NewResultHandler(),
-			handler.NewComponentHandler(),
+			handlers.NewFileHandler(),
+			handlers.NewResultHandler(),
+			handlers.NewComponentHandler(),
 			scanossBomHandler,
 		},
 		OnShutdown: scanossBomHandler.OnShutDown,

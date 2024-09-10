@@ -1,5 +1,9 @@
 VERSION=$(shell git tag --sort=-version:refname | head -n 1)
 
+# HELP
+# This will output the help for each task
+# thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+
 .PHONY: help
 
 .DEFAULT_GOAL := help

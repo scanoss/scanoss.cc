@@ -12,10 +12,9 @@ const (
 )
 
 type ComponentFilter struct {
-	Path    string               `json:"path"`
-	Purl    string               `json:"purl"`
-	Usage   ComponentFilterUsage `json:"usage,omitempty"`
-	Version string               `json:"version"`
+	Path  string               `json:"path"`
+	Purl  string               `json:"purl"`
+	Usage ComponentFilterUsage `json:"usage,omitempty"`
 }
 
 type Bom struct {

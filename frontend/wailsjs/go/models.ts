@@ -76,7 +76,6 @@ export namespace entities {
 	    path: string;
 	    purl: string;
 	    usage?: string;
-	    version?: string;
 	    action: string;
 	
 	    static createFrom(source: any = {}) {
@@ -88,7 +87,6 @@ export namespace entities {
 	        this.path = source["path"];
 	        this.purl = source["purl"];
 	        this.usage = source["usage"];
-	        this.version = source["version"];
 	        this.action = source["action"];
 	    }
 	}

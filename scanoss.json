@@ -1,0 +1,12 @@
+{
+ "bom": {
+  "include": [
+   {
+    "path": "components/ui/tooltip.tsx",
+    "purl": "pkg:github/nicoaudy/laravel-inertia-starterkit",
+    "version": ""
+   }
+  ],
+  "remove": null
+ }
+}

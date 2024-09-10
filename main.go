@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"fmt"
+
 	"github.com/scanoss/scanoss.lui/backend/main/cmd"
 
 	"github.com/scanoss/scanoss.lui/backend/handlers"
@@ -14,7 +15,8 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
-var version = "0.1.0"
+// Get's updated build time using -ldflags
+var version = ""
 
 func main() {
 

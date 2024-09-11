@@ -20,11 +20,10 @@ func TestFilterComponent_Integration(t *testing.T) {
 	controller := controllers.NewComponentController(useCase)
 
 	dto := entities.ComponentFilterDTO{
-		Path:    "test/path",
-		Purl:    "test:purl",
-		Usage:   "file",
-		Version: "1.0",
-		Action:  entities.Include,
+		Path:   "test/path",
+		Purl:   "test:purl",
+		Usage:  "file",
+		Action: entities.Include,
 	}
 
 	// Create multiple test cases, one for no errors, and one with errors (for example sending wrong action)
@@ -42,11 +41,10 @@ func TestFilterComponent_Integration(t *testing.T) {
 			name:          "Wrong action",
 			expectedError: repository.ErrInvalidFilterAction,
 			dto: entities.ComponentFilterDTO{
-				Path:    "test/path",
-				Purl:    "pkg:purl.com/test",
-				Usage:   "file",
-				Version: "1.0.3",
-				Action:  entities.FilterAction("unsupported"),
+				Path:   "test/path",
+				Purl:   "pkg:purl.com/test",
+				Usage:  "file",
+				Action: entities.FilterAction("unsupported"),
 			},
 		},
 	}

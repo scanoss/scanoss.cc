@@ -11,10 +11,10 @@ type Module struct {
 }
 
 func NewModule() *Module {
-	repo := repository.NewJSONComponentRepository()
-	service := service.NewComponentService(repo)
+	componentRepository := repository.NewJSONComponentRepository()
+	componentService := service.NewComponentService(componentRepository)
 
 	return &Module{
-		Controller: controllers.NewComponentController(service),
+		Controller: controllers.NewComponentController(componentService),
 	}
 }

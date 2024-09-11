@@ -63,10 +63,9 @@ func (r *JSONComponentRepository) orderComponentLicensesBySourceType(component *
 
 func (r *JSONComponentRepository) InsertComponentFilter(dto *entities.ComponentFilterDTO) error {
 	newFilter := &bomEntities.ComponentFilter{
-		Path:    dto.Path,
-		Purl:    dto.Purl,
-		Usage:   bomEntities.ComponentFilterUsage(dto.Usage),
-		Version: dto.Version,
+		Path:  dto.Path,
+		Purl:  dto.Purl,
+		Usage: bomEntities.ComponentFilterUsage(dto.Usage),
 	}
 	bomFile := bomEntities.BomJson.BomFile
 
@@ -79,7 +78,7 @@ func (r *JSONComponentRepository) InsertComponentFilter(dto *entities.ComponentF
 
 func findComponent(newComponent *bomEntities.ComponentFilter, components []bomEntities.ComponentFilter) *bomEntities.ComponentFilter {
 	for _, c := range components {
-		if newComponent.Path == c.Path && newComponent.Purl == c.Purl && newComponent.Version == c.Version && newComponent.Usage == c.Usage {
+		if newComponent.Path == c.Path && newComponent.Purl == c.Purl && newComponent.Usage == c.Usage {
 			return &c
 		}
 	}
@@ -88,7 +87,7 @@ func findComponent(newComponent *bomEntities.ComponentFilter, components []bomEn
 
 func deleteComponent(newComponent *bomEntities.ComponentFilter, components *[]bomEntities.ComponentFilter) {
 	for i := range *components {
-		if (*components)[i].Path == newComponent.Path && (*components)[i].Version == newComponent.Version && (*components)[i].Usage == newComponent.Usage && (*components)[i].Purl == newComponent.Purl {
+		if (*components)[i].Path == newComponent.Path && (*components)[i].Usage == newComponent.Usage && (*components)[i].Purl == newComponent.Purl {
 			*components = append((*components)[:i], (*components)[i+1:]...)
 			break
 		}

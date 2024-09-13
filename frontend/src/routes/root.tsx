@@ -8,7 +8,7 @@ export default function Root() {
       <div className="h-full w-[330px]">
         <Sidebar />
       </div>
-      <main className="flex-1">
+      <main className="flex-1 bg-background">
         <Outlet />
       </main>
     </div>

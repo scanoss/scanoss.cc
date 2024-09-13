@@ -15,7 +15,7 @@ export default function FileInfoCard({
   return (
     <div
       className={clsx(
-        'flex flex-col p-3 rounded-sm border border-border text-sm',
+        'flex flex-col rounded-sm border border-border bg-card p-3 text-sm',
         noMatch && 'border-dashed'
       )}
     >

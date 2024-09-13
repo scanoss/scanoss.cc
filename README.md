@@ -16,7 +16,16 @@ to this in your browser, and you can call your Go code from devtools.
 
 ## Building
 
-To build a redistributable, production mode package, use `wails build`.
+### Copy images to build folder
+```shell
+mkdir build
+cp assets/* build
+```
+
+### Build the application
+```shell
+wails build
+```
 
 ## Errors on Ubuntu 24.04
 Ubuntu 24.04 does includes webkit 4.1 and wails is expecting webkit 4.0
@@ -34,11 +43,11 @@ Parameters
 - **key** SCANOSS API Key token (optional - not required for default OSSKB URL)
 To start the application with specific arguments, use the following command:
 ### Example
-```
+```shell
 wails dev -appargs "--input <resultPath>" 
 ```
 
 Or you can also run the application using make command:
-```
+```shell
 make run ARGS="--scan-root <scanRootPath> --input <resultPath>"
 ```

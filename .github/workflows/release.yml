@@ -61,15 +61,24 @@ jobs:
       # Build
       - name: Build App
         if: runner.os == 'macOS'
-        run: wails build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`" --platform ${{matrix.build.platform}} --nopackage -webview2 download -o scanoss-lui-macos
+        run: |
+          mkdir build \
+          cp -r ./assets ./build/assets \
+          wails build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`" --platform ${{matrix.build.platform}} --nopackage -webview2 download -o scanoss-lui-macos \
         shell: bash
       - name: Build Linux App
         if: runner.os == 'Linux'
-        run: wails build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`" --platform ${{matrix.build.platform}} -webview2 download -o scanoss-lui-linux
+        run: |
+          mkdir build \
+          cp -r ./assets ./build/assets \
+          wails build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`" --platform ${{matrix.build.platform}} -webview2 download -o scanoss-lui-linux \
         shell: bash
       - name: Build Windows App
         if: runner.os == 'Windows'
-        run: wails build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`" --platform ${{matrix.build.platform}} -webview2 download -o scanoss-lui-windows.exe
+        run: |
+          mkdir build \
+          cp -r ./assets ./build/assets \
+          wails build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`" --platform ${{matrix.build.platform}} -webview2 download -o scanoss-lui-windows.exe \
         shell: bash
 
       # Set execution permissions

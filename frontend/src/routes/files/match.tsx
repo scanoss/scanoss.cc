@@ -17,7 +17,7 @@ export default function FileMatchRoute() {
 
   // TODO: Add proper loading states
   if (!component) {
-    return <div>Loading...</div>;
+    return null;
   }
 
   if (error) {

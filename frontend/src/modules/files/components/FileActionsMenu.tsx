@@ -52,13 +52,6 @@ export default function FileActionsMenu({ component }: FileActionsMenuProps) {
           description="Dismissing a file/component will exclude it from future scan results."
           icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
         />
-        <FileActionButton
-          action={FilterAction.Replace}
-          component={component}
-          icon={<Replace className="h-5 w-5 stroke-cyan-500" />}
-          description="Replace a file/component with another one."
-          isDisabled
-        />
       </div>
       <div className="ml-auto flex items-center">
         <Button size="sm" onClick={() => saveChanges()} disabled={isPending}>

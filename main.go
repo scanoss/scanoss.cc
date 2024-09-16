@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"fmt"
+	"log"
+
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
@@ -39,8 +42,16 @@ func main() {
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		OnStartup:  app.startup,
-		OnShutdown: scanossBomHandler.OnShutDown,
+		OnStartup: app.startup,
+		OnBeforeClose: func(ctx context.Context) (prevent bool) {
+			app.beforeClose(ctx, func() {
+				err := scanossBomHandler.SaveScanossBomFile()
+				if err != nil {
+					log.Fatalf("Error saving scanoss bom file: %s", err)
+				}
+			})
+			return false
+		},
 		Bind: []interface{}{
 			app,
 			handlers.NewFileHandler(),
@@ -49,12 +60,12 @@ func main() {
 			scanossBomHandler,
 		},
 		Windows: &windows.Options{
-			WebviewIsTransparent: false,
-			WindowIsTranslucent:  false,
-			DisableWindowIcon:    false,
+			WebviewIsTransparent: true,
+			WindowIsTranslucent:  true,
 		},
 		Linux: &linux.Options{
 			WindowIsTranslucent: true,
+			Icon:                icon,
 			ProgramName:         "Scanoss Lui",
 		},
 		Mac: &mac.Options{

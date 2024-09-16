@@ -45,12 +45,12 @@ export default function Sidebar() {
   }, [data]);
 
   return (
-    <aside className="z-10 flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-sm">
+    <aside className="z-10 flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-md">
       <div className="flex h-[65px] items-center border-b border-b-border px-4">
         <h2 className="text-sm font-semibold">
           {results?.length
-            ? `${results.length} change${results.length > 1 ? 's' : ''} in working directory`
-            : 'You have no changes in working directory'}
+            ? `${results.length} decision${results.length > 1 ? 's' : ''} to make in working directory`
+            : 'You have no decisions to make in working directory'}
         </h2>
       </div>
 

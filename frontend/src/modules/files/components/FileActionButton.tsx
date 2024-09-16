@@ -11,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
@@ -80,7 +79,7 @@ export default function FileActionButton({
     },
   });
 
-  const handleFilterByFile = async (path: string, purl: string) => {
+  const handleFilter = async (path: string, purl: string) => {
     const isPersisted = isFilterActionPersisted(action);
     if (isPersisted) {
       mutate({ path, purl });
@@ -131,23 +130,19 @@ export default function FileActionButton({
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />
-        <DropdownMenuItem
-          onClick={() => handleFilterByFile(localFilePath, purl)}
-        >
+        <DropdownMenuItem onClick={() => handleFilter(localFilePath, purl)}>
           <div className="flex flex-col">
             <span className="text-sm">File</span>
             <span className="text-xs text-muted-foreground">
               {localFilePath}
             </span>
           </div>
-          <DropdownMenuShortcut>⌘⇧F</DropdownMenuShortcut>
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleFilter(localFilePath, purl)}>
           <div className="flex flex-col">
             <span className="text-sm">Component</span>
             <span className="text-xs text-muted-foreground">{purl}</span>
           </div>
-          <DropdownMenuShortcut>⌘⇧C</DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

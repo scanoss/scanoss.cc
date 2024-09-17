@@ -1,6 +1,6 @@
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { useMutation } from '@tanstack/react-query';
-import { Check, PackageMinus, Replace, Save } from 'lucide-react';
+import { Check, PackageMinus, Save } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -38,8 +38,9 @@ export default function FileActionsMenu({ component }: FileActionsMenuProps) {
   });
 
   return (
-    <div className="flex h-[65px] justify-center border-b border-b-border px-4">
-      <div className="ml-auto flex gap-2">
+    <div className="grid h-full grid-cols-3">
+      <div className=""></div>
+      <div className="flex justify-center gap-2">
         <FileActionButton
           action={FilterAction.Include}
           component={component}
@@ -53,7 +54,7 @@ export default function FileActionsMenu({ component }: FileActionsMenuProps) {
           icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
         />
       </div>
-      <div className="ml-auto flex items-center">
+      <div className="flex items-center justify-end">
         <Button size="sm" onClick={() => saveChanges()} disabled={isPending}>
           {isPending ? (
             <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />

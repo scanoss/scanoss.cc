@@ -69,7 +69,6 @@ func main() {
 			ProgramName:         "Scanoss Lui",
 		},
 		Mac: &mac.Options{
-			Appearance:           mac.NSAppearanceNameDarkAqua,
 			WebviewIsTransparent: true,
 			WindowIsTranslucent:  true,
 			About: &mac.AboutInfo{

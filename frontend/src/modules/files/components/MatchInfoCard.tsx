@@ -30,7 +30,7 @@ export default function MatchInfoCard({ component }: MatchInfoCardProps) {
         matchPresentation.foreground
       )}
     >
-      <div className="flex items-center gap-8 text-sm">
+      <div className="flex flex-wrap items-center gap-8 text-sm">
         <div>
           <div
             className={clsx(

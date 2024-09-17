@@ -4,25 +4,17 @@ import React from 'react';
 interface FileInfoCardProps {
   title: string;
   subtitle: string | undefined;
-  noMatch?: boolean;
 }
 
-export default function FileInfoCard({
-  title,
-  subtitle,
-  noMatch,
-}: FileInfoCardProps) {
+export default function FileInfoCard({ title, subtitle }: FileInfoCardProps) {
   return (
     <div
       className={clsx(
-        'flex flex-col rounded-sm border border-border bg-card p-3 text-sm',
-        noMatch && 'border-dashed'
+        'flex flex-col rounded-sm border border-border bg-card p-3 text-sm'
       )}
     >
-      <p className="font-semibold">{noMatch ? 'No match found' : title}</p>
-      <p className="text-muted-foreground">
-        {noMatch ? "This file doesn't have a match" : subtitle}
-      </p>
+      <p className="font-semibold">{title}</p>
+      <p className="text-muted-foreground">{subtitle}</p>
     </div>
   );
 }

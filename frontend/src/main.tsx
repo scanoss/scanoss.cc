@@ -37,7 +37,7 @@ if (!rootElement.innerHTML) {
 
   root.render(
     <StrictMode>
-      <TooltipProvider>
+      <TooltipProvider skipDelayDuration={0}>
         <QueryClientProvider client={queryClient}>
           <ConfirmDialogProvider>
             <ResultsProvider>

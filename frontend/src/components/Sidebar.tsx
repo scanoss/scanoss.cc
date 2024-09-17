@@ -133,14 +133,14 @@ function SidebarItem({ result }: { result: Result }) {
   const isResultIncluded = result.bomState?.action === FilterAction.Include;
 
   return (
-    <Tooltip key={result.path}>
+    <Tooltip>
       <TooltipTrigger asChild>
         <Link
           className={clsx(
             'flex w-full items-center gap-2 px-4 py-1 text-sm text-muted-foreground transition-all',
             isActive
               ? 'border-r-2 border-primary-foreground bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
-              : 'hover:bg-primary/10'
+              : 'hover:bg-primary/30'
           )}
           to={`files/${encodedFilePath}?matchType=${result.matchType}`}
         >

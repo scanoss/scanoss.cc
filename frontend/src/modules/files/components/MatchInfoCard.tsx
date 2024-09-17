@@ -26,7 +26,9 @@ export default function MatchInfoCard() {
     return <Skeleton className="min-h-[68px] w-full"></Skeleton>;
   }
 
-  const status = results.find((result) => result.path === localFilePath)?.state;
+  const result = results.find((result) => result.path === localFilePath);
+
+  const status = result?.state;
   const matchPresentation = matchTypePresentation[component.id as MatchType];
 
   return (

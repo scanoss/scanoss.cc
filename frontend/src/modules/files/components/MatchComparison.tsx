@@ -45,8 +45,16 @@ export default function MatchComparison() {
           <div className="col-span-2">
             <MatchInfoCard />
           </div>
-          <FileInfoCard title="Local file" subtitle={localFilePath} />
-          <FileInfoCard title="Remote file" subtitle={component?.file} />
+          <FileInfoCard
+            title="Local file"
+            subtitle={localFilePath}
+            fileType="local"
+          />
+          <FileInfoCard
+            title="Remote file"
+            subtitle={component?.file}
+            fileType="remote"
+          />
           <CodeViewer
             content={localFileContent?.content}
             isError={isErrorLocalFileContent}

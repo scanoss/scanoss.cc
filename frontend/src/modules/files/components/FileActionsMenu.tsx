@@ -4,8 +4,8 @@ import { Check, PackageMinus, Save } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import { FilterAction } from '@/modules/results/domain';
 
-import { FilterAction } from '../domain';
 import FileService from '../infra/service';
 import FileActionButton from './FileActionButton';
 

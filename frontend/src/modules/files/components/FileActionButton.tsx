@@ -15,10 +15,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import { useConfirm } from '@/hooks/useConfirm';
+import { FilterAction, filterActionLabelMap } from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
 import { useResults } from '@/modules/results/providers/ResultsProvider';
 
-import { FilterAction, filterActionLabelMap } from '../domain';
 import useLocalFilePath from '../hooks/useLocalFilePath';
 import FileService from '../infra/service';
 
@@ -59,8 +59,14 @@ export default function FileActionButton({
         path,
         purl,
       }),
-    onSuccess: () => {
-      const nextResultRoute = handleStageResult(localFilePath);
+    onSuccess: (data, { purl }) => {
+      const filterBy = purl ? 'purl' : 'path';
+
+      const nextResultRoute = handleStageResult(
+        localFilePath,
+        action,
+        filterBy
+      );
       if (nextResultRoute) {
         navigate(nextResultRoute);
       }

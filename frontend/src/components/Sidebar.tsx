@@ -132,31 +132,44 @@ function SidebarItem({ result }: { result: Result }) {
   const isResultDismissed = result.bomState?.action === FilterAction.Remove;
   const isResultIncluded = result.bomState?.action === FilterAction.Include;
 
+  const parts = result.path.split('/');
+  const fileName = parts.pop() || '';
+  const directory = parts.join('/');
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Link
-          className={clsx(
-            'flex w-full items-center gap-2 px-4 py-1 text-sm text-muted-foreground transition-all',
-            isActive
-              ? 'border-r-2 border-primary-foreground bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
-              : 'hover:bg-primary/30'
-          )}
-          to={`files/${encodedFilePath}?matchType=${result.matchType}`}
-        >
-          <span className="relative">
-            {matchTypeIconMap[result.matchType]}
-            <span
-              className={clsx(
-                'absolute bottom-0 right-0 h-1 w-1 rounded-full',
-                isResultDismissed && 'bg-red-600',
-                isResultIncluded && 'bg-green-600'
-              )}
-            ></span>
-          </span>
-          <span className="max-w-[80%] overflow-hidden text-ellipsis">
-            {result.path}
-          </span>
+        <Link to={`files/${encodedFilePath}?matchType=${result.matchType}`}>
+          <div
+            className={clsx(
+              'flex max-w-full items-center space-x-2 overflow-hidden px-4 py-1 text-sm text-muted-foreground transition-all hover:bg-primary/30',
+              isActive
+                ? 'border-r-2 border-primary-foreground bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
+                : 'hover:bg-primary/30'
+            )}
+          >
+            <span className="relative">
+              {matchTypeIconMap[result.matchType]}
+              <span
+                className={clsx(
+                  'absolute bottom-0 right-0 h-1 w-1 rounded-full',
+                  isResultDismissed && 'bg-red-600',
+                  isResultIncluded && 'bg-green-600'
+                )}
+              ></span>
+            </span>
+            <div className="flex min-w-0 items-center">
+              {directory && <span className="truncate">{directory}</span>}
+              <span
+                className={clsx(
+                  'whitespace-nowrap',
+                  !isActive && 'text-foreground'
+                )}
+              >
+                {directory ? `/${fileName}` : fileName}
+              </span>
+            </div>
+          </div>
         </Link>
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={15}>
@@ -167,6 +180,6 @@ function SidebarItem({ result }: { result: Result }) {
 }
 
 export const matchTypeIconMap: Record<MatchType, ReactNode> = {
-  [MatchType.File]: <File className="h-3 w-3" />,
-  [MatchType.Snippet]: <Braces className="h-3 w-3" />,
+  [MatchType.File]: <File className="h-3 w-3 flex-shrink-0" />,
+  [MatchType.Snippet]: <Braces className="h-3 w-3 flex-shrink-0" />,
 };

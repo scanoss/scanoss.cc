@@ -1,28 +1,68 @@
 import clsx from 'clsx';
-import React from 'react';
+import { File, Github } from 'lucide-react';
+
+import { FilterAction } from '@/modules/results/domain';
+import { useResults } from '@/modules/results/providers/ResultsProvider';
+
+import useLocalFilePath from '../hooks/useLocalFilePath';
 
 interface FileInfoCardProps {
   title: string;
   subtitle: string | undefined;
-  noMatch?: boolean;
+  fileType: 'local' | 'remote';
 }
 
 export default function FileInfoCard({
   title,
   subtitle,
-  noMatch,
+  fileType,
 }: FileInfoCardProps) {
+  const { results } = useResults();
+  const localFilePath = useLocalFilePath();
+  const result = results.find((result) => result.path === localFilePath);
+
+  const bomState = result?.bomState;
+
+  const isResultDismissed = bomState?.action === FilterAction.Remove;
+  const isResultIncluded = bomState?.action === FilterAction.Include;
+
+  const shouldShowStateInfo =
+    (fileType === 'local' && bomState?.filterBy === 'path') ||
+    (fileType === 'remote' && bomState?.filterBy === 'purl');
+
   return (
     <div
       className={clsx(
-        'flex flex-col rounded-sm border border-border bg-card p-3 text-sm',
-        noMatch && 'border-dashed'
+        'flex justify-between rounded-sm border border-border bg-card p-3 text-sm',
+        shouldShowStateInfo && {
+          'border-l-4 border-green-600 border-l-green-600 bg-green-950':
+            isResultIncluded,
+          'border-l-4 border-red-600 border-l-red-600 bg-red-950':
+            isResultDismissed,
+        }
       )}
     >
-      <p className="font-semibold">{noMatch ? 'No match found' : title}</p>
-      <p className="text-muted-foreground">
-        {noMatch ? "This file doesn't have a match" : subtitle}
-      </p>
+      <div>
+        <div className="flex items-center gap-1">
+          {fileType === 'local' ? (
+            <File className="h-3 w-3" />
+          ) : (
+            <Github className="h-3 w-3" />
+          )}
+          <span className="font-semibold">{title}</span>
+        </div>
+        <p className="text-muted-foreground">{subtitle ?? '-'}</p>
+      </div>
+      {shouldShowStateInfo && (
+        <div>
+          {isResultIncluded && (
+            <p className="text-xs text-green-600">Included</p>
+          )}
+          {isResultDismissed && (
+            <p className="text-xs text-red-500">Dismissed</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

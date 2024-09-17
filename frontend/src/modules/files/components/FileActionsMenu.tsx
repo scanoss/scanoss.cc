@@ -1,20 +1,15 @@
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { useMutation } from '@tanstack/react-query';
-import { Check, PackageMinus, Replace, Save } from 'lucide-react';
+import { Check, PackageMinus, Save } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { Component } from '@/modules/results/domain';
+import { FilterAction } from '@/modules/results/domain';
 
-import { FilterAction } from '../domain';
 import FileService from '../infra/service';
 import FileActionButton from './FileActionButton';
 
-interface FileActionsMenuProps {
-  component: Component;
-}
-
-export default function FileActionsMenu({ component }: FileActionsMenuProps) {
+export default function FileActionsMenu() {
   const { toast } = useToast();
 
   const { mutate: saveChanges, isPending } = useMutation({
@@ -38,22 +33,21 @@ export default function FileActionsMenu({ component }: FileActionsMenuProps) {
   });
 
   return (
-    <div className="flex h-[65px] justify-center border-b border-b-border px-4">
-      <div className="ml-auto flex gap-2">
+    <div className="grid h-full grid-cols-3">
+      <div className=""></div>
+      <div className="flex justify-center gap-2">
         <FileActionButton
           action={FilterAction.Include}
-          component={component}
           icon={<Check className="h-5 w-5 stroke-green-500" />}
           description="By including a file/component, you force the engine to consider it with priority in future scans."
         />
         <FileActionButton
           action={FilterAction.Remove}
-          component={component}
           description="Dismissing a file/component will exclude it from future scan results."
           icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
         />
       </div>
-      <div className="ml-auto flex items-center">
+      <div className="flex items-center justify-end">
         <Button size="sm" onClick={() => saveChanges()} disabled={isPending}>
           {isPending ? (
             <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />

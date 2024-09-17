@@ -36,13 +36,15 @@ func main() {
 	app := NewApp()
 
 	scanossBomHandler := handlers.NewScanossBomHandler()
+
 	//Create application with options
 	err := wails.Run(&options.App{
 		Title: "Scanoss Lui",
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		OnStartup: app.startup,
+		WindowStartState: options.Maximised,
+		OnStartup:        app.startup,
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
 			app.beforeClose(ctx, func() {
 				err := scanossBomHandler.SaveScanossBomFile()
@@ -69,7 +71,6 @@ func main() {
 			ProgramName:         "Scanoss Lui",
 		},
 		Mac: &mac.Options{
-			Appearance:           mac.NSAppearanceNameDarkAqua,
 			WebviewIsTransparent: true,
 			WindowIsTranslucent:  true,
 			About: &mac.AboutInfo{

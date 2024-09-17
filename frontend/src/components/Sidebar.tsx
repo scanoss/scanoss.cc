@@ -5,7 +5,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { decodeFilePath, encodeFilePath } from '@/lib/utils';
-import { MatchType, Result } from '@/modules/results/domain';
+import { FilterAction, MatchType, Result } from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
 import { useResults } from '@/modules/results/providers/ResultsProvider';
 
@@ -129,19 +129,31 @@ function SidebarItem({ result }: { result: Result }) {
   const isActive = decodeFilePath(filePath ?? '') === result.path;
   const encodedFilePath = encodeFilePath(result.path);
 
+  const isResultDismissed = result.bomState?.action === FilterAction.Remove;
+  const isResultIncluded = result.bomState?.action === FilterAction.Include;
+
   return (
-    <Tooltip key={result.path}>
+    <Tooltip>
       <TooltipTrigger asChild>
         <Link
           className={clsx(
             'flex w-full items-center gap-2 px-4 py-1 text-sm text-muted-foreground transition-all',
             isActive
               ? 'border-r-2 border-primary-foreground bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
-              : 'hover:bg-primary/10'
+              : 'hover:bg-primary/30'
           )}
           to={`files/${encodedFilePath}?matchType=${result.matchType}`}
         >
-          {matchTypeIconMap[result.matchType]}
+          <span className="relative">
+            {matchTypeIconMap[result.matchType]}
+            <span
+              className={clsx(
+                'absolute bottom-0 right-0 h-1 w-1 rounded-full',
+                isResultDismissed && 'bg-red-600',
+                isResultIncluded && 'bg-green-600'
+              )}
+            ></span>
+          </span>
           <span className="max-w-[80%] overflow-hidden text-ellipsis">
             {result.path}
           </span>

@@ -1,25 +1,34 @@
+import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Component,
   MatchType,
   matchTypePresentation,
   resultStatusPresentation,
 } from '@/modules/results/domain';
+import ResultService from '@/modules/results/infra/service';
 import { useResults } from '@/modules/results/providers/ResultsProvider';
 
 import useLocalFilePath from '../hooks/useLocalFilePath';
 
-interface MatchInfoCardProps {
-  component: Component;
-}
-
-export default function MatchInfoCard({ component }: MatchInfoCardProps) {
+export default function MatchInfoCard() {
   const { results } = useResults();
   const localFilePath = useLocalFilePath();
 
-  const status = results.find((result) => result.path === localFilePath)?.state;
+  const { data: component } = useQuery({
+    queryKey: ['component', localFilePath],
+    queryFn: () => ResultService.getComponent(localFilePath),
+  });
+
+  if (!component) {
+    return <Skeleton className="min-h-[68px] w-full"></Skeleton>;
+  }
+
+  const result = results.find((result) => result.path === localFilePath);
+
+  const status = result?.state;
   const matchPresentation = matchTypePresentation[component.id as MatchType];
 
   return (
@@ -30,7 +39,7 @@ export default function MatchInfoCard({ component }: MatchInfoCardProps) {
         matchPresentation.foreground
       )}
     >
-      <div className="flex items-center gap-8 text-sm">
+      <div className="flex flex-wrap items-center gap-8 text-sm">
         <div>
           <div
             className={clsx(

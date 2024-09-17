@@ -9,10 +9,19 @@ import {
 } from 'react';
 
 import { encodeFilePath } from '@/lib/utils';
-import { MatchType, Result } from '@/modules/results/domain';
+import {
+  FilterAction,
+  FilterBy,
+  MatchType,
+  Result,
+} from '@/modules/results/domain';
 
 export interface ResultsContext {
-  handleStageResult: (path: string) => string | null;
+  handleStageResult: (
+    path: string,
+    action: FilterAction,
+    filterBy: FilterBy
+  ) => string | null;
   results: Result[];
   setResults: Dispatch<SetStateAction<Result[]>>;
   stagedResults: Result[];
@@ -69,9 +78,24 @@ export const ResultsProvider = ({ children }: { children: ReactNode }) => {
   const stagedResults = groupedResultsByState.staged ?? [];
   const unstagedResults = groupedResultsByState.unstaged ?? [];
 
-  const handleStageResult = (path: string): string | null => {
+  const handleStageResult = (
+    path: string,
+    action: FilterAction,
+    filterBy: FilterBy
+  ): string | null => {
     setResults((results) =>
-      results.map((r) => (r.path === path ? { ...r, state: 'staged' } : r))
+      results.map((result) =>
+        result.path === path
+          ? {
+              ...result,
+              state: 'staged',
+              bomState: {
+                action,
+                filterBy,
+              },
+            }
+          : result
+      )
     );
     return getNextUnstagedResultPathRoute(path);
   };

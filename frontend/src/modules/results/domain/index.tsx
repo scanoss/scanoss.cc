@@ -3,10 +3,33 @@ import React, { ReactNode } from 'react';
 import { entities } from 'wailsjs/go/models';
 
 type ResultState = 'unstaged' | 'staged';
+
+interface BomState {
+  action: FilterAction;
+  filterBy: FilterBy;
+}
+
+export enum FilterAction {
+  Ignore = 'ignore',
+  Include = 'include',
+  Remove = 'remove',
+  Replace = 'replace',
+}
+
+export type FilterBy = 'path' | 'purl';
+
+export const filterActionLabelMap: Record<FilterAction, string> = {
+  [FilterAction.Ignore]: 'Omit / Skip',
+  [FilterAction.Include]: 'Include',
+  [FilterAction.Remove]: 'Dismiss',
+  [FilterAction.Replace]: 'Replace',
+};
+
 export interface Result {
   path: string;
   matchType: MatchType;
   state: ResultState;
+  bomState: BomState | null;
 }
 
 export enum MatchType {

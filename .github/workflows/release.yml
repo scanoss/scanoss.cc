@@ -77,7 +77,7 @@ jobs:
         run: |
           mkdir build
           cp -r assets build/assets
-          wails build -ldflags "-X main.version=$(git tag --sort=-version:refname | head -n 1)" --platform ${{matrix.build.platform}} -webview2 download -o scanoss-lui-windows.ex
+          wails build -ldflags "-X main.version=$(git tag --sort=-version:refname | head -n 1)" --platform ${{matrix.build.platform}} -webview2 download -o scanoss-lui-windows.exe
         shell: bash
 
       # Set execution permissions

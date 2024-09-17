@@ -14,7 +14,7 @@ export default function FileInfoCard({ title, subtitle }: FileInfoCardProps) {
       )}
     >
       <p className="font-semibold">{title}</p>
-      <p className="text-muted-foreground">{subtitle}</p>
+      <p className="text-muted-foreground">{subtitle ?? '-'}</p>
     </div>
   );
 }

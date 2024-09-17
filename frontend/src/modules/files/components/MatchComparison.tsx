@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import CodeViewer from '@/components/CodeViewer';
-import { Component } from '@/modules/results/domain';
+import ResultService from '@/modules/results/infra/service';
 
 import useLocalFilePath from '../hooks/useLocalFilePath';
 import FileService from '../infra/service';
@@ -9,11 +9,7 @@ import FileActionsMenu from './FileActionsMenu';
 import FileInfoCard from './FileInfoCard';
 import MatchInfoCard from './MatchInfoCard';
 
-interface MatchComparisonProps {
-  component: Component;
-}
-
-export default function MatchComparison({ component }: MatchComparisonProps) {
+export default function MatchComparison() {
   const localFilePath = useLocalFilePath();
 
   const {
@@ -34,24 +30,29 @@ export default function MatchComparison({ component }: MatchComparisonProps) {
     queryFn: () => FileService.getRemoteFileContent(localFilePath),
   });
 
+  const { data: component } = useQuery({
+    queryKey: ['component', localFilePath],
+    queryFn: () => ResultService.getComponent(localFilePath),
+  });
+
   return (
     <div className="flex h-full flex-col">
       <header className="h-[65px] border-b border-b-border px-6">
-        <FileActionsMenu component={component} />
+        <FileActionsMenu />
       </header>
       <main className="flex-1 p-6">
         <div className="grid h-full grid-cols-2 grid-rows-[auto_auto_1fr] gap-4">
           <div className="col-span-2">
-            <MatchInfoCard component={component} />
+            <MatchInfoCard />
           </div>
           <FileInfoCard title="Local file" subtitle={localFilePath} />
-          <FileInfoCard title="Remote file" subtitle={component.file} />
+          <FileInfoCard title="Remote file" subtitle={component?.file} />
           <CodeViewer
             content={localFileContent?.content}
             isError={isErrorLocalFileContent}
             isLoading={isLoadingLocalFileContent}
             language={localFileContent?.language}
-            highlightLines={component.lines}
+            highlightLines={component?.lines}
             editorType="local"
           />
           <CodeViewer
@@ -59,7 +60,7 @@ export default function MatchComparison({ component }: MatchComparisonProps) {
             isError={isErrorRemoteFileContent}
             isLoading={isLoadingRemoteFileContent}
             language={remoteFileContent?.language}
-            highlightLines={component.oss_lines}
+            highlightLines={component?.oss_lines}
             editorType="remote"
           />
         </div>

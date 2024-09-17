@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import { useConfirm } from '@/hooks/useConfirm';
-import { Component } from '@/modules/results/domain';
+import ResultService from '@/modules/results/infra/service';
 import { useResults } from '@/modules/results/providers/ResultsProvider';
 
 import { FilterAction, filterActionLabelMap } from '../domain';
@@ -31,18 +31,14 @@ const persistAction = (action: FilterAction) =>
 
 interface FileActionButtonProps {
   action: FilterAction;
-  component: Component;
   description: string;
   icon: React.ReactNode;
-  isDisabled?: boolean;
 }
 
 export default function FileActionButton({
   action,
-  component,
   description,
   icon,
-  isDisabled = false,
 }: FileActionButtonProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -51,11 +47,10 @@ export default function FileActionButton({
   const localFilePath = useLocalFilePath();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const purl = component.purl?.[0];
-
-  if (!purl || !localFilePath) {
-    return null;
-  }
+  const { data: component } = useQuery({
+    queryKey: ['component', localFilePath],
+    queryFn: () => ResultService.getComponent(localFilePath),
+  });
 
   const { mutate } = useMutation({
     mutationFn: ({ path, purl }: { path: string; purl: string }) =>
@@ -79,7 +74,13 @@ export default function FileActionButton({
     },
   });
 
-  const handleFilter = async (path: string, purl: string) => {
+  const handleFilter = async ({
+    path = '',
+    purl = '',
+  }: {
+    path?: string;
+    purl?: string;
+  }) => {
     const isPersisted = isFilterActionPersisted(action);
     if (isPersisted) {
       mutate({ path, purl });
@@ -95,25 +96,25 @@ export default function FileActionButton({
     }
   };
 
+  const purl = component?.purl?.[0];
+
   return (
     <DropdownMenu onOpenChange={setDropdownOpen}>
       <div className="group flex h-full">
-        <Button
-          variant="ghost"
-          size="lg"
-          className="h-full w-14 rounded-none enabled:group-hover:bg-accent enabled:group-hover:text-accent-foreground"
-          disabled={isDisabled}
-        >
-          <div className="flex flex-col items-center justify-center gap-1">
-            <span className="text-xs">{filterActionLabelMap[action]}</span>
-            {icon}
-          </div>
-        </Button>
-        <DropdownMenuTrigger disabled={isDisabled} asChild>
-          <button
-            className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent"
-            disabled={isDisabled}
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="lg"
+            className="h-full w-14 rounded-none enabled:group-hover:bg-accent enabled:group-hover:text-accent-foreground"
           >
+            <div className="flex flex-col items-center justify-center gap-1">
+              <span className="text-xs">{filterActionLabelMap[action]}</span>
+              {icon}
+            </div>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
+          <button className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent">
             <ChevronDown
               className={clsx(
                 'h-4 w-4 stroke-muted-foreground transition-transform enabled:hover:stroke-accent-foreground',
@@ -130,7 +131,7 @@ export default function FileActionButton({
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />
-        <DropdownMenuItem onClick={() => handleFilter(localFilePath, purl)}>
+        <DropdownMenuItem onClick={() => handleFilter({ path: localFilePath })}>
           <div className="flex flex-col">
             <span className="text-sm">File</span>
             <span className="text-xs text-muted-foreground">
@@ -138,7 +139,10 @@ export default function FileActionButton({
             </span>
           </div>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleFilter(localFilePath, purl)}>
+        <DropdownMenuItem
+          onClick={() => handleFilter({ purl })}
+          disabled={!purl}
+        >
           <div className="flex flex-col">
             <span className="text-sm">Component</span>
             <span className="text-xs text-muted-foreground">{purl}</span>

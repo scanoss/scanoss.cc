@@ -5,8 +5,7 @@ on:
 
   push:
     tags:
-      - 'v*.*.*'
-
+      - "v*.*.*"
 
 env:
   # Necessary for most environments as build failure can occur due to OOM issues
@@ -15,16 +14,16 @@ env:
 jobs:
   build:
     strategy:
-    # Failure in one platform build won't impact the others
+      # Failure in one platform build won't impact the others
       fail-fast: false
       matrix:
         build:
-          - platform:  'linux/amd64'
-            os: 'ubuntu-latest'
-          - platform:  'windows/amd64'
-            os: 'windows-latest'
-          - platform:  'darwin/universal'
-            os: 'macos-latest'
+          - platform: "linux/amd64"
+            os: "ubuntu-latest"
+          - platform: "windows/amd64"
+            os: "windows-latest"
+          - platform: "darwin/universal"
+            os: "macos-latest"
 
     runs-on: ${{ matrix.build.os }}
     steps:
@@ -38,14 +37,14 @@ jobs:
         uses: actions/setup-go@v4
         with:
           check-latest: true
-          go-version: '1.21'
+          go-version: "1.21"
       - run: go version
         shell: bash
       # Setup and configure NodeJS
       - name: Setup NodeJS
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: "16.x"
       # Install Wails
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
@@ -62,35 +61,35 @@ jobs:
       - name: Build App
         if: runner.os == 'macOS'
         run: |
-          mkdir build \
-          cp -r ./assets ./build/assets \
-          wails build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`" --platform ${{matrix.build.platform}} --nopackage -webview2 download -o scanoss-lui-macos \
+          mkdir build 
+          cp -r assets build/assets 
+          wails build -ldflags "-X main.version=$(git tag --sort=-version:refname | head -n 1)" --platform ${{matrix.build.platform}} --nopackage -webview2 download -o scanoss-lui-macos
         shell: bash
       - name: Build Linux App
         if: runner.os == 'Linux'
         run: |
-          mkdir build \
-          cp -r ./assets ./build/assets \
-          wails build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`" --platform ${{matrix.build.platform}} -webview2 download -o scanoss-lui-linux \
+          mkdir build
+          cp -r assets build/assets
+          wails build -ldflags "-X main.version=$(git tag --sort=-version:refname | head -n 1)" --platform ${{matrix.build.platform}} -webview2 download -o scanoss-lui-linux
         shell: bash
       - name: Build Windows App
         if: runner.os == 'Windows'
         run: |
-          mkdir build \
-          cp -r ./assets ./build/assets \
-          wails build -ldflags "-X main.version=`git tag --sort=-version:refname | head -n 1`" --platform ${{matrix.build.platform}} -webview2 download -o scanoss-lui-windows.exe \
+          mkdir build
+          cp -r assets build/assets
+          wails build -ldflags "-X main.version=$(git tag --sort=-version:refname | head -n 1)" --platform ${{matrix.build.platform}} -webview2 download -o scanoss-lui-windows.ex
         shell: bash
 
       # Set execution permissions
       - name: Add macOS perms
         if: runner.os == 'macOS'
         run: chmod +x ./build/bin/scanoss-lui-macos
-        shell: bash   
+        shell: bash
 
       - name: Add Linux perms
         if: runner.os == 'Linux'
         run: chmod +x ./build/bin/scanoss-lui-linux
-        shell: bash   
+        shell: bash
 
       # macOS Signing
       - name: Import Code-Signing Certificates for macOS
@@ -107,7 +106,7 @@ jobs:
         env:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_ID: apple@scanoss.com
-          APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }} 
+          APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
           APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
         run: |
           echo "Signing Package"
@@ -131,28 +130,28 @@ jobs:
         run: |
           cd ./build/bin/; Compress-Archive -Path scanoss-lui-windows.exe -Destination scanoss-lui-windows.zip
 
-      
       - name: Notarize
         if: runner.os == 'macOS' && startsWith(github.ref, 'refs/tags/')
         shell: bash
         env:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_ID: apple@scanoss.com
-          APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }} 
+          APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
         run: |
-          xcrun notarytool submit ./build/bin/scanoss-lui-macos.zip --apple-id "${APPLE_ID?}" --team-id "${APPLE_DEVELOPER_ID?}" --password "${APPLE_PASSWORD?}" 
-        
+          xcrun notarytool submit ./build/bin/scanoss-lui-macos.zip --apple-id "${APPLE_ID?}" --team-id "${APPLE_DEVELOPER_ID?}" --password "${APPLE_PASSWORD?}"
+
       # Upload build assets
       - uses: actions/upload-artifact@v4
         with:
-          name: Wails Build ${{runner.os}} 
+          name: Wails Build ${{runner.os}}
           path: |
             */bin/*.zip
             *\bin\*.zip
-            
+
       - name: Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             */bin/*.zip
+

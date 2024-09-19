@@ -14,20 +14,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-import { useConfirm } from '@/hooks/useConfirm';
 import { FilterAction, filterActionLabelMap } from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
 import { useResults } from '@/modules/results/providers/ResultsProvider';
 
 import useLocalFilePath from '../hooks/useLocalFilePath';
 import FileService from '../infra/service';
-
-const getActionPersistKey = (action: FilterAction) =>
-  `filter-action-${action}-dont-ask-again`;
-const isFilterActionPersisted = (action: FilterAction) =>
-  localStorage.getItem(getActionPersistKey(action)) === 'true';
-const persistAction = (action: FilterAction) =>
-  localStorage.setItem(getActionPersistKey(action), 'true');
 
 interface FileActionButtonProps {
   action: FilterAction;
@@ -42,7 +34,7 @@ export default function FileActionButton({
 }: FileActionButtonProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { ask } = useConfirm();
+
   const { handleStageResult } = useResults();
   const localFilePath = useLocalFilePath();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -52,7 +44,7 @@ export default function FileActionButton({
     queryFn: () => ResultService.getComponent(localFilePath),
   });
 
-  const { mutate } = useMutation({
+  const { mutate: filterComponent } = useMutation({
     mutationFn: ({ path, purl }: { path: string | undefined; purl: string }) =>
       FileService.filterComponentByPath({
         action,
@@ -79,28 +71,6 @@ export default function FileActionButton({
       });
     },
   });
-
-  const handleFilter = async ({
-    path,
-    purl,
-  }: {
-    path: string | undefined;
-    purl: string;
-  }) => {
-    const isPersisted = isFilterActionPersisted(action);
-    if (isPersisted) {
-      mutate({ path, purl });
-    } else {
-      const res = await ask(
-        // TODO: Define proper descriptions
-        'You are about to filter this file for future scans. Are you sure you want to proceed?',
-        () => persistAction(action)
-      );
-      if (res) {
-        mutate({ path, purl });
-      }
-    }
-  };
 
   const purl = component?.purl?.[0];
 
@@ -138,7 +108,7 @@ export default function FileActionButton({
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />
         <DropdownMenuItem
-          onClick={() => handleFilter({ path: localFilePath, purl: purl! })}
+          onClick={() => filterComponent({ path: localFilePath, purl: purl! })}
         >
           <div className="flex flex-col">
             <span className="text-sm">File</span>
@@ -148,7 +118,7 @@ export default function FileActionButton({
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => handleFilter({ path: undefined, purl: purl! })}
+          onClick={() => filterComponent({ path: undefined, purl: purl! })}
           disabled={!purl}
         >
           <div className="flex flex-col">

@@ -12,14 +12,14 @@ const (
 )
 
 type ComponentFilter struct {
-	Path  string               `json:"path"`
+	Path  string               `json:"path,omitempty"`
 	Purl  string               `json:"purl"`
 	Usage ComponentFilterUsage `json:"usage,omitempty"`
 }
 
 type Bom struct {
-	Include []ComponentFilter `json:"include"`
-	Remove  []ComponentFilter `json:"remove"`
+	Include []ComponentFilter `json:"include,omitempty"`
+	Remove  []ComponentFilter `json:"remove,omitempty"`
 }
 
 type BomFile struct {

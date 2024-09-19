@@ -68,8 +68,8 @@ const (
 )
 
 type ComponentFilterDTO struct {
-	Path   string       `json:"path"`
-	Purl   string       `json:"purl"`
+	Path   string       `json:"path,omitempty"`
+	Purl   string       `json:"purl" validate:"required"`
 	Usage  string       `json:"usage,omitempty"`
 	Action FilterAction `json:"action"`
 }

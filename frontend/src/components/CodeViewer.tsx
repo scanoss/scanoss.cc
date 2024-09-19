@@ -73,7 +73,7 @@ export default memo(function CodeViewer({
     editorRef.current?.createDecorationsCollection(decorations);
   };
 
-  if (isLoading) {
+  if (isLoading || !highlightLines) {
     return <Skeleton className="h-full w-full" />;
   }
 

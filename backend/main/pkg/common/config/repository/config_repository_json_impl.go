@@ -109,13 +109,14 @@ func (r *ConfigJsonRepository) createConfigFile() error {
 	// Check if the directory exists
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
 		// Directory does not exist, create it
-		err := os.MkdirAll(dirPath, os.ModePerm)
+		err := os.MkdirAll(dirPath, 0700)
 		if err != nil {
 			return err
 		}
 	}
 
-	file, err := os.Create(r.configPath)
+	// Create the file with read/write permissions (owner and group only)
+	file, err := os.OpenFile(r.configPath, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		fmt.Printf("Failed to create configuration file: %v\n", err)
 		os.Exit(1)

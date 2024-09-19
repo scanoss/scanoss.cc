@@ -57,7 +57,7 @@ var configureCmd = &cobra.Command{
 		config.GetInstance().Save()
 
 		fmt.Println("API URL: ", config.GetInstance().Config.ApiUrl)
-		fmt.Println("KEY: ", config.GetInstance().Config.ApiToken)
+		fmt.Println("KEY: ", strings.Repeat("*", len(config.GetInstance().Config.ApiToken)))
 		fmt.Println("Configuration saved successfully!")
 
 	},

@@ -17,13 +17,13 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 )
 
-// go:embed all:frontend/dist
+//go:embed all:frontend/dist
 var assets embed.FS
 
 // Gets updated build time using -ldflags
 var version = ""
 
-// go:embed build/assets/icon.gif
+//go:embed build/assets/icon.gif
 var icon []byte
 
 func main() {

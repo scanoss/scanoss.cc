@@ -76,6 +76,8 @@ func init() {
 	configureCmd.Flags().StringVarP(&apiKey, "key", "k", "", "SCANOSS API Key token (optional - not required for default OSSKB URL)")
 	configureCmd.Flags().StringVarP(&apiUrl, "apiUrl", "u", "", "SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct)")
 
+	// Disable default completion option
+	rootCmd.Root().CompletionOptions.HiddenDefaultCmd = true
 }
 
 func Init() {

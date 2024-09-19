@@ -73,7 +73,7 @@ export namespace entities {
 		}
 	}
 	export class ComponentFilterDTO {
-	    path: string;
+	    path?: string;
 	    purl: string;
 	    usage?: string;
 	    action: string;

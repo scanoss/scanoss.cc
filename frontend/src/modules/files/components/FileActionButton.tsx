@@ -53,13 +53,13 @@ export default function FileActionButton({
   });
 
   const { mutate } = useMutation({
-    mutationFn: ({ path, purl }: { path: string; purl: string }) =>
+    mutationFn: ({ path, purl }: { path: string | undefined; purl: string }) =>
       FileService.filterComponentByPath({
         action,
         path,
         purl,
       }),
-    onSuccess: (data, { purl }) => {
+    onSuccess: (_, { purl }) => {
       const filterBy = purl ? 'purl' : 'path';
 
       const nextResultRoute = handleStageResult(
@@ -81,11 +81,11 @@ export default function FileActionButton({
   });
 
   const handleFilter = async ({
-    path = '',
-    purl = '',
+    path,
+    purl,
   }: {
-    path?: string;
-    purl?: string;
+    path: string | undefined;
+    purl: string;
   }) => {
     const isPersisted = isFilterActionPersisted(action);
     if (isPersisted) {
@@ -137,7 +137,9 @@ export default function FileActionButton({
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />
-        <DropdownMenuItem onClick={() => handleFilter({ path: localFilePath })}>
+        <DropdownMenuItem
+          onClick={() => handleFilter({ path: localFilePath, purl: purl! })}
+        >
           <div className="flex flex-col">
             <span className="text-sm">File</span>
             <span className="text-xs text-muted-foreground">
@@ -146,7 +148,7 @@ export default function FileActionButton({
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => handleFilter({ purl })}
+          onClick={() => handleFilter({ path: undefined, purl: purl! })}
           disabled={!purl}
         >
           <div className="flex flex-col">

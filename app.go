@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/scanoss/scanoss.lui/backend/handlers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -36,7 +37,18 @@ func (a *App) startup(ctx context.Context) {
 	runtime.LogInfo(ctx, "Scan Root file path: "+config.Get().ScanRoot)
 }
 
-func (a *App) beforeClose(ctx context.Context, onConfirm func()) {
+func (a *App) beforeClose(ctx context.Context, sbh *handlers.ScanossBomHandler) (prevent bool) {
+
+	hasUnsavedChanges, err := sbh.HasUnsavedChanges()
+
+	if err != nil {
+		runtime.LogError(ctx, "Error checking for unsaved changes: "+err.Error())
+		return false
+	}
+	if !hasUnsavedChanges {
+		return false
+	}
+
 	result, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
 		Type:          runtime.QuestionDialog,
 		Title:         "Unsaved Changes",
@@ -45,7 +57,6 @@ func (a *App) beforeClose(ctx context.Context, onConfirm func()) {
 		Buttons:       []string{"Yes", "No"},
 		DefaultButton: "Yes",
 	})
-
 	if err != nil {
 		runtime.LogError(ctx, "Error showing dialog: "+err.Error())
 	}
@@ -53,6 +64,11 @@ func (a *App) beforeClose(ctx context.Context, onConfirm func()) {
 	confirmOptions := []string{"Yes", "Ok"}
 
 	if slices.Contains(confirmOptions, result) {
-		onConfirm()
+		err := sbh.SaveScanossBomFile()
+		if err != nil {
+			runtime.LogError(ctx, "Error saving scanoss bom file: "+err.Error())
+		}
 	}
+
+	return false
 }

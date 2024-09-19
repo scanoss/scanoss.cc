@@ -4,7 +4,6 @@ import (
 	"context"
 	"embed"
 	"fmt"
-	"log"
 
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
@@ -46,13 +45,7 @@ func main() {
 		WindowStartState: options.Maximised,
 		OnStartup:        app.startup,
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
-			app.beforeClose(ctx, func() {
-				err := scanossBomHandler.SaveScanossBomFile()
-				if err != nil {
-					log.Fatalf("Error saving scanoss bom file: %s", err)
-				}
-			})
-			return false
+			return app.beforeClose(ctx, scanossBomHandler)
 		},
 		Bind: []interface{}{
 			app,

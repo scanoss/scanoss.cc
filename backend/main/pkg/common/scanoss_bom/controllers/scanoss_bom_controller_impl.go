@@ -15,3 +15,7 @@ func NewScanossBomController(service service.ScanossBomService) ScanossBomContro
 func (c *ScanossBomControllerImpl) Save() error {
 	return c.service.Save()
 }
+
+func (c *ScanossBomControllerImpl) HasUnsavedChanges() (bool, error) {
+	return c.service.HasUnsavedChanges()
+}

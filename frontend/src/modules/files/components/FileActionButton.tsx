@@ -59,8 +59,8 @@ export default function FileActionButton({
         path,
         purl,
       }),
-    onSuccess: (_, { purl }) => {
-      const filterBy = purl ? 'purl' : 'path';
+    onSuccess: (_, { path, purl }) => {
+      const filterBy = path && purl ? 'path' : 'purl';
 
       const nextResultRoute = handleStageResult(
         localFilePath,

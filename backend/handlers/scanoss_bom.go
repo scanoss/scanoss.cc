@@ -17,3 +17,7 @@ func NewScanossBomHandler() *ScanossBomHandler {
 func (sh *ScanossBomHandler) SaveScanossBomFile() error {
 	return sh.scanossBomModule.Controller.Save()
 }
+
+func (sh *ScanossBomHandler) HasUnsavedChanges() (bool, error) {
+	return sh.scanossBomModule.Controller.HasUnsavedChanges()
+}

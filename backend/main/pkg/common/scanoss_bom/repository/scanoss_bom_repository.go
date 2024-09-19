@@ -5,4 +5,5 @@ import "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_bom/entit
 type ScanossBomRepository interface {
 	Save() error
 	Read() (entities.BomFile, error)
+	HasUnsavedChanges() (bool, error)
 }

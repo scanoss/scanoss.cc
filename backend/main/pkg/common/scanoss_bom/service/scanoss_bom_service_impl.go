@@ -15,3 +15,7 @@ func NewScanossBomService(r repository.ScanossBomRepository) *ScanossBomServiceI
 func (us *ScanossBomServiceImp) Save() error {
 	return us.repository.Save()
 }
+
+func (us *ScanossBomServiceImp) HasUnsavedChanges() (bool, error) {
+	return us.repository.HasUnsavedChanges()
+}

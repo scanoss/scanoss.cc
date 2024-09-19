@@ -39,3 +39,12 @@ func (r *ScanossBomJsonRepository) Read() (entities.BomFile, error) {
 
 	return scanossBom, nil
 }
+
+func (r *ScanossBomJsonRepository) HasUnsavedChanges() (bool, error) {
+	originalBom, err := r.Read()
+	if err != nil {
+		return false, err
+	}
+
+	return !originalBom.Equal(entities.BomJson.BomFile), nil
+}

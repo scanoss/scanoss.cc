@@ -1,5 +1,7 @@
 package entities
 
+import "reflect"
+
 type ComponentFilterUsage string
 
 var (
@@ -27,5 +29,10 @@ type BomFile struct {
 }
 
 type ScanossBom struct {
-	BomFile *BomFile
+	BomFile           *BomFile
+	HasUnsavedChanges bool
+}
+
+func (bf *BomFile) Equal(other *BomFile) bool {
+	return reflect.DeepEqual(bf, other)
 }

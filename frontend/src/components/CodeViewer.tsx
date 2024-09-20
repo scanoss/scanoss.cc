@@ -45,7 +45,7 @@ export default memo(function CodeViewer({
           range: new monaco.Range(1, 1, totalLines, 1),
           options: {
             isWholeLine: true,
-            className: 'line-highlight-decoration',
+            className: editorType === "local" ? 'bg-highlight-local-line' : 'bg-highlight-remote-line',
           },
         },
       ];
@@ -64,8 +64,8 @@ export default memo(function CodeViewer({
         range: new monaco.Range(start, 1, end, 1),
         options: {
           isWholeLine: true,
-          className: 'line-highlight-decoration',
-          inlineClassName: 'inline-highlight-decoration',
+          className: editorType === "local" ? 'bg-highlight-local-line' : 'bg-highlight-remote-line',
+          inlineClassName: editorType === "local" ? 'bg-highlight-local-inline' : 'bg-highlight-remote-inline',
         },
       })
     );
@@ -87,7 +87,7 @@ export default memo(function CodeViewer({
 
   return (
     <Editor
-      className={`editor-${editorType}`}
+      className={`editor-${editorType} bg-[#392428]`}
       height={height}
       loading={<Skeleton className="h-full w-full" />}
       onMount={handleEditorMount}

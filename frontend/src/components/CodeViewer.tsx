@@ -1,6 +1,6 @@
 import { Editor } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
-import { memo, useRef } from 'react';
+import { useRef } from 'react';
 
 import { getHighlightLineRanges } from '@/modules/results/utils';
 
@@ -17,7 +17,7 @@ interface CodeViewerProps {
   width?: string;
 }
 
-export default memo(function CodeViewer({
+export default function CodeViewer({
   content,
   editorType,
   height = '100%',
@@ -45,7 +45,10 @@ export default memo(function CodeViewer({
           range: new monaco.Range(1, 1, totalLines, 1),
           options: {
             isWholeLine: true,
-            className: editorType === "local" ? 'bg-highlight-local-line' : 'bg-highlight-remote-line',
+            className:
+              editorType === 'local'
+                ? 'bg-highlight-local-line'
+                : 'bg-highlight-remote-line',
           },
         },
       ];
@@ -64,8 +67,14 @@ export default memo(function CodeViewer({
         range: new monaco.Range(start, 1, end, 1),
         options: {
           isWholeLine: true,
-          className: editorType === "local" ? 'bg-highlight-local-line' : 'bg-highlight-remote-line',
-          inlineClassName: editorType === "local" ? 'bg-highlight-local-inline' : 'bg-highlight-remote-inline',
+          className:
+            editorType === 'local'
+              ? 'bg-highlight-local-line'
+              : 'bg-highlight-remote-line',
+          inlineClassName:
+            editorType === 'local'
+              ? 'bg-highlight-local-inline'
+              : 'bg-highlight-remote-inline',
         },
       })
     );
@@ -87,7 +96,7 @@ export default memo(function CodeViewer({
 
   return (
     <Editor
-      className={`editor-${editorType} bg-[#392428]`}
+      className={`editor-${editorType}`}
       height={height}
       loading={<Skeleton className="h-full w-full" />}
       onMount={handleEditorMount}
@@ -103,4 +112,4 @@ export default memo(function CodeViewer({
       }}
     />
   );
-});
+}

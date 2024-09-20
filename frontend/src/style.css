@@ -81,23 +81,3 @@ body {
     --chart-5: 340 75% 55%;
   }
 }
-
-.editor-local {
-  .line-highlight-decoration {
-    background-color: #392428;
-  }
-
-  .inline-highlight-decoration {
-    background-color: #592b2d;
-  }
-}
-
-.editor-remote {
-  .line-highlight-decoration {
-    background-color: #26352c;
-  }
-
-  .inline-highlight-decoration {
-    background-color: #324f36;
-  }
-}

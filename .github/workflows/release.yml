@@ -19,7 +19,7 @@ jobs:
       matrix:
         build:
           - platform: "linux/amd64"
-            os: "ubuntu-latest"
+            os: "ubuntu-20.04"
           - platform: "windows/amd64"
             os: "windows-latest"
           - platform: "darwin/universal"
@@ -154,4 +154,5 @@ jobs:
         with:
           files: |
             */bin/*.zip
+          prerelease: true
 

@@ -28,10 +28,23 @@ wails build
 ```
 
 ## Errors on Ubuntu 24.04
-Ubuntu 24.04 does includes webkit 4.1 and wails is expecting webkit 4.0
+Ubuntu 24.04 includes webkit 4.1 and wails is expecting webkit 4.0
 `Perhaps you should add the directory containing 'webkit2gtk-4.0.pc'`
 
-Solution: `wails dev -tags webkit2_41`
+### Solution for Production Environments:
+To resolve the issue in a production environment, you can create symbolic links from the WebKit 4.1 libraries to the expected WebKit 4.0 filenames:
+```bash
+sudo ln -sf /usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.1.so.0 /usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.0.so.37 &&
+sudo ln -sf /usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.1.so.0 /usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.0.so.18
+````
+### Solution for Development Environments:
+If you are working in a development environment, Wails provides a tag to support WebKit 4.1 directly. You can use the following command:<br>
+`
+wails dev -tags webkit2_41
+`
+
+
+
 
 
 ## Live Development environment with parameters

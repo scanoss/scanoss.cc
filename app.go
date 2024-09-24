@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"slices"
 
@@ -25,85 +24,6 @@ func NewApp() *App {
 func (a *App) maybeSetWindowTitle() {
 	if env := runtime.Environment(a.ctx); env.Platform != "darwin" {
 		runtime.WindowSetTitle(a.ctx, fmt.Sprintf("Scanoss Lui %s", version))
-	}
-}
-
-func (a *App) Init() {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println("Unable to read user home directory")
-		os.Exit(1)
-	}
-	var defaultScanossFolder = homeDir + string(os.PathSeparator) + "." + config.GetDefaultGlobalFolder() + string(os.PathSeparator) + config.GetDefaultConfigFileName()
-
-	a.createScanossFolder(defaultScanossFolder)
-	a.createConfigFile(defaultScanossFolder)
-	a.initScanSettingsFile()
-
-}
-
-func (r *App) createScanossFolder(path string) {
-	// Get the directory path
-	dirPath := filepath.Dir(path)
-	// Check if the directory exists
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		// Directory does not exist, create it
-		err := os.MkdirAll(dirPath, os.ModePerm)
-		if err != nil {
-			fmt.Printf("Failed to create .scanoss directory: %v\n", err)
-			os.Exit(1)
-		}
-	}
-}
-
-func (a *App) createConfigFile(path string) {
-
-	_, err := os.Stat(path)
-	if err == nil {
-		return // File exists
-	}
-
-	file, err := os.Create(path)
-	if err != nil {
-		fmt.Printf("Failed to create configuration file: %v\n", err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	content := fmt.Sprintf(`{ "apiToken": "" , "apiUrl": "%s"}`, config.GetDefaultApiURL())
-	// Write the content to the file
-	_, err = file.WriteString(content)
-	if err != nil {
-		fmt.Printf("Failed to write configuration file: %v\n", err)
-		os.Exit(1)
-	}
-}
-
-func (a *App) initScanSettingsFile() {
-	scanSettingsFilePath := config.GetScanSettingDefaultLocation()
-	dirPath := filepath.Dir(scanSettingsFilePath)
-	// Check if the directory exists
-	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		// Directory does not exist, create it
-		err := os.MkdirAll(dirPath, os.ModePerm)
-		if err != nil {
-			fmt.Printf("Failed to create .scanoss directory: %v\n", err)
-			os.Exit(1)
-		}
-		file, err := os.Create(scanSettingsFilePath)
-		defer file.Close()
-		defaultScanSettings := componentEntities.ScanSettingsFile{
-			Bom: componentEntities.Bom{
-				Include: []componentEntities.ComponentFilter{},
-				Remove:  []componentEntities.ComponentFilter{},
-			},
-		}
-
-		jsonData, err := json.Marshal(defaultScanSettings)
-		if err != nil {
-			fmt.Printf("Failed to write configuration file: %v\n", err)
-		}
-		_, err = file.WriteString(string(jsonData))
 	}
 }
 

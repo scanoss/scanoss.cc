@@ -25,8 +25,5 @@ func (c *ResultControllerImpl) GetAll(dto *entities.RequestResultDTO) ([]entitie
 		return []entities.ResultDTO{}, err
 	}
 
-	// fmt.Println("scanossBomEntities.BomJson.BomFile")
-	// fmt.Println(scanossBomEntities.BomJson.BomFile)
-
 	return c.mapper.MapToResultDTOList(results), nil
 }

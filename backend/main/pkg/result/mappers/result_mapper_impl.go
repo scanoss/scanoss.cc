@@ -1,17 +1,19 @@
 package mappers
 
 import (
+	"fmt"
+
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/service"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 )
 
 type ResultMapperImpl struct {
-	bomService service.ScanossSettingsService
+	scanossSettingsService service.ScanossSettingsService
 }
 
-func NewResultMapper(bomService service.ScanossSettingsService) ResultMapper {
+func NewResultMapper(scanossSettingsService service.ScanossSettingsService) ResultMapper {
 	return &ResultMapperImpl{
-		bomService: bomService,
+		scanossSettingsService: scanossSettingsService,
 	}
 }
 
@@ -46,7 +48,13 @@ func (m *ResultMapperImpl) mapWorkflowState(result entities.Result) entities.Wor
 
 func (m *ResultMapperImpl) mapFilterConfig(result entities.Result) entities.FilterConfig {
 	// TODO: Check if should return an error?
-	// bomFile := m.bomService.GetSettingsFile()
+	settingsFile, err := m.scanossSettingsService.GetSettingsFile()
+	if err != nil {
+		fmt.Println("Error reading scan settings file")
+	}
+
+	fmt.Println("BOM FILE CONFIG....")
+	fmt.Println(settingsFile)
 
 	// action := entities.Include
 	// filterType := entities.ByFile

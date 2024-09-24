@@ -35,7 +35,7 @@ export default function FileActionButton({
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const { handleStageResult } = useResults();
+  const { handleConfirmResult } = useResults();
   const localFilePath = useLocalFilePath();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -52,13 +52,12 @@ export default function FileActionButton({
         purl,
       }),
     onSuccess: (_, { path, purl }) => {
-      const filterBy = path && purl ? 'path' : 'purl';
+      const type = path && purl ? 'by_path' : 'by_purl';
 
-      const nextResultRoute = handleStageResult(
-        localFilePath,
+      const nextResultRoute = handleConfirmResult(localFilePath, {
         action,
-        filterBy
-      );
+        type,
+      });
       if (nextResultRoute) {
         navigate(nextResultRoute);
       }

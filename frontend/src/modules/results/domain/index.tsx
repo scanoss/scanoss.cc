@@ -2,13 +2,6 @@ import { Check, CircleDotDashed } from 'lucide-react';
 import React, { ReactNode } from 'react';
 import { entities } from 'wailsjs/go/models';
 
-type ResultState = 'unstaged' | 'staged';
-
-interface BomState {
-  action: FilterAction;
-  filterBy: FilterBy;
-}
-
 export enum FilterAction {
   Ignore = 'ignore',
   Include = 'include',
@@ -25,13 +18,6 @@ export const filterActionLabelMap: Record<FilterAction, string> = {
   [FilterAction.Replace]: 'Replace',
 };
 
-export interface Result {
-  path: string;
-  matchType: MatchType;
-  state: ResultState;
-  bomState: BomState | null;
-}
-
 export enum MatchType {
   File = 'file',
   Snippet = 'snippet',
@@ -46,16 +32,16 @@ interface ResultStatusPresentation {
 }
 
 export const resultStatusPresentation: Record<
-  ResultState,
+  string,
   ResultStatusPresentation
 > = {
-  unstaged: {
+  pending: {
     badgeStyles:
       'bg-[color:hsl(200,40%,20%)] text-white border-[color:hsl(200,40%,30%)] hover:bg-[color:hsl(200,40%,20%)]',
     label: 'Pending',
     icon: <CircleDotDashed className="h-3 w-3" />,
   },
-  staged: {
+  confirmed: {
     badgeStyles:
       'bg-[color:hsl(120,50%,10%)] text-white border-[color:hsl(120,45%,25%)] hover:bg-[color:hsl(120,50%,10%)]',
     label: 'Completed',

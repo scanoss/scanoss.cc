@@ -107,8 +107,8 @@ export namespace entities {
 	    }
 	}
 	export class FilterConfig {
-	    Action: string;
-	    Type: string;
+	    action: string;
+	    type: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new FilterConfig(source);
@@ -116,8 +116,8 @@ export namespace entities {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.Action = source["Action"];
-	        this.Type = source["Type"];
+	        this.action = source["action"];
+	        this.type = source["type"];
 	    }
 	}
 	export class RequestResultDTO {

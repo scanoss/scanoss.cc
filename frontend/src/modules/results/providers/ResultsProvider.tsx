@@ -7,25 +7,20 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { entities } from 'wailsjs/go/models';
 
 import { encodeFilePath } from '@/lib/utils';
-import {
-  FilterAction,
-  FilterBy,
-  MatchType,
-  Result,
-} from '@/modules/results/domain';
+import { MatchType } from '@/modules/results/domain';
 
 export interface ResultsContext {
-  handleStageResult: (
+  handleConfirmResult: (
     path: string,
-    action: FilterAction,
-    filterBy: FilterBy
+    filterConfig: entities.FilterConfig
   ) => string | null;
-  results: Result[];
-  setResults: Dispatch<SetStateAction<Result[]>>;
-  stagedResults: Result[];
-  unstagedResults: Result[];
+  results: entities.ResultDTO[];
+  setResults: Dispatch<SetStateAction<entities.ResultDTO[]>>;
+  confirmedResults: entities.ResultDTO[];
+  pendingResults: entities.ResultDTO[];
 }
 
 export const ResultsContext = createContext<ResultsContext>(
@@ -35,21 +30,21 @@ export const ResultsContext = createContext<ResultsContext>(
 const resultsPriorityOrder = [MatchType.Snippet, MatchType.File];
 
 export const ResultsProvider = ({ children }: { children: ReactNode }) => {
-  const [results, setResults] = useState<Result[]>([]);
+  const [results, setResults] = useState<entities.ResultDTO[]>([]);
 
   const groupedResultsByMatchType = useMemo(
     () =>
       results.reduce(
         (acc, result) => {
-          if (!acc[result.matchType]) {
-            acc[result.matchType] = [];
+          if (!acc[result.match_type]) {
+            acc[result.match_type] = [];
           }
 
-          acc[result.matchType].push(result);
+          acc[result.match_type].push(result);
 
           return acc;
         },
-        {} as Record<MatchType, Result[]>
+        {} as Record<string, entities.ResultDTO[]>
       ),
     [results]
   );
@@ -62,70 +57,72 @@ export const ResultsProvider = ({ children }: { children: ReactNode }) => {
     () =>
       orderedResults.reduce(
         (acc, result) => {
-          if (!acc[result.state]) {
-            acc[result.state] = [];
+          if (!result.workflow_state) {
+            return acc;
           }
 
-          acc[result.state].push(result);
+          if (!acc[result.workflow_state]) {
+            acc[result.workflow_state] = [];
+          }
+
+          acc[result.workflow_state].push(result);
 
           return acc;
         },
-        {} as Record<string, Result[]>
+        {} as Record<string, entities.ResultDTO[]>
       ),
     [orderedResults]
   );
 
-  const stagedResults = groupedResultsByState.staged ?? [];
-  const unstagedResults = groupedResultsByState.unstaged ?? [];
+  const confirmedResults = groupedResultsByState['confirmed'] ?? [];
+  const pendingResults = groupedResultsByState['pending'] ?? [];
 
-  const handleStageResult = (
+  const handleConfirmResult = (
     path: string,
-    action: FilterAction,
-    filterBy: FilterBy
+    filterConfig: entities.FilterConfig
   ): string | null => {
+    // @ts-expect-error - This is a hack to update the state of the results
     setResults((results) =>
       results.map((result) =>
         result.path === path
           ? {
               ...result,
-              state: 'staged',
-              bomState: {
-                action,
-                filterBy,
-              },
+              workflow_state: 'confirmed',
+              filter_config: filterConfig,
             }
           : result
       )
     );
-    return getNextUnstagedResultPathRoute(path);
+
+    return getNextPendingResultPathRoute(path);
   };
 
-  const getNextUnstagedResultPathRoute = (path: string): string | null => {
-    const currentSelectedIndex = unstagedResults.findIndex(
+  const getNextPendingResultPathRoute = (path: string): string | null => {
+    const currentSelectedIndex = pendingResults.findIndex(
       (r) => r.path === path
     );
 
-    const isLast = currentSelectedIndex === unstagedResults.length - 1;
+    const isLast = currentSelectedIndex === pendingResults.length - 1;
 
     if (currentSelectedIndex === -1) return null;
 
-    if (isLast && unstagedResults.length > 0) {
-      return `/files/${encodeFilePath(unstagedResults[0].path)}`;
+    if (isLast && pendingResults.length > 0) {
+      return `/files/${encodeFilePath(pendingResults[0].path)}`;
     }
 
-    const nextUnstagedResult = unstagedResults[currentSelectedIndex + 1];
+    const nextPendingResult = pendingResults[currentSelectedIndex + 1];
 
-    return `/files/${encodeFilePath(nextUnstagedResult.path)}`;
+    return `/files/${encodeFilePath(nextPendingResult.path)}`;
   };
 
   return (
     <ResultsContext.Provider
       value={{
-        handleStageResult,
+        handleConfirmResult,
         results: orderedResults,
         setResults,
-        stagedResults,
-        unstagedResults,
+        confirmedResults,
+        pendingResults,
       }}
     >
       {children}

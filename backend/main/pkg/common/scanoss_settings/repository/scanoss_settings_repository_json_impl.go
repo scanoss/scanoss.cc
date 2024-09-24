@@ -32,12 +32,12 @@ func (r *ScanossSettingsJsonRepository) Read() (entities.SettingsFile, error) {
 		return entities.SettingsFile{}, err
 	}
 
-	scanossBom, err := utils.JSONParse[entities.SettingsFile](scanSettingsFileBytes)
+	scanossSettings, err := utils.JSONParse[entities.SettingsFile](scanSettingsFileBytes)
 	if err != nil {
 		return entities.SettingsFile{}, err
 	}
 
-	return scanossBom, nil
+	return scanossSettings, nil
 }
 
 func (r *ScanossSettingsJsonRepository) HasUnsavedChanges() (bool, error) {

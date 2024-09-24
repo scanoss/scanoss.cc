@@ -21,14 +21,14 @@ export default function FileInfoCard({
   const localFilePath = useLocalFilePath();
   const result = results.find((result) => result.path === localFilePath);
 
-  const bomState = result?.bomState;
+  const filterConfig = result?.filter_config;
 
-  const isResultDismissed = bomState?.action === FilterAction.Remove;
-  const isResultIncluded = bomState?.action === FilterAction.Include;
+  const isResultDismissed = filterConfig?.action === FilterAction.Remove;
+  const isResultIncluded = filterConfig?.action === FilterAction.Include;
 
   const shouldShowStateInfo =
-    (fileType === 'local' && bomState?.filterBy === 'path') ||
-    (fileType === 'remote' && bomState?.filterBy === 'purl');
+    (fileType === 'local' && filterConfig?.type === 'by_path') ||
+    (fileType === 'remote' && filterConfig?.type === 'by_purl');
 
   return (
     <div

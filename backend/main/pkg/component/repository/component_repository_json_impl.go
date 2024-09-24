@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sort"
 
-	bomEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_bom/entities"
+	scanossSettingsEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
 
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
@@ -62,21 +62,21 @@ func (r *JSONComponentRepository) orderComponentLicensesBySourceType(component *
 }
 
 func (r *JSONComponentRepository) InsertComponentFilter(dto *entities.ComponentFilterDTO) error {
-	newFilter := &bomEntities.ComponentFilter{
+	newFilter := &scanossSettingsEntities.ComponentFilter{
 		Path:  dto.Path,
 		Purl:  dto.Purl,
-		Usage: bomEntities.ComponentFilterUsage(dto.Usage),
+		Usage: scanossSettingsEntities.ComponentFilterUsage(dto.Usage),
 	}
-	bomFile := bomEntities.BomJson.BomFile
+	settingsFile := scanossSettingsEntities.ScanossSettingsJson.SettingsFile
 
-	if err := insertNewComponentFilter(bomFile, newFilter, dto.Action); err != nil {
+	if err := insertNewComponentFilter(settingsFile, newFilter, dto.Action); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func findComponent(newComponent *bomEntities.ComponentFilter, components []bomEntities.ComponentFilter) *bomEntities.ComponentFilter {
+func findComponent(newComponent *scanossSettingsEntities.ComponentFilter, components []scanossSettingsEntities.ComponentFilter) *scanossSettingsEntities.ComponentFilter {
 	for _, c := range components {
 		if newComponent.Path == c.Path && newComponent.Purl == c.Purl && newComponent.Usage == c.Usage {
 			return &c
@@ -85,7 +85,7 @@ func findComponent(newComponent *bomEntities.ComponentFilter, components []bomEn
 	return nil
 }
 
-func deleteComponent(newComponent *bomEntities.ComponentFilter, components *[]bomEntities.ComponentFilter) {
+func deleteComponent(newComponent *scanossSettingsEntities.ComponentFilter, components *[]scanossSettingsEntities.ComponentFilter) {
 	for i := range *components {
 		if (*components)[i].Path == newComponent.Path && (*components)[i].Usage == newComponent.Usage && (*components)[i].Purl == newComponent.Purl {
 			*components = append((*components)[:i], (*components)[i+1:]...)
@@ -94,7 +94,7 @@ func deleteComponent(newComponent *bomEntities.ComponentFilter, components *[]bo
 	}
 }
 
-func insertComponent(newComponent *bomEntities.ComponentFilter, a *[]bomEntities.ComponentFilter, b *[]bomEntities.ComponentFilter) {
+func insertComponent(newComponent *scanossSettingsEntities.ComponentFilter, a *[]scanossSettingsEntities.ComponentFilter, b *[]scanossSettingsEntities.ComponentFilter) {
 	if findComponent(newComponent, *a) == nil {
 		*a = append((*a), *newComponent)
 
@@ -106,12 +106,12 @@ func insertComponent(newComponent *bomEntities.ComponentFilter, a *[]bomEntities
 	}
 }
 
-func insertNewComponentFilter(bomFile *bomEntities.BomFile, newFilter *bomEntities.ComponentFilter, action entities.FilterAction) error {
+func insertNewComponentFilter(settingsFile *scanossSettingsEntities.SettingsFile, newFilter *scanossSettingsEntities.ComponentFilter, action entities.FilterAction) error {
 	switch action {
 	case entities.Include:
-		insertComponent(newFilter, &bomFile.Bom.Include, &bomFile.Bom.Remove)
+		insertComponent(newFilter, &settingsFile.Bom.Include, &settingsFile.Bom.Remove)
 	case entities.Remove:
-		insertComponent(newFilter, &bomFile.Bom.Remove, &bomFile.Bom.Include)
+		insertComponent(newFilter, &settingsFile.Bom.Remove, &settingsFile.Bom.Include)
 	default:
 		return ErrInvalidFilterAction
 	}

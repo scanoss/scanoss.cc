@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 )
@@ -9,9 +10,9 @@ type ResultHandler struct {
 	resultModule *result.Module
 }
 
-func NewResultHandler() *ResultHandler {
+func NewResultHandler(scanossBomModule *scanoss_settings.Module) *ResultHandler {
 	return &ResultHandler{
-		resultModule: result.NewModule(),
+		resultModule: result.NewModule(scanossBomModule),
 	}
 }
 

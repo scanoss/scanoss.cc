@@ -7,7 +7,7 @@ import { mapToResult } from './mappers';
 
 export default class ResultService {
   static async getAll(matchType?: MatchType): Promise<Result[]> {
-    return ResultGetAll({ matchType })
+    return ResultGetAll({ match_type: matchType })
       .then(mapToResult)
       .catch((e) => {
         throw new Error(e);

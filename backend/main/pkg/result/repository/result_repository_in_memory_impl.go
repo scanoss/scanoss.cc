@@ -13,16 +13,16 @@ func (r *ResultRepositoryInMemoryImpl) GetResults(filter entities.ResultFilter) 
 	var results []entities.Result
 
 	result1 := entities.Result{}
-	result1.SetFile("/inc/format_utils.h")
-	result1.SetMatchType("file")
+	result1.Path = "/inc/format_utils.h"
+	result1.MatchType = "file"
 
 	result2 := entities.Result{}
-	result2.SetFile("/src/format_utils.c")
-	result2.SetMatchType("snippet")
+	result2.Path = "/src/format_utils.c"
+	result2.MatchType = "snippet"
 
 	result3 := entities.Result{}
-	result3.SetFile("/external/inc/crc32c.h")
-	result3.SetMatchType("none")
+	result3.Path = "/external/inc/crc32c.h"
+	result3.MatchType = "none"
 
 	results = append(results, result1)
 	results = append(results, result2)

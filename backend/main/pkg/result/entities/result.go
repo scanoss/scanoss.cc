@@ -3,35 +3,25 @@ package entities
 import "errors"
 
 type Result struct {
-	file      string
-	matchType string
+	Path      string
+	MatchType string
+	Purl      []string
 }
+
+const (
+	NoMatch = "none"
+)
 
 func NewResult() *Result {
 	return &Result{}
 }
 
-func (r *Result) SetFile(fileName string) {
-	r.file = fileName
-}
-
-func (r *Result) SetMatchType(matchType string) {
-	r.matchType = matchType
-}
-
-func (r *Result) GetMatchType() string {
-	return r.matchType
-}
-
-func (r *Result) GetFile() string {
-	return r.file
-}
-
 func (r *Result) IsEmpty() bool {
-	if r.matchType == "none" {
-		return true
-	}
-	return false
+	return r.MatchType == NoMatch
+}
+
+func (r *Result) IsValid() bool {
+	return r.Path != "" && r.MatchType != ""
 }
 
 type ResultFilter interface {
@@ -39,7 +29,8 @@ type ResultFilter interface {
 }
 
 type Match struct {
-	ID string `json:"id"`
+	ID   string   `json:"id"`
+	Purl []string `json:"purl,omitempty"`
 }
 
 var (

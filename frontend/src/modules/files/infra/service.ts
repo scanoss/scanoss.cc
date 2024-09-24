@@ -5,7 +5,7 @@ import {
   FileGetLocalContent,
   FileGetRemoteContent,
 } from '../../../../wailsjs/go/handlers/FileHandler';
-import { SaveScanossBomFile } from '../../../../wailsjs/go/handlers/ScanossBomHandler';
+import { SaveScanossSettingsFile } from '../../../../wailsjs/go/handlers/ScanossSettingsHandler';
 import { mapToLocalFile } from './mappers';
 
 export default class FileService {
@@ -32,7 +32,7 @@ export default class FileService {
   }
 
   static async saveBomChanges() {
-    return SaveScanossBomFile().catch((e) => {
+    return SaveScanossSettingsFile().catch((e) => {
       throw new Error(e);
     });
   }

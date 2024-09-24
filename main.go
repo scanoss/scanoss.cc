@@ -34,7 +34,7 @@ func main() {
 
 	app := NewApp()
 
-	scanossBomHandler := handlers.NewScanossBomHandler()
+	scanossBomHandler := handlers.NewScanossSettingsHandler()
 
 	//Create application with options
 	err := wails.Run(&options.App{
@@ -50,7 +50,7 @@ func main() {
 		Bind: []interface{}{
 			app,
 			handlers.NewFileHandler(),
-			handlers.NewResultHandler(),
+			handlers.NewResultHandler(scanossBomHandler.GetScanossSettings()),
 			handlers.NewComponentHandler(),
 			scanossBomHandler,
 		},

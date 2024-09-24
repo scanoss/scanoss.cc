@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
-	scanossBomEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_bom/entities"
+	scanossBomEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
 	"github.com/stretchr/testify/require"
@@ -46,7 +46,7 @@ func TestInsertComponentFilterActions(t *testing.T) {
 			err := repo.InsertComponentFilter(&tc.dto)
 			require.NoError(t, err)
 
-			var scanSettings scanossBomEntities.BomFile
+			var scanSettings scanossBomEntities.SettingsFile
 			fileBytes, err := os.ReadFile(config.Get().ScanSettingsFilePath)
 			if err != nil {
 				t.Fatalf("Failed to read scan settings file: %v", err)

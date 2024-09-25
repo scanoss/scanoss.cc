@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"sort"
+
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/mappers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/service"
@@ -24,6 +26,10 @@ func (c *ResultControllerImpl) GetAll(dto *entities.RequestResultDTO) ([]entitie
 	if err != nil {
 		return []entities.ResultDTO{}, err
 	}
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].GetFileName() < results[j].GetFileName()
+	})
 
 	return c.mapper.MapToResultDTOList(results), nil
 }

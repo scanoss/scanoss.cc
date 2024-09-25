@@ -41,7 +41,7 @@ export const resultStatusPresentation: Record<
     label: 'Pending',
     icon: <CircleDotDashed className="h-3 w-3" />,
   },
-  confirmed: {
+  completed: {
     badgeStyles:
       'bg-[color:hsl(120,50%,10%)] text-white border-[color:hsl(120,45%,25%)] hover:bg-[color:hsl(120,50%,10%)]',
     label: 'Completed',

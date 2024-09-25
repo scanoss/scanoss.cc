@@ -1,23 +1,32 @@
 import { ReloadIcon } from '@radix-ui/react-icons';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Check, PackageMinus, Save } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { FilterAction } from '@/modules/results/domain';
+import useQueryState from '@/hooks/useQueryState';
+import { FilterAction, MatchType } from '@/modules/results/domain';
 
 import FileService from '../infra/service';
 import FileActionButton from './FileActionButton';
 
 export default function FileActionsMenu() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [filterByMatchType] = useQueryState<MatchType | 'all'>(
+    'matchType',
+    'all'
+  );
 
   const { mutate: saveChanges, isPending } = useMutation({
     mutationFn: () => FileService.saveBomChanges(),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: 'Success',
         description: `Your changes have been successfully saved.`,
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ['results', filterByMatchType],
       });
     },
     onError: (e) => {

@@ -15,8 +15,8 @@ const (
 )
 
 type FilterConfig struct {
-	Action FilterAction `json:"action"`
-	Type   FilterType   `json:"type"`
+	Action FilterAction `json:"action,omitempty"`
+	Type   FilterType   `json:"type,omitempty"`
 }
 
 type FilterAction string

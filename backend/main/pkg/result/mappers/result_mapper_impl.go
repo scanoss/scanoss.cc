@@ -37,39 +37,21 @@ func (m ResultMapperImpl) MapToResultDTOList(results []entities.Result) []entiti
 }
 
 func (m *ResultMapperImpl) mapWorkflowState(result entities.Result) entities.WorkflowState {
-	// bomFile, err := m.bomService.GetSettingsFile()
-	// // Example logic:
-	// if bomFile.IsFileCompleted(result.Path) {
-	// 	return entities.Completed
-	// }
-	// return entities.Pending
-	return entities.Pending
+	settingsFile, err := m.scanossSettingsService.GetSettingsFile()
+	if err != nil {
+		fmt.Printf("Error reading scan settings file: %s", err)
+		return entities.Pending
+	}
+
+	return settingsFile.GetResultWorkflowState(result)
 }
 
 func (m *ResultMapperImpl) mapFilterConfig(result entities.Result) entities.FilterConfig {
-	// TODO: Check if should return an error?
 	settingsFile, err := m.scanossSettingsService.GetSettingsFile()
 	if err != nil {
-		fmt.Println("Error reading scan settings file")
+		fmt.Printf("Error reading scan settings file: %s", err)
+		return entities.FilterConfig{}
 	}
 
-	fmt.Println("BOM FILE CONFIG....")
-	fmt.Println(settingsFile)
-
-	// action := entities.Include
-	// filterType := entities.ByFile
-	// if bomFile.ShouldExclude(result.Path) {
-	// 	action = entities.Remove
-	// }
-	// if bomFile.IsPurlFiltered(result.Purl) {
-	// 	filterType = entities.ByPurl
-	// }
-	// return entities.FilterConfig{
-	// 	Action: action,
-	// 	Type:   filterType,
-	// }
-	return entities.FilterConfig{
-		Action: entities.Include,
-		Type:   entities.ByFile,
-	}
+	return settingsFile.GetResultFilterConfig(result)
 }

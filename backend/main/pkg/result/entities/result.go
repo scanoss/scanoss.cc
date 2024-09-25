@@ -1,6 +1,9 @@
 package entities
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 type Result struct {
 	Path      string
@@ -22,6 +25,14 @@ func (r *Result) IsEmpty() bool {
 
 func (r *Result) IsValid() bool {
 	return r.Path != "" && r.MatchType != ""
+}
+
+func (r *Result) GetFileName() string {
+	parts := strings.Split(r.Path, "/")
+	i := len(parts) - 1
+	fileName := parts[i]
+
+	return fileName
 }
 
 type ResultFilter interface {

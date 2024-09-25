@@ -107,8 +107,8 @@ export namespace entities {
 	    }
 	}
 	export class FilterConfig {
-	    action: string;
-	    type: string;
+	    action?: string;
+	    type?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new FilterConfig(source);

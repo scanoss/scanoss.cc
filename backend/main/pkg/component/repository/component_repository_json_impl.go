@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 
 	scanossSettingsEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
@@ -67,53 +68,9 @@ func (r *JSONComponentRepository) InsertComponentFilter(dto *entities.ComponentF
 		Purl:  dto.Purl,
 		Usage: scanossSettingsEntities.ComponentFilterUsage(dto.Usage),
 	}
-	settingsFile := scanossSettingsEntities.ScanossSettingsJson.SettingsFile
-
-	if err := insertNewComponentFilter(settingsFile, newFilter, dto.Action); err != nil {
+	if err := scanossSettingsEntities.ScanossSettingsJson.SettingsFile.AddBomEntry(*newFilter, string(dto.Action)); err != nil {
+		fmt.Printf("error adding bom entry: %s", err)
 		return err
-	}
-
-	return nil
-}
-
-func findComponent(newComponent *scanossSettingsEntities.ComponentFilter, components []scanossSettingsEntities.ComponentFilter) *scanossSettingsEntities.ComponentFilter {
-	for _, c := range components {
-		if newComponent.Path == c.Path && newComponent.Purl == c.Purl && newComponent.Usage == c.Usage {
-			return &c
-		}
-	}
-	return nil
-}
-
-func deleteComponent(newComponent *scanossSettingsEntities.ComponentFilter, components *[]scanossSettingsEntities.ComponentFilter) {
-	for i := range *components {
-		if (*components)[i].Path == newComponent.Path && (*components)[i].Usage == newComponent.Usage && (*components)[i].Purl == newComponent.Purl {
-			*components = append((*components)[:i], (*components)[i+1:]...)
-			break
-		}
-	}
-}
-
-func insertComponent(newComponent *scanossSettingsEntities.ComponentFilter, a *[]scanossSettingsEntities.ComponentFilter, b *[]scanossSettingsEntities.ComponentFilter) {
-	if findComponent(newComponent, *a) == nil {
-		*a = append((*a), *newComponent)
-
-		// Delete if exists
-		c := findComponent(newComponent, *b)
-		if c != nil {
-			deleteComponent(newComponent, b)
-		}
-	}
-}
-
-func insertNewComponentFilter(settingsFile *scanossSettingsEntities.SettingsFile, newFilter *scanossSettingsEntities.ComponentFilter, action entities.FilterAction) error {
-	switch action {
-	case entities.Include:
-		insertComponent(newFilter, &settingsFile.Bom.Include, &settingsFile.Bom.Remove)
-	case entities.Remove:
-		insertComponent(newFilter, &settingsFile.Bom.Remove, &settingsFile.Bom.Include)
-	default:
-		return ErrInvalidFilterAction
 	}
 
 	return nil

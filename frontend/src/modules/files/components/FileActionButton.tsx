@@ -52,7 +52,7 @@ export default function FileActionButton({
         purl,
       }),
     onSuccess: (_, { path, purl }) => {
-      const type = path && purl ? 'by_path' : 'by_purl';
+      const type = path && purl ? 'by_file' : 'by_purl';
 
       const nextResultRoute = handleConfirmResult(localFilePath, {
         action,

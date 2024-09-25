@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"fmt"
 	"reflect"
 	"slices"
 
@@ -42,8 +43,8 @@ func (sf *SettingsFile) Equal(other *SettingsFile) bool {
 }
 
 func (sf *SettingsFile) GetResultWorkflowState(result entities.Result) entities.WorkflowState {
-	included, _ := sf.isResultIncluded(result)
-	removed, _ := sf.isResultRemoved(result)
+	included, _ := sf.IsResultIncluded(result)
+	removed, _ := sf.IsResultRemoved(result)
 
 	if included || removed {
 		return entities.Completed
@@ -52,34 +53,15 @@ func (sf *SettingsFile) GetResultWorkflowState(result entities.Result) entities.
 	return entities.Pending
 }
 
-func (sf *SettingsFile) GetResultFilterConfig(result entities.Result) entities.FilterConfig {
-	var filterAction entities.FilterAction
-	var filterType entities.FilterType
-
-	if included, t := sf.isResultIncluded(result); included {
-		filterAction = entities.Include
-		filterType = t
-	} else if removed, t := sf.isResultRemoved(result); removed {
-		filterAction = entities.Remove
-		filterType = t
-
-	}
-
-	return entities.FilterConfig{
-		Action: filterAction,
-		Type:   filterType,
-	}
+func (sf *SettingsFile) IsResultIncluded(result entities.Result) (bool, entities.FilterType) {
+	return sf.IsResultInList(result, sf.Bom.Include)
 }
 
-func (sf *SettingsFile) isResultIncluded(result entities.Result) (bool, entities.FilterType) {
-	return sf.isResultInList(result, sf.Bom.Include)
+func (sf *SettingsFile) IsResultRemoved(result entities.Result) (bool, entities.FilterType) {
+	return sf.IsResultInList(result, sf.Bom.Remove)
 }
 
-func (sf *SettingsFile) isResultRemoved(result entities.Result) (bool, entities.FilterType) {
-	return sf.isResultInList(result, sf.Bom.Remove)
-}
-
-func (sf *SettingsFile) isResultInList(result entities.Result, list []ComponentFilter) (bool, entities.FilterType) {
+func (sf *SettingsFile) IsResultInList(result entities.Result, list []ComponentFilter) (bool, entities.FilterType) {
 	i := slices.IndexFunc(list, func(cf ComponentFilter) bool {
 		if cf.Path != "" && cf.Purl != "" {
 			return cf.Path == result.Path && slices.Contains(result.Purl, cf.Purl)
@@ -96,4 +78,64 @@ func (sf *SettingsFile) isResultInList(result entities.Result, list []ComponentF
 	}
 
 	return false, entities.ByPurl
+}
+
+func (sf *SettingsFile) GetResultFilterConfig(result entities.Result) entities.FilterConfig {
+	var filterAction entities.FilterAction
+	var filterType entities.FilterType
+
+	if included, t := sf.IsResultIncluded(result); included {
+		filterAction = entities.Include
+		filterType = t
+	} else if removed, t := sf.IsResultRemoved(result); removed {
+		filterAction = entities.Remove
+		filterType = t
+
+	}
+
+	return entities.FilterConfig{
+		Action: filterAction,
+		Type:   filterType,
+	}
+}
+
+func (sf *SettingsFile) AddBomEntry(newEntry ComponentFilter, filterAction string) error {
+	var targetList *[]ComponentFilter
+
+	switch filterAction {
+	case "remove":
+		targetList = &sf.Bom.Remove
+	case "include":
+		targetList = &sf.Bom.Include
+	default:
+		return fmt.Errorf("invalid filter action: %s", filterAction)
+	}
+
+	sf.removeDuplicatesFromAllLists(newEntry)
+
+	*targetList = append(*targetList, newEntry)
+
+	return nil
+}
+
+func (sf *SettingsFile) removeDuplicatesFromAllLists(newEntry ComponentFilter) {
+	sf.Bom.Remove = removeDuplicatesFromList(sf.Bom.Remove, newEntry)
+	sf.Bom.Include = removeDuplicatesFromList(sf.Bom.Include, newEntry)
+}
+
+func removeDuplicatesFromList(list []ComponentFilter, newEntry ComponentFilter) []ComponentFilter {
+	result := make([]ComponentFilter, 0, len(list))
+	for _, entry := range list {
+		if !isDuplicate(entry, newEntry) {
+			result = append(result, entry)
+		}
+	}
+	return result
+}
+
+func isDuplicate(entry, newEntry ComponentFilter) bool {
+	if newEntry.Path == "" {
+		return entry.Purl == newEntry.Purl
+	}
+	return entry.Purl == newEntry.Purl && entry.Path == newEntry.Path
 }

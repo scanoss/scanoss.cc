@@ -27,7 +27,7 @@ export default function FileInfoCard({
   const isResultIncluded = filterConfig?.action === FilterAction.Include;
 
   const shouldShowStateInfo =
-    (fileType === 'local' && filterConfig?.type === 'by_path') ||
+    (fileType === 'local' && filterConfig?.type === 'by_file') ||
     (fileType === 'remote' && filterConfig?.type === 'by_purl');
 
   return (

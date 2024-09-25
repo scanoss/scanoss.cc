@@ -1,11 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { Braces, ChevronRight, File } from 'lucide-react';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { entities } from 'wailsjs/go/models';
 
-import useQueryState from '@/hooks/useQueryState';
 import { decodeFilePath, encodeFilePath } from '@/lib/utils';
 import { FilterAction, MatchType } from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
@@ -30,9 +29,9 @@ export default function Sidebar() {
   const { setResults, results, confirmedResults, pendingResults } =
     useResults();
 
-  const [filterByMatchType, setFilterByMatchType] = useQueryState<
-    MatchType | 'all'
-  >('matchType', 'all');
+  const [filterByMatchType, setFilterByMatchType] = useState<MatchType | 'all'>(
+    'all'
+  );
 
   const { data } = useQuery({
     queryKey: ['results', filterByMatchType],
@@ -62,7 +61,7 @@ export default function Sidebar() {
         <span className="text-xs font-semibold">Filter by match type</span>
         <Select
           onValueChange={(value) => setFilterByMatchType(value as MatchType)}
-          value={filterByMatchType}
+          defaultValue="all"
         >
           <SelectTrigger className="w-full">
             <SelectValue />

@@ -1,23 +1,29 @@
 package service_test
 
 import (
-	"encoding/json"
-	"os"
 	"slices"
 	"testing"
 
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
-	scanossBomEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_bom/entities"
+	internalTest "github.com/scanoss/scanoss.lui/backend/main/internal"
+	scanossBomEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
+	scanossBomRepository "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/repository"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInsertComponentFilterActions(t *testing.T) {
-	//config, cleanup := internal_test.InitializeTestEnvironment(t)
-	// defer cleanup()
+	cleanup := internalTest.InitializeTestEnvironment(t)
+	defer cleanup()
 
 	repo := repository.NewJSONComponentRepository()
+	ssRepo := scanossBomRepository.NewScanossSettingsJsonRepository()
+	settingsFile, _ := ssRepo.Read()
+	scanossBomEntities.ScanossSettingsJson = &scanossBomEntities.ScanossSettings{
+		SettingsFile: &settingsFile,
+	}
+	service := service.NewComponentService(repo, ssRepo)
 
 	tests := []struct {
 		name string
@@ -43,22 +49,12 @@ func TestInsertComponentFilterActions(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			err := repo.InsertComponentFilter(&tc.dto)
+			err := service.FilterComponent(tc.dto)
 			require.NoError(t, err)
 
-			var scanSettings scanossBomEntities.BomFile
-			fileBytes, err := os.ReadFile(config.Get().ScanSettingsFilePath)
-			if err != nil {
-				t.Fatalf("Failed to read scan settings file: %v", err)
-			}
-
-			if err := json.Unmarshal(fileBytes, &scanSettings); err != nil {
-				t.Fatalf("Failed to unmarshal scan settings file: %v", err)
-			}
-
-			var filters = scanSettings.Bom.Include
+			var filters = settingsFile.Bom.Include
 			if tc.dto.Action == entities.Remove {
-				filters = scanSettings.Bom.Remove
+				filters = settingsFile.Bom.Remove
 			}
 
 			i := slices.IndexFunc(filters, func(cf scanossBomEntities.ComponentFilter) bool {

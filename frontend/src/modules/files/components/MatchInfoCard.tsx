@@ -28,7 +28,7 @@ export default function MatchInfoCard() {
 
   const result = results.find((result) => result.path === localFilePath);
 
-  const status = result?.state;
+  const status = result?.workflow_state;
   const matchPresentation = matchTypePresentation[component.id as MatchType];
 
   return (

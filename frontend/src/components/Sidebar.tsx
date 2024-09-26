@@ -3,9 +3,10 @@ import clsx from 'clsx';
 import { Braces, ChevronRight, File } from 'lucide-react';
 import { ReactNode, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { entities } from 'wailsjs/go/models';
 
 import { decodeFilePath, encodeFilePath } from '@/lib/utils';
-import { FilterAction, MatchType, Result } from '@/modules/results/domain';
+import { FilterAction, MatchType } from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
 import { useResults } from '@/modules/results/providers/ResultsProvider';
 
@@ -25,7 +26,9 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function Sidebar() {
-  const { setResults, results, stagedResults, unstagedResults } = useResults();
+  const { setResults, results, confirmedResults, pendingResults } =
+    useResults();
+
   const [filterByMatchType, setFilterByMatchType] = useState<MatchType | 'all'>(
     'all'
   );
@@ -88,13 +91,13 @@ export default function Sidebar() {
                 <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
                 <span className="text-sm text-muted-foreground">
                   Pending files{' '}
-                  <span className="text-xs">({unstagedResults?.length})</span>
+                  <span className="text-xs">({pendingResults?.length})</span>
                 </span>
               </div>
             </CollapsibleTrigger>
-            {unstagedResults.length ? (
+            {pendingResults.length ? (
               <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
-                {unstagedResults.map((result) => {
+                {pendingResults.map((result) => {
                   return <SidebarItem key={result.path} result={result} />;
                 })}
               </CollapsibleContent>
@@ -106,13 +109,13 @@ export default function Sidebar() {
                 <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
                 <span className="text-sm text-muted-foreground">
                   Completed files{' '}
-                  <span className="text-xs">({stagedResults?.length})</span>
+                  <span className="text-xs">({confirmedResults?.length})</span>
                 </span>
               </div>
             </CollapsibleTrigger>
-            {stagedResults.length ? (
+            {confirmedResults.length ? (
               <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
-                {stagedResults.map((result) => {
+                {confirmedResults.map((result) => {
                   return <SidebarItem key={result.path} result={result} />;
                 })}
               </CollapsibleContent>
@@ -124,13 +127,15 @@ export default function Sidebar() {
   );
 }
 
-function SidebarItem({ result }: { result: Result }) {
+function SidebarItem({ result }: { result: entities.ResultDTO }) {
   const { filePath } = useParams();
   const isActive = decodeFilePath(filePath ?? '') === result.path;
   const encodedFilePath = encodeFilePath(result.path);
 
-  const isResultDismissed = result.bomState?.action === FilterAction.Remove;
-  const isResultIncluded = result.bomState?.action === FilterAction.Include;
+  const isResultDismissed =
+    result.filter_config?.action === FilterAction.Remove;
+  const isResultIncluded =
+    result.filter_config?.action === FilterAction.Include;
 
   const parts = result.path.split('/');
   const fileName = parts.pop() || '';
@@ -139,7 +144,7 @@ function SidebarItem({ result }: { result: Result }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Link to={`files/${encodedFilePath}?matchType=${result.matchType}`}>
+        <Link to={`files/${encodedFilePath}?matchType=${result.match_type}`}>
           <div
             className={clsx(
               'flex max-w-full items-center space-x-2 overflow-hidden px-4 py-1 text-sm text-muted-foreground transition-all hover:bg-primary/30',
@@ -149,7 +154,7 @@ function SidebarItem({ result }: { result: Result }) {
             )}
           >
             <span className="relative">
-              {matchTypeIconMap[result.matchType]}
+              {matchTypeIconMap[result.match_type as MatchType]}
               <span
                 className={clsx(
                   'absolute bottom-0 right-0 h-1 w-1 rounded-full',

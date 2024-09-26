@@ -6,3 +6,4 @@ frontend/dist
 .scanoss
 scanoss.json
 results.json
+*.wfp

@@ -1,9 +1,11 @@
 package controllers_test
 
 import (
+	"fmt"
 	"testing"
 
-	internal_test "github.com/scanoss/scanoss.lui/backend/main/internal"
+	internalTest "github.com/scanoss/scanoss.lui/backend/main/internal"
+	scanossSettingsRepository "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/repository"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/controllers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
@@ -12,12 +14,13 @@ import (
 )
 
 func TestFilterComponent_Integration(t *testing.T) {
-	cleanup := internal_test.InitializeTestEnvironment(t)
+	cleanup := internalTest.InitializeTestEnvironment(t)
 	defer cleanup()
 
 	repo := repository.NewJSONComponentRepository()
-	useCase := service.NewComponentService(repo)
-	controller := controllers.NewComponentController(useCase)
+	ssRepo := scanossSettingsRepository.NewScanossSettingsJsonRepository()
+	service := service.NewComponentService(repo, ssRepo)
+	controller := controllers.NewComponentController(service)
 
 	dto := entities.ComponentFilterDTO{
 		Path:   "test/path",
@@ -25,8 +28,6 @@ func TestFilterComponent_Integration(t *testing.T) {
 		Usage:  "file",
 		Action: entities.Include,
 	}
-
-	// Create multiple test cases, one for no errors, and one with errors (for example sending wrong action)
 
 	var tests = []struct {
 		name          string
@@ -39,7 +40,7 @@ func TestFilterComponent_Integration(t *testing.T) {
 		},
 		{
 			name:          "Wrong action",
-			expectedError: repository.ErrInvalidFilterAction,
+			expectedError: fmt.Errorf("%s: %s", repository.ErrInvalidFilterAction, entities.FilterAction("unsupported")),
 			dto: entities.ComponentFilterDTO{
 				Path:   "test/path",
 				Purl:   "pkg:purl.com/test",

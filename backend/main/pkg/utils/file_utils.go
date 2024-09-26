@@ -49,7 +49,7 @@ func WriteJsonFile(path string, in any) error {
 }
 
 func JSONSerialize(in any) ([]byte, error) {
-	out, err := json.MarshalIndent(in, "", " ")
+	out, err := json.MarshalIndent(in, "", "  ")
 	if err != nil {
 		return nil, err
 	}

@@ -1,5 +1,5 @@
 import { ReloadIcon } from '@radix-ui/react-icons';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Check, PackageMinus, Save } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -11,13 +11,17 @@ import FileActionButton from './FileActionButton';
 
 export default function FileActionsMenu() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { mutate: saveChanges, isPending } = useMutation({
     mutationFn: () => FileService.saveBomChanges(),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: 'Success',
         description: `Your changes have been successfully saved.`,
+      });
+      await queryClient.refetchQueries({
+        queryKey: ['results'],
       });
     },
     onError: (e) => {

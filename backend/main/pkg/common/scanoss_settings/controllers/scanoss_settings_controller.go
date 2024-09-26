@@ -1,6 +1,6 @@
 package controllers
 
-type ScanossBomController interface {
+type ScanossSettingsController interface {
 	Save() error
 	HasUnsavedChanges() (bool, error)
 }

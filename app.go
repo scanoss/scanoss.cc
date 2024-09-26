@@ -37,7 +37,7 @@ func (a *App) startup(ctx context.Context) {
 	runtime.LogInfo(ctx, "Scan Root file path: "+config.Get().ScanRoot)
 }
 
-func (a *App) beforeClose(ctx context.Context, sbh *handlers.ScanossBomHandler) (prevent bool) {
+func (a *App) beforeClose(ctx context.Context, sbh *handlers.ScanossSettingsHandler) (prevent bool) {
 
 	hasUnsavedChanges, err := sbh.HasUnsavedChanges()
 
@@ -64,7 +64,7 @@ func (a *App) beforeClose(ctx context.Context, sbh *handlers.ScanossBomHandler) 
 	confirmOptions := []string{"Yes", "Ok"}
 
 	if slices.Contains(confirmOptions, result) {
-		err := sbh.SaveScanossBomFile()
+		err := sbh.SaveScanossSettingsFile()
 		if err != nil {
 			runtime.LogError(ctx, "Error saving scanoss bom file: "+err.Error())
 		}

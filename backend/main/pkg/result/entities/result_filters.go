@@ -36,7 +36,7 @@ func NewResultFilterMatchType(matchType string) *ResultFilterMatchType {
 }
 
 func (f *ResultFilterMatchType) IsValid(result Result) bool {
-	return f.matchType == result.GetMatchType()
+	return f.matchType == result.MatchType
 }
 
 type ResultFilterFactory struct {

@@ -2,10 +2,7 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"sort"
-
-	scanossSettingsEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
 
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
@@ -60,18 +57,4 @@ func (r *JSONComponentRepository) orderComponentLicensesBySourceType(component *
 	sort.Slice(component.Licenses, func(i, j int) bool {
 		return licenseSourceOrder[component.Licenses[i].Source] < licenseSourceOrder[component.Licenses[j].Source]
 	})
-}
-
-func (r *JSONComponentRepository) InsertComponentFilter(dto *entities.ComponentFilterDTO) error {
-	newFilter := &scanossSettingsEntities.ComponentFilter{
-		Path:  dto.Path,
-		Purl:  dto.Purl,
-		Usage: scanossSettingsEntities.ComponentFilterUsage(dto.Usage),
-	}
-	if err := scanossSettingsEntities.ScanossSettingsJson.SettingsFile.AddBomEntry(*newFilter, string(dto.Action)); err != nil {
-		fmt.Printf("error adding bom entry: %s", err)
-		return err
-	}
-
-	return nil
 }

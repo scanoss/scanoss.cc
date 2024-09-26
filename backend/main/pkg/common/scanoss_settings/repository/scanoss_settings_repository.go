@@ -6,4 +6,5 @@ type ScanossSettingsRepository interface {
 	Save() error
 	Read() (entities.SettingsFile, error)
 	HasUnsavedChanges() (bool, error)
+	AddBomEntry(newEntry entities.ComponentFilter, filterAction string) error
 }

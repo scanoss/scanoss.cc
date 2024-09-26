@@ -1,6 +1,7 @@
 package file
 
 import (
+	scanossSettingsRepository "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/repository"
 	componentRepository "github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
 	componentService "github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/file/controllers"
@@ -17,7 +18,8 @@ func NewModule() *Module {
 	service := service.NewFileService(repo)
 
 	cRepo := componentRepository.NewJSONComponentRepository()
-	cService := componentService.NewComponentService(cRepo)
+	ssRepo := scanossSettingsRepository.NewScanossSettingsJsonRepository()
+	cService := componentService.NewComponentService(cRepo, ssRepo)
 
 	return &Module{
 		Controller: controllers.NewFileController(service, cService),

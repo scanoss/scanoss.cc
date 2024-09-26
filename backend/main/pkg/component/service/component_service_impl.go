@@ -1,24 +1,40 @@
 package service
 
 import (
+	"fmt"
+
+	scanossSettingsEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
+	scanossSettingsRepository "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/repository"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
 )
 
 type ComponentServiceImpl struct {
-	repo repository.ComponentRepository
+	repo                repository.ComponentRepository
+	scanossSettingsRepo scanossSettingsRepository.ScanossSettingsRepository
 }
 
-func NewComponentService(repo repository.ComponentRepository) ComponentService {
+func NewComponentService(repo repository.ComponentRepository, scanossSettingsRepo scanossSettingsRepository.ScanossSettingsRepository) ComponentService {
 	return &ComponentServiceImpl{
-		repo: repo,
+		repo:                repo,
+		scanossSettingsRepo: scanossSettingsRepo,
 	}
 }
 
-func (u *ComponentServiceImpl) GetComponentByFilePath(filePath string) (entities.Component, error) {
-	return u.repo.FindByFilePath(filePath)
+func (s *ComponentServiceImpl) GetComponentByFilePath(filePath string) (entities.Component, error) {
+	return s.repo.FindByFilePath(filePath)
 }
 
-func (u *ComponentServiceImpl) FilterComponent(dto entities.ComponentFilterDTO) error {
-	return u.repo.InsertComponentFilter(&dto)
+func (s *ComponentServiceImpl) FilterComponent(dto entities.ComponentFilterDTO) error {
+	newFilter := &scanossSettingsEntities.ComponentFilter{
+		Path:  dto.Path,
+		Purl:  dto.Purl,
+		Usage: scanossSettingsEntities.ComponentFilterUsage(dto.Usage),
+	}
+	if err := s.scanossSettingsRepo.AddBomEntry(*newFilter, string(dto.Action)); err != nil {
+		fmt.Printf("error adding bom entry: %s", err)
+		return err
+	}
+
+	return nil
 }

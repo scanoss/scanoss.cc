@@ -48,3 +48,47 @@ func (r *ScanossSettingsJsonRepository) HasUnsavedChanges() (bool, error) {
 
 	return !originalBom.Equal(entities.ScanossSettingsJson.SettingsFile), nil
 }
+
+func (r *ScanossSettingsJsonRepository) AddBomEntry(newEntry entities.ComponentFilter, filterAction string) error {
+	sf := entities.ScanossSettingsJson.SettingsFile
+	var targetList *[]entities.ComponentFilter
+
+	switch filterAction {
+	case "remove":
+		targetList = &sf.Bom.Remove
+	case "include":
+		targetList = &sf.Bom.Include
+	default:
+		return fmt.Errorf("invalid filter action: %s", filterAction)
+	}
+
+	removeDuplicatesFromAllLists(newEntry)
+
+	*targetList = append(*targetList, newEntry)
+
+	return nil
+}
+
+func removeDuplicatesFromAllLists(newEntry entities.ComponentFilter) {
+	sf := entities.ScanossSettingsJson.SettingsFile
+
+	sf.Bom.Remove = removeDuplicatesFromList(sf.Bom.Remove, newEntry)
+	sf.Bom.Include = removeDuplicatesFromList(sf.Bom.Include, newEntry)
+}
+
+func removeDuplicatesFromList(list []entities.ComponentFilter, newEntry entities.ComponentFilter) []entities.ComponentFilter {
+	result := make([]entities.ComponentFilter, 0, len(list))
+	for _, entry := range list {
+		if !isDuplicate(entry, newEntry) {
+			result = append(result, entry)
+		}
+	}
+	return result
+}
+
+func isDuplicate(entry, newEntry entities.ComponentFilter) bool {
+	if newEntry.Path == "" {
+		return entry.Purl == newEntry.Purl
+	}
+	return entry.Purl == newEntry.Purl && entry.Path == newEntry.Path
+}

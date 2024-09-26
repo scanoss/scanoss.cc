@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"fmt"
 	"reflect"
 	"slices"
 
@@ -97,45 +96,4 @@ func (sf *SettingsFile) GetResultFilterConfig(result entities.Result) entities.F
 		Action: filterAction,
 		Type:   filterType,
 	}
-}
-
-func (sf *SettingsFile) AddBomEntry(newEntry ComponentFilter, filterAction string) error {
-	var targetList *[]ComponentFilter
-
-	switch filterAction {
-	case "remove":
-		targetList = &sf.Bom.Remove
-	case "include":
-		targetList = &sf.Bom.Include
-	default:
-		return fmt.Errorf("invalid filter action: %s", filterAction)
-	}
-
-	sf.removeDuplicatesFromAllLists(newEntry)
-
-	*targetList = append(*targetList, newEntry)
-
-	return nil
-}
-
-func (sf *SettingsFile) removeDuplicatesFromAllLists(newEntry ComponentFilter) {
-	sf.Bom.Remove = removeDuplicatesFromList(sf.Bom.Remove, newEntry)
-	sf.Bom.Include = removeDuplicatesFromList(sf.Bom.Include, newEntry)
-}
-
-func removeDuplicatesFromList(list []ComponentFilter, newEntry ComponentFilter) []ComponentFilter {
-	result := make([]ComponentFilter, 0, len(list))
-	for _, entry := range list {
-		if !isDuplicate(entry, newEntry) {
-			result = append(result, entry)
-		}
-	}
-	return result
-}
-
-func isDuplicate(entry, newEntry ComponentFilter) bool {
-	if newEntry.Path == "" {
-		return entry.Purl == newEntry.Purl
-	}
-	return entry.Purl == newEntry.Purl && entry.Path == newEntry.Path
 }

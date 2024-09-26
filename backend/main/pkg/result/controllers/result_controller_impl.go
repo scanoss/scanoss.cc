@@ -28,7 +28,7 @@ func (c *ResultControllerImpl) GetAll(dto *entities.RequestResultDTO) ([]entitie
 	}
 
 	sort.Slice(results, func(i, j int) bool {
-		return results[i].GetFileName() < results[j].GetFileName()
+		return results[i].Path < results[j].Path
 	})
 
 	return c.mapper.MapToResultDTOList(results), nil

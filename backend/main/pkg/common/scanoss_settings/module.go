@@ -1,6 +1,8 @@
 package scanoss_settings
 
 import (
+	"log"
+
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/controllers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/repository"
@@ -14,7 +16,10 @@ type Module struct {
 
 func NewModule() *Module {
 	repository := repository.NewScanossSettingsJsonRepository()
-	settingsFile, _ := repository.Read()
+	settingsFile, err := repository.Read()
+	if err != nil {
+		log.Panicf("error reading scanoss.json file: %s", err)
+	}
 
 	entities.ScanossSettingsJson = &entities.ScanossSettings{
 		SettingsFile: &settingsFile,

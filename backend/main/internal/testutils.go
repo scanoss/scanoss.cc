@@ -59,7 +59,10 @@ func InitializeTestEnvironment(t *testing.T) func() {
 	cfg.LoadConfig()
 
 	r := repository.NewScanossSettingsJsonRepository()
-	settingsFile, _ := r.Read()
+	settingsFile, err := r.Read()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
 	// Init Scanoss bom module. Set current bom file to singleton
 	entities.ScanossSettingsJson = &entities.ScanossSettings{
 		SettingsFile: &settingsFile,

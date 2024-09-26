@@ -26,8 +26,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function Sidebar() {
-  const { setResults, results, confirmedResults, pendingResults } =
-    useResults();
+  const { setResults, confirmedResults, pendingResults } = useResults();
 
   const [filterByMatchType, setFilterByMatchType] = useState<MatchType | 'all'>(
     'all'
@@ -51,8 +50,8 @@ export default function Sidebar() {
     <aside className="z-10 flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-md">
       <div className="flex h-[65px] items-center border-b border-b-border px-4">
         <h2 className="text-sm font-semibold">
-          {results?.length
-            ? `${results.length} decision${results.length > 1 ? 's' : ''} to make in working directory`
+          {pendingResults?.length
+            ? `${pendingResults.length} decision${pendingResults.length > 1 ? 's' : ''} to make in working directory`
             : 'You have no decisions to make in working directory'}
         </h2>
       </div>

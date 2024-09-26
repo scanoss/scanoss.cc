@@ -23,9 +23,8 @@ func (r *ScanossSettingsJsonRepository) Save() error {
 }
 
 func (r *ScanossSettingsJsonRepository) Read() (entities.SettingsFile, error) {
-
 	if config.Get() == nil {
-		return entities.SettingsFile{}, fmt.Errorf("config is nil")
+		return entities.SettingsFile{}, fmt.Errorf("config is not initialized")
 	}
 	scanSettingsFileBytes, err := utils.ReadFile(config.Get().ScanSettingsFilePath)
 	if err != nil {

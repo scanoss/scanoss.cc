@@ -5,5 +5,5 @@ import (
 )
 
 type ResultRepository interface {
-	GetResults(filter entities.ResultFilter) ([]entities.Result, error)
+	GetResults(filters entities.ResultFilter) ([]entities.Result, error)
 }

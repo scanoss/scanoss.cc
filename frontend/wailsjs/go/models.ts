@@ -122,6 +122,7 @@ export namespace entities {
 	}
 	export class RequestResultDTO {
 	    match_type?: string;
+	    query?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new RequestResultDTO(source);
@@ -130,6 +131,7 @@ export namespace entities {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.match_type = source["match_type"];
+	        this.query = source["query"];
 	    }
 	}
 	export class ResultDTO {

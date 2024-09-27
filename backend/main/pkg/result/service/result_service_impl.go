@@ -15,6 +15,6 @@ func NewResultServiceImpl(repo repository.ResultRepository) ResultService {
 	}
 }
 
-func (s *ResultServiceImpl) GetResults(filter entities.ResultFilter) ([]entities.Result, error) {
-	return s.repo.GetResults(filter)
+func (s *ResultServiceImpl) GetResults(filters entities.ResultFilter) ([]entities.Result, error) {
+	return s.repo.GetResults(filters)
 }

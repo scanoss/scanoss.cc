@@ -5,6 +5,7 @@ import { ReactNode, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { entities } from 'wailsjs/go/models';
 
+import useDebounce from '@/hooks/useDebounce';
 import useQueryState from '@/hooks/useQueryState';
 import { decodeFilePath, encodeFilePath } from '@/lib/utils';
 import ResultSearchBar from '@/modules/results/components/ResultSearchBar';
@@ -29,11 +30,15 @@ export default function Sidebar() {
     'all'
   );
 
+  const [query] = useQueryState<string>('q', '');
+  const debouncedQuery = useDebounce<string>(query, 300);
+
   const { data } = useQuery({
-    queryKey: ['results', filterByMatchType],
+    queryKey: ['results', filterByMatchType, debouncedQuery],
     queryFn: () =>
       ResultService.getAll(
-        filterByMatchType === 'all' ? undefined : filterByMatchType
+        filterByMatchType === 'all' ? undefined : filterByMatchType,
+        debouncedQuery
       ),
   });
 

@@ -70,16 +70,12 @@ export default function FileActionButton({
         purl,
       }),
     onSuccess: async () => {
-      toast({
-        title: 'Success',
-        description: `Your changes have been successfully saved.`,
-      });
-
       await queryClient.refetchQueries({
         queryKey: ['results', filterByMatchType, debouncedQuery],
       });
 
       const nextResultRoute = handleConfirmResult(localFilePath);
+
       if (nextResultRoute) {
         navigate(nextResultRoute);
       }

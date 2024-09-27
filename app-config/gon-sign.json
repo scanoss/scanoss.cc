@@ -1,0 +1,12 @@
+{
+  "source": ["../build/bin/scanoss-lui-macos"],
+  "bundle_id": "com.scanoss.scanoss-lui-macos",
+  "apple_id": {
+    "username": "apple@scanoss.com",
+    "password": "@env:APPLE_PASSWORD",
+    "provider": "@env:PROVIDER"
+  },
+  "sign" :{
+    "application_identity": "Developer ID Application: Esmeralda Mendez Rodriguez"
+  }
+}

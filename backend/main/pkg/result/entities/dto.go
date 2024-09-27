@@ -42,5 +42,5 @@ type ResultDTO struct {
 
 type RequestResultDTO struct {
 	MatchType MatchType `json:"match_type,omitempty" validate:"omitempty,eq=file|eq=snippet"`
-	Query     string    `json:"query,omitempty" validate:"omitempty,alphanum"`
+	Query     string    `json:"query,omitempty"`
 }

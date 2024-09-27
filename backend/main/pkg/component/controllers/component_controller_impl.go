@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"github.com/go-playground/validator"
+	"github.com/labstack/gommon/log"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
 )
@@ -21,5 +23,12 @@ func (c *ComponentControllerImpl) GetComponentByPath(filePath string) (entities.
 }
 
 func (c *ComponentControllerImpl) FilterComponent(dto entities.ComponentFilterDTO) error {
+	validate := validator.New()
+	err := validate.Struct(dto)
+	if err != nil {
+		log.Errorf("Validation error: %v", err)
+		return err
+	}
+
 	return c.service.FilterComponent(dto)
 }

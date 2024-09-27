@@ -16,8 +16,7 @@ func NewResultHandler(scanossBomModule *scanoss_settings.Module) *ResultHandler 
 	}
 }
 
-// *****  RESULT MODULE ***** //
-func (rh *ResultHandler) ResultGetAll(dto *entities.RequestResultDTO) []entities.ResultDTO {
-	results, _ := rh.resultModule.Controller.GetAll(dto)
-	return results
+func (rh *ResultHandler) ResultGetAll(dto *entities.RequestResultDTO) ([]entities.ResultDTO, error) {
+	results, err := rh.resultModule.Controller.GetAll(dto)
+	return results, err
 }

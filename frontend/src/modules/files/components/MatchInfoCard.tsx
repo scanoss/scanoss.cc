@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  FilterAction,
   MatchType,
   matchTypePresentation,
   resultStatusPresentation,
@@ -30,6 +31,14 @@ export default function MatchInfoCard() {
 
   const status = result?.workflow_state;
   const matchPresentation = matchTypePresentation[component.id as MatchType];
+
+  const isResultDismissed =
+    result?.filter_config?.action === FilterAction.Remove;
+  const isResultIncluded =
+    result?.filter_config?.action === FilterAction.Include;
+
+  const isResultFilteredByFile = result?.filter_config?.type === 'by_file';
+  const isResultFilteredByPurl = result?.filter_config?.type === 'by_purl';
 
   return (
     <div
@@ -84,6 +93,17 @@ export default function MatchInfoCard() {
             >
               {resultStatusPresentation[status].icon}
               {resultStatusPresentation[status].label}
+            </Badge>
+          </div>
+        )}
+        {result?.filter_config && (
+          <div>
+            <div className={matchPresentation.muted}>Decision</div>
+            <Badge className="flex items-center gap-1 font-normal">
+              {isResultDismissed && 'Dismissed'}
+              {isResultIncluded && 'Included'}
+              {isResultFilteredByFile && ' file'}
+              {isResultFilteredByPurl && ` component`}
             </Badge>
           </div>
         )}

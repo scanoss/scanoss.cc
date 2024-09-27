@@ -1,8 +1,6 @@
 package mappers
 
 import (
-	"fmt"
-
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/service"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 )
@@ -37,21 +35,13 @@ func (m ResultMapperImpl) MapToResultDTOList(results []entities.Result) []entiti
 }
 
 func (m *ResultMapperImpl) mapWorkflowState(result entities.Result) entities.WorkflowState {
-	settingsFile, err := m.scanossSettingsService.GetSettingsFile()
-	if err != nil {
-		fmt.Printf("Error reading scan settings file: %s", err)
-		return entities.Pending
-	}
+	settingsFile := m.scanossSettingsService.GetSettingsFile()
 
 	return settingsFile.GetResultWorkflowState(result)
 }
 
 func (m *ResultMapperImpl) mapFilterConfig(result entities.Result) entities.FilterConfig {
-	settingsFile, err := m.scanossSettingsService.GetSettingsFile()
-	if err != nil {
-		fmt.Printf("Error reading scan settings file: %s", err)
-		return entities.FilterConfig{}
-	}
+	settingsFile := m.scanossSettingsService.GetSettingsFile()
 
 	return settingsFile.GetResultFilterConfig(result)
 }

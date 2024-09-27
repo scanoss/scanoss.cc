@@ -117,6 +117,8 @@ function SidebarItem({ result }: { result: entities.ResultDTO }) {
     'all'
   );
 
+  const [query] = useQueryState<string>('q', '');
+
   const isResultDismissed =
     result.filter_config?.action === FilterAction.Remove;
   const isResultIncluded =
@@ -132,7 +134,7 @@ function SidebarItem({ result }: { result: entities.ResultDTO }) {
         <Link
           to={{
             pathname: `/files/${encodedFilePath}`,
-            search: `?matchType=${filterByMatchType}`,
+            search: `?matchType=${filterByMatchType}&q=${query}`,
           }}
         >
           <div

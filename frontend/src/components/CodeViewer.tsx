@@ -96,7 +96,6 @@ export default function CodeViewer({
 
   return (
     <Editor
-      className={`editor-${editorType}`}
       height={height}
       loading={<Skeleton className="h-full w-full" />}
       onMount={handleEditorMount}

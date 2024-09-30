@@ -5,5 +5,5 @@ import "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/
 type ScanossSettingsService interface {
 	Save() error
 	HasUnsavedChanges() (bool, error)
-	GetSettingsFile() (*entities.SettingsFile, error)
+	GetSettingsFile() *entities.SettingsFile
 }

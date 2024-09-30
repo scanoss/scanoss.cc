@@ -1,43 +1,44 @@
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { Braces, ChevronRight, File } from 'lucide-react';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { entities } from 'wailsjs/go/models';
 
+import useDebounce from '@/hooks/useDebounce';
+import useQueryState from '@/hooks/useQueryState';
 import { decodeFilePath, encodeFilePath } from '@/lib/utils';
+import ResultSearchBar from '@/modules/results/components/ResultSearchBar';
 import { FilterAction, MatchType } from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
 import { useResults } from '@/modules/results/providers/ResultsProvider';
 
+import MatchTypeSelector from '../modules/results/components/MatchTypeSelector';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from './ui/collapsible';
 import { ScrollArea } from './ui/scroll-area';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function Sidebar() {
-  const { setResults, results, confirmedResults, pendingResults } =
-    useResults();
+  const { setResults, confirmedResults, pendingResults } = useResults();
 
-  const [filterByMatchType, setFilterByMatchType] = useState<MatchType | 'all'>(
+  const [filterByMatchType] = useQueryState<MatchType | 'all'>(
+    'matchType',
     'all'
   );
 
+  const [query] = useQueryState<string>('q', '');
+  const debouncedQuery = useDebounce<string>(query, 300);
+
   const { data } = useQuery({
-    queryKey: ['results', filterByMatchType],
+    queryKey: ['results', filterByMatchType, debouncedQuery],
     queryFn: () =>
       ResultService.getAll(
-        filterByMatchType === 'all' ? undefined : filterByMatchType
+        filterByMatchType === 'all' ? undefined : filterByMatchType,
+        debouncedQuery
       ),
   });
 
@@ -48,41 +49,20 @@ export default function Sidebar() {
   }, [data]);
 
   return (
-    <aside className="z-10 flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-md">
+    <aside className="flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-md">
       <div className="flex h-[65px] items-center border-b border-b-border px-4">
         <h2 className="text-sm font-semibold">
-          {results?.length
-            ? `${results.length} decision${results.length > 1 ? 's' : ''} to make in working directory`
+          {pendingResults?.length
+            ? `${pendingResults.length} decision${pendingResults.length > 1 ? 's' : ''} to make in working directory`
             : 'You have no decisions to make in working directory'}
         </h2>
       </div>
 
-      <div className="flex flex-col gap-1 px-4 py-6">
-        <span className="text-xs font-semibold">Filter by match type</span>
-        <Select
-          onValueChange={(value) => setFilterByMatchType(value as MatchType)}
-          defaultValue="all"
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={MatchType.File}>
-              <div className="flex items-center gap-1">
-                <span>{matchTypeIconMap[MatchType.File]}</span>
-                <span>File</span>
-              </div>
-            </SelectItem>
-            <SelectItem value={MatchType.Snippet}>
-              <div className="flex items-center gap-1">
-                <span>{matchTypeIconMap[MatchType.Snippet]}</span>
-                <span>Snippet</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="all">All</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex flex-col gap-4 px-4 py-6">
+        <MatchTypeSelector />
+        <ResultSearchBar />
       </div>
+
       <ScrollArea>
         <div className="flex flex-1 flex-col gap-2">
           <Collapsible defaultOpen className="flex-1">
@@ -132,6 +112,13 @@ function SidebarItem({ result }: { result: entities.ResultDTO }) {
   const isActive = decodeFilePath(filePath ?? '') === result.path;
   const encodedFilePath = encodeFilePath(result.path);
 
+  const [filterByMatchType] = useQueryState<MatchType | 'all'>(
+    'matchType',
+    'all'
+  );
+
+  const [query] = useQueryState<string>('q', '');
+
   const isResultDismissed =
     result.filter_config?.action === FilterAction.Remove;
   const isResultIncluded =
@@ -144,7 +131,12 @@ function SidebarItem({ result }: { result: entities.ResultDTO }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Link to={`files/${encodedFilePath}?matchType=${result.match_type}`}>
+        <Link
+          to={{
+            pathname: `/files/${encodedFilePath}`,
+            search: `?matchType=${filterByMatchType}&q=${query}`,
+          }}
+        >
           <div
             className={clsx(
               'flex max-w-full items-center space-x-2 overflow-hidden px-4 py-1 text-sm text-muted-foreground transition-all hover:bg-primary/30',

@@ -12,10 +12,7 @@ import { entities } from 'wailsjs/go/models';
 import { encodeFilePath } from '@/lib/utils';
 
 export interface ResultsContext {
-  handleConfirmResult: (
-    path: string,
-    filterConfig: entities.FilterConfig
-  ) => string | null;
+  handleConfirmResult: (path: string) => string | null;
   results: entities.ResultDTO[];
   setResults: Dispatch<SetStateAction<entities.ResultDTO[]>>;
   confirmedResults: entities.ResultDTO[];
@@ -53,23 +50,7 @@ export const ResultsProvider = ({ children }: { children: ReactNode }) => {
   const confirmedResults = groupedResultsByState['completed'] ?? [];
   const pendingResults = groupedResultsByState['pending'] ?? [];
 
-  const handleConfirmResult = (
-    path: string,
-    filterConfig: entities.FilterConfig
-  ): string | null => {
-    // @ts-expect-error - This is a hack to update the state of the results
-    setResults((results) =>
-      results.map((result) =>
-        result.path === path
-          ? {
-              ...result,
-              workflow_state: 'completed',
-              filter_config: filterConfig,
-            }
-          : result
-      )
-    );
-
+  const handleConfirmResult = (path: string): string | null => {
     return getNextPendingResultPathRoute(path);
   };
 

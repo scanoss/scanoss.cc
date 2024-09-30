@@ -34,7 +34,10 @@ func main() {
 
 	app := NewApp()
 
+	fileHandler := handlers.NewFileHandler()
 	scanossBomHandler := handlers.NewScanossSettingsHandler()
+	resultHandler := handlers.NewResultHandler(scanossBomHandler.GetScanossSettings())
+	componentHandler := handlers.NewComponentHandler()
 
 	//Create application with options
 	err := wails.Run(&options.App{
@@ -43,15 +46,17 @@ func main() {
 			Assets: assets,
 		},
 		WindowStartState: options.Maximised,
-		OnStartup:        app.startup,
+		OnStartup: func(ctx context.Context) {
+			app.startup(ctx)
+		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
 			return app.beforeClose(ctx, scanossBomHandler)
 		},
 		Bind: []interface{}{
 			app,
-			handlers.NewFileHandler(),
-			handlers.NewResultHandler(scanossBomHandler.GetScanossSettings()),
-			handlers.NewComponentHandler(),
+			fileHandler,
+			resultHandler,
+			componentHandler,
 			scanossBomHandler,
 		},
 		Windows: &windows.Options{

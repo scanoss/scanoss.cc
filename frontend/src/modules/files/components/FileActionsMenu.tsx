@@ -4,7 +4,9 @@ import { Check, PackageMinus, Save } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { FilterAction } from '@/modules/results/domain';
+import useDebounce from '@/hooks/useDebounce';
+import useQueryState from '@/hooks/useQueryState';
+import { FilterAction, MatchType } from '@/modules/results/domain';
 
 import FileService from '../infra/service';
 import FileActionButton from './FileActionButton';
@@ -12,6 +14,14 @@ import FileActionButton from './FileActionButton';
 export default function FileActionsMenu() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const [filterByMatchType] = useQueryState<MatchType | 'all'>(
+    'matchType',
+    'all'
+  );
+
+  const [query] = useQueryState<string>('q', '');
+  const debouncedQuery = useDebounce<string>(query, 300);
 
   const { mutate: saveChanges, isPending } = useMutation({
     mutationFn: () => FileService.saveBomChanges(),
@@ -21,7 +31,7 @@ export default function FileActionsMenu() {
         description: `Your changes have been successfully saved.`,
       });
       await queryClient.refetchQueries({
-        queryKey: ['results'],
+        queryKey: ['results', filterByMatchType, debouncedQuery],
       });
     },
     onError: (e) => {

@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
@@ -14,7 +14,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
-import { FilterAction, filterActionLabelMap } from '@/modules/results/domain';
+import { useConfirm } from '@/hooks/useConfirm';
+import useDebounce from '@/hooks/useDebounce';
+import useQueryState from '@/hooks/useQueryState';
+import {
+  FilterAction,
+  filterActionLabelMap,
+  MatchType,
+} from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
 import { useResults } from '@/modules/results/providers/ResultsProvider';
 
@@ -32,12 +39,23 @@ export default function FileActionButton({
   description,
   icon,
 }: FileActionButtonProps) {
-  const navigate = useNavigate();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { ask } = useConfirm();
 
   const { handleConfirmResult } = useResults();
   const localFilePath = useLocalFilePath();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const [filterByMatchType] = useQueryState<MatchType | 'all'>(
+    'matchType',
+    'all'
+  );
+
+  const [query] = useQueryState<string>('q', '');
+  const debouncedQuery = useDebounce<string>(query, 300);
 
   const { data: component } = useQuery({
     queryKey: ['component', localFilePath],
@@ -51,23 +69,35 @@ export default function FileActionButton({
         path,
         purl,
       }),
-    onSuccess: (_, { path, purl }) => {
-      const type = path && purl ? 'by_file' : 'by_purl';
-
-      const nextResultRoute = handleConfirmResult(localFilePath, {
-        action,
-        type,
+    onSuccess: async () => {
+      await queryClient.refetchQueries({
+        queryKey: ['results', filterByMatchType, debouncedQuery],
       });
+
+      const nextResultRoute = handleConfirmResult(localFilePath);
+
       if (nextResultRoute) {
         navigate(nextResultRoute);
       }
     },
+    onMutate: async ({ path, purl }) => {
+      if (path) return;
+
+      const confirm = await ask(
+        `This action will ${action} all components with the same purl: ${purl}. Are you sure?`
+      );
+      if (!confirm) {
+        return Promise.reject(new Error('user_cancel'));
+      }
+    },
     onError: (e) => {
-      toast({
-        title: 'Error',
-        variant: 'destructive',
-        description: e instanceof Error ? e.message : 'An error occurred.',
-      });
+      if (e.message !== 'user_cancel') {
+        toast({
+          title: 'Error',
+          variant: 'destructive',
+          description: e instanceof Error ? e.message : 'An error occurred.',
+        });
+      }
     },
   });
 

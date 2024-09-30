@@ -23,11 +23,6 @@ func (us *ScanossSettingsServiceImp) HasUnsavedChanges() (bool, error) {
 	return us.repository.HasUnsavedChanges()
 }
 
-func (us *ScanossSettingsServiceImp) GetSettingsFile() (*entities.SettingsFile, error) {
-	settingsFile, err := us.repository.Read()
-	if err != nil {
-		return nil, err
-	}
-
-	return &settingsFile, nil
+func (us *ScanossSettingsServiceImp) GetSettingsFile() *entities.SettingsFile {
+	return entities.ScanossSettingsJson.SettingsFile
 }

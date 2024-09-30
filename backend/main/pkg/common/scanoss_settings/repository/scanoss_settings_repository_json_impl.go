@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
+	"os"
 
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
@@ -23,12 +25,14 @@ func (r *ScanossSettingsJsonRepository) Save() error {
 }
 
 func (r *ScanossSettingsJsonRepository) Read() (entities.SettingsFile, error) {
-
 	if config.Get() == nil {
-		return entities.SettingsFile{}, fmt.Errorf("config is nil")
+		return entities.SettingsFile{}, fmt.Errorf("config is not initialized")
 	}
 	scanSettingsFileBytes, err := utils.ReadFile(config.Get().ScanSettingsFilePath)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return entities.SettingsFile{}, nil
+		}
 		return entities.SettingsFile{}, err
 	}
 

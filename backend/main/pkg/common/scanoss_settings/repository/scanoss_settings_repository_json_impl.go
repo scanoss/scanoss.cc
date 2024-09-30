@@ -11,10 +11,13 @@ import (
 )
 
 type ScanossSettingsJsonRepository struct {
+	fr utils.FileReader
 }
 
-func NewScanossSettingsJsonRepository() *ScanossSettingsJsonRepository {
-	return &ScanossSettingsJsonRepository{}
+func NewScanossSettingsJsonRepository(fr utils.FileReader) *ScanossSettingsJsonRepository {
+	return &ScanossSettingsJsonRepository{
+		fr: fr,
+	}
 }
 
 func (r *ScanossSettingsJsonRepository) Save() error {
@@ -28,7 +31,7 @@ func (r *ScanossSettingsJsonRepository) Read() (entities.SettingsFile, error) {
 	if config.Get() == nil {
 		return entities.SettingsFile{}, fmt.Errorf("config is not initialized")
 	}
-	scanSettingsFileBytes, err := utils.ReadFile(config.Get().ScanSettingsFilePath)
+	scanSettingsFileBytes, err := r.fr.ReadFile(config.Get().ScanSettingsFilePath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return entities.SettingsFile{}, nil

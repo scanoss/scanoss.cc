@@ -7,6 +7,7 @@ import (
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/file/controllers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/file/repository"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/file/service"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 )
 
 type Module struct {
@@ -14,11 +15,12 @@ type Module struct {
 }
 
 func NewModule() *Module {
+	fr := utils.NewDefaultFileReader()
 	repo := repository.NewFileRepositoryImpl()
 	service := service.NewFileService(repo)
 
-	cRepo := componentRepository.NewJSONComponentRepository()
-	ssRepo := scanossSettingsRepository.NewScanossSettingsJsonRepository()
+	cRepo := componentRepository.NewJSONComponentRepository(fr)
+	ssRepo := scanossSettingsRepository.NewScanossSettingsJsonRepository(fr)
 	cService := componentService.NewComponentService(cRepo, ssRepo)
 
 	return &Module{

@@ -10,6 +10,7 @@ import (
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,8 +18,9 @@ func TestFilterComponent_Integration(t *testing.T) {
 	cleanup := internalTest.InitializeTestEnvironment(t)
 	defer cleanup()
 
-	repo := repository.NewJSONComponentRepository()
-	ssRepo := scanossSettingsRepository.NewScanossSettingsJsonRepository()
+	fr := utils.NewDefaultFileReader()
+	repo := repository.NewJSONComponentRepository(fr)
+	ssRepo := scanossSettingsRepository.NewScanossSettingsJsonRepository(fr)
 	service := service.NewComponentService(repo, ssRepo)
 	controller := controllers.NewComponentController(service)
 

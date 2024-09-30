@@ -6,6 +6,7 @@ import (
 
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/repository"
+	"github.com/stretchr/testify/mock"
 
 	configEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/config/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
@@ -58,7 +59,8 @@ func InitializeTestEnvironment(t *testing.T) func() {
 	cfg.Init()
 	cfg.LoadConfig()
 
-	r := repository.NewScanossSettingsJsonRepository()
+	fr := utils.NewDefaultFileReader()
+	r := repository.NewScanossSettingsJsonRepository(fr)
 	settingsFile, err := r.Read()
 	if err != nil {
 		t.Fatal(err.Error())
@@ -69,4 +71,15 @@ func InitializeTestEnvironment(t *testing.T) func() {
 	}
 
 	return cleanup
+}
+
+type MockUtils struct {
+	mock.Mock
+}
+
+func NewMockUtils() *MockUtils { return &MockUtils{} }
+
+func (m *MockUtils) ReadFile(filePath string) ([]byte, error) {
+	args := m.Called(filePath)
+	return args.Get(0).([]byte), args.Error(1)
 }

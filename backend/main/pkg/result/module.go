@@ -6,6 +6,7 @@ import (
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/mappers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/repository"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/service"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 )
 
 type Module struct {
@@ -13,7 +14,8 @@ type Module struct {
 }
 
 func NewModule(bomModule *scanoss_settings.Module) *Module {
-	repo := repository.NewResultRepositoryJsonImpl()
+	fr := utils.NewDefaultFileReader()
+	repo := repository.NewResultRepositoryJsonImpl(fr)
 	serv := service.NewResultServiceImpl(repo)
 	mapper := mappers.NewResultMapper(bomModule.Service)
 

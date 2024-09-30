@@ -10,16 +10,19 @@ import (
 )
 
 type ResultRepositoryJsonImpl struct {
+	fr utils.FileReader
 }
 
-func NewResultRepositoryJsonImpl() *ResultRepositoryJsonImpl {
-	return &ResultRepositoryJsonImpl{}
+func NewResultRepositoryJsonImpl(fr utils.FileReader) *ResultRepositoryJsonImpl {
+	return &ResultRepositoryJsonImpl{
+		fr: fr,
+	}
 }
 
 func (r *ResultRepositoryJsonImpl) GetResults(filter entities.ResultFilter) ([]entities.Result, error) {
 	// Path to your JSON file
 	resultFilePath := config.Get().ResultFilePath
-	resultByte, err := utils.ReadFile(resultFilePath)
+	resultByte, err := r.fr.ReadFile(resultFilePath)
 	if err != nil {
 		fmt.Println(err)
 		return []entities.Result{}, entities.ErrReadingResultFile

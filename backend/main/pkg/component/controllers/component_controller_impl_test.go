@@ -1,9 +1,9 @@
 package controllers_test
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/go-playground/validator"
 	internalTest "github.com/scanoss/scanoss.lui/backend/main/internal"
 	scanossSettingsRepository "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/repository"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/controllers"
@@ -42,7 +42,7 @@ func TestFilterComponent_Integration(t *testing.T) {
 		},
 		{
 			name:          "Wrong action",
-			expectedError: fmt.Errorf("%s: %s", repository.ErrInvalidFilterAction, entities.FilterAction("unsupported")),
+			expectedError: validator.ValidationErrors{},
 			dto: entities.ComponentFilterDTO{
 				Path:   "test/path",
 				Purl:   "pkg:purl.com/test",
@@ -57,7 +57,7 @@ func TestFilterComponent_Integration(t *testing.T) {
 			err := controller.FilterComponent(tc.dto)
 			if tc.expectedError != nil {
 				assert.Error(t, err)
-				assert.Equal(t, tc.expectedError, err)
+				assert.IsType(t, err, tc.expectedError)
 				return
 			}
 

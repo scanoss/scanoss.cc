@@ -12,85 +12,75 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestGetResults_NoFilter(t *testing.T) {
+func TestGetResults(t *testing.T) {
 	cleanup := internal_test.InitializeTestEnvironment(t)
 	defer cleanup()
-	mu := internal_test.NewMockUtils()
 
-	mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
+	t.Run("No filter", func(t *testing.T) {
+		mu := internal_test.NewMockUtils()
+		mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
-	repo := repository.NewResultRepositoryJsonImpl(mu)
-	results, err := repo.GetResults(nil)
+		repo := repository.NewResultRepositoryJsonImpl(mu)
+		results, err := repo.GetResults(nil)
 
-	assert.NoError(t, err)
-	assert.Len(t, results, 1)
-	assert.Equal(t, "path/to/file", results[0].Path)
-	assert.Equal(t, "file", results[0].MatchType)
-	assert.Equal(t, []string{"pkg:example/package"}, results[0].Purl)
-}
+		assert.NoError(t, err)
+		assert.Len(t, results, 1)
+		assert.Equal(t, "path/to/file", results[0].Path)
+		assert.Equal(t, "file", results[0].MatchType)
+		assert.Equal(t, []string{"pkg:example/package"}, results[0].Purl)
+	})
 
-func TestGetResults_WithFilter(t *testing.T) {
-	cleanup := internal_test.InitializeTestEnvironment(t)
-	defer cleanup()
-	mu := internal_test.NewMockUtils()
+	t.Run("With filter", func(t *testing.T) {
+		mu := internal_test.NewMockUtils()
+		mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
-	mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
+		filter := mocks.ResultFilter{}
+		filter.EXPECT().IsValid(mock.Anything).Return(true)
 
-	filter := mocks.ResultFilter{}
-	filter.EXPECT().IsValid(mock.Anything).Return(true)
+		repo := repository.NewResultRepositoryJsonImpl(mu)
+		results, err := repo.GetResults(&filter)
 
-	repo := repository.NewResultRepositoryJsonImpl(mu)
-	results, err := repo.GetResults(&filter)
+		assert.NoError(t, err)
+		assert.Len(t, results, 1)
+		assert.Equal(t, "path/to/file", results[0].Path)
+		assert.Equal(t, "file", results[0].MatchType)
+		assert.Equal(t, []string{"pkg:example/package"}, results[0].Purl)
+	})
 
-	assert.NoError(t, err)
-	assert.Len(t, results, 1)
-	assert.Equal(t, "path/to/file", results[0].Path)
-	assert.Equal(t, "file", results[0].MatchType)
-	assert.Equal(t, []string{"pkg:example/package"}, results[0].Purl)
-}
+	t.Run("Read file error", func(t *testing.T) {
+		mu := internal_test.NewMockUtils()
+		mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte{}, entities.ErrReadingResultFile)
 
-func TestGetResults_ReadFileError(t *testing.T) {
-	cleanup := internal_test.InitializeTestEnvironment(t)
-	defer cleanup()
-	mu := internal_test.NewMockUtils()
+		repo := repository.NewResultRepositoryJsonImpl(mu)
+		results, err := repo.GetResults(nil)
 
-	mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte{}, entities.ErrReadingResultFile)
+		assert.Error(t, err)
+		assert.Equal(t, entities.ErrReadingResultFile, err)
+		assert.Len(t, results, 0)
+	})
 
-	repo := repository.NewResultRepositoryJsonImpl(mu)
-	results, err := repo.GetResults(nil)
+	t.Run("Invalid json", func(t *testing.T) {
+		mu := internal_test.NewMockUtils()
+		mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`invalid json`), nil)
 
-	assert.Error(t, err)
-	assert.Equal(t, entities.ErrReadingResultFile, err)
-	assert.Len(t, results, 0)
-}
+		repo := repository.NewResultRepositoryJsonImpl(mu)
+		results, err := repo.GetResults(nil)
 
-func TestParseScanResults_InvalidJSON(t *testing.T) {
-	cleanup := internal_test.InitializeTestEnvironment(t)
-	defer cleanup()
-	mu := internal_test.NewMockUtils()
+		assert.Error(t, err)
+		assert.Len(t, results, 0)
+	})
 
-	mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`invalid json`), nil)
+	t.Run("Filter no match", func(t *testing.T) {
+		mu := internal_test.NewMockUtils()
+		mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
-	repo := repository.NewResultRepositoryJsonImpl(mu)
-	results, err := repo.GetResults(nil)
+		filter := mocks.ResultFilter{}
+		filter.EXPECT().IsValid(mock.Anything).Return(false)
 
-	assert.Error(t, err)
-	assert.Len(t, results, 0)
-}
+		repo := repository.NewResultRepositoryJsonImpl(mu)
+		results, err := repo.GetResults(&filter)
 
-func TestGetResults_FilterNoMatch(t *testing.T) {
-	cleanup := internal_test.InitializeTestEnvironment(t)
-	defer cleanup()
-	mu := internal_test.NewMockUtils()
-
-	mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
-
-	filter := mocks.ResultFilter{}
-	filter.EXPECT().IsValid(mock.Anything).Return(false)
-
-	repo := repository.NewResultRepositoryJsonImpl(mu)
-	results, err := repo.GetResults(&filter)
-
-	assert.NoError(t, err)
-	assert.Len(t, results, 0)
+		assert.NoError(t, err)
+		assert.Len(t, results, 0)
+	})
 }

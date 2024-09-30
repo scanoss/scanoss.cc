@@ -86,9 +86,6 @@ func IsWritableFile(path string) bool {
 		return false
 	}
 	mode := fileInfo.Mode()
-	if mode&os.ModePerm == os.ModePerm {
-		return false
-	}
 
-	return true
+	return mode&0200 != 0
 }

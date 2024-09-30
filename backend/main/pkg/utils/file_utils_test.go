@@ -113,7 +113,6 @@ func TestIsWritableFile(t *testing.T) {
 		t.Fatalf("Expected file to be writable")
 	}
 
-	// Create a read-only file
 	readonlyFile, err := os.CreateTemp("", "readonly.json")
 	if err != nil {
 		t.Fatal(err)

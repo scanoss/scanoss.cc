@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/gommon/log"
+	scanossSettingsEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
 )
@@ -14,11 +15,35 @@ type ComponentControllerImpl struct {
 }
 
 func NewComponentController(service service.ComponentService) ComponentController {
-	return &ComponentControllerImpl{
+	controller := &ComponentControllerImpl{
 		service:       service,
 		actionHistory: []entities.ComponentFilterDTO{},
 		currentAction: -1,
 	}
+
+	controller.initializeActionHistory()
+	return controller
+}
+
+func (c *ComponentControllerImpl) initializeActionHistory() {
+	settings := scanossSettingsEntities.ScanossSettingsJson
+	for _, include := range settings.SettingsFile.Bom.Include {
+		c.actionHistory = append(c.actionHistory, entities.ComponentFilterDTO{
+			Path:   include.Path,
+			Purl:   include.Purl,
+			Usage:  string(include.Usage),
+			Action: entities.Include,
+		})
+	}
+	for _, remove := range settings.SettingsFile.Bom.Remove {
+		c.actionHistory = append(c.actionHistory, entities.ComponentFilterDTO{
+			Path:   remove.Path,
+			Purl:   remove.Purl,
+			Usage:  string(remove.Usage),
+			Action: entities.Remove,
+		})
+	}
+	c.currentAction = len(c.actionHistory) - 1
 }
 
 func (c *ComponentControllerImpl) GetComponentByPath(filePath string) (entities.ComponentDTO, error) {

@@ -10,6 +10,7 @@ import (
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,8 +18,9 @@ func TestInsertComponentFilterActions(t *testing.T) {
 	cleanup := internalTest.InitializeTestEnvironment(t)
 	defer cleanup()
 
-	repo := repository.NewJSONComponentRepository()
-	ssRepo := scanossBomRepository.NewScanossSettingsJsonRepository()
+	fr := utils.NewDefaultFileReader()
+	repo := repository.NewJSONComponentRepository(fr)
+	ssRepo := scanossBomRepository.NewScanossSettingsJsonRepository(fr)
 	settingsFile, _ := ssRepo.Read()
 	scanossBomEntities.ScanossSettingsJson = &scanossBomEntities.ScanossSettings{
 		SettingsFile: &settingsFile,

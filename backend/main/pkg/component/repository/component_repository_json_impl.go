@@ -24,16 +24,19 @@ var licenseSourceOrder = map[string]int{
 }
 
 type JSONComponentRepository struct {
+	fr utils.FileReader
 }
 
-func NewJSONComponentRepository() *JSONComponentRepository {
-	return &JSONComponentRepository{}
+func NewJSONComponentRepository(fr utils.FileReader) *JSONComponentRepository {
+	return &JSONComponentRepository{
+		fr: fr,
+	}
 }
 
 func (r *JSONComponentRepository) FindByFilePath(path string) (entities.Component, error) {
 	resultFilePath := config.Get().ResultFilePath
 
-	resultFileBytes, err := utils.ReadFile(resultFilePath)
+	resultFileBytes, err := r.fr.ReadFile(resultFilePath)
 	if err != nil {
 		return entities.Component{}, err
 	}

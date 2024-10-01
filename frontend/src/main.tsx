@@ -8,7 +8,6 @@ import { createHashRouter, RouterProvider } from 'react-router-dom';
 import ConfirmDialog from './components/ConfirmDialog';
 import { Toaster } from './components/ui/toaster';
 import { TooltipProvider } from './components/ui/tooltip';
-import { ResultsProvider } from './modules/results/providers/ResultsProvider';
 import { ConfirmDialogProvider } from './providers/ConfirmDialogProvider';
 import Index from './routes';
 import FileComparison from './routes/files/match';
@@ -40,11 +39,9 @@ if (!rootElement.innerHTML) {
       <TooltipProvider skipDelayDuration={0}>
         <QueryClientProvider client={queryClient}>
           <ConfirmDialogProvider>
-            <ResultsProvider>
-              <RouterProvider router={router} />
-              <ConfirmDialog />
-              <Toaster />
-            </ResultsProvider>
+            <RouterProvider router={router} />
+            <ConfirmDialog />
+            <Toaster />
           </ConfirmDialogProvider>
         </QueryClientProvider>
       </TooltipProvider>

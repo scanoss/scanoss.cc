@@ -4,4 +4,12 @@ import {entities} from '../models';
 
 export function ComponentFilter(arg1:entities.ComponentFilterDTO):Promise<void>;
 
+export function ComponentFilterCanRedo():Promise<boolean>;
+
+export function ComponentFilterCanUndo():Promise<boolean>;
+
+export function ComponentFilterRedo():Promise<void>;
+
+export function ComponentFilterUndo():Promise<void>;
+
 export function ComponentGet(arg1:string):Promise<entities.ComponentDTO>;

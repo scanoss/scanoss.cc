@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { File, Github } from 'lucide-react';
 
 import { FilterAction } from '@/modules/results/domain';
-import { useResults } from '@/modules/results/providers/ResultsProvider';
+import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import useLocalFilePath from '../hooks/useLocalFilePath';
 
@@ -17,7 +17,7 @@ export default function FileInfoCard({
   subtitle,
   fileType,
 }: FileInfoCardProps) {
-  const { results } = useResults();
+  const results = useResultsStore((state) => state.results);
   const localFilePath = useLocalFilePath();
   const result = results.find((result) => result.path === localFilePath);
 

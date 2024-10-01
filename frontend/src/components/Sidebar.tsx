@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { Braces, ChevronRight, File } from 'lucide-react';
 import { ReactNode, useEffect } from 'react';
@@ -10,8 +9,7 @@ import useQueryState from '@/hooks/useQueryState';
 import { decodeFilePath, encodeFilePath } from '@/lib/utils';
 import ResultSearchBar from '@/modules/results/components/ResultSearchBar';
 import { FilterAction, MatchType } from '@/modules/results/domain';
-import ResultService from '@/modules/results/infra/service';
-import { useResults } from '@/modules/results/providers/ResultsProvider';
+import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import MatchTypeSelector from '../modules/results/components/MatchTypeSelector';
 import {
@@ -23,7 +21,9 @@ import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function Sidebar() {
-  const { setResults, confirmedResults, pendingResults } = useResults();
+  const pendingResults = useResultsStore((state) => state.pendingResults);
+  const completedResults = useResultsStore((state) => state.completedResults);
+  const fetchResults = useResultsStore((state) => state.fetchResults);
 
   const [filterByMatchType] = useQueryState<MatchType | 'all'>(
     'matchType',
@@ -33,20 +33,12 @@ export default function Sidebar() {
   const [query] = useQueryState<string>('q', '');
   const debouncedQuery = useDebounce<string>(query, 300);
 
-  const { data } = useQuery({
-    queryKey: ['results', filterByMatchType, debouncedQuery],
-    queryFn: () =>
-      ResultService.getAll(
-        filterByMatchType === 'all' ? undefined : filterByMatchType,
-        debouncedQuery
-      ),
-  });
-
   useEffect(() => {
-    if (data) {
-      setResults(data);
-    }
-  }, [data]);
+    fetchResults(
+      filterByMatchType === 'all' ? undefined : filterByMatchType,
+      debouncedQuery
+    );
+  }, [filterByMatchType, debouncedQuery]);
 
   return (
     <aside className="flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-md">
@@ -89,13 +81,13 @@ export default function Sidebar() {
                 <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
                 <span className="text-sm text-muted-foreground">
                   Completed files{' '}
-                  <span className="text-xs">({confirmedResults?.length})</span>
+                  <span className="text-xs">({completedResults?.length})</span>
                 </span>
               </div>
             </CollapsibleTrigger>
-            {confirmedResults.length ? (
+            {completedResults.length ? (
               <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
-                {confirmedResults.map((result) => {
+                {completedResults.map((result) => {
                   return <SidebarItem key={result.path} result={result} />;
                 })}
               </CollapsibleContent>

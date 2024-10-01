@@ -10,12 +10,12 @@ import {
   resultStatusPresentation,
 } from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
-import { useResults } from '@/modules/results/providers/ResultsProvider';
+import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import useLocalFilePath from '../hooks/useLocalFilePath';
 
 export default function MatchInfoCard() {
-  const { results } = useResults();
+  const results = useResultsStore((state) => state.results);
   const localFilePath = useLocalFilePath();
 
   const { data: component } = useQuery({
@@ -96,7 +96,7 @@ export default function MatchInfoCard() {
             </Badge>
           </div>
         )}
-        {result?.filter_config && (
+        {result?.filter_config?.action && result.filter_config.type && (
           <div>
             <div className={matchPresentation.muted}>Decision</div>
             <Badge className="flex items-center gap-1 font-normal">

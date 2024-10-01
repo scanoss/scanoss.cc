@@ -99,3 +99,10 @@ func isDuplicate(entry, newEntry entities.ComponentFilter) bool {
 	}
 	return entry.Purl == newEntry.Purl && entry.Path == newEntry.Path
 }
+
+func (r *ScanossSettingsJsonRepository) ClearAllFilters() error {
+	sf := entities.ScanossSettingsJson.SettingsFile
+	sf.Bom.Include = []entities.ComponentFilter{}
+	sf.Bom.Remove = []entities.ComponentFilter{}
+	return nil
+}

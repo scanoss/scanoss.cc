@@ -28,8 +28,7 @@ interface ResultsActions {
   handleCompleteResult: (
     path: string | undefined,
     purl: string,
-    action: FilterAction,
-    currentPath: string
+    action: FilterAction
   ) => Promise<string | null>;
   setResults: (results: entities.ResultDTO[]) => void;
   undo: () => Promise<void>;
@@ -63,7 +62,7 @@ const useResultsStore = create<ResultsStore>()(
         'SET_RESULTS'
       ),
 
-    handleCompleteResult: async (path, purl, action, currentPath) => {
+    handleCompleteResult: async (path, purl, action) => {
       await FileService.filterComponentByPath({
         path,
         purl,
@@ -71,7 +70,7 @@ const useResultsStore = create<ResultsStore>()(
       });
       await get().updateUndoRedoState();
       await get().fetchResults();
-      return getNextPendingResultPathRoute(currentPath, get().pendingResults);
+      return getNextPendingResultPathRoute(get().pendingResults);
     },
 
     undo: async () => {
@@ -114,20 +113,12 @@ const useResultsStore = create<ResultsStore>()(
 );
 
 const getNextPendingResultPathRoute = (
-  path: string,
   pendingResults: entities.ResultDTO[]
 ): string | null => {
-  const currentSelectedIndex = pendingResults.findIndex((r) => r.path === path);
-  const isLast = currentSelectedIndex === pendingResults.length - 1;
+  const firstAvailablePendingResult = pendingResults[0];
+  if (!firstAvailablePendingResult) return null;
 
-  if (currentSelectedIndex === -1) return null;
-
-  if (isLast && pendingResults.length > 0) {
-    return `/files/${encodeFilePath(pendingResults[0].path)}`;
-  }
-
-  const nextPendingResult = pendingResults[currentSelectedIndex + 1];
-  return `/files/${encodeFilePath(nextPendingResult.path)}`;
+  return `/files/${encodeFilePath(firstAvailablePendingResult.path)}`;
 };
 
 export default useResultsStore;

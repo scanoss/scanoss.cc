@@ -1,17 +1,17 @@
 package mappers
 
 import (
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/service"
+	scanossSettingsEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 )
 
 type ResultMapperImpl struct {
-	scanossSettingsService service.ScanossSettingsService
+	scanossSettings *scanossSettingsEntities.ScanossSettings
 }
 
-func NewResultMapper(scanossSettingsService service.ScanossSettingsService) ResultMapper {
+func NewResultMapper(scanossSettings *scanossSettingsEntities.ScanossSettings) ResultMapper {
 	return &ResultMapperImpl{
-		scanossSettingsService: scanossSettingsService,
+		scanossSettings: scanossSettings,
 	}
 }
 
@@ -35,13 +35,9 @@ func (m ResultMapperImpl) MapToResultDTOList(results []entities.Result) []entiti
 }
 
 func (m *ResultMapperImpl) mapWorkflowState(result entities.Result) entities.WorkflowState {
-	settingsFile := m.scanossSettingsService.GetSettingsFile()
-
-	return settingsFile.GetResultWorkflowState(result)
+	return m.scanossSettings.SettingsFile.GetResultWorkflowState(result)
 }
 
 func (m *ResultMapperImpl) mapFilterConfig(result entities.Result) entities.FilterConfig {
-	settingsFile := m.scanossSettingsService.GetSettingsFile()
-
-	return settingsFile.GetResultFilterConfig(result)
+	return m.scanossSettings.SettingsFile.GetResultFilterConfig(result)
 }

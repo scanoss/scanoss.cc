@@ -52,7 +52,7 @@ export default function FileActionButton({
     path: string | undefined,
     purl: string
   ) => {
-    return handleCompleteResult(path, purl, action, localFilePath)
+    return handleCompleteResult(path, purl, action)
       .then((nextResultRoute) => {
         if (nextResultRoute) {
           navigate(nextResultRoute);

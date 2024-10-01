@@ -50,16 +50,8 @@ func (c *ComponentControllerImpl) Undo() error {
 		return nil
 	}
 
-	action := c.actionHistory[c.currentAction]
-	inverseAction := c.getInverseAction(action)
-
-	err := c.service.FilterComponent(inverseAction)
-	if err != nil {
-		return err
-	}
-
 	c.currentAction--
-	return nil
+	return c.reapplyActions()
 }
 
 func (c *ComponentControllerImpl) Redo() error {
@@ -68,19 +60,24 @@ func (c *ComponentControllerImpl) Redo() error {
 	}
 
 	c.currentAction++
-	action := c.actionHistory[c.currentAction]
-
-	return c.service.FilterComponent(action)
+	return c.reapplyActions()
 }
 
-func (c *ComponentControllerImpl) getInverseAction(action entities.ComponentFilterDTO) entities.ComponentFilterDTO {
-	inverse := action
-	if action.Action == entities.Include {
-		inverse.Action = entities.Remove
-	} else {
-		inverse.Action = entities.Include
+func (c *ComponentControllerImpl) reapplyActions() error {
+	// We need to clear bom filters so workflow state is properly resetted
+	err := c.service.ClearAllFilters()
+	if err != nil {
+		return err
 	}
-	return inverse
+
+	for i := 0; i <= c.currentAction; i++ {
+		err := c.service.FilterComponent(c.actionHistory[i])
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (c *ComponentControllerImpl) CanUndo() (bool, error) {

@@ -38,3 +38,7 @@ func (s *ComponentServiceImpl) FilterComponent(dto entities.ComponentFilterDTO) 
 
 	return nil
 }
+
+func (s *ComponentServiceImpl) ClearAllFilters() error {
+	return s.scanossSettingsRepo.ClearAllFilters()
+}

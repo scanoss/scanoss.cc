@@ -7,7 +7,7 @@
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "Agustin Isasmendi",
-    "email": "isasmendi.agus@gmail.com"
+    "name": "scanoss-lui",
+    "email": "support@scanoss.com"
   }
 }

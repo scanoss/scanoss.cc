@@ -12,3 +12,13 @@ export function encodeFilePath(filePath: string) {
 export function decodeFilePath(encodedPath: string) {
   return atob(encodedPath);
 }
+
+export function getFileName(filePath: string) {
+  const parts = filePath.split('/');
+  return parts.pop() || '';
+}
+
+export function getDirectory(filePath: string) {
+  const parts = filePath.split('/');
+  return parts.join('/');
+}

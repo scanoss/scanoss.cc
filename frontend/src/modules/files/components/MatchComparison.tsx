@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import CodeViewer from '@/components/CodeViewer';
+import { getFileName } from '@/lib/utils';
 import ResultService from '@/modules/results/infra/service';
 
 import useLocalFilePath from '../hooks/useLocalFilePath';
@@ -47,7 +48,7 @@ export default function MatchComparison() {
           </div>
           <FileInfoCard
             title="Local file"
-            subtitle={localFilePath}
+            subtitle={getFileName(localFilePath)}
             fileType="local"
           />
           <FileInfoCard

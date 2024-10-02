@@ -6,7 +6,12 @@ import { entities } from 'wailsjs/go/models';
 
 import useDebounce from '@/hooks/useDebounce';
 import useQueryState from '@/hooks/useQueryState';
-import { decodeFilePath, encodeFilePath } from '@/lib/utils';
+import {
+  decodeFilePath,
+  encodeFilePath,
+  getDirectory,
+  getFileName,
+} from '@/lib/utils';
 import ResultSearchBar from '@/modules/results/components/ResultSearchBar';
 import { FilterAction, MatchType } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
@@ -116,9 +121,8 @@ function SidebarItem({ result }: { result: entities.ResultDTO }) {
   const isResultIncluded =
     result.filter_config?.action === FilterAction.Include;
 
-  const parts = result.path.split('/');
-  const fileName = parts.pop() || '';
-  const directory = parts.join('/');
+  const fileName = getFileName(result.path);
+  const directory = getDirectory(result.path);
 
   return (
     <Tooltip>

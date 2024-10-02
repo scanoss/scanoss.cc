@@ -3,7 +3,6 @@ package controllers
 import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/gommon/log"
-	scanossSettingsEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
 )
@@ -26,8 +25,8 @@ func NewComponentController(service service.ComponentService) ComponentControlle
 }
 
 func (c *ComponentControllerImpl) initializeActionHistory() {
-	settings := scanossSettingsEntities.ScanossSettingsJson
-	for _, include := range settings.SettingsFile.Bom.Include {
+	include, remove := c.service.GetInitialFilters()
+	for _, include := range include {
 		c.actionHistory = append(c.actionHistory, entities.ComponentFilterDTO{
 			Path:   include.Path,
 			Purl:   include.Purl,
@@ -35,7 +34,7 @@ func (c *ComponentControllerImpl) initializeActionHistory() {
 			Action: entities.Include,
 		})
 	}
-	for _, remove := range settings.SettingsFile.Bom.Remove {
+	for _, remove := range remove {
 		c.actionHistory = append(c.actionHistory, entities.ComponentFilterDTO{
 			Path:   remove.Path,
 			Purl:   remove.Purl,

@@ -14,14 +14,15 @@ type ScanossSettingsJsonRepository struct {
 	fr utils.FileReader
 }
 
-func NewScanossSettingsJsonRepository(fr utils.FileReader) *ScanossSettingsJsonRepository {
+func NewScanossSettingsJsonRepository(fr utils.FileReader) ScanossSettingsRepository {
 	return &ScanossSettingsJsonRepository{
 		fr: fr,
 	}
 }
 
 func (r *ScanossSettingsJsonRepository) Save() error {
-	if err := utils.WriteJsonFile(config.Get().ScanSettingsFilePath, entities.ScanossSettingsJson.SettingsFile); err != nil {
+	sf := r.GetSettingsFileContent()
+	if err := utils.WriteJsonFile(config.Get().ScanSettingsFilePath, sf); err != nil {
 		return err
 	}
 	return nil
@@ -47,17 +48,21 @@ func (r *ScanossSettingsJsonRepository) Read() (entities.SettingsFile, error) {
 	return scanossSettings, nil
 }
 
+func (r *ScanossSettingsJsonRepository) GetSettingsFileContent() *entities.SettingsFile {
+	return entities.ScanossSettingsJson.SettingsFile
+}
+
 func (r *ScanossSettingsJsonRepository) HasUnsavedChanges() (bool, error) {
 	originalBom, err := r.Read()
 	if err != nil {
 		return false, err
 	}
 
-	return !originalBom.Equal(entities.ScanossSettingsJson.SettingsFile), nil
+	return !originalBom.Equal(r.GetSettingsFileContent()), nil
 }
 
 func (r *ScanossSettingsJsonRepository) AddBomEntry(newEntry entities.ComponentFilter, filterAction string) error {
-	sf := entities.ScanossSettingsJson.SettingsFile
+	sf := r.GetSettingsFileContent()
 	var targetList *[]entities.ComponentFilter
 
 	switch filterAction {
@@ -69,15 +74,15 @@ func (r *ScanossSettingsJsonRepository) AddBomEntry(newEntry entities.ComponentF
 		return fmt.Errorf("invalid filter action: %s", filterAction)
 	}
 
-	removeDuplicatesFromAllLists(newEntry)
+	r.removeDuplicatesFromAllLists(newEntry)
 
 	*targetList = append(*targetList, newEntry)
 
 	return nil
 }
 
-func removeDuplicatesFromAllLists(newEntry entities.ComponentFilter) {
-	sf := entities.ScanossSettingsJson.SettingsFile
+func (r *ScanossSettingsJsonRepository) removeDuplicatesFromAllLists(newEntry entities.ComponentFilter) {
+	sf := r.GetSettingsFileContent()
 
 	sf.Bom.Remove = removeDuplicatesFromList(sf.Bom.Remove, newEntry)
 	sf.Bom.Include = removeDuplicatesFromList(sf.Bom.Include, newEntry)
@@ -101,7 +106,7 @@ func isDuplicate(entry, newEntry entities.ComponentFilter) bool {
 }
 
 func (r *ScanossSettingsJsonRepository) ClearAllFilters() error {
-	sf := entities.ScanossSettingsJson.SettingsFile
+	sf := r.GetSettingsFileContent()
 	sf.Bom.Include = []entities.ComponentFilter{}
 	sf.Bom.Remove = []entities.ComponentFilter{}
 	return nil

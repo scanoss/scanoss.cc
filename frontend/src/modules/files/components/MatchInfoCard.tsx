@@ -13,6 +13,7 @@ import ResultService from '@/modules/results/infra/service';
 import { useResults } from '@/modules/results/providers/ResultsProvider';
 
 import useLocalFilePath from '../hooks/useLocalFilePath';
+import ComponentDetailTooltip from './ComponentDetailTooltip';
 
 export default function MatchInfoCard() {
   const { results } = useResults();
@@ -49,17 +50,7 @@ export default function MatchInfoCard() {
       )}
     >
       <div className="flex flex-wrap items-center gap-8 text-sm">
-        <div>
-          <div
-            className={clsx(
-              'text-lg font-bold leading-tight',
-              matchPresentation.accent
-            )}
-          >
-            {component.component}
-          </div>
-          <div>{component.purl?.[0]}</div>
-        </div>
+        <ComponentDetailTooltip component={component} />
         {component.version && (
           <div>
             <div className={matchPresentation.muted}>Version</div>

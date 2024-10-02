@@ -36,7 +36,7 @@ func main() {
 
 	fileHandler := handlers.NewFileHandler()
 	scanossBomHandler := handlers.NewScanossSettingsHandler()
-	resultHandler := handlers.NewResultHandler(scanossBomHandler.GetScanossSettings())
+	resultHandler := handlers.NewResultHandler()
 	componentHandler := handlers.NewComponentHandler()
 
 	//Create application with options

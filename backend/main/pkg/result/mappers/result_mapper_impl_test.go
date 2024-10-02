@@ -5,7 +5,6 @@ import (
 
 	internal_test "github.com/scanoss/scanoss.lui/backend/main/internal"
 	scanossBomEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/service/mocks"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,8 +12,6 @@ import (
 func TestMapToResultDTO(t *testing.T) {
 	cleanup := internal_test.InitializeTestEnvironment(t)
 	defer cleanup()
-
-	mockService := mocks.NewScanossSettingsService(t)
 
 	testCases := []struct {
 		result   entities.Result
@@ -67,21 +64,23 @@ func TestMapToResultDTO(t *testing.T) {
 		},
 	}
 
-	mockService.EXPECT().GetSettingsFile().Return(&scanossBomEntities.SettingsFile{
-		Bom: scanossBomEntities.Bom{
-			Include: []scanossBomEntities.ComponentFilter{
-				{
-					Path: "path/to/file",
-					Purl: "pkg:purl-test",
+	settings := &scanossBomEntities.ScanossSettings{
+		SettingsFile: &scanossBomEntities.SettingsFile{
+			Bom: scanossBomEntities.Bom{
+				Include: []scanossBomEntities.ComponentFilter{
+					{
+						Path: "path/to/file",
+						Purl: "pkg:purl-test",
+					},
 				},
+				Remove: []scanossBomEntities.ComponentFilter{{
+					Purl: "pkg:purl-removed",
+				}},
 			},
-			Remove: []scanossBomEntities.ComponentFilter{{
-				Purl: "pkg:purl-removed",
-			}},
 		},
-	})
+	}
 
-	mapper := NewResultMapper(mockService)
+	mapper := NewResultMapper(settings)
 
 	for _, tc := range testCases {
 		dto := mapper.MapToResultDTO(tc.result)

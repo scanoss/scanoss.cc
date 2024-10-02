@@ -38,3 +38,14 @@ func (s *ComponentServiceImpl) FilterComponent(dto entities.ComponentFilterDTO) 
 
 	return nil
 }
+
+func (s *ComponentServiceImpl) ClearAllFilters() error {
+	return s.scanossSettingsRepo.ClearAllFilters()
+}
+
+func (s *ComponentServiceImpl) GetInitialFilters() ([]scanossSettingsEntities.ComponentFilter, []scanossSettingsEntities.ComponentFilter) {
+	sf := s.scanossSettingsRepo.GetSettingsFileContent()
+	include, remove := sf.Bom.Include, sf.Bom.Remove
+
+	return include, remove
+}

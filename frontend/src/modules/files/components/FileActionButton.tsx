@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
@@ -15,18 +15,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import { useConfirm } from '@/hooks/useConfirm';
-import useDebounce from '@/hooks/useDebounce';
-import useQueryState from '@/hooks/useQueryState';
-import {
-  FilterAction,
-  filterActionLabelMap,
-  MatchType,
-} from '@/modules/results/domain';
+import { FilterAction, filterActionLabelMap } from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
-import { useResults } from '@/modules/results/providers/ResultsProvider';
+import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import useLocalFilePath from '../hooks/useLocalFilePath';
-import FileService from '../infra/service';
 
 interface FileActionButtonProps {
   action: FilterAction;
@@ -39,69 +32,40 @@ export default function FileActionButton({
   description,
   icon,
 }: FileActionButtonProps) {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-
   const { ask } = useConfirm();
-
-  const { handleConfirmResult } = useResults();
+  const { toast } = useToast();
   const localFilePath = useLocalFilePath();
+  const navigate = useNavigate();
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const [filterByMatchType] = useQueryState<MatchType | 'all'>(
-    'matchType',
-    'all'
+  const handleCompleteResult = useResultsStore(
+    (state) => state.handleCompleteResult
   );
-
-  const [query] = useQueryState<string>('q', '');
-  const debouncedQuery = useDebounce<string>(query, 300);
 
   const { data: component } = useQuery({
     queryKey: ['component', localFilePath],
     queryFn: () => ResultService.getComponent(localFilePath),
   });
 
-  const { mutate: filterComponent } = useMutation({
-    mutationFn: ({ path, purl }: { path: string | undefined; purl: string }) =>
-      FileService.filterComponentByPath({
-        action,
-        path,
-        purl,
-      }),
-    onSuccess: async () => {
-      await queryClient.refetchQueries({
-        queryKey: ['results', filterByMatchType, debouncedQuery],
-      });
-
-      const nextResultRoute = handleConfirmResult(localFilePath);
-
-      if (nextResultRoute) {
-        navigate(nextResultRoute);
-      }
-    },
-    onMutate: async ({ path, purl }) => {
-      if (path) return;
-
-      const confirm = await ask(
-        `This action will ${action} all components with the same purl: ${purl}. Are you sure?`
-      );
-      if (!confirm) {
-        return Promise.reject(new Error('user_cancel'));
-      }
-    },
-    onError: (e) => {
-      if (e.message !== 'user_cancel') {
+  const handleFilterComponent = async (
+    path: string | undefined,
+    purl: string
+  ) => {
+    return handleCompleteResult(path, purl, action)
+      .then((nextResultRoute) => {
+        if (nextResultRoute) {
+          navigate(nextResultRoute);
+        }
+      })
+      .catch((e) => {
         toast({
           title: 'Error',
           variant: 'destructive',
           description: e instanceof Error ? e.message : 'An error occurred.',
         });
-      }
-    },
-  });
-
-  const purl = component?.purl?.[0];
+      });
+  };
 
   return (
     <DropdownMenu onOpenChange={setDropdownOpen}>
@@ -137,7 +101,12 @@ export default function FileActionButton({
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />
         <DropdownMenuItem
-          onClick={() => filterComponent({ path: localFilePath, purl: purl! })}
+          onClick={async () => {
+            await handleFilterComponent(
+              localFilePath,
+              component?.purl?.[0] as string
+            );
+          }}
         >
           <div className="flex flex-col">
             <span className="text-sm">File</span>
@@ -147,12 +116,24 @@ export default function FileActionButton({
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => filterComponent({ path: undefined, purl: purl! })}
-          disabled={!purl}
+          onClick={async () => {
+            const confirm = await ask(
+              `This action will ${action} all components with the same purl: ${component?.purl?.[0]}. Are you sure?`
+            );
+            if (confirm) {
+              await handleFilterComponent(
+                undefined,
+                component?.purl?.[0] as string
+              );
+            }
+          }}
+          disabled={!component?.purl?.[0]}
         >
           <div className="flex flex-col">
             <span className="text-sm">Component</span>
-            <span className="text-xs text-muted-foreground">{purl}</span>
+            <span className="text-xs text-muted-foreground">
+              {component?.purl?.[0]}
+            </span>
           </div>
         </DropdownMenuItem>
       </DropdownMenuContent>

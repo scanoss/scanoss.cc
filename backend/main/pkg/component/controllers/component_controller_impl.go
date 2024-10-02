@@ -8,13 +8,41 @@ import (
 )
 
 type ComponentControllerImpl struct {
-	service service.ComponentService
+	service       service.ComponentService
+	actionHistory []entities.ComponentFilterDTO
+	currentAction int
 }
 
 func NewComponentController(service service.ComponentService) ComponentController {
-	return &ComponentControllerImpl{
-		service: service,
+	controller := &ComponentControllerImpl{
+		service:       service,
+		actionHistory: []entities.ComponentFilterDTO{},
+		currentAction: -1,
 	}
+
+	controller.initializeActionHistory()
+	return controller
+}
+
+func (c *ComponentControllerImpl) initializeActionHistory() {
+	include, remove := c.service.GetInitialFilters()
+	for _, include := range include {
+		c.actionHistory = append(c.actionHistory, entities.ComponentFilterDTO{
+			Path:   include.Path,
+			Purl:   include.Purl,
+			Usage:  string(include.Usage),
+			Action: entities.Include,
+		})
+	}
+	for _, remove := range remove {
+		c.actionHistory = append(c.actionHistory, entities.ComponentFilterDTO{
+			Path:   remove.Path,
+			Purl:   remove.Purl,
+			Usage:  string(remove.Usage),
+			Action: entities.Remove,
+		})
+	}
+	c.currentAction = len(c.actionHistory) - 1
 }
 
 func (c *ComponentControllerImpl) GetComponentByPath(filePath string) (entities.ComponentDTO, error) {
@@ -30,5 +58,56 @@ func (c *ComponentControllerImpl) FilterComponent(dto entities.ComponentFilterDT
 		return err
 	}
 
-	return c.service.FilterComponent(dto)
+	err = c.service.FilterComponent(dto)
+	if err != nil {
+		return err
+	}
+
+	c.currentAction++
+	c.actionHistory = append(c.actionHistory[:c.currentAction], dto)
+
+	return nil
+}
+
+func (c *ComponentControllerImpl) Undo() error {
+	if c.currentAction < 0 {
+		return nil
+	}
+
+	c.currentAction--
+	return c.reapplyActions()
+}
+
+func (c *ComponentControllerImpl) Redo() error {
+	if c.currentAction >= len(c.actionHistory)-1 {
+		return nil
+	}
+
+	c.currentAction++
+	return c.reapplyActions()
+}
+
+func (c *ComponentControllerImpl) reapplyActions() error {
+	// We need to clear bom filters so workflow state is properly resetted
+	err := c.service.ClearAllFilters()
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i <= c.currentAction; i++ {
+		err := c.service.FilterComponent(c.actionHistory[i])
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *ComponentControllerImpl) CanUndo() (bool, error) {
+	return c.currentAction >= 0, nil
+}
+
+func (c *ComponentControllerImpl) CanRedo() (bool, error) {
+	return c.currentAction < len(c.actionHistory)-1, nil
 }

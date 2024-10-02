@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/repository"
 )
 
@@ -21,8 +20,4 @@ func (us *ScanossSettingsServiceImp) Save() error {
 
 func (us *ScanossSettingsServiceImp) HasUnsavedChanges() (bool, error) {
 	return us.repository.HasUnsavedChanges()
-}
-
-func (us *ScanossSettingsServiceImp) GetSettingsFile() *entities.SettingsFile {
-	return entities.ScanossSettingsJson.SettingsFile
 }

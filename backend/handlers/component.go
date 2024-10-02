@@ -23,3 +23,19 @@ func (h *ComponentHandler) ComponentGet(filePath string) entities.ComponentDTO {
 func (h *ComponentHandler) ComponentFilter(dto entities.ComponentFilterDTO) error {
 	return h.componentModule.Controller.FilterComponent(dto)
 }
+
+func (h *ComponentHandler) ComponentFilterUndo() error {
+	return h.componentModule.Controller.Undo()
+}
+
+func (h *ComponentHandler) ComponentFilterRedo() error {
+	return h.componentModule.Controller.Redo()
+}
+
+func (h *ComponentHandler) ComponentFilterCanUndo() (bool, error) {
+	return h.componentModule.Controller.CanUndo()
+}
+
+func (h *ComponentHandler) ComponentFilterCanRedo() (bool, error) {
+	return h.componentModule.Controller.CanRedo()
+}

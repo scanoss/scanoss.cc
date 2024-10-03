@@ -63,13 +63,13 @@ export default function FileActionButton({
 
   const handleAddFilter = async (
     filterType: 'by_file' | 'by_purl',
-    withComments?: boolean
+    withComment?: boolean
   ) => {
     try {
-      let comments: string | undefined;
+      let comment: string | undefined;
 
-      if (withComments) {
-        comments = await prompt({
+      if (withComment) {
+        comment = await prompt({
           title: 'Add Comments',
           description: 'Please add comments to justify your decision.',
           input: {
@@ -77,10 +77,10 @@ export default function FileActionButton({
             type: 'textarea',
           },
         });
-        if (!comments) return;
+        if (!comment) return;
       }
 
-      return filterActions[filterType](comments);
+      return filterActions[filterType](comment);
     } catch (e) {
       console.error(e);
       toast({
@@ -92,7 +92,7 @@ export default function FileActionButton({
     }
   };
 
-  const handleFilterComponentByPurl = async (comments?: string) => {
+  const handleFilterComponentByPurl = async (comment?: string) => {
     const confirm = await ask(
       `This action will ${action} all components with the same purl: ${componentPurl}. Are you sure?`
     );
@@ -100,33 +100,33 @@ export default function FileActionButton({
     if (confirm) {
       return handleFilterComponent({
         purl: componentPurl,
-        comments,
+        comment,
       });
     }
   };
 
-  const handleFilterComponentByFile = async (comments?: string) => {
+  const handleFilterComponentByFile = async (comment?: string) => {
     return handleFilterComponent({
       path: localFilePath,
       purl: componentPurl,
-      comments,
+      comment,
     });
   };
 
   const handleFilterComponent = async ({
     path,
     purl,
-    comments,
+    comment,
   }: {
     purl: string;
     path?: string;
-    comments?: string;
+    comment?: string;
   }) => {
     const nextResultRoute = await handleCompleteResult({
       path,
       purl,
       action,
-      comments,
+      comment,
     });
 
     if (nextResultRoute) {

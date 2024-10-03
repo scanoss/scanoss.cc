@@ -32,9 +32,10 @@ const (
 )
 
 type ComponentFilter struct {
-	Path  string               `json:"path,omitempty"`
-	Purl  string               `json:"purl"`
-	Usage ComponentFilterUsage `json:"usage,omitempty"`
+	Path    string               `json:"path,omitempty"`
+	Purl    string               `json:"purl"`
+	Usage   ComponentFilterUsage `json:"usage,omitempty"`
+	Comment string               `json:"comment,omitempty"`
 }
 
 func (sf *SettingsFile) Equal(other *SettingsFile) bool {

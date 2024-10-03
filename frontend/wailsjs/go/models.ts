@@ -77,6 +77,7 @@ export namespace entities {
 	    purl: string;
 	    usage?: string;
 	    action: string;
+	    comment?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ComponentFilterDTO(source);
@@ -88,6 +89,7 @@ export namespace entities {
 	        this.purl = source["purl"];
 	        this.usage = source["usage"];
 	        this.action = source["action"];
+	        this.comment = source["comment"];
 	    }
 	}
 	export class FileDTO {

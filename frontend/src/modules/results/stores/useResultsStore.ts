@@ -39,7 +39,7 @@ interface HandleCompleteResultArgs {
   path: string | undefined;
   purl: string;
   action: FilterAction;
-  comments?: string | undefined;
+  comment?: string | undefined;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -67,11 +67,12 @@ const useResultsStore = create<ResultsStore>()(
         'SET_RESULTS'
       ),
 
-    handleCompleteResult: async ({ path, purl, action, comments }) => {
+    handleCompleteResult: async ({ path, purl, action, comment }) => {
       await FileService.filterComponentByPath({
         path,
         purl,
         action,
+        comment,
       });
       await get().updateUndoRedoState();
       await get().fetchResults();

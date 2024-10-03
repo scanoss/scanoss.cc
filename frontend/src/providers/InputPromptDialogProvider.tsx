@@ -2,7 +2,7 @@ import React, { createContext, ReactNode, useState } from 'react';
 
 export interface InputPromptOptions {
   title: string;
-  description: string;
+  description?: string;
   confirmText?: string;
   cancelText?: string;
   input: {

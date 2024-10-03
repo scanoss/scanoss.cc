@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import useEnvironment from '@/hooks/useEnvironment';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
 
 import { Button } from './ui/button';
@@ -14,14 +15,11 @@ import {
 import { Textarea } from './ui/textarea';
 
 export default function InputPromptDialog() {
+  const { environment } = useEnvironment();
   const { isPrompting, options, confirm, cancel } = useInputPrompt();
   const [inputValue, setInputValue] = useState(
     options?.input.defaultValue ?? ''
   );
-
-  if (!isPrompting || !options) return null;
-
-  const { title, description, cancelText, confirmText } = options;
 
   const handleConfirm = () => {
     confirm(inputValue);
@@ -33,18 +31,43 @@ export default function InputPromptDialog() {
     setInputValue('');
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!inputValue) return;
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleConfirm();
+    }
+  };
+
+  if (!isPrompting || !options) return null;
+
+  const { title, description, cancelText, confirmText } = options;
+
+  const isMac = environment?.platform === 'darwin';
+  const modifierKey = isMac ? '⌘' : 'Ctrl';
+
   return (
     <Dialog open={isPrompting} onOpenChange={cancel}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogDescription>
+            {description && <p className="mb-1">{description}</p>}
+            <p className="text-xs">
+              You can press{' '}
+              <span className="rounded bg-primary px-1.5">
+                {modifierKey} + Enter
+              </span>{' '}
+              to confirm
+            </p>
+          </DialogDescription>
         </DialogHeader>
 
         {options.input.type === 'textarea' && (
           <Textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         )}
 
@@ -52,7 +75,9 @@ export default function InputPromptDialog() {
           <Button variant="ghost" onClick={handleCancel}>
             {cancelText ?? 'Cancel'}
           </Button>
-          <Button onClick={handleConfirm}>{confirmText ?? 'Confirm'}</Button>
+          <Button onClick={handleConfirm} disabled={!inputValue}>
+            {confirmText ?? 'Confirm'}{' '}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

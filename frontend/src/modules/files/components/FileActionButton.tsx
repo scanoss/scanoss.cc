@@ -71,7 +71,6 @@ export default function FileActionButton({
       if (withComment) {
         comment = await prompt({
           title: 'Add Comments',
-          description: 'Please add comments to justify your decision.',
           input: {
             defaultValue: '',
             type: 'textarea',

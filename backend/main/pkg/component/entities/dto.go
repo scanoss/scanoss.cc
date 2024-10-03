@@ -35,7 +35,7 @@ type ComponentDTO struct {
 	FileHash    string    `json:"file_hash,omitempty"`
 	SourceHash  string    `json:"source_hash,omitempty"`
 	FileURL     string    `json:"file_url,omitempty"`
-	Purl        []string  `json:"purl,omitempty"`
+	Purl        []string  `json:"purl"`
 	Vendor      string    `json:"vendor,omitempty"`
 	Component   string    `json:"component,omitempty"`
 	Version     string    `json:"version,omitempty"`
@@ -68,8 +68,9 @@ const (
 )
 
 type ComponentFilterDTO struct {
-	Path   string       `json:"path,omitempty"`
-	Purl   string       `json:"purl" validate:"required"`
-	Usage  string       `json:"usage,omitempty"`
-	Action FilterAction `json:"action" validate:"required,eq=include|eq=remove"`
+	Path    string       `json:"path,omitempty"`
+	Purl    string       `json:"purl" validate:"required"`
+	Usage   string       `json:"usage,omitempty"`
+	Action  FilterAction `json:"action" validate:"required,eq=include|eq=remove"`
+	Comment string       `json:"comment,omitempty"`
 }

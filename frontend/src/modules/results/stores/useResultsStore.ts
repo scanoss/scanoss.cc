@@ -26,15 +26,20 @@ interface ResultsState {
 
 interface ResultsActions {
   handleCompleteResult: (
-    path: string | undefined,
-    purl: string,
-    action: FilterAction
+    args: HandleCompleteResultArgs
   ) => Promise<string | null>;
   setResults: (results: entities.ResultDTO[]) => void;
   undo: () => Promise<void>;
   redo: () => Promise<void>;
   updateUndoRedoState: () => Promise<void>;
   fetchResults: (matchType?: MatchType, query?: string) => Promise<void>;
+}
+
+interface HandleCompleteResultArgs {
+  path: string | undefined;
+  purl: string;
+  action: FilterAction;
+  comment?: string | undefined;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -62,11 +67,12 @@ const useResultsStore = create<ResultsStore>()(
         'SET_RESULTS'
       ),
 
-    handleCompleteResult: async (path, purl, action) => {
+    handleCompleteResult: async ({ path, purl, action, comment }) => {
       await FileService.filterComponentByPath({
         path,
         purl,
         action,
+        comment,
       });
       await get().updateUndoRedoState();
       await get().fetchResults();

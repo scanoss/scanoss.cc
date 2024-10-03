@@ -32,9 +32,10 @@ const (
 )
 
 type ComponentFilter struct {
-	Path  string               `json:"path,omitempty"`
-	Purl  string               `json:"purl"`
-	Usage ComponentFilterUsage `json:"usage,omitempty"`
+	Path    string               `json:"path,omitempty"`
+	Purl    string               `json:"purl"`
+	Usage   ComponentFilterUsage `json:"usage,omitempty"`
+	Comment string               `json:"comment,omitempty"`
 }
 
 func (sf *SettingsFile) Equal(other *SettingsFile) bool {
@@ -52,15 +53,15 @@ func (sf *SettingsFile) GetResultWorkflowState(result entities.Result) entities.
 	return entities.Pending
 }
 
-func (sf *SettingsFile) IsResultIncluded(result entities.Result) (bool, entities.FilterType) {
+func (sf *SettingsFile) IsResultIncluded(result entities.Result) (bool, int) {
 	return sf.IsResultInList(result, sf.Bom.Include)
 }
 
-func (sf *SettingsFile) IsResultRemoved(result entities.Result) (bool, entities.FilterType) {
+func (sf *SettingsFile) IsResultRemoved(result entities.Result) (bool, int) {
 	return sf.IsResultInList(result, sf.Bom.Remove)
 }
 
-func (sf *SettingsFile) IsResultInList(result entities.Result, list []ComponentFilter) (bool, entities.FilterType) {
+func (sf *SettingsFile) IsResultInList(result entities.Result, list []ComponentFilter) (bool, int) {
 	i := slices.IndexFunc(list, func(cf ComponentFilter) bool {
 		if cf.Path != "" && cf.Purl != "" {
 			return cf.Path == result.Path && slices.Contains(result.Purl, cf.Purl)
@@ -68,32 +69,42 @@ func (sf *SettingsFile) IsResultInList(result entities.Result, list []ComponentF
 		return slices.Contains(result.Purl, cf.Purl)
 	})
 
-	if i != -1 {
-		cf := list[i]
-		if cf.Path != "" && cf.Purl != "" {
-			return true, entities.ByFile
-		}
-		return true, entities.ByPurl
-	}
-
-	return false, entities.ByPurl
+	return i != -1, i
 }
 
 func (sf *SettingsFile) GetResultFilterConfig(result entities.Result) entities.FilterConfig {
 	var filterAction entities.FilterAction
 	var filterType entities.FilterType
 
-	if included, t := sf.IsResultIncluded(result); included {
+	if included, i := sf.IsResultIncluded(result); included {
 		filterAction = entities.Include
-		filterType = t
-	} else if removed, t := sf.IsResultRemoved(result); removed {
+		filterType = getResultFilterType(sf.Bom.Include[i])
+	} else if removed, i := sf.IsResultRemoved(result); removed {
 		filterAction = entities.Remove
-		filterType = t
-
+		filterType = getResultFilterType(sf.Bom.Remove[i])
 	}
 
 	return entities.FilterConfig{
 		Action: filterAction,
 		Type:   filterType,
 	}
+}
+
+func getResultFilterType(cf ComponentFilter) entities.FilterType {
+	if cf.Path != "" && cf.Purl != "" {
+		return entities.ByFile
+	}
+	return entities.ByPurl
+}
+
+func (sf *SettingsFile) GetResultComment(result entities.Result) string {
+	if included, i := sf.IsResultIncluded(result); included {
+		return sf.Bom.Include[i].Comment
+	}
+
+	if removed, i := sf.IsResultRemoved(result); removed {
+		return sf.Bom.Remove[i].Comment
+	}
+
+	return ""
 }

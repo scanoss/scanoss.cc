@@ -8,7 +8,7 @@ export namespace entities {
 	    file_hash?: string;
 	    source_hash?: string;
 	    file_url?: string;
-	    purl?: string[];
+	    purl: string[];
 	    vendor?: string;
 	    component?: string;
 	    version?: string;
@@ -77,6 +77,7 @@ export namespace entities {
 	    purl: string;
 	    usage?: string;
 	    action: string;
+	    comment?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ComponentFilterDTO(source);
@@ -88,6 +89,7 @@ export namespace entities {
 	        this.purl = source["purl"];
 	        this.usage = source["usage"];
 	        this.action = source["action"];
+	        this.comment = source["comment"];
 	    }
 	}
 	export class FileDTO {
@@ -139,6 +141,7 @@ export namespace entities {
 	    match_type: string;
 	    workflow_state?: string;
 	    filter_config?: FilterConfig;
+	    comment?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ResultDTO(source);
@@ -150,6 +153,7 @@ export namespace entities {
 	        this.match_type = source["match_type"];
 	        this.workflow_state = source["workflow_state"];
 	        this.filter_config = this.convertValues(source["filter_config"], FilterConfig);
+	        this.comment = source["comment"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

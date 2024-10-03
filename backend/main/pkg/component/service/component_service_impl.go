@@ -27,9 +27,10 @@ func (s *ComponentServiceImpl) GetComponentByFilePath(filePath string) (entities
 
 func (s *ComponentServiceImpl) FilterComponent(dto entities.ComponentFilterDTO) error {
 	newFilter := &scanossSettingsEntities.ComponentFilter{
-		Path:  dto.Path,
-		Purl:  dto.Purl,
-		Usage: scanossSettingsEntities.ComponentFilterUsage(dto.Usage),
+		Path:    dto.Path,
+		Purl:    dto.Purl,
+		Usage:   scanossSettingsEntities.ComponentFilterUsage(dto.Usage),
+		Comment: dto.Comment,
 	}
 	if err := s.scanossSettingsRepo.AddBomEntry(*newFilter, string(dto.Action)); err != nil {
 		fmt.Printf("error adding bom entry: %s", err)

@@ -1,8 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
+import { MessageSquareText } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   FilterAction,
   MatchType,
@@ -40,6 +46,8 @@ export default function MatchInfoCard() {
 
   const isResultFilteredByFile = result?.filter_config?.type === 'by_file';
   const isResultFilteredByPurl = result?.filter_config?.type === 'by_purl';
+
+  console.log(result?.comment);
 
   return (
     <div
@@ -88,15 +96,27 @@ export default function MatchInfoCard() {
           </div>
         )}
         {result?.filter_config?.action && result.filter_config.type && (
-          <div>
-            <div className={matchPresentation.muted}>Decision</div>
-            <Badge className="flex items-center gap-1 font-normal">
-              {isResultDismissed && 'Dismissed'}
-              {isResultIncluded && 'Included'}
-              {isResultFilteredByFile && ' file'}
-              {isResultFilteredByPurl && ` component`}
-            </Badge>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <div className={matchPresentation.muted}>Decision</div>
+                <Badge className="flex items-center gap-1 font-normal">
+                  {result.comment && <MessageSquareText className="h-3 w-3" />}
+                  {isResultDismissed && 'Dismissed'}
+                  {isResultIncluded && 'Included'}
+                  {isResultFilteredByFile && ' file'}
+                  {isResultFilteredByPurl && ` component`}
+                </Badge>
+              </div>
+            </TooltipTrigger>
+            {result.comment && (
+              <TooltipContent side="bottom" align="start" className="px-4 py-2">
+                <pre className="m-0 whitespace-pre-wrap break-words font-sans text-muted-foreground">
+                  {result.comment}
+                </pre>
+              </TooltipContent>
+            )}
+          </Tooltip>
         )}
       </div>
     </div>

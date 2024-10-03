@@ -53,22 +53,24 @@ export default function InputPromptDialog() {
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
             {description && <p className="mb-1">{description}</p>}
-            <p className="text-xs">
-              You can press{' '}
-              <span className="rounded bg-primary px-1.5">
-                {modifierKey} + Enter
-              </span>{' '}
-              to confirm
-            </p>
           </DialogDescription>
         </DialogHeader>
 
         {options.input.type === 'textarea' && (
-          <Textarea
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
+          <div>
+            <Textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+            />
+            <p className="mt-2 text-xs text-muted-foreground">
+              Use{' '}
+              <span className="rounded bg-primary px-1.5">
+                {modifierKey} + return
+              </span>{' '}
+              to confirm
+            </p>
+          </div>
         )}
 
         <DialogFooter>

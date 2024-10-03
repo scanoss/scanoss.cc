@@ -21,7 +21,12 @@ func (m ResultMapperImpl) MapToResultDTO(result entities.Result) entities.Result
 		Path:          result.Path,
 		WorkflowState: m.mapWorkflowState(result),
 		FilterConfig:  m.mapFilterConfig(result),
+		Comment:       m.mapComment(result),
 	}
+}
+
+func (m ResultMapperImpl) mapComment(result entities.Result) string {
+	return m.scanossSettings.SettingsFile.GetResultComment(result)
 }
 
 func (m ResultMapperImpl) MapToResultDTOList(results []entities.Result) []entities.ResultDTO {

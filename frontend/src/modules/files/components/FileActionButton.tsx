@@ -70,7 +70,7 @@ export default function FileActionButton({
 
       if (withComment) {
         comment = await prompt({
-          title: 'Add Comments',
+          title: 'Add comments',
           input: {
             defaultValue: '',
             type: 'textarea',

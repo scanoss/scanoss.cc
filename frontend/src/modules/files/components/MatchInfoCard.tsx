@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
-import { Info } from 'lucide-react';
+import { MessageSquareText } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -46,6 +46,8 @@ export default function MatchInfoCard() {
 
   const isResultFilteredByFile = result?.filter_config?.type === 'by_file';
   const isResultFilteredByPurl = result?.filter_config?.type === 'by_purl';
+
+  console.log(result?.comment);
 
   return (
     <div
@@ -99,7 +101,7 @@ export default function MatchInfoCard() {
               <div>
                 <div className={matchPresentation.muted}>Decision</div>
                 <Badge className="flex items-center gap-1 font-normal">
-                  <Info className="h-3 w-3" />
+                  {result.comment && <MessageSquareText className="h-3 w-3" />}
                   {isResultDismissed && 'Dismissed'}
                   {isResultIncluded && 'Included'}
                   {isResultFilteredByFile && ' file'}
@@ -107,10 +109,13 @@ export default function MatchInfoCard() {
                 </Badge>
               </div>
             </TooltipTrigger>
-            <TooltipContent side="bottom" align="start" className="px-4 py-2">
-              <p className="font-medium">COMMENT</p>
-              <p className="text-muted-foreground">comments placeholder</p>
-            </TooltipContent>
+            {result.comment && (
+              <TooltipContent side="bottom" align="start" className="px-4 py-2">
+                <pre className="m-0 whitespace-pre-wrap break-words font-sans text-muted-foreground">
+                  {result.comment}
+                </pre>
+              </TooltipContent>
+            )}
           </Tooltip>
         )}
       </div>

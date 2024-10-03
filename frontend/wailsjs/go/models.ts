@@ -141,6 +141,7 @@ export namespace entities {
 	    match_type: string;
 	    workflow_state?: string;
 	    filter_config?: FilterConfig;
+	    comment?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ResultDTO(source);
@@ -152,6 +153,7 @@ export namespace entities {
 	        this.match_type = source["match_type"];
 	        this.workflow_state = source["workflow_state"];
 	        this.filter_config = this.convertValues(source["filter_config"], FilterConfig);
+	        this.comment = source["comment"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

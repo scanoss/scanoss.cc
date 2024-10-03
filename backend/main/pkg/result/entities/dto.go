@@ -38,6 +38,7 @@ type ResultDTO struct {
 	MatchType     MatchType     `json:"match_type"`
 	WorkflowState WorkflowState `json:"workflow_state,omitempty"`
 	FilterConfig  FilterConfig  `json:"filter_config,omitempty"`
+	Comment       string        `json:"comment,omitempty"`
 }
 
 type RequestResultDTO struct {

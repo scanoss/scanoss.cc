@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useInputPrompt } from '@/hooks/useInputPrompt';
 
@@ -15,13 +15,9 @@ import { Textarea } from './ui/textarea';
 
 export default function InputPromptDialog() {
   const { isPrompting, options, confirm, cancel } = useInputPrompt();
-  const [inputValue, setInputValue] = useState('');
-
-  useEffect(() => {
-    return () => {
-      console.log('destroyed...');
-    };
-  }, []);
+  const [inputValue, setInputValue] = useState(
+    options?.input.defaultValue ?? ''
+  );
 
   if (!isPrompting || !options) return null;
 
@@ -29,10 +25,13 @@ export default function InputPromptDialog() {
 
   const handleConfirm = () => {
     confirm(inputValue);
+    setInputValue('');
   };
 
-  console.log('PromptDialog', options);
-  console.log('inputValue', inputValue);
+  const handleCancel = () => {
+    cancel();
+    setInputValue('');
+  };
 
   return (
     <Dialog open={isPrompting} onOpenChange={cancel}>
@@ -50,7 +49,7 @@ export default function InputPromptDialog() {
         )}
 
         <DialogFooter>
-          <Button variant="ghost" onClick={cancel}>
+          <Button variant="ghost" onClick={handleCancel}>
             {cancelText ?? 'Cancel'}
           </Button>
           <Button onClick={handleConfirm}>{confirmText ?? 'Confirm'}</Button>

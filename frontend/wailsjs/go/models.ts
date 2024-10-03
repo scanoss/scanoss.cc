@@ -8,7 +8,7 @@ export namespace entities {
 	    file_hash?: string;
 	    source_hash?: string;
 	    file_url?: string;
-	    purl?: string[];
+	    purl: string[];
 	    vendor?: string;
 	    component?: string;
 	    version?: string;

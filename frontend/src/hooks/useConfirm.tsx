@@ -6,8 +6,7 @@ import {
 } from '@/providers/ConfirmDialogProvider';
 
 export function useConfirm() {
-  // @ts-expect-error - Check if context is not null
-  const context = useContext<ConfirmContext>(confirmContext);
+  const context = useContext<ConfirmContext | null>(confirmContext);
 
   if (!context) {
     throw new Error(

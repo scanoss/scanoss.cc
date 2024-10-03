@@ -8,13 +8,19 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/components/ui/use-toast';
 import { useConfirm } from '@/hooks/useConfirm';
+import { useInputPrompt } from '@/hooks/useInputPrompt';
 import { FilterAction, filterActionLabelMap } from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
@@ -33,6 +39,7 @@ export default function FileActionButton({
   icon,
 }: FileActionButtonProps) {
   const { ask } = useConfirm();
+  const { prompt } = useInputPrompt();
   const { toast } = useToast();
   const localFilePath = useLocalFilePath();
   const navigate = useNavigate();
@@ -48,23 +55,91 @@ export default function FileActionButton({
     queryFn: () => ResultService.getComponent(localFilePath),
   });
 
-  const handleFilterComponent = async (
-    path: string | undefined,
-    purl: string
+  if (!component) {
+    return null;
+  }
+
+  const componentPurl = component?.purl[0];
+
+  const handleAddFilter = async (
+    filterType: 'by_file' | 'by_purl',
+    withComments?: boolean
   ) => {
-    return handleCompleteResult(path, purl, action)
-      .then((nextResultRoute) => {
-        if (nextResultRoute) {
-          navigate(nextResultRoute);
-        }
-      })
-      .catch((e) => {
-        toast({
-          title: 'Error',
-          variant: 'destructive',
-          description: e instanceof Error ? e.message : 'An error occurred.',
+    try {
+      let comments: string | undefined;
+
+      if (withComments) {
+        comments = await prompt({
+          title: 'Add Comments',
+          description: 'Please add comments to justify your decision.',
+          input: {
+            defaultValue: '',
+            type: 'textarea',
+          },
         });
+        if (!comments) return;
+      }
+
+      return filterActions[filterType](comments);
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: 'Error',
+        variant: 'destructive',
+        description:
+          'An error ocurred while adding comments. Please try again.',
       });
+    }
+  };
+
+  const handleFilterComponentByPurl = async (comments?: string) => {
+    const confirm = await ask(
+      `This action will ${action} all components with the same purl: ${componentPurl}. Are you sure?`
+    );
+
+    if (confirm) {
+      return handleFilterComponent({
+        purl: componentPurl,
+        comments,
+      });
+    }
+  };
+
+  const handleFilterComponentByFile = async (comments?: string) => {
+    return handleFilterComponent({
+      path: localFilePath,
+      purl: componentPurl,
+      comments,
+    });
+  };
+
+  const handleFilterComponent = async ({
+    path,
+    purl,
+    comments,
+  }: {
+    purl: string;
+    path?: string;
+    comments?: string;
+  }) => {
+    const nextResultRoute = await handleCompleteResult({
+      path,
+      purl,
+      action,
+      comments,
+    });
+
+    if (nextResultRoute) {
+      navigate(nextResultRoute);
+    }
+  };
+
+  const filterActions: Record<
+    'by_file' | 'by_purl',
+    (comments?: string) => Promise<void>
+  > = {
+    by_file: handleFilterComponentByFile,
+    by_purl: handleFilterComponentByPurl,
   };
 
   return (
@@ -100,42 +175,52 @@ export default function FileActionButton({
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />
-        <DropdownMenuItem
-          onClick={async () => {
-            await handleFilterComponent(
-              localFilePath,
-              component?.purl?.[0] as string
-            );
-          }}
-        >
-          <div className="flex flex-col">
-            <span className="text-sm">File</span>
-            <span className="text-xs text-muted-foreground">
-              {localFilePath}
-            </span>
-          </div>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={async () => {
-            const confirm = await ask(
-              `This action will ${action} all components with the same purl: ${component?.purl?.[0]}. Are you sure?`
-            );
-            if (confirm) {
-              await handleFilterComponent(
-                undefined,
-                component?.purl?.[0] as string
-              );
-            }
-          }}
-          disabled={!component?.purl?.[0]}
-        >
-          <div className="flex flex-col">
-            <span className="text-sm">Component</span>
-            <span className="text-xs text-muted-foreground">
-              {component?.purl?.[0]}
-            </span>
-          </div>
-        </DropdownMenuItem>
+        <DropdownMenuGroup>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <div>
+                <p className="text-sm">File</p>
+                <p className="text-xs text-muted-foreground">{localFilePath}</p>
+              </div>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem
+                  onClick={() => handleAddFilter('by_file', true)}
+                >
+                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddFilter('by_file')}>
+                  <span className="first-letter:uppercase">{`${action} without Comments`}</span>
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+        </DropdownMenuGroup>
+        <DropdownMenuGroup>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <div>
+                <p className="text-sm">Component</p>
+                <p className="text-xs text-muted-foreground">
+                  {component?.purl?.[0]}
+                </p>
+              </div>
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem
+                  onClick={() => handleAddFilter('by_purl', true)}
+                >
+                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddFilter('by_purl')}>
+                  <span className="first-letter:uppercase">{`${action} without Comments`}</span>
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

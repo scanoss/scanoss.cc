@@ -6,9 +6,11 @@ import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 
 import ConfirmDialog from './components/ConfirmDialog';
+import InputPromptDialog from './components/InputPromptDialog';
 import { Toaster } from './components/ui/toaster';
 import { TooltipProvider } from './components/ui/tooltip';
 import { ConfirmDialogProvider } from './providers/ConfirmDialogProvider';
+import { InputPromptDialogProvider } from './providers/InputPromptDialogProvider';
 import Index from './routes';
 import FileComparison from './routes/files/match';
 import Root from './routes/root';
@@ -39,9 +41,12 @@ if (!rootElement.innerHTML) {
       <TooltipProvider skipDelayDuration={0}>
         <QueryClientProvider client={queryClient}>
           <ConfirmDialogProvider>
-            <RouterProvider router={router} />
-            <ConfirmDialog />
-            <Toaster />
+            <InputPromptDialogProvider>
+              <RouterProvider router={router} />
+              <ConfirmDialog />
+              <InputPromptDialog />
+              <Toaster />
+            </InputPromptDialogProvider>
           </ConfirmDialogProvider>
         </QueryClientProvider>
       </TooltipProvider>

@@ -34,7 +34,7 @@ func TestGetResults(t *testing.T) {
 		mu := internal_test.NewMockUtils()
 		mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
-		filter := mocks.ResultFilter{}
+		filter := mocks.MockResultFilter{}
 		filter.EXPECT().IsValid(mock.Anything).Return(true)
 
 		repo := repository.NewResultRepositoryJsonImpl(mu)
@@ -74,7 +74,7 @@ func TestGetResults(t *testing.T) {
 		mu := internal_test.NewMockUtils()
 		mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
-		filter := mocks.ResultFilter{}
+		filter := mocks.MockResultFilter{}
 		filter.EXPECT().IsValid(mock.Anything).Return(false)
 
 		repo := repository.NewResultRepositoryJsonImpl(mu)

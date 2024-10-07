@@ -15,8 +15,8 @@ func TestGetAll(t *testing.T) {
 	cleanup := internal_test.InitializeTestEnvironment(t)
 	defer cleanup()
 
-	mockService := serviceMocks.NewResultService(t)
-	mockMapper := mapperMocks.NewResultMapper(t)
+	mockService := serviceMocks.NewMockResultService(t)
+	mockMapper := mapperMocks.NewMockResultMapper(t)
 	controller := controllers.NewResultController(mockService, mockMapper)
 
 	t.Run("Valid request", func(t *testing.T) {

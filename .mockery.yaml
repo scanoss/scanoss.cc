@@ -1,0 +1,9 @@
+dir: "{{.InterfaceDir}}/mocks"
+mockname: "Mock{{.InterfaceName}}"
+outpkg: "mocks"
+with-expecter: True
+all: True
+packages:
+  github.com/scanoss/scanoss.lui:
+    config:
+      recursive: True

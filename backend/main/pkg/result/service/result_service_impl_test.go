@@ -7,8 +7,8 @@ import (
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 	entitiesMocks "github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities/mocks"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/repository/mocks"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/service"
+	mocks "github.com/scanoss/scanoss.lui/backend/main/pkg/result/service/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -20,10 +20,10 @@ func TestGetResults(t *testing.T) {
 	mu := internal_test.NewMockUtils()
 	mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
-	filter := entitiesMocks.ResultFilter{}
+	filter := entitiesMocks.MockResultFilter{}
 	filter.EXPECT().IsValid(mock.Anything).Return(true)
 
-	mockRepo := mocks.NewResultRepository(t)
+	mockRepo := mocks.NewMockResultService(t)
 	mockRepo.EXPECT().GetResults(&filter).Return([]entities.Result{
 		{
 			Path:      "path/to/file",

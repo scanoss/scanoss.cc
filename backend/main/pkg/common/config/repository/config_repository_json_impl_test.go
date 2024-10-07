@@ -30,7 +30,7 @@ func TestConfigJsonRepository_Init(t *testing.T) {
 }
 
 func TestConfigJsonRepository_Save(t *testing.T) {
-	path := os.TempDir() + "config.json"
+	path := t.TempDir() + "config.json"
 	repo := NewConfigJsonRepository(path)
 
 	err := repo.Init()
@@ -57,7 +57,7 @@ func TestConfigJsonRepository_Save(t *testing.T) {
 }
 
 func TestConfigJsonRepository_Read(t *testing.T) {
-	path := os.TempDir() + "config.json"
+	path := t.TempDir() + "config.json"
 	repo := NewConfigJsonRepository(path)
 	config := &entities.Config{
 		ApiUrl:   "https://api.scanoss.org",

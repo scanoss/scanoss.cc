@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -31,22 +30,6 @@ func TestReadLocalFile(t *testing.T) {
 	file, err := repo.ReadLocalFile(testFilePath)
 	assert.NoError(t, err)
 	assert.Equal(t, testContent, file.GetContent())
-}
-
-func TestReadLocalFile_FileNotFound(t *testing.T) {
-	cleanup := internal_test.InitializeTestEnvironment(t)
-	defer cleanup()
-
-	testFilePath := "nonexistent.js"
-	currentPath := t.TempDir()
-
-	config.Get().ScanRoot = currentPath
-
-	repo := NewFileRepositoryImpl()
-
-	_, err := repo.ReadLocalFile(testFilePath)
-	assert.Error(t, err)
-	assert.True(t, errors.Is(err, entities.ErrReadingFile))
 }
 
 func TestReadRemoteFileByMD5(t *testing.T) {

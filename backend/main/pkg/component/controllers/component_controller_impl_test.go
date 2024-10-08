@@ -4,65 +4,42 @@ import (
 	"testing"
 
 	"github.com/go-playground/validator"
-	internalTest "github.com/scanoss/scanoss.lui/backend/main/internal"
-	scanossSettingsRepository "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/repository"
+	scanossSettingsEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/controllers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
+	serviceMocks "github.com/scanoss/scanoss.lui/backend/main/pkg/component/service/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFilterComponent_Integration(t *testing.T) {
-	cleanup := internalTest.InitializeTestEnvironment(t)
-	defer cleanup()
+	mockService := serviceMocks.NewMockComponentService(t)
+	mockService.EXPECT().GetInitialFilters().Return([]scanossSettingsEntities.ComponentFilter{}, []scanossSettingsEntities.ComponentFilter{})
 
-	fr := utils.NewDefaultFileReader()
-	repo := repository.NewJSONComponentRepository(fr)
-	ssRepo := scanossSettingsRepository.NewScanossSettingsJsonRepository(fr)
-	service := service.NewComponentService(repo, ssRepo)
-	controller := controllers.NewComponentController(service)
+	controller := controllers.NewComponentController(mockService)
 
-	dto := entities.ComponentFilterDTO{
-		Path:   "test/path",
-		Purl:   "test:purl",
-		Usage:  "file",
-		Action: entities.Include,
-	}
+	t.Run("No errors", func(t *testing.T) {
+		dto := entities.ComponentFilterDTO{
+			Path:   "test/path",
+			Purl:   "test:purl",
+			Usage:  "file",
+			Action: entities.Include,
+		}
+		mockService.EXPECT().FilterComponent(dto).Return(nil)
 
-	var tests = []struct {
-		name          string
-		expectedError error
-		dto           entities.ComponentFilterDTO
-	}{
-		{
-			name: "No errors",
-			dto:  dto,
-		},
-		{
-			name:          "Wrong action",
-			expectedError: validator.ValidationErrors{},
-			dto: entities.ComponentFilterDTO{
-				Path:   "test/path",
-				Purl:   "pkg:purl.com/test",
-				Usage:  "file",
-				Action: entities.FilterAction("unsupported"),
-			},
-		},
-	}
+		err := controller.FilterComponent(dto)
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			err := controller.FilterComponent(tc.dto)
-			if tc.expectedError != nil {
-				assert.Error(t, err)
-				assert.IsType(t, err, tc.expectedError)
-				return
-			}
+		assert.NoError(t, err)
+	})
 
-			assert.NoError(t, err)
-		})
-	}
-
+	t.Run("Validation error", func(t *testing.T) {
+		dto := entities.ComponentFilterDTO{
+			Path:   "test/path",
+			Purl:   "pkg:purl.com/test",
+			Usage:  "file",
+			Action: entities.FilterAction("unsupported"),
+		}
+		err := controller.FilterComponent(dto)
+		assert.Error(t, err)
+		assert.IsType(t, err, validator.ValidationErrors{})
+	})
 }

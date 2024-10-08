@@ -3,7 +3,6 @@ package controllers_test
 import (
 	"testing"
 
-	internal_test "github.com/scanoss/scanoss.lui/backend/main/internal"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/controllers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 	mapperMocks "github.com/scanoss/scanoss.lui/backend/main/pkg/result/mappers/mocks"
@@ -12,9 +11,6 @@ import (
 )
 
 func TestGetAll(t *testing.T) {
-	cleanup := internal_test.InitializeTestEnvironment(t)
-	defer cleanup()
-
 	mockService := serviceMocks.NewMockResultService(t)
 	mockMapper := mapperMocks.NewMockResultMapper(t)
 	controller := controllers.NewResultController(mockService, mockMapper)

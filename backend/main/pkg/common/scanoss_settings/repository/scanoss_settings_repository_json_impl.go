@@ -58,7 +58,9 @@ func (r *ScanossSettingsJsonRepository) HasUnsavedChanges() (bool, error) {
 		return false, err
 	}
 
-	return !originalBom.Equal(r.GetSettingsFileContent()), nil
+	currentContent := r.GetSettingsFileContent()
+
+	return originalBom.Equal(currentContent)
 }
 
 func (r *ScanossSettingsJsonRepository) AddBomEntry(newEntry entities.ComponentFilter, filterAction string) error {

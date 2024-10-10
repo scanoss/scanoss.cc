@@ -93,7 +93,7 @@ export default function FileActionButton({
 
   const handleFilterComponentByPurl = async (comment?: string) => {
     const confirm = await ask(
-      `This action will ${action} all components with the same purl: ${componentPurl}. Are you sure?`
+      `This action will ${action} all matches with the same PURL: ${componentPurl}`
     );
 
     if (confirm) {

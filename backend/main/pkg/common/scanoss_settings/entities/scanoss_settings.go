@@ -1,7 +1,8 @@
 package entities
 
 import (
-	"reflect"
+	"encoding/json"
+	"fmt"
 	"slices"
 
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
@@ -38,8 +39,20 @@ type ComponentFilter struct {
 	Comment string               `json:"comment,omitempty"`
 }
 
-func (sf *SettingsFile) Equal(other *SettingsFile) bool {
-	return reflect.DeepEqual(sf.Bom, other.Bom)
+func (sf *SettingsFile) Equal(other *SettingsFile) (bool, error) {
+	originalSettingsFileJson, err := json.Marshal(sf)
+	if err != nil {
+		return false, fmt.Errorf("error parsing json: %v", err)
+	}
+
+	currentContentJSON, err := json.Marshal(other)
+	if err != nil {
+		return false, fmt.Errorf("error parsing json: %v", err)
+	}
+
+	hasChanges := string(originalSettingsFileJson) != string(currentContentJSON)
+
+	return hasChanges, nil
 }
 
 func (sf *SettingsFile) GetResultWorkflowState(result entities.Result) entities.WorkflowState {

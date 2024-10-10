@@ -20,5 +20,5 @@ export function getFileName(filePath: string) {
 
 export function getDirectory(filePath: string) {
   const parts = filePath.split('/');
-  return parts.join('/');
+  return parts.slice(0, -1).join('/');
 }

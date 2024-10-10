@@ -35,7 +35,7 @@ export default function ConfirmDialog({
     <AlertDialog open={isAsking} onOpenChange={deny}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Confirm</AlertDialogTitle>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>{message}</AlertDialogDescription>
           {showPersistDecision && (
             <div className="items-top !my-5 flex space-x-2">

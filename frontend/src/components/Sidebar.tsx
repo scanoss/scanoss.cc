@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { Braces, ChevronRight, File } from 'lucide-react';
-import { ReactNode, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { ReactNode, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { entities } from 'wailsjs/go/models';
 
 import useDebounce from '@/hooks/useDebounce';
@@ -12,6 +12,7 @@ import {
   getDirectory,
   getFileName,
 } from '@/lib/utils';
+import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
 import ResultSearchBar from '@/modules/results/components/ResultSearchBar';
 import { FilterAction, MatchType } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
@@ -26,9 +27,17 @@ import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function Sidebar() {
+  const currentPath = useLocalFilePath();
+  const navigate = useNavigate();
+
   const pendingResults = useResultsStore((state) => state.pendingResults);
   const completedResults = useResultsStore((state) => state.completedResults);
   const fetchResults = useResultsStore((state) => state.fetchResults);
+
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number>(-1);
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(
+    new Set([currentPath])
+  );
 
   const [filterByMatchType] = useQueryState<MatchType | 'all'>(
     'matchType',
@@ -37,6 +46,55 @@ export default function Sidebar() {
 
   const [query] = useQueryState<string>('q', '');
   const debouncedQuery = useDebounce<string>(query, 300);
+
+  const handleSelectFiles = (e: React.MouseEvent, path: string) => {
+    e.preventDefault();
+
+    const index = pendingResults.findIndex((result) => result.path === path);
+    setLastSelectedIndex(index);
+
+    if (e.shiftKey) {
+      return handleSelectRange(path, index);
+    }
+
+    if (e.metaKey) {
+      return handleSelectSingle(path);
+    }
+
+    selectedFiles.clear();
+    selectedFiles.add(path);
+    return navigate({
+      pathname: `/files/${encodeFilePath(path)}`,
+      search: `?matchType=${filterByMatchType}&q=${query}`,
+    });
+  };
+
+  const handleSelectSingle = (selectedPath: string) => {
+    setSelectedFiles((prev) => {
+      const newSelectedFiles = new Set(prev);
+
+      if (newSelectedFiles.has(selectedPath)) {
+        newSelectedFiles.delete(selectedPath);
+      } else {
+        newSelectedFiles.add(selectedPath);
+      }
+
+      return newSelectedFiles;
+    });
+  };
+
+  const handleSelectRange = (path: string, index: number) => {
+    const startIndex = Math.min(lastSelectedIndex, index);
+    const endIndex = Math.max(lastSelectedIndex, index);
+
+    const filesToSelect = new Set<string>();
+
+    for (let i = startIndex; i <= endIndex; i++) {
+      filesToSelect.add(pendingResults[i].path);
+    }
+
+    setSelectedFiles(filesToSelect);
+  };
 
   useEffect(() => {
     fetchResults(
@@ -75,7 +133,13 @@ export default function Sidebar() {
             {pendingResults.length ? (
               <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
                 {pendingResults.map((result) => {
-                  return <SidebarItem key={result.path} result={result} />;
+                  return (
+                    <SidebarItem
+                      key={result.path}
+                      result={result}
+                      onSelect={handleSelectFiles}
+                    />
+                  );
                 })}
               </CollapsibleContent>
             ) : null}
@@ -93,7 +157,13 @@ export default function Sidebar() {
             {completedResults.length ? (
               <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
                 {completedResults.map((result) => {
-                  return <SidebarItem key={result.path} result={result} />;
+                  return (
+                    <SidebarItem
+                      key={result.path}
+                      result={result}
+                      onSelect={handleSelectFiles}
+                    />
+                  );
                 })}
               </CollapsibleContent>
             ) : null}
@@ -104,17 +174,15 @@ export default function Sidebar() {
   );
 }
 
-function SidebarItem({ result }: { result: entities.ResultDTO }) {
+function SidebarItem({
+  result,
+  onSelect,
+}: {
+  result: entities.ResultDTO;
+  onSelect: (e: React.MouseEvent, path: string) => void;
+}) {
   const { filePath } = useParams();
   const isActive = decodeFilePath(filePath ?? '') === result.path;
-  const encodedFilePath = encodeFilePath(result.path);
-
-  const [filterByMatchType] = useQueryState<MatchType | 'all'>(
-    'matchType',
-    'all'
-  );
-
-  const [query] = useQueryState<string>('q', '');
 
   const isResultDismissed =
     result.filter_config?.action === FilterAction.Remove;
@@ -127,43 +195,37 @@ function SidebarItem({ result }: { result: entities.ResultDTO }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Link
-          to={{
-            pathname: `/files/${encodedFilePath}`,
-            search: `?matchType=${filterByMatchType}&q=${query}`,
-          }}
+        <div
+          className={clsx(
+            'flex max-w-full cursor-pointer items-center space-x-2 overflow-hidden px-4 py-1 text-sm text-muted-foreground transition-all hover:bg-primary/30',
+            isActive
+              ? 'border-r-2 border-primary-foreground bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
+              : 'hover:bg-primary/30'
+          )}
+          onClick={(e) => onSelect(e, result.path)}
         >
-          <div
-            className={clsx(
-              'flex max-w-full items-center space-x-2 overflow-hidden px-4 py-1 text-sm text-muted-foreground transition-all hover:bg-primary/30',
-              isActive
-                ? 'border-r-2 border-primary-foreground bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
-                : 'hover:bg-primary/30'
-            )}
-          >
-            <span className="relative">
-              {matchTypeIconMap[result.match_type as MatchType]}
-              <span
-                className={clsx(
-                  'absolute bottom-0 right-0 h-1 w-1 rounded-full',
-                  isResultDismissed && 'bg-red-600',
-                  isResultIncluded && 'bg-green-600'
-                )}
-              ></span>
+          <span className="relative">
+            {matchTypeIconMap[result.match_type as MatchType]}
+            <span
+              className={clsx(
+                'absolute bottom-0 right-0 h-1 w-1 rounded-full',
+                isResultDismissed && 'bg-red-600',
+                isResultIncluded && 'bg-green-600'
+              )}
+            ></span>
+          </span>
+          <div className="flex min-w-0 items-center">
+            {directory && <span className="truncate">{directory}</span>}
+            <span
+              className={clsx(
+                'whitespace-nowrap',
+                !isActive && 'text-foreground'
+              )}
+            >
+              {directory ? `/${fileName}` : fileName}
             </span>
-            <div className="flex min-w-0 items-center">
-              {directory && <span className="truncate">{directory}</span>}
-              <span
-                className={clsx(
-                  'whitespace-nowrap',
-                  !isActive && 'text-foreground'
-                )}
-              >
-                {directory ? `/${fileName}` : fileName}
-              </span>
-            </div>
           </div>
-        </Link>
+        </div>
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={15}>
         {result.path}

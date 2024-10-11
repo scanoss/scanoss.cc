@@ -15,7 +15,7 @@ import {
 import { Textarea } from './ui/textarea';
 
 export default function InputPromptDialog() {
-  const { environment } = useEnvironment();
+  const { modifierKey } = useEnvironment();
   const { isPrompting, options, confirm, cancel } = useInputPrompt();
   const [inputValue, setInputValue] = useState(
     options?.input.defaultValue ?? ''
@@ -42,9 +42,6 @@ export default function InputPromptDialog() {
   if (!isPrompting || !options) return null;
 
   const { title, description, cancelText, confirmText } = options;
-
-  const isMac = environment?.platform === 'darwin';
-  const modifierKey = isMac ? '⌘' : 'Ctrl';
 
   return (
     <Dialog open={isPrompting} onOpenChange={cancel}>

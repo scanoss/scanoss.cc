@@ -22,6 +22,7 @@ interface ResultsState {
   canRedo: boolean;
   isLoading: boolean;
   error: string | null;
+  selectedResults: Set<string>;
 }
 
 interface ResultsActions {
@@ -33,6 +34,7 @@ interface ResultsActions {
   redo: () => Promise<void>;
   updateUndoRedoState: () => Promise<void>;
   fetchResults: (matchType?: MatchType, query?: string) => Promise<void>;
+  setSelectedResults: (selectedResults: Set<string>) => void;
 }
 
 interface HandleCompleteResultArgs {
@@ -53,6 +55,10 @@ const useResultsStore = create<ResultsStore>()(
     canRedo: false,
     isLoading: false,
     error: null,
+
+    selectedResults: new Set<string>(),
+    setSelectedResults: (selectedResults) =>
+      set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
     setResults: (results) =>
       set(

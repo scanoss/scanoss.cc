@@ -35,7 +35,6 @@ func (r *Result) GetFileName() string {
 	return fileName
 }
 
-//go:generate mockery --name ResultFilter --with-expecter
 type ResultFilter interface {
 	IsValid(result Result) bool
 }

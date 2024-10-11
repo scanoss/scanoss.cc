@@ -15,26 +15,28 @@ import { FilterAction, MatchType } from '../domain';
 import ResultService from '../infra/service';
 
 interface ResultsState {
-  results: entities.ResultDTO[];
-  pendingResults: entities.ResultDTO[];
-  completedResults: entities.ResultDTO[];
-  canUndo: boolean;
+  anchorIndex: number;
   canRedo: boolean;
-  isLoading: boolean;
+  canUndo: boolean;
   error: string | null;
-  selectedResults: Set<string>;
+  isLoading: boolean;
+  lastSelectedIndex: number;
+  results: entities.ResultDTO[];
+  selectedFiles: Set<string>;
 }
 
 interface ResultsActions {
   handleCompleteResult: (
     args: HandleCompleteResultArgs
   ) => Promise<string | null>;
-  setResults: (results: entities.ResultDTO[]) => void;
-  undo: () => Promise<void>;
-  redo: () => Promise<void>;
-  updateUndoRedoState: () => Promise<void>;
   fetchResults: (matchType?: MatchType, query?: string) => Promise<void>;
-  setSelectedResults: (selectedResults: Set<string>) => void;
+  redo: () => Promise<void>;
+  setAnchorIndex: (anchorIndex: number) => void;
+  setLastSelectedIndex: (lastSelectedIndex: number) => void;
+  setResults: (results: entities.ResultDTO[]) => void;
+  setSelectedFiles: (selectedFiles: Set<string>) => void;
+  undo: () => Promise<void>;
+  updateUndoRedoState: () => Promise<void>;
 }
 
 interface HandleCompleteResultArgs {
@@ -49,25 +51,27 @@ type ResultsStore = ResultsState & ResultsActions;
 const useResultsStore = create<ResultsStore>()(
   devtools((set, get) => ({
     results: [],
-    pendingResults: [],
-    completedResults: [],
     canUndo: false,
     canRedo: false,
     isLoading: false,
     error: null,
 
-    selectedResults: new Set<string>(),
-    setSelectedResults: (selectedResults) =>
-      set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
+    selectedFiles: new Set<string>(),
+    setSelectedFiles: (selectedFiles) =>
+      set({ selectedFiles }, false, 'SET_SELECTED_FILES'),
+
+    lastSelectedIndex: -1,
+    setLastSelectedIndex: (lastSelectedIndex) =>
+      set({ lastSelectedIndex }, false, 'SET_LAST_SELECTED_INDEX'),
+
+    anchorIndex: -1,
+    setAnchorIndex: (anchorIndex) =>
+      set({ anchorIndex }, false, 'SET_ANCHOR_INDEX'),
 
     setResults: (results) =>
       set(
         {
           results,
-          pendingResults: results.filter((r) => r.workflow_state === 'pending'),
-          completedResults: results.filter(
-            (r) => r.workflow_state === 'completed'
-          ),
         },
         false,
         'SET_RESULTS'
@@ -82,7 +86,12 @@ const useResultsStore = create<ResultsStore>()(
       });
       await get().updateUndoRedoState();
       await get().fetchResults();
-      return getNextPendingResultPathRoute(get().pendingResults);
+
+      const pendingResults = get().results.filter(
+        (result) => result.workflow_state === 'pending'
+      );
+
+      return getNextPendingResultPathRoute(pendingResults);
     },
 
     undo: async () => {

@@ -1,17 +1,12 @@
 import clsx from 'clsx';
 import { Braces, ChevronRight, File } from 'lucide-react';
-import { ReactNode, useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { ReactNode, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { entities } from 'wailsjs/go/models';
 
 import useDebounce from '@/hooks/useDebounce';
 import useQueryState from '@/hooks/useQueryState';
-import {
-  decodeFilePath,
-  encodeFilePath,
-  getDirectory,
-  getFileName,
-} from '@/lib/utils';
+import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
 import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
 import ResultSearchBar from '@/modules/results/components/ResultSearchBar';
 import { FilterAction, MatchType } from '@/modules/results/domain';
@@ -30,13 +25,23 @@ export default function Sidebar() {
   const currentPath = useLocalFilePath();
   const navigate = useNavigate();
 
-  const pendingResults = useResultsStore((state) => state.pendingResults);
-  const completedResults = useResultsStore((state) => state.completedResults);
   const fetchResults = useResultsStore((state) => state.fetchResults);
-
-  const [lastSelectedIndex, setLastSelectedIndex] = useState<number>(-1);
-  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(
-    new Set([currentPath])
+  const anchorIndex = useResultsStore((state) => state.anchorIndex);
+  const setAnchorIndex = useResultsStore((state) => state.setAnchorIndex);
+  const lastSelectedIndex = useResultsStore((state) => state.lastSelectedIndex);
+  const setLastSelectedIndex = useResultsStore(
+    (state) => state.setLastSelectedIndex
+  );
+  const selectedFiles = useResultsStore((state) => state.selectedFiles);
+  const setSelectedFiles = useResultsStore((state) => state.setSelectedFiles);
+  const results = useResultsStore((state) => state.results);
+  const pendingResults = useMemo(
+    () => results.filter((r) => r.workflow_state === 'pending'),
+    [results]
+  );
+  const completedResults = useMemo(
+    () => results.filter((r) => r.workflow_state === 'completed'),
+    [results]
   );
 
   const [filterByMatchType] = useQueryState<MatchType | 'all'>(
@@ -47,54 +52,71 @@ export default function Sidebar() {
   const [query] = useQueryState<string>('q', '');
   const debouncedQuery = useDebounce<string>(query, 300);
 
+  console.log('selectedFiles', selectedFiles);
+  console.log('lastSelectedIndex', lastSelectedIndex);
+
   const handleSelectFiles = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
 
-    const index = pendingResults.findIndex((result) => result.path === path);
-    setLastSelectedIndex(index);
+    const index = results.findIndex((result) => result.path === path);
 
     if (e.shiftKey) {
-      return handleSelectRange(path, index);
+      handleSelectRange(path, index);
+    } else if (e.metaKey) {
+      handleSelectSingle(path);
+      setAnchorIndex(index);
+    } else {
+      setSelectedFiles(new Set([path]));
+      setLastSelectedIndex(index);
+      setAnchorIndex(index);
+      return navigate({
+        pathname: `/files/${encodeFilePath(path)}`,
+        search: `?matchType=${filterByMatchType}&q=${query}`,
+      });
     }
-
-    if (e.metaKey) {
-      return handleSelectSingle(path);
-    }
-
-    selectedFiles.clear();
-    selectedFiles.add(path);
-    return navigate({
-      pathname: `/files/${encodeFilePath(path)}`,
-      search: `?matchType=${filterByMatchType}&q=${query}`,
-    });
   };
 
   const handleSelectSingle = (selectedPath: string) => {
-    setSelectedFiles((prev) => {
-      const newSelectedFiles = new Set(prev);
+    const newSelectedFiles = new Set(selectedFiles);
 
-      if (newSelectedFiles.has(selectedPath)) {
-        newSelectedFiles.delete(selectedPath);
-      } else {
-        newSelectedFiles.add(selectedPath);
-      }
+    if (newSelectedFiles.has(selectedPath)) {
+      newSelectedFiles.delete(selectedPath);
+    } else {
+      newSelectedFiles.add(selectedPath);
+    }
 
-      return newSelectedFiles;
-    });
+    setSelectedFiles(newSelectedFiles);
   };
 
-  const handleSelectRange = (path: string, index: number) => {
-    const startIndex = Math.min(lastSelectedIndex, index);
-    const endIndex = Math.max(lastSelectedIndex, index);
+  const handleSelectRange = (path: string, currentIndex: number) => {
+    if (anchorIndex === -1) {
+      setAnchorIndex(currentIndex);
+      setSelectedFiles(new Set([path]));
+      setLastSelectedIndex(currentIndex);
+      return;
+    }
+
+    const startIndex = Math.min(anchorIndex, currentIndex);
+    const endIndex = Math.max(anchorIndex, currentIndex);
 
     const filesToSelect = new Set<string>();
 
     for (let i = startIndex; i <= endIndex; i++) {
-      filesToSelect.add(pendingResults[i].path);
+      filesToSelect.add(results[i].path);
     }
 
     setSelectedFiles(filesToSelect);
+    setLastSelectedIndex(currentIndex);
   };
+
+  useEffect(() => {
+    if (currentPath) {
+      setSelectedFiles(new Set([currentPath]));
+      const index = results.findIndex((result) => result.path === currentPath);
+      setLastSelectedIndex(index !== -1 ? index : -1);
+      setAnchorIndex(index !== -1 ? index : -1);
+    }
+  }, [currentPath, results]);
 
   useEffect(() => {
     fetchResults(
@@ -181,8 +203,8 @@ function SidebarItem({
   result: entities.ResultDTO;
   onSelect: (e: React.MouseEvent, path: string) => void;
 }) {
-  const { filePath } = useParams();
-  const isActive = decodeFilePath(filePath ?? '') === result.path;
+  const selectedFiles = useResultsStore((state) => state.selectedFiles);
+  const isActive = selectedFiles.has(result.path);
 
   const isResultDismissed =
     result.filter_config?.action === FilterAction.Remove;
@@ -197,7 +219,7 @@ function SidebarItem({
       <TooltipTrigger asChild>
         <div
           className={clsx(
-            'flex max-w-full cursor-pointer items-center space-x-2 overflow-hidden px-4 py-1 text-sm text-muted-foreground transition-all hover:bg-primary/30',
+            'flex max-w-full cursor-pointer select-none items-center space-x-2 overflow-hidden px-4 py-1 text-sm text-muted-foreground',
             isActive
               ? 'border-r-2 border-primary-foreground bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
               : 'hover:bg-primary/30'

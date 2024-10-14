@@ -36,6 +36,7 @@ interface ResultsActions {
     selectionType: 'pending' | 'completed'
   ) => void;
   setLastSelectedIndex: (index: number) => void;
+  setLastSelectionType: (type: 'pending' | 'completed') => void;
   setResults: (results: entities.ResultDTO[]) => void;
   setSelectedResults: (selectedResults: entities.ResultDTO[]) => void;
   toggleResultSelection: (
@@ -71,6 +72,9 @@ const useResultsStore = create<ResultsStore>()(
 
     setLastSelectedIndex: (index) =>
       set({ lastSelectedIndex: index }, false, 'SET_LAST_SELECTED_INDEX'),
+
+    setLastSelectionType: (type: 'pending' | 'completed') =>
+      set({ lastSelectionType: type }, false, 'SET_LAST_SELECTION_TYPE'),
 
     setResults: (results) =>
       set(
@@ -178,11 +182,6 @@ const useResultsStore = create<ResultsStore>()(
         } = state;
 
         const resultType = endResult.workflow_state as 'pending' | 'completed';
-
-        // If the selection type is different, clear the selection and select only the new file
-        console.log('resultType', resultType);
-        console.log('selectionType', selectionType);
-        console.log('lastSelectionType', lastSelectionType);
 
         if (selectionType !== lastSelectionType) {
           return {

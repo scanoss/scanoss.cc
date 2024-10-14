@@ -37,6 +37,9 @@ export default function Sidebar() {
   const setLastSelectedIndex = useResultsStore(
     (state) => state.setLastSelectedIndex
   );
+  const setLastSelectionType = useResultsStore(
+    (state) => state.setLastSelectionType
+  );
 
   const pendingResults = useMemo(
     () => results.filter((r) => r.workflow_state === 'pending'),
@@ -77,6 +80,10 @@ export default function Sidebar() {
       const index = results.findIndex((r) => r.path === currentPath);
 
       if (index !== -1) {
+        setLastSelectionType(
+          results[index].workflow_state as 'pending' | 'completed'
+        );
+        setLastSelectedIndex(index);
         setSelectedResults([results[index]]);
       }
     }

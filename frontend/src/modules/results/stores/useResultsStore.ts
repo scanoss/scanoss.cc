@@ -148,8 +148,10 @@ const useResultsStore = create<ResultsStore>()(
         const { selectedResults } = state;
         const resultType = result.workflow_state as 'pending' | 'completed';
 
-        // Prevent selection across different types
-        if (selectionType !== resultType) return state;
+        // If the selection type is different, clear the selection and select only the new file
+        if (selectionType !== resultType) {
+          return { selectedResults: [result] };
+        }
 
         const index = selectedResults.findIndex((r) => r.path === result.path);
 
@@ -173,7 +175,10 @@ const useResultsStore = create<ResultsStore>()(
 
         const resultType = endResult.workflow_state as 'pending' | 'completed';
 
-        if (selectionType !== resultType) return state;
+        // If the selection type is different, clear the selection and select only the new file
+        if (selectionType !== resultType) {
+          return { selectedResults: [endResult], lastSelectedIndex: -1 };
+        }
 
         const startIndex =
           lastSelectedIndex !== -1
@@ -194,7 +199,7 @@ const useResultsStore = create<ResultsStore>()(
 
         return {
           selectedResults: newSelectedResults,
-          lastSelectedIndex: endIndex,
+          lastSelectedIndex: startIndex, // Keep the start index as the first selected
         };
       }),
   }))

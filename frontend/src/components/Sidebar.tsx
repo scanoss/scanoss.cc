@@ -28,12 +28,13 @@ export default function Sidebar() {
   const fetchResults = useResultsStore((state) => state.fetchResults);
   const anchorIndex = useResultsStore((state) => state.anchorIndex);
   const setAnchorIndex = useResultsStore((state) => state.setAnchorIndex);
-  const lastSelectedIndex = useResultsStore((state) => state.lastSelectedIndex);
   const setLastSelectedIndex = useResultsStore(
     (state) => state.setLastSelectedIndex
   );
-  const selectedFiles = useResultsStore((state) => state.selectedFiles);
-  const setSelectedFiles = useResultsStore((state) => state.setSelectedFiles);
+  const selectedResults = useResultsStore((state) => state.selectedResults);
+  const setSelectedResults = useResultsStore(
+    (state) => state.setSelectedResults
+  );
   const results = useResultsStore((state) => state.results);
   const pendingResults = useMemo(
     () => results.filter((r) => r.workflow_state === 'pending'),
@@ -52,9 +53,6 @@ export default function Sidebar() {
   const [query] = useQueryState<string>('q', '');
   const debouncedQuery = useDebounce<string>(query, 300);
 
-  console.log('selectedFiles', selectedFiles);
-  console.log('lastSelectedIndex', lastSelectedIndex);
-
   const handleSelectFiles = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
 
@@ -66,7 +64,7 @@ export default function Sidebar() {
       handleSelectSingle(path);
       setAnchorIndex(index);
     } else {
-      setSelectedFiles(new Set([path]));
+      setSelectedResults(new Set([path]));
       setLastSelectedIndex(index);
       setAnchorIndex(index);
       return navigate({
@@ -77,21 +75,21 @@ export default function Sidebar() {
   };
 
   const handleSelectSingle = (selectedPath: string) => {
-    const newSelectedFiles = new Set(selectedFiles);
+    const newSelectedResults = new Set(selectedResults);
 
-    if (newSelectedFiles.has(selectedPath)) {
-      newSelectedFiles.delete(selectedPath);
+    if (newSelectedResults.has(selectedPath)) {
+      newSelectedResults.delete(selectedPath);
     } else {
-      newSelectedFiles.add(selectedPath);
+      newSelectedResults.add(selectedPath);
     }
 
-    setSelectedFiles(newSelectedFiles);
+    setSelectedResults(newSelectedResults);
   };
 
   const handleSelectRange = (path: string, currentIndex: number) => {
     if (anchorIndex === -1) {
       setAnchorIndex(currentIndex);
-      setSelectedFiles(new Set([path]));
+      setSelectedResults(new Set([path]));
       setLastSelectedIndex(currentIndex);
       return;
     }
@@ -99,19 +97,19 @@ export default function Sidebar() {
     const startIndex = Math.min(anchorIndex, currentIndex);
     const endIndex = Math.max(anchorIndex, currentIndex);
 
-    const filesToSelect = new Set<string>();
+    const resultsToSelect = new Set<string>();
 
     for (let i = startIndex; i <= endIndex; i++) {
-      filesToSelect.add(results[i].path);
+      resultsToSelect.add(results[i].path);
     }
 
-    setSelectedFiles(filesToSelect);
+    setSelectedResults(resultsToSelect);
     setLastSelectedIndex(currentIndex);
   };
 
   useEffect(() => {
     if (currentPath) {
-      setSelectedFiles(new Set([currentPath]));
+      setSelectedResults(new Set([currentPath]));
       const index = results.findIndex((result) => result.path === currentPath);
       setLastSelectedIndex(index !== -1 ? index : -1);
       setAnchorIndex(index !== -1 ? index : -1);
@@ -203,8 +201,8 @@ function SidebarItem({
   result: entities.ResultDTO;
   onSelect: (e: React.MouseEvent, path: string) => void;
 }) {
-  const selectedFiles = useResultsStore((state) => state.selectedFiles);
-  const isActive = selectedFiles.has(result.path);
+  const selectedResults = useResultsStore((state) => state.selectedResults);
+  const isActive = selectedResults.has(result.path);
 
   const isResultDismissed =
     result.filter_config?.action === FilterAction.Remove;

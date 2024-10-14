@@ -25,7 +25,7 @@ export default class FileService {
       });
   }
 
-  static async filterComponentByPath(dto: entities.ComponentFilterDTO) {
+  static async filterComponents(dto: entities.ComponentFilterDTO[]) {
     return ComponentFilter(dto).catch((e) => {
       throw new Error(e);
     });

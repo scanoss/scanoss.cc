@@ -20,8 +20,8 @@ func (h *ComponentHandler) ComponentGet(filePath string) entities.ComponentDTO {
 	return comp
 }
 
-func (h *ComponentHandler) ComponentFilter(dto entities.ComponentFilterDTO) error {
-	return h.componentModule.Controller.FilterComponent(dto)
+func (h *ComponentHandler) ComponentFilter(dto []entities.ComponentFilterDTO) error {
+	return h.componentModule.Controller.FilterComponents(dto)
 }
 
 func (h *ComponentHandler) ComponentFilterUndo() error {

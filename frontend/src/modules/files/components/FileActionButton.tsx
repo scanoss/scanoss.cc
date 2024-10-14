@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
@@ -22,7 +21,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
 import { FilterAction, filterActionLabelMap } from '@/modules/results/domain';
-import ResultService from '@/modules/results/infra/service';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import useLocalFilePath from '../hooks/useLocalFilePath';
@@ -49,17 +47,6 @@ export default function FileActionButton({
   const handleCompleteResult = useResultsStore(
     (state) => state.handleCompleteResult
   );
-
-  const { data: component } = useQuery({
-    queryKey: ['component', localFilePath],
-    queryFn: () => ResultService.getComponent(localFilePath),
-  });
-
-  if (!component) {
-    return null;
-  }
-
-  const componentPurl = component?.purl[0];
 
   const handleAddFilter = async (
     filterType: 'by_file' | 'by_purl',
@@ -93,39 +80,27 @@ export default function FileActionButton({
 
   const handleFilterComponentByPurl = async (comment?: string) => {
     const confirm = await ask(
-      `This action will ${action} all matches with the same PURL: ${componentPurl}`
+      // TODO: Fix this
+      `This action will ${action} all matches with the same PURL`
     );
 
     if (confirm) {
-      return handleFilterComponent({
-        purl: componentPurl,
-        comment,
-      });
+      return handleFilterComponent('by_purl', comment);
     }
   };
 
   const handleFilterComponentByFile = async (comment?: string) => {
-    return handleFilterComponent({
-      path: localFilePath,
-      purl: componentPurl,
-      comment,
-    });
+    return handleFilterComponent('by_file', comment);
   };
 
-  const handleFilterComponent = async ({
-    path,
-    purl,
-    comment,
-  }: {
-    purl: string;
-    path?: string;
-    comment?: string;
-  }) => {
+  const handleFilterComponent = async (
+    filterBy: 'by_file' | 'by_purl',
+    comment?: string
+  ) => {
     const nextResultRoute = await handleCompleteResult({
-      path,
-      purl,
-      action,
       comment,
+      action,
+      filterBy,
     });
 
     if (nextResultRoute) {
@@ -201,9 +176,9 @@ export default function FileActionButton({
             <DropdownMenuSubTrigger>
               <div>
                 <p className="text-sm">Component</p>
-                <p className="text-xs text-muted-foreground">
+                {/* <p className="text-xs text-muted-foreground">
                   {component?.purl?.[0]}
-                </p>
+                </p> */}
               </div>
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>

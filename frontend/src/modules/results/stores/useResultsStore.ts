@@ -22,7 +22,7 @@ interface ResultsState {
   isLoading: boolean;
   lastSelectedIndex: number;
   results: entities.ResultDTO[];
-  selectedFiles: Set<string>;
+  selectedResults: Set<string>;
 }
 
 interface ResultsActions {
@@ -34,14 +34,13 @@ interface ResultsActions {
   setAnchorIndex: (anchorIndex: number) => void;
   setLastSelectedIndex: (lastSelectedIndex: number) => void;
   setResults: (results: entities.ResultDTO[]) => void;
-  setSelectedFiles: (selectedFiles: Set<string>) => void;
+  setSelectedResults: (selectedResults: Set<string>) => void;
   undo: () => Promise<void>;
   updateUndoRedoState: () => Promise<void>;
 }
 
 interface HandleCompleteResultArgs {
-  path: string | undefined;
-  purl: string;
+  filterBy: 'by_file' | 'by_purl';
   action: FilterAction;
   comment?: string | undefined;
 }
@@ -56,9 +55,9 @@ const useResultsStore = create<ResultsStore>()(
     isLoading: false,
     error: null,
 
-    selectedFiles: new Set<string>(),
-    setSelectedFiles: (selectedFiles) =>
-      set({ selectedFiles }, false, 'SET_SELECTED_FILES'),
+    selectedResults: new Set<string>(),
+    setSelectedResults: (selectedResults) =>
+      set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
     lastSelectedIndex: -1,
     setLastSelectedIndex: (lastSelectedIndex) =>
@@ -77,13 +76,27 @@ const useResultsStore = create<ResultsStore>()(
         'SET_RESULTS'
       ),
 
-    handleCompleteResult: async ({ path, purl, action, comment }) => {
-      await FileService.filterComponentByPath({
-        path,
-        purl,
-        action,
-        comment,
+    handleCompleteResult: async (args: HandleCompleteResultArgs) => {
+      const selected = Array.from(get().selectedResults);
+      const finalDto = selected.map((item) => {
+        const result = get().results.find((res) => res.path === item);
+
+        if (!result) {
+          throw new Error('Result not found');
+        }
+
+        return {
+          purl: result.purl,
+          action: args.action,
+          comment: args.comment,
+          ...(args.filterBy === 'by_file' && {
+            path: result.path,
+          }),
+        };
       });
+
+      await FileService.filterComponents(finalDto);
+
       await get().updateUndoRedoState();
       await get().fetchResults();
 

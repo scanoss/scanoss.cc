@@ -35,6 +35,7 @@ const (
 
 type ResultDTO struct {
 	Path          string        `json:"path"`
+	Purl          string        `json:"purl"`
 	MatchType     MatchType     `json:"match_type"`
 	WorkflowState WorkflowState `json:"workflow_state,omitempty"`
 	FilterConfig  FilterConfig  `json:"filter_config,omitempty"`

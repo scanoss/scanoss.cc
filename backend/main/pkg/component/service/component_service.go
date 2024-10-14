@@ -7,7 +7,7 @@ import (
 
 type ComponentService interface {
 	GetComponentByFilePath(filePath string) (entities.Component, error)
-	FilterComponent(dto entities.ComponentFilterDTO) error
+	FilterComponents(dto []entities.ComponentFilterDTO) error
 	ClearAllFilters() error
 	GetInitialFilters() ([]scanossSettingsEntities.ComponentFilter, []scanossSettingsEntities.ComponentFilter)
 }

@@ -50,21 +50,23 @@ func (c *ComponentControllerImpl) GetComponentByPath(filePath string) (entities.
 	return adaptToComponentDTO(component), nil
 }
 
-func (c *ComponentControllerImpl) FilterComponent(dto entities.ComponentFilterDTO) error {
+func (c *ComponentControllerImpl) FilterComponents(dto []entities.ComponentFilterDTO) error {
 	validate := validator.New()
-	err := validate.Struct(dto)
-	if err != nil {
-		log.Errorf("Validation error: %v", err)
-		return err
+	for _, filter := range dto {
+		err := validate.Struct(filter)
+		if err != nil {
+			log.Errorf("Validation error: %v", err)
+			return err
+		}
 	}
 
-	err = c.service.FilterComponent(dto)
+	err := c.service.FilterComponents(dto)
 	if err != nil {
 		return err
 	}
 
 	c.currentAction++
-	c.actionHistory = append(c.actionHistory[:c.currentAction], dto)
+	c.actionHistory = append(c.actionHistory[:c.currentAction], dto...)
 
 	return nil
 }
@@ -95,7 +97,7 @@ func (c *ComponentControllerImpl) reapplyActions() error {
 	}
 
 	for i := 0; i <= c.currentAction; i++ {
-		err := c.service.FilterComponent(c.actionHistory[i])
+		err := c.service.FilterComponents(c.actionHistory)
 		if err != nil {
 			return err
 		}

@@ -20,6 +20,7 @@ interface ResultsState {
   error: string | null;
   isLoading: boolean;
   lastSelectedIndex: number;
+  lastSelectionType: 'pending' | 'completed' | null;
   results: entities.ResultDTO[];
   selectedResults: entities.ResultDTO[];
 }
@@ -63,6 +64,7 @@ const useResultsStore = create<ResultsStore>()(
     lastSelectedIndex: -1,
     anchorIndex: -1,
     selectedResults: [],
+    lastSelectionType: null,
 
     setSelectedResults: (selectedResults) =>
       set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
@@ -145,24 +147,21 @@ const useResultsStore = create<ResultsStore>()(
 
     toggleResultSelection: (result, selectionType) =>
       set((state) => {
-        const { selectedResults } = state;
+        const { selectedResults, lastSelectionType } = state;
         const resultType = result.workflow_state as 'pending' | 'completed';
 
-        // If the selection type is different, clear the selection and select only the new file
-        if (selectionType !== resultType) {
-          return { selectedResults: [result] };
+        if (selectionType !== lastSelectionType) {
+          return { selectedResults: [result], lastSelectionType: resultType };
         }
 
         const index = selectedResults.findIndex((r) => r.path === result.path);
 
         if (index !== -1) {
-          // Deselect if already selected
           const newSelectedResults = selectedResults.filter(
             (_, i) => i !== index
           );
           return { selectedResults: newSelectedResults };
         } else {
-          // Add new selection
           return {
             selectedResults: [...selectedResults, result],
           };
@@ -171,13 +170,26 @@ const useResultsStore = create<ResultsStore>()(
 
     selectResultRange: (endResult, selectionType) =>
       set((state) => {
-        const { results, selectedResults, lastSelectedIndex } = state;
+        const {
+          results,
+          selectedResults,
+          lastSelectedIndex,
+          lastSelectionType,
+        } = state;
 
         const resultType = endResult.workflow_state as 'pending' | 'completed';
 
         // If the selection type is different, clear the selection and select only the new file
-        if (selectionType !== resultType) {
-          return { selectedResults: [endResult], lastSelectedIndex: -1 };
+        console.log('resultType', resultType);
+        console.log('selectionType', selectionType);
+        console.log('lastSelectionType', lastSelectionType);
+
+        if (selectionType !== lastSelectionType) {
+          return {
+            selectedResults: [endResult],
+            lastSelectedIndex: -1,
+            lastSelectionType: resultType,
+          };
         }
 
         const startIndex =
@@ -199,7 +211,8 @@ const useResultsStore = create<ResultsStore>()(
 
         return {
           selectedResults: newSelectedResults,
-          lastSelectedIndex: startIndex, // Keep the start index as the first selected
+          lastSelectedIndex: startIndex,
+          lastSelectionType: selectionType,
         };
       }),
   }))

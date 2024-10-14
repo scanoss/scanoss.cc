@@ -173,10 +173,8 @@ const useResultsStore = create<ResultsStore>()(
 
         const resultType = endResult.workflow_state as 'pending' | 'completed';
 
-        // Prevent selection across different types
         if (selectionType !== resultType) return state;
 
-        // Find the index of the last selected item
         const startIndex =
           lastSelectedIndex !== -1
             ? lastSelectedIndex
@@ -185,20 +183,18 @@ const useResultsStore = create<ResultsStore>()(
 
         if (startIndex === -1 || endIndex === -1) return state;
 
-        // Define the range and ensure it's in the correct order
         const [start, end] =
           startIndex < endIndex
             ? [startIndex, endIndex]
             : [endIndex, startIndex];
 
-        // Ensure only selecting results of the current type
         const newSelectedResults = results
           .slice(start, end + 1)
           .filter((r) => r.workflow_state === selectionType);
 
         return {
           selectedResults: newSelectedResults,
-          lastSelectedIndex: endIndex, // Update the last selected index
+          lastSelectedIndex: endIndex,
         };
       }),
   }))

@@ -15,14 +15,13 @@ import { FilterAction, MatchType } from '../domain';
 import ResultService from '../infra/service';
 
 interface ResultsState {
-  anchorIndex: number;
   canRedo: boolean;
   canUndo: boolean;
   error: string | null;
   isLoading: boolean;
   lastSelectedIndex: number;
   results: entities.ResultDTO[];
-  selectedResults: Set<string>;
+  selectedResults: entities.ResultDTO[];
 }
 
 interface ResultsActions {
@@ -31,10 +30,17 @@ interface ResultsActions {
   ) => Promise<string | null>;
   fetchResults: (matchType?: MatchType, query?: string) => Promise<void>;
   redo: () => Promise<void>;
-  setAnchorIndex: (anchorIndex: number) => void;
-  setLastSelectedIndex: (lastSelectedIndex: number) => void;
+  selectResultRange: (
+    endResult: entities.ResultDTO,
+    selectionType: 'pending' | 'completed'
+  ) => void;
+  setLastSelectedIndex: (index: number) => void;
   setResults: (results: entities.ResultDTO[]) => void;
-  setSelectedResults: (selectedResults: Set<string>) => void;
+  setSelectedResults: (selectedResults: entities.ResultDTO[]) => void;
+  toggleResultSelection: (
+    result: entities.ResultDTO,
+    selectionType: 'pending' | 'completed'
+  ) => void;
   undo: () => Promise<void>;
   updateUndoRedoState: () => Promise<void>;
 }
@@ -54,18 +60,15 @@ const useResultsStore = create<ResultsStore>()(
     canRedo: false,
     isLoading: false,
     error: null,
+    lastSelectedIndex: -1,
+    anchorIndex: -1,
+    selectedResults: [],
 
-    selectedResults: new Set<string>(),
     setSelectedResults: (selectedResults) =>
       set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
-    lastSelectedIndex: -1,
-    setLastSelectedIndex: (lastSelectedIndex) =>
-      set({ lastSelectedIndex }, false, 'SET_LAST_SELECTED_INDEX'),
-
-    anchorIndex: -1,
-    setAnchorIndex: (anchorIndex) =>
-      set({ anchorIndex }, false, 'SET_ANCHOR_INDEX'),
+    setLastSelectedIndex: (index) =>
+      set({ lastSelectedIndex: index }, false, 'SET_LAST_SELECTED_INDEX'),
 
     setResults: (results) =>
       set(
@@ -77,30 +80,26 @@ const useResultsStore = create<ResultsStore>()(
       ),
 
     handleCompleteResult: async (args: HandleCompleteResultArgs) => {
-      const selected = Array.from(get().selectedResults);
-      const finalDto = selected.map((item) => {
-        const result = get().results.find((res) => res.path === item);
+      const { filterBy, action, comment } = args;
+      const selectedResults = get().selectedResults;
 
-        if (!result) {
-          throw new Error('Result not found');
-        }
-
-        return {
-          purl: result.purl,
-          action: args.action,
-          comment: args.comment,
-          ...(args.filterBy === 'by_file' && {
-            path: result.path,
-          }),
-        };
-      });
+      const finalDto = selectedResults.map((result) => ({
+        purl: result.purl,
+        action: action,
+        comment: comment,
+        ...(filterBy === 'by_file' && { path: result.path }),
+      }));
 
       await FileService.filterComponents(finalDto);
 
       await get().updateUndoRedoState();
       await get().fetchResults();
 
-      const pendingResults = get().results.filter(
+      // Clear the selection after completing the action
+      set({ selectedResults: [] }, false, 'CLEAR_SELECTED_RESULTS');
+
+      const allResults = get().results;
+      const pendingResults = allResults.filter(
         (result) => result.workflow_state === 'pending'
       );
 
@@ -143,6 +142,65 @@ const useResultsStore = create<ResultsStore>()(
         set({ isLoading: false }, false, 'FETCH_RESULTS');
       }
     },
+
+    toggleResultSelection: (result, selectionType) =>
+      set((state) => {
+        const { selectedResults } = state;
+        const resultType = result.workflow_state as 'pending' | 'completed';
+
+        // Prevent selection across different types
+        if (selectionType !== resultType) return state;
+
+        const index = selectedResults.findIndex((r) => r.path === result.path);
+
+        if (index !== -1) {
+          // Deselect if already selected
+          const newSelectedResults = selectedResults.filter(
+            (_, i) => i !== index
+          );
+          return { selectedResults: newSelectedResults };
+        } else {
+          // Add new selection
+          return {
+            selectedResults: [...selectedResults, result],
+          };
+        }
+      }),
+
+    selectResultRange: (endResult, selectionType) =>
+      set((state) => {
+        const { results, selectedResults, lastSelectedIndex } = state;
+
+        const resultType = endResult.workflow_state as 'pending' | 'completed';
+
+        // Prevent selection across different types
+        if (selectionType !== resultType) return state;
+
+        // Find the index of the last selected item
+        const startIndex =
+          lastSelectedIndex !== -1
+            ? lastSelectedIndex
+            : results.findIndex((r) => r.path === selectedResults[0]?.path);
+        const endIndex = results.findIndex((r) => r.path === endResult.path);
+
+        if (startIndex === -1 || endIndex === -1) return state;
+
+        // Define the range and ensure it's in the correct order
+        const [start, end] =
+          startIndex < endIndex
+            ? [startIndex, endIndex]
+            : [endIndex, startIndex];
+
+        // Ensure only selecting results of the current type
+        const newSelectedResults = results
+          .slice(start, end + 1)
+          .filter((r) => r.workflow_state === selectionType);
+
+        return {
+          selectedResults: newSelectedResults,
+          lastSelectedIndex: endIndex, // Update the last selected index
+        };
+      }),
   }))
 );
 

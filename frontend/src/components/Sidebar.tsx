@@ -26,16 +26,18 @@ export default function Sidebar() {
   const navigate = useNavigate();
 
   const fetchResults = useResultsStore((state) => state.fetchResults);
-  const anchorIndex = useResultsStore((state) => state.anchorIndex);
-  const setAnchorIndex = useResultsStore((state) => state.setAnchorIndex);
-  const setLastSelectedIndex = useResultsStore(
-    (state) => state.setLastSelectedIndex
-  );
-  const selectedResults = useResultsStore((state) => state.selectedResults);
   const setSelectedResults = useResultsStore(
     (state) => state.setSelectedResults
   );
+  const selectResultRange = useResultsStore((state) => state.selectResultRange);
+  const toggleResultSelection = useResultsStore(
+    (state) => state.toggleResultSelection
+  );
   const results = useResultsStore((state) => state.results);
+  const setLastSelectedIndex = useResultsStore(
+    (state) => state.setLastSelectedIndex
+  );
+
   const pendingResults = useMemo(
     () => results.filter((r) => r.workflow_state === 'pending'),
     [results]
@@ -45,74 +47,38 @@ export default function Sidebar() {
     [results]
   );
 
-  const [filterByMatchType] = useQueryState<MatchType | 'all'>(
-    'matchType',
-    'all'
-  );
+  const [filterByMatchType] = useQueryState('matchType', 'all');
+  const [query] = useQueryState('q', '');
+  const debouncedQuery: string = useDebounce(query, 300);
 
-  const [query] = useQueryState<string>('q', '');
-  const debouncedQuery = useDebounce<string>(query, 300);
-
-  const handleSelectFiles = (e: React.MouseEvent, path: string) => {
+  const handleSelectFiles = (
+    e: React.MouseEvent,
+    result: entities.ResultDTO,
+    selectionType: 'pending' | 'completed'
+  ) => {
     e.preventDefault();
 
-    const index = results.findIndex((result) => result.path === path);
-
     if (e.shiftKey) {
-      handleSelectRange(path, index);
-    } else if (e.metaKey) {
-      handleSelectSingle(path);
-      setAnchorIndex(index);
+      selectResultRange(result, selectionType);
+    } else if (e.metaKey || e.ctrlKey) {
+      toggleResultSelection(result, selectionType);
     } else {
-      setSelectedResults(new Set([path]));
-      setLastSelectedIndex(index);
-      setAnchorIndex(index);
-      return navigate({
-        pathname: `/files/${encodeFilePath(path)}`,
+      setLastSelectedIndex(results.findIndex((r) => r.path === result.path)); // Update last selected index
+      setSelectedResults([result]);
+      navigate({
+        pathname: `/files/${encodeFilePath(result.path)}`,
         search: `?matchType=${filterByMatchType}&q=${query}`,
       });
     }
   };
 
-  const handleSelectSingle = (selectedPath: string) => {
-    const newSelectedResults = new Set(selectedResults);
-
-    if (newSelectedResults.has(selectedPath)) {
-      newSelectedResults.delete(selectedPath);
-    } else {
-      newSelectedResults.add(selectedPath);
-    }
-
-    setSelectedResults(newSelectedResults);
-  };
-
-  const handleSelectRange = (path: string, currentIndex: number) => {
-    if (anchorIndex === -1) {
-      setAnchorIndex(currentIndex);
-      setSelectedResults(new Set([path]));
-      setLastSelectedIndex(currentIndex);
-      return;
-    }
-
-    const startIndex = Math.min(anchorIndex, currentIndex);
-    const endIndex = Math.max(anchorIndex, currentIndex);
-
-    const resultsToSelect = new Set<string>();
-
-    for (let i = startIndex; i <= endIndex; i++) {
-      resultsToSelect.add(results[i].path);
-    }
-
-    setSelectedResults(resultsToSelect);
-    setLastSelectedIndex(currentIndex);
-  };
-
   useEffect(() => {
     if (currentPath) {
-      setSelectedResults(new Set([currentPath]));
-      const index = results.findIndex((result) => result.path === currentPath);
-      setLastSelectedIndex(index !== -1 ? index : -1);
-      setAnchorIndex(index !== -1 ? index : -1);
+      const index = results.findIndex((r) => r.path === currentPath);
+
+      if (index !== -1) {
+        setSelectedResults([results[index]]);
+      }
     }
   }, [currentPath, results]);
 
@@ -121,7 +87,7 @@ export default function Sidebar() {
       filterByMatchType === 'all' ? undefined : filterByMatchType,
       debouncedQuery
     );
-  }, [filterByMatchType, debouncedQuery]);
+  }, [fetchResults, filterByMatchType, debouncedQuery]);
 
   return (
     <aside className="flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-md">
@@ -140,69 +106,81 @@ export default function Sidebar() {
 
       <ScrollArea>
         <div className="flex flex-1 flex-col gap-2">
-          <Collapsible defaultOpen className="flex-1">
-            <CollapsibleTrigger className="group w-full">
-              <div className="flex items-center gap-1 border-b border-border px-3 pb-1">
-                <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
-                <span className="text-sm text-muted-foreground">
-                  Pending files{' '}
-                  <span className="text-xs">({pendingResults?.length})</span>
-                </span>
-              </div>
-            </CollapsibleTrigger>
-            {pendingResults.length ? (
-              <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
-                {pendingResults.map((result) => {
-                  return (
-                    <SidebarItem
-                      key={result.path}
-                      result={result}
-                      onSelect={handleSelectFiles}
-                    />
-                  );
-                })}
-              </CollapsibleContent>
-            ) : null}
-          </Collapsible>
-          <Collapsible defaultOpen className="flex-1">
-            <CollapsibleTrigger className="group w-full">
-              <div className="flex items-center gap-1 border-b border-border px-3 pb-1">
-                <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
-                <span className="text-sm text-muted-foreground">
-                  Completed files{' '}
-                  <span className="text-xs">({completedResults?.length})</span>
-                </span>
-              </div>
-            </CollapsibleTrigger>
-            {completedResults.length ? (
-              <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
-                {completedResults.map((result) => {
-                  return (
-                    <SidebarItem
-                      key={result.path}
-                      result={result}
-                      onSelect={handleSelectFiles}
-                    />
-                  );
-                })}
-              </CollapsibleContent>
-            ) : null}
-          </Collapsible>
+          <ResultSection
+            title="Pending files"
+            results={pendingResults}
+            onSelect={handleSelectFiles}
+            selectionType="pending"
+          />
+          <ResultSection
+            title="Completed files"
+            results={completedResults}
+            onSelect={handleSelectFiles}
+            selectionType="completed"
+          />
         </div>
       </ScrollArea>
     </aside>
   );
 }
 
-function SidebarItem({
-  result,
+interface ResultSectionProps {
+  title: string;
+  results: entities.ResultDTO[];
+  onSelect: (
+    e: React.MouseEvent,
+    result: entities.ResultDTO,
+    selectionType: 'pending' | 'completed'
+  ) => void;
+  selectionType: 'pending' | 'completed';
+}
+
+function ResultSection({
+  title,
+  results,
   onSelect,
-}: {
+  selectionType,
+}: ResultSectionProps) {
+  return (
+    <Collapsible defaultOpen className="flex-1">
+      <CollapsibleTrigger className="group w-full">
+        <div className="flex items-center gap-1 border-b border-border px-3 pb-1">
+          <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
+          <span className="text-sm text-muted-foreground">
+            {title} <span className="text-xs">({results.length})</span>
+          </span>
+        </div>
+      </CollapsibleTrigger>
+      {results.length > 0 && (
+        <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
+          {results.map((result) => (
+            <SidebarItem
+              key={result.path}
+              result={result}
+              onSelect={onSelect}
+              selectionType={selectionType}
+            />
+          ))}
+        </CollapsibleContent>
+      )}
+    </Collapsible>
+  );
+}
+
+interface SidebarItemProps {
   result: entities.ResultDTO;
-  onSelect: (e: React.MouseEvent, path: string) => void;
-}) {
-  const selectedResults = useResultsStore((state) => state.selectedResults);
-  const isActive = selectedResults.has(result.path);
+  onSelect: (
+    e: React.MouseEvent,
+    result: entities.ResultDTO,
+    selectionType: 'pending' | 'completed'
+  ) => void;
+  selectionType: 'pending' | 'completed';
+}
+
+function SidebarItem({ result, onSelect, selectionType }: SidebarItemProps) {
+  const { selectedResults } = useResultsStore();
+
+  const isSelected = selectedResults.some((r) => r.path === result.path);
 
   const isResultDismissed =
     result.filter_config?.action === FilterAction.Remove;
@@ -218,11 +196,11 @@ function SidebarItem({
         <div
           className={clsx(
             'flex max-w-full cursor-pointer select-none items-center space-x-2 overflow-hidden px-4 py-1 text-sm text-muted-foreground',
-            isActive
+            isSelected
               ? 'border-r-2 border-primary-foreground bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
               : 'hover:bg-primary/30'
           )}
-          onClick={(e) => onSelect(e, result.path)}
+          onClick={(e) => onSelect(e, result, selectionType)}
         >
           <span className="relative">
             {matchTypeIconMap[result.match_type as MatchType]}
@@ -239,7 +217,7 @@ function SidebarItem({
             <span
               className={clsx(
                 'whitespace-nowrap',
-                !isActive && 'text-foreground'
+                !isSelected && 'text-foreground'
               )}
             >
               {directory ? `/${fileName}` : fileName}

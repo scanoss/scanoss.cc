@@ -67,16 +67,16 @@ func (_c *MockComponentService_ClearAllFilters_Call) RunAndReturn(run func() err
 	return _c
 }
 
-// FilterComponent provides a mock function with given fields: dto
-func (_m *MockComponentService) FilterComponent(dto entities.ComponentFilterDTO) error {
+// FilterComponents provides a mock function with given fields: dto
+func (_m *MockComponentService) FilterComponents(dto []entities.ComponentFilterDTO) error {
 	ret := _m.Called(dto)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FilterComponent")
+		panic("no return value specified for FilterComponents")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(entities.ComponentFilterDTO) error); ok {
+	if rf, ok := ret.Get(0).(func([]entities.ComponentFilterDTO) error); ok {
 		r0 = rf(dto)
 	} else {
 		r0 = ret.Error(0)
@@ -85,30 +85,30 @@ func (_m *MockComponentService) FilterComponent(dto entities.ComponentFilterDTO)
 	return r0
 }
 
-// MockComponentService_FilterComponent_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FilterComponent'
-type MockComponentService_FilterComponent_Call struct {
+// MockComponentService_FilterComponents_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FilterComponents'
+type MockComponentService_FilterComponents_Call struct {
 	*mock.Call
 }
 
-// FilterComponent is a helper method to define mock.On call
-//   - dto entities.ComponentFilterDTO
-func (_e *MockComponentService_Expecter) FilterComponent(dto interface{}) *MockComponentService_FilterComponent_Call {
-	return &MockComponentService_FilterComponent_Call{Call: _e.mock.On("FilterComponent", dto)}
+// FilterComponents is a helper method to define mock.On call
+//   - dto []entities.ComponentFilterDTO
+func (_e *MockComponentService_Expecter) FilterComponents(dto interface{}) *MockComponentService_FilterComponents_Call {
+	return &MockComponentService_FilterComponents_Call{Call: _e.mock.On("FilterComponents", dto)}
 }
 
-func (_c *MockComponentService_FilterComponent_Call) Run(run func(dto entities.ComponentFilterDTO)) *MockComponentService_FilterComponent_Call {
+func (_c *MockComponentService_FilterComponents_Call) Run(run func(dto []entities.ComponentFilterDTO)) *MockComponentService_FilterComponents_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(entities.ComponentFilterDTO))
+		run(args[0].([]entities.ComponentFilterDTO))
 	})
 	return _c
 }
 
-func (_c *MockComponentService_FilterComponent_Call) Return(_a0 error) *MockComponentService_FilterComponent_Call {
+func (_c *MockComponentService_FilterComponents_Call) Return(_a0 error) *MockComponentService_FilterComponents_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockComponentService_FilterComponent_Call) RunAndReturn(run func(entities.ComponentFilterDTO) error) *MockComponentService_FilterComponent_Call {
+func (_c *MockComponentService_FilterComponents_Call) RunAndReturn(run func([]entities.ComponentFilterDTO) error) *MockComponentService_FilterComponents_Call {
 	_c.Call.Return(run)
 	return _c
 }

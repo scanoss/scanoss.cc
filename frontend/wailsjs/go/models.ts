@@ -138,6 +138,7 @@ export namespace entities {
 	}
 	export class ResultDTO {
 	    path: string;
+	    purl: string;
 	    match_type: string;
 	    workflow_state?: string;
 	    filter_config?: FilterConfig;
@@ -150,6 +151,7 @@ export namespace entities {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.path = source["path"];
+	        this.purl = source["purl"];
 	        this.match_type = source["match_type"];
 	        this.workflow_state = source["workflow_state"];
 	        this.filter_config = this.convertValues(source["filter_config"], FilterConfig);

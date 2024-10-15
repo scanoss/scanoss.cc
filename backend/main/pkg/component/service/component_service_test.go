@@ -51,7 +51,7 @@ func TestInsertComponentFilterActions(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			err := service.FilterComponent(tc.dto)
+			err := service.FilterComponents([]entities.ComponentFilterDTO{tc.dto})
 			require.NoError(t, err)
 
 			var filters = settingsFile.Bom.Include

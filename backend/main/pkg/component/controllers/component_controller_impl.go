@@ -9,14 +9,14 @@ import (
 
 type ComponentControllerImpl struct {
 	service       service.ComponentService
-	actionHistory []entities.ComponentFilterDTO
+	actionHistory [][]entities.ComponentFilterDTO
 	currentAction int
 }
 
 func NewComponentController(service service.ComponentService) ComponentController {
 	controller := &ComponentControllerImpl{
 		service:       service,
-		actionHistory: []entities.ComponentFilterDTO{},
+		actionHistory: [][]entities.ComponentFilterDTO{},
 		currentAction: -1,
 	}
 
@@ -27,19 +27,23 @@ func NewComponentController(service service.ComponentService) ComponentControlle
 func (c *ComponentControllerImpl) initializeActionHistory() {
 	include, remove := c.service.GetInitialFilters()
 	for _, include := range include {
-		c.actionHistory = append(c.actionHistory, entities.ComponentFilterDTO{
-			Path:   include.Path,
-			Purl:   include.Purl,
-			Usage:  string(include.Usage),
-			Action: entities.Include,
+		c.actionHistory = append(c.actionHistory, []entities.ComponentFilterDTO{
+			{
+				Path:   include.Path,
+				Purl:   include.Purl,
+				Usage:  string(include.Usage),
+				Action: entities.Include,
+			},
 		})
 	}
 	for _, remove := range remove {
-		c.actionHistory = append(c.actionHistory, entities.ComponentFilterDTO{
-			Path:   remove.Path,
-			Purl:   remove.Purl,
-			Usage:  string(remove.Usage),
-			Action: entities.Remove,
+		c.actionHistory = append(c.actionHistory, []entities.ComponentFilterDTO{
+			{
+				Path:   remove.Path,
+				Purl:   remove.Purl,
+				Usage:  string(remove.Usage),
+				Action: entities.Remove,
+			},
 		})
 	}
 	c.currentAction = len(c.actionHistory) - 1
@@ -50,15 +54,17 @@ func (c *ComponentControllerImpl) GetComponentByPath(filePath string) (entities.
 	return adaptToComponentDTO(component), nil
 }
 
-func (c *ComponentControllerImpl) FilterComponent(dto entities.ComponentFilterDTO) error {
+func (c *ComponentControllerImpl) FilterComponents(dto []entities.ComponentFilterDTO) error {
 	validate := validator.New()
-	err := validate.Struct(dto)
-	if err != nil {
-		log.Errorf("Validation error: %v", err)
-		return err
+	for _, filter := range dto {
+		err := validate.Struct(filter)
+		if err != nil {
+			log.Errorf("Validation error: %v", err)
+			return err
+		}
 	}
 
-	err = c.service.FilterComponent(dto)
+	err := c.service.FilterComponents(dto)
 	if err != nil {
 		return err
 	}
@@ -95,7 +101,7 @@ func (c *ComponentControllerImpl) reapplyActions() error {
 	}
 
 	for i := 0; i <= c.currentAction; i++ {
-		err := c.service.FilterComponent(c.actionHistory[i])
+		err := c.service.FilterComponents(c.actionHistory[i])
 		if err != nil {
 			return err
 		}

@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
@@ -18,14 +17,12 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/components/ui/use-toast';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
 import { FilterAction, filterActionLabelMap } from '@/modules/results/domain';
-import ResultService from '@/modules/results/infra/service';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
-
-import useLocalFilePath from '../hooks/useLocalFilePath';
 
 interface FileActionButtonProps {
   action: FilterAction;
@@ -41,25 +38,14 @@ export default function FileActionButton({
   const { ask } = useConfirm();
   const { prompt } = useInputPrompt();
   const { toast } = useToast();
-  const localFilePath = useLocalFilePath();
   const navigate = useNavigate();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  const selectedResults = useResultsStore((state) => state.selectedResults);
   const handleCompleteResult = useResultsStore(
     (state) => state.handleCompleteResult
   );
-
-  const { data: component } = useQuery({
-    queryKey: ['component', localFilePath],
-    queryFn: () => ResultService.getComponent(localFilePath),
-  });
-
-  if (!component) {
-    return null;
-  }
-
-  const componentPurl = component?.purl[0];
 
   const handleAddFilter = async (
     filterType: 'by_file' | 'by_purl',
@@ -93,39 +79,45 @@ export default function FileActionButton({
 
   const handleFilterComponentByPurl = async (comment?: string) => {
     const confirm = await ask(
-      `This action will ${action} all matches with the same PURL: ${componentPurl}`
+      <div>
+        <p>
+          This action will {action} all matches with{' '}
+          {selectedResults.length > 1
+            ? `the following PURLs: `
+            : `the same PURL:`}
+        </p>
+
+        {selectedResults.length > 1 ? (
+          <ScrollArea className="py-2">
+            <ul className="max-h-[200px] list-disc pl-6">
+              {selectedResults.map((result) => (
+                <li key={result.path}>{result.purl}</li>
+              ))}
+            </ul>
+          </ScrollArea>
+        ) : (
+          <p>{selectedResults[0]?.purl}</p>
+        )}
+      </div>
     );
 
     if (confirm) {
-      return handleFilterComponent({
-        purl: componentPurl,
-        comment,
-      });
+      return handleFilterComponent('by_purl', comment);
     }
   };
 
   const handleFilterComponentByFile = async (comment?: string) => {
-    return handleFilterComponent({
-      path: localFilePath,
-      purl: componentPurl,
-      comment,
-    });
+    return handleFilterComponent('by_file', comment);
   };
 
-  const handleFilterComponent = async ({
-    path,
-    purl,
-    comment,
-  }: {
-    purl: string;
-    path?: string;
-    comment?: string;
-  }) => {
+  const handleFilterComponent = async (
+    filterBy: 'by_file' | 'by_purl',
+    comment?: string
+  ) => {
     const nextResultRoute = await handleCompleteResult({
-      path,
-      purl,
-      action,
       comment,
+      action,
+      filterBy,
     });
 
     if (nextResultRoute) {
@@ -176,12 +168,7 @@ export default function FileActionButton({
         <DropdownMenuSeparator className="bg-border" />
         <DropdownMenuGroup>
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <div>
-                <p className="text-sm">File</p>
-                <p className="text-xs text-muted-foreground">{localFilePath}</p>
-              </div>
-            </DropdownMenuSubTrigger>
+            <DropdownMenuSubTrigger>File</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <DropdownMenuItem
@@ -198,14 +185,7 @@ export default function FileActionButton({
         </DropdownMenuGroup>
         <DropdownMenuGroup>
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              <div>
-                <p className="text-sm">Component</p>
-                <p className="text-xs text-muted-foreground">
-                  {component?.purl?.[0]}
-                </p>
-              </div>
-            </DropdownMenuSubTrigger>
+            <DropdownMenuSubTrigger>Component</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <DropdownMenuItem

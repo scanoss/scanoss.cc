@@ -47,8 +47,6 @@ export default function MatchInfoCard() {
   const isResultFilteredByFile = result?.filter_config?.type === 'by_file';
   const isResultFilteredByPurl = result?.filter_config?.type === 'by_purl';
 
-  console.log(result?.comment);
-
   return (
     <div
       className={clsx(

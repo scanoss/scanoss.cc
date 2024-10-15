@@ -15,29 +15,40 @@ import { FilterAction, MatchType } from '../domain';
 import ResultService from '../infra/service';
 
 interface ResultsState {
-  results: entities.ResultDTO[];
-  pendingResults: entities.ResultDTO[];
-  completedResults: entities.ResultDTO[];
-  canUndo: boolean;
   canRedo: boolean;
-  isLoading: boolean;
+  canUndo: boolean;
   error: string | null;
+  isLoading: boolean;
+  lastSelectedIndex: number;
+  lastSelectionType: 'pending' | 'completed' | null;
+  results: entities.ResultDTO[];
+  selectedResults: entities.ResultDTO[];
 }
 
 interface ResultsActions {
   handleCompleteResult: (
     args: HandleCompleteResultArgs
   ) => Promise<string | null>;
-  setResults: (results: entities.ResultDTO[]) => void;
-  undo: () => Promise<void>;
-  redo: () => Promise<void>;
-  updateUndoRedoState: () => Promise<void>;
   fetchResults: (matchType?: MatchType, query?: string) => Promise<void>;
+  redo: () => Promise<void>;
+  selectResultRange: (
+    endResult: entities.ResultDTO,
+    selectionType: 'pending' | 'completed'
+  ) => void;
+  setLastSelectedIndex: (index: number) => void;
+  setLastSelectionType: (type: 'pending' | 'completed') => void;
+  setResults: (results: entities.ResultDTO[]) => void;
+  setSelectedResults: (selectedResults: entities.ResultDTO[]) => void;
+  toggleResultSelection: (
+    result: entities.ResultDTO,
+    selectionType: 'pending' | 'completed'
+  ) => void;
+  undo: () => Promise<void>;
+  updateUndoRedoState: () => Promise<void>;
 }
 
 interface HandleCompleteResultArgs {
-  path: string | undefined;
-  purl: string;
+  filterBy: 'by_file' | 'by_purl';
   action: FilterAction;
   comment?: string | undefined;
 }
@@ -47,36 +58,58 @@ type ResultsStore = ResultsState & ResultsActions;
 const useResultsStore = create<ResultsStore>()(
   devtools((set, get) => ({
     results: [],
-    pendingResults: [],
-    completedResults: [],
     canUndo: false,
     canRedo: false,
     isLoading: false,
     error: null,
+    lastSelectedIndex: -1,
+    anchorIndex: -1,
+    selectedResults: [],
+    lastSelectionType: null,
+
+    setSelectedResults: (selectedResults) =>
+      set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
+
+    setLastSelectedIndex: (index) =>
+      set({ lastSelectedIndex: index }, false, 'SET_LAST_SELECTED_INDEX'),
+
+    setLastSelectionType: (type: 'pending' | 'completed') =>
+      set({ lastSelectionType: type }, false, 'SET_LAST_SELECTION_TYPE'),
 
     setResults: (results) =>
       set(
         {
           results,
-          pendingResults: results.filter((r) => r.workflow_state === 'pending'),
-          completedResults: results.filter(
-            (r) => r.workflow_state === 'completed'
-          ),
         },
         false,
         'SET_RESULTS'
       ),
 
-    handleCompleteResult: async ({ path, purl, action, comment }) => {
-      await FileService.filterComponentByPath({
-        path,
-        purl,
-        action,
-        comment,
-      });
+    handleCompleteResult: async (args: HandleCompleteResultArgs) => {
+      const { filterBy, action, comment } = args;
+      const selectedResults = get().selectedResults;
+
+      const finalDto = selectedResults.map((result) => ({
+        purl: result.purl,
+        action: action,
+        comment: comment,
+        ...(filterBy === 'by_file' && { path: result.path }),
+      }));
+
+      await FileService.filterComponents(finalDto);
+
       await get().updateUndoRedoState();
       await get().fetchResults();
-      return getNextPendingResultPathRoute(get().pendingResults);
+
+      // Clear the selection after completing the action
+      set({ selectedResults: [] }, false, 'CLEAR_SELECTED_RESULTS');
+
+      const allResults = get().results;
+      const pendingResults = allResults.filter(
+        (result) => result.workflow_state === 'pending'
+      );
+
+      return getNextPendingResultPathRoute(pendingResults);
     },
 
     undo: async () => {
@@ -115,6 +148,72 @@ const useResultsStore = create<ResultsStore>()(
         set({ isLoading: false }, false, 'FETCH_RESULTS');
       }
     },
+
+    toggleResultSelection: (result, selectionType) =>
+      set((state) => {
+        const { selectedResults, lastSelectionType } = state;
+        const resultType = result.workflow_state as 'pending' | 'completed';
+
+        if (selectionType !== lastSelectionType) {
+          return { selectedResults: [result], lastSelectionType: resultType };
+        }
+
+        const index = selectedResults.findIndex((r) => r.path === result.path);
+
+        if (index !== -1) {
+          const newSelectedResults = selectedResults.filter(
+            (_, i) => i !== index
+          );
+          return { selectedResults: newSelectedResults };
+        } else {
+          return {
+            selectedResults: [...selectedResults, result],
+          };
+        }
+      }),
+
+    selectResultRange: (endResult, selectionType) =>
+      set((state) => {
+        const {
+          results,
+          selectedResults,
+          lastSelectedIndex,
+          lastSelectionType,
+        } = state;
+
+        const resultType = endResult.workflow_state as 'pending' | 'completed';
+
+        if (selectionType !== lastSelectionType) {
+          return {
+            selectedResults: [endResult],
+            lastSelectedIndex: -1,
+            lastSelectionType: resultType,
+          };
+        }
+
+        const startIndex =
+          lastSelectedIndex !== -1
+            ? lastSelectedIndex
+            : results.findIndex((r) => r.path === selectedResults[0]?.path);
+        const endIndex = results.findIndex((r) => r.path === endResult.path);
+
+        if (startIndex === -1 || endIndex === -1) return state;
+
+        const [start, end] =
+          startIndex < endIndex
+            ? [startIndex, endIndex]
+            : [endIndex, startIndex];
+
+        const newSelectedResults = results
+          .slice(start, end + 1)
+          .filter((r) => r.workflow_state === selectionType);
+
+        return {
+          selectedResults: newSelectedResults,
+          lastSelectedIndex: startIndex,
+          lastSelectionType: selectionType,
+        };
+      }),
   }))
 );
 

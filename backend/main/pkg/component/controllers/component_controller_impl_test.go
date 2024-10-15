@@ -24,9 +24,9 @@ func TestFilterComponent_Integration(t *testing.T) {
 			Usage:  "file",
 			Action: entities.Include,
 		}
-		mockService.EXPECT().FilterComponent(dto).Return(nil)
+		mockService.EXPECT().FilterComponents([]entities.ComponentFilterDTO{dto}).Return(nil)
 
-		err := controller.FilterComponent(dto)
+		err := controller.FilterComponents([]entities.ComponentFilterDTO{dto})
 
 		assert.NoError(t, err)
 	})
@@ -38,7 +38,7 @@ func TestFilterComponent_Integration(t *testing.T) {
 			Usage:  "file",
 			Action: entities.FilterAction("unsupported"),
 		}
-		err := controller.FilterComponent(dto)
+		err := controller.FilterComponents([]entities.ComponentFilterDTO{dto})
 		assert.Error(t, err)
 		assert.IsType(t, err, validator.ValidationErrors{})
 	})

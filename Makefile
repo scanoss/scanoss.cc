@@ -14,3 +14,9 @@ help: ## Show available commands
 run: ## Runs the application in development mode
 	$(eval APPARGS := $(ARGS))
 	@wails dev -ldflags "-X main.version=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "$(APPARGS)")
+
+build: ## Copy the necessary assets and builds the application
+	mkdir -p build
+	cp -r assets build/assets
+	@wails build -ldflags "-X main.version=$(VERSION)"
+.PHONY: build

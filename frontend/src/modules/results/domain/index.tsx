@@ -1,29 +1,10 @@
 import { Check, CircleDotDashed } from 'lucide-react';
-import React, { ReactNode } from 'react';
-import { entities } from 'wailsjs/go/models';
-
-export enum FilterAction {
-  Ignore = 'ignore',
-  Include = 'include',
-  Remove = 'remove',
-  Replace = 'replace',
-}
-
-export type FilterBy = 'path' | 'purl';
-
-export const filterActionLabelMap: Record<FilterAction, string> = {
-  [FilterAction.Ignore]: 'Omit / Skip',
-  [FilterAction.Include]: 'Include',
-  [FilterAction.Remove]: 'Dismiss',
-  [FilterAction.Replace]: 'Replace',
-};
+import { ReactNode } from 'react';
 
 export enum MatchType {
   File = 'file',
   Snippet = 'snippet',
 }
-
-export type Component = entities.ComponentDTO;
 
 interface ResultStatusPresentation {
   badgeStyles: string;

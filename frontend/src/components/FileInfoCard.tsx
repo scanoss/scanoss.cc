@@ -1,10 +1,9 @@
 import clsx from 'clsx';
 import { File, Github } from 'lucide-react';
 
-import { FilterAction } from '@/modules/results/domain';
+import { FilterAction } from '@/modules/components/domain';
+import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
-
-import useLocalFilePath from '../hooks/useLocalFilePath';
 
 interface FileInfoCardProps {
   title: string;

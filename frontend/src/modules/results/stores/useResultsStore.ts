@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { encodeFilePath } from '@/lib/utils';
+import { FilterAction } from '@/modules/components/domain';
 import FileService from '@/modules/files/infra/service';
 
 import {
@@ -11,7 +12,7 @@ import {
   ComponentFilterRedo,
   ComponentFilterUndo,
 } from '../../../../wailsjs/go/handlers/ComponentHandler';
-import { FilterAction, MatchType } from '../domain';
+import { MatchType } from '../domain';
 import ResultService from '../infra/service';
 
 interface ResultsState {

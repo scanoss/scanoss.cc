@@ -4,12 +4,13 @@ import { ReactNode, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { entities } from 'wailsjs/go/models';
 
+import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
 import useQueryState from '@/hooks/useQueryState';
 import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
+import { FilterAction } from '@/modules/components/domain';
 import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
-import ResultSearchBar from '@/components/ResultSearchBar';
-import { FilterAction, MatchType } from '@/modules/results/domain';
+import { MatchType } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import MatchTypeSelector from './MatchTypeSelector';

@@ -2,12 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 
 import CodeViewer from '@/components/CodeViewer';
 import { getFileName } from '@/lib/utils';
+import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
+import FileService from '@/modules/files/infra/service';
 import ResultService from '@/modules/results/infra/service';
 
-import useLocalFilePath from '../hooks/useLocalFilePath';
-import FileService from '../infra/service';
-import FileActionsMenu from './FileActionsMenu';
 import FileInfoCard from './FileInfoCard';
+import Header from './Header';
 import MatchInfoCard from './MatchInfoCard';
 
 export default function MatchComparison() {
@@ -39,7 +39,7 @@ export default function MatchComparison() {
   return (
     <div className="flex h-full flex-col">
       <header className="h-[65px] border-b border-b-border px-6">
-        <FileActionsMenu />
+        <Header />
       </header>
       <main className="flex-1 p-6">
         <div className="grid h-full grid-cols-2 grid-rows-[auto_auto_1fr] gap-4">

@@ -1,4 +1,4 @@
-import MatchComparison from '@/modules/files/components/MatchComparison';
+import MatchComparison from '@/components/MatchComparison';
 
 export default function FileMatchRoute() {
   return <MatchComparison />;

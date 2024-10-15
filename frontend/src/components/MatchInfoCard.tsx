@@ -9,8 +9,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { FilterAction } from '@/modules/components/domain';
+import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
 import {
-  FilterAction,
   MatchType,
   matchTypePresentation,
   resultStatusPresentation,
@@ -18,7 +19,6 @@ import {
 import ResultService from '@/modules/results/infra/service';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
-import useLocalFilePath from '../hooks/useLocalFilePath';
 import ComponentDetailTooltip from './ComponentDetailTooltip';
 
 export default function MatchInfoCard() {

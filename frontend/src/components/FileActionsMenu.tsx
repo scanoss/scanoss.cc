@@ -1,6 +1,13 @@
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, PackageMinus, RotateCcw, RotateCw, Save } from 'lucide-react';
+import {
+  Check,
+  PackageMinus,
+  Replace,
+  RotateCcw,
+  RotateCw,
+  Save,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -12,15 +19,16 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import useDebounce from '@/hooks/useDebounce';
 import useQueryState from '@/hooks/useQueryState';
+import FileService from '@/modules/files/infra/service';
 import { FilterAction, MatchType } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
-import FileService from '../infra/service';
 import FileActionButton from './FileActionButton';
 
 export default function FileActionsMenu() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
   const undo = useResultsStore((state) => state.undo);
   const redo = useResultsStore((state) => state.redo);
   const canUndo = useResultsStore((state) => state.canUndo);
@@ -30,7 +38,6 @@ export default function FileActionsMenu() {
     'matchType',
     'all'
   );
-
   const [query] = useQueryState<string>('q', '');
   const debouncedQuery = useDebounce<string>(query, 300);
 
@@ -70,6 +77,11 @@ export default function FileActionsMenu() {
           action={FilterAction.Remove}
           description="Dismissing a file/component will exclude it from future scan results."
           icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
+        />
+        <FileActionButton
+          action={FilterAction.Replace}
+          description="Replace selected files/components with a new PURL."
+          icon={<Replace className="h-5 w-5 stroke-yellow-500" />}
         />
       </div>
       <div className="flex justify-end gap-4">

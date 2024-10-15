@@ -25,6 +25,7 @@ type SettingsFile struct {
 type Bom struct {
 	Include []ComponentFilter `json:"include,omitempty"`
 	Remove  []ComponentFilter `json:"remove,omitempty"`
+	Replace []ComponentFilter `json:"replace,omitempty"`
 }
 
 const (
@@ -33,10 +34,11 @@ const (
 )
 
 type ComponentFilter struct {
-	Path    string               `json:"path,omitempty"`
-	Purl    string               `json:"purl"`
-	Usage   ComponentFilterUsage `json:"usage,omitempty"`
-	Comment string               `json:"comment,omitempty"`
+	Path        string               `json:"path,omitempty"`
+	Purl        string               `json:"purl"`
+	Usage       ComponentFilterUsage `json:"usage,omitempty"`
+	Comment     string               `json:"comment,omitempty"`
+	ReplaceWith string               `json:"replace_with,omitempty"`
 }
 
 func (sf *SettingsFile) Equal(other *SettingsFile) (bool, error) {

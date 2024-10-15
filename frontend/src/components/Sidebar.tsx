@@ -8,11 +8,11 @@ import useDebounce from '@/hooks/useDebounce';
 import useQueryState from '@/hooks/useQueryState';
 import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
 import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
-import ResultSearchBar from '@/modules/results/components/ResultSearchBar';
+import ResultSearchBar from '@/components/ResultSearchBar';
 import { FilterAction, MatchType } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
-import MatchTypeSelector from '../modules/results/components/MatchTypeSelector';
+import MatchTypeSelector from './MatchTypeSelector';
 import {
   Collapsible,
   CollapsibleContent,

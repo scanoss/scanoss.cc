@@ -36,7 +36,7 @@ export default function ConfirmDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-          <AlertDialogDescription>{message}</AlertDialogDescription>
+          <AlertDialogDescription asChild>{message}</AlertDialogDescription>
           {showPersistDecision && (
             <div className="items-top !my-5 flex space-x-2">
               <Checkbox

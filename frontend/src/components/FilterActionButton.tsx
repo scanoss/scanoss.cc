@@ -16,11 +16,16 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useConfirm } from '@/hooks/useConfirm';
+import { useInputPrompt } from '@/hooks/useInputPrompt';
 import {
   FilterAction,
   filterActionLabelMap,
 } from '@/modules/components/domain';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
+import useResultsStore from '@/modules/results/stores/useResultsStore';
+
+import { ScrollArea } from './ui/scroll-area';
 
 interface FilterActionProps {
   action: FilterAction;
@@ -37,21 +42,72 @@ export default function FilterActionButton({
 }: FilterActionProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  const { prompt } = useInputPrompt();
+  const { ask } = useConfirm();
+
   const setAction = useComponentFilterStore((state) => state.setAction);
-  const setWithComment = useComponentFilterStore(
-    (state) => state.setWithComment
-  );
+  const setComment = useComponentFilterStore((state) => state.setComment);
   const setFilterBy = useComponentFilterStore((state) => state.setFilterBy);
 
-  const onSelectOption = (
+  const selectedResults = useResultsStore((state) => state.selectedResults);
+
+  const onSelectOption = async (
     action: FilterAction,
     filterBy: 'by_file' | 'by_purl',
     withComment: boolean
   ) => {
+    let comment: string | undefined;
+
+    if (withComment) {
+      comment = await handleGetComment();
+    }
+
+    if (filterBy === 'by_purl') {
+      const confirm = await handleConfirmByPurl();
+
+      if (!confirm) return;
+    }
+
     setAction(action);
     setFilterBy(filterBy);
-    setWithComment(withComment);
+    setComment(comment);
+
     onAdd();
+  };
+
+  const handleGetComment = async (): Promise<string | undefined> => {
+    return prompt({
+      title: 'Add comments',
+      input: {
+        defaultValue: '',
+        type: 'textarea',
+      },
+    });
+  };
+
+  const handleConfirmByPurl = async (): Promise<boolean> => {
+    return ask(
+      <div>
+        <p>
+          This action will {action} all matches with{' '}
+          {selectedResults.length > 1
+            ? `the following PURLs: `
+            : `the same PURL:`}
+        </p>
+
+        {selectedResults.length > 1 ? (
+          <ScrollArea className="py-2">
+            <ul className="max-h-[200px] list-disc pl-6">
+              {selectedResults.map((result) => (
+                <li key={result.path}>{result.purl}</li>
+              ))}
+            </ul>
+          </ScrollArea>
+        ) : (
+          <p>{selectedResults[0]?.purl}</p>
+        )}
+      </div>
+    );
   };
 
   return (

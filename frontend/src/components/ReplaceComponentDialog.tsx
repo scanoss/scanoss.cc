@@ -1,35 +1,60 @@
+import { useState } from 'react';
+
 import { Button } from './ui/button';
+import { Combobox } from './ui/combobox';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from './ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 
-interface ReplaceComponentDialogProps {
-  handleCancel: () => void;
-  handleConfirm: () => void;
-  onOpenChange: (open: boolean) => void;
-  open: boolean;
-}
+export default function ReplaceComponentDialog() {
+  const [open, setOpen] = useState(true);
 
-export default function ReplaceComponentDialog({
-  handleCancel,
-  handleConfirm,
-  onOpenChange,
-  open,
-}: ReplaceComponentDialogProps) {
+  const handleCancel = () => {
+    setOpen(false);
+  };
+
+  const handleConfirm = () => {
+    setOpen(false);
+  };
+
+  const placeholderComponentOptions = [
+    {
+      label: 'test',
+      value: 'test',
+    },
+    {
+      label: 'test2',
+      value: 'test2',
+    },
+  ];
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={() => setOpen(false)}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Replace Component</DialogTitle>
-          <DialogDescription>
-            Select a component to replace the current selected components
-          </DialogDescription>
         </DialogHeader>
+
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <Label>Component</Label>
+            <Combobox
+              options={placeholderComponentOptions}
+              placeholder="Select component..."
+              emptyText="No components found"
+            />
+          </div>
+          <div>
+            <Label>Purl</Label>
+            <Input placeholder="pkg:github/scanoss/scanner.c" />
+          </div>
+        </div>
 
         <DialogFooter>
           <Button variant="ghost" onClick={handleCancel}>

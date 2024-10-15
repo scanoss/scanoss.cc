@@ -19,7 +19,6 @@ interface ComponentFilterState {
   canUndo: boolean;
   comment?: string;
   filterBy: 'by_file' | 'by_purl' | null;
-  withComment?: boolean;
 }
 
 interface ComponentFilterActions {
@@ -27,8 +26,7 @@ interface ComponentFilterActions {
   redo: () => Promise<void>;
   setAction: (action: FilterAction) => void;
   setFilterBy: (filterBy: 'by_file' | 'by_purl') => void;
-  setWithComment: (withComment: boolean) => void;
-  setComment: (comment: string) => void;
+  setComment: (comment: string | undefined) => void;
   undo: () => Promise<void>;
   updateUndoRedoState: () => Promise<void>;
 }
@@ -41,18 +39,17 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
     canRedo: false,
     action: null,
     filterBy: null,
-    withComment: false,
     comment: '',
 
     setAction: (action) => set({ action }),
     setFilterBy: (filterBy) => set({ filterBy }),
-    setWithComment: (withComment) => set({ withComment }),
     setComment: (comment) => set({ comment }),
 
     onFilterComponent: async () => {
       const { filterBy, action, comment } = get();
 
       if (!action || !filterBy) {
+        // TODO: Handle this...
         return null;
       }
 

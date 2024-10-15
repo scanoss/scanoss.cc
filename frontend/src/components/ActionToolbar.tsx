@@ -4,9 +4,9 @@ import { RotateCcw, RotateCw, Save } from 'lucide-react';
 
 import useDebounce from '@/hooks/useDebounce';
 import useQueryState from '@/hooks/useQueryState';
+import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 import FileService from '@/modules/files/infra/service';
 import { MatchType } from '@/modules/results/domain';
-import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
@@ -17,10 +17,10 @@ export default function ActionToolbar() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const undo = useResultsStore((state) => state.undo);
-  const redo = useResultsStore((state) => state.redo);
-  const canUndo = useResultsStore((state) => state.canUndo);
-  const canRedo = useResultsStore((state) => state.canRedo);
+  const undo = useComponentFilterStore((state) => state.undo);
+  const redo = useComponentFilterStore((state) => state.redo);
+  const canUndo = useComponentFilterStore((state) => state.canUndo);
+  const canRedo = useComponentFilterStore((state) => state.canRedo);
 
   const [filterByMatchType] = useQueryState<MatchType | 'all'>(
     'matchType',

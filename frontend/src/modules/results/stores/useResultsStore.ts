@@ -2,22 +2,10 @@ import { entities } from 'wailsjs/go/models';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { encodeFilePath } from '@/lib/utils';
-import { FilterAction } from '@/modules/components/domain';
-import FileService from '@/modules/files/infra/service';
-
-import {
-  ComponentFilterCanRedo,
-  ComponentFilterCanUndo,
-  ComponentFilterRedo,
-  ComponentFilterUndo,
-} from '../../../../wailsjs/go/handlers/ComponentHandler';
 import { MatchType } from '../domain';
 import ResultService from '../infra/service';
 
 interface ResultsState {
-  canRedo: boolean;
-  canUndo: boolean;
   error: string | null;
   isLoading: boolean;
   lastSelectedIndex: number;
@@ -27,11 +15,7 @@ interface ResultsState {
 }
 
 interface ResultsActions {
-  handleCompleteResult: (
-    args: HandleCompleteResultArgs
-  ) => Promise<string | null>;
   fetchResults: (matchType?: MatchType, query?: string) => Promise<void>;
-  redo: () => Promise<void>;
   selectResultRange: (
     endResult: entities.ResultDTO,
     selectionType: 'pending' | 'completed'
@@ -44,14 +28,6 @@ interface ResultsActions {
     result: entities.ResultDTO,
     selectionType: 'pending' | 'completed'
   ) => void;
-  undo: () => Promise<void>;
-  updateUndoRedoState: () => Promise<void>;
-}
-
-interface HandleCompleteResultArgs {
-  filterBy: 'by_file' | 'by_purl';
-  action: FilterAction;
-  comment?: string | undefined;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -59,8 +35,6 @@ type ResultsStore = ResultsState & ResultsActions;
 const useResultsStore = create<ResultsStore>()(
   devtools((set, get) => ({
     results: [],
-    canUndo: false,
-    canRedo: false,
     isLoading: false,
     error: null,
     lastSelectedIndex: -1,
@@ -85,53 +59,6 @@ const useResultsStore = create<ResultsStore>()(
         false,
         'SET_RESULTS'
       ),
-
-    handleCompleteResult: async (args: HandleCompleteResultArgs) => {
-      const { filterBy, action, comment } = args;
-      const selectedResults = get().selectedResults;
-
-      const finalDto = selectedResults.map((result) => ({
-        purl: result.purl,
-        action: action,
-        comment: comment,
-        ...(filterBy === 'by_file' && { path: result.path }),
-      }));
-
-      await FileService.filterComponents(finalDto);
-
-      await get().updateUndoRedoState();
-      await get().fetchResults();
-
-      // Clear the selection after completing the action
-      set({ selectedResults: [] }, false, 'CLEAR_SELECTED_RESULTS');
-
-      const allResults = get().results;
-      const pendingResults = allResults.filter(
-        (result) => result.workflow_state === 'pending'
-      );
-
-      return getNextPendingResultPathRoute(pendingResults);
-    },
-
-    undo: async () => {
-      await ComponentFilterUndo();
-      await get().updateUndoRedoState();
-      await get().fetchResults();
-    },
-
-    redo: async () => {
-      await ComponentFilterRedo();
-      await get().updateUndoRedoState();
-      await get().fetchResults();
-    },
-
-    updateUndoRedoState: async () => {
-      const [canUndo, canRedo] = await Promise.all([
-        ComponentFilterCanUndo(),
-        ComponentFilterCanRedo(),
-      ]);
-      set({ canUndo, canRedo }, false, 'UPDATE_UNDO_REDO_STATE');
-    },
 
     fetchResults: async (matchType, query) => {
       set({ isLoading: true, error: null }, false, 'FETCH_RESULTS');
@@ -217,14 +144,5 @@ const useResultsStore = create<ResultsStore>()(
       }),
   }))
 );
-
-const getNextPendingResultPathRoute = (
-  pendingResults: entities.ResultDTO[]
-): string | null => {
-  const firstAvailablePendingResult = pendingResults[0];
-  if (!firstAvailablePendingResult) return null;
-
-  return `/files/${encodeFilePath(firstAvailablePendingResult.path)}`;
-};
 
 export default useResultsStore;

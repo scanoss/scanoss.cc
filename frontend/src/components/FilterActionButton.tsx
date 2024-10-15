@@ -19,14 +19,14 @@ import {
 import {
   FilterAction,
   filterActionLabelMap,
-  OnAddFilterArgs,
 } from '@/modules/components/domain';
+import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 
 interface FilterActionProps {
   action: FilterAction;
   description: string;
   icon: React.ReactNode;
-  onAdd: (args: OnAddFilterArgs) => Promise<void>;
+  onAdd: () => Promise<void> | void;
 }
 
 export default function FilterActionButton({
@@ -36,6 +36,23 @@ export default function FilterActionButton({
   onAdd,
 }: FilterActionProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const setAction = useComponentFilterStore((state) => state.setAction);
+  const setWithComment = useComponentFilterStore(
+    (state) => state.setWithComment
+  );
+  const setFilterBy = useComponentFilterStore((state) => state.setFilterBy);
+
+  const onSelectOption = (
+    action: FilterAction,
+    filterBy: 'by_file' | 'by_purl',
+    withComment: boolean
+  ) => {
+    setAction(action);
+    setFilterBy(filterBy);
+    setWithComment(withComment);
+    onAdd();
+  };
 
   return (
     <DropdownMenu onOpenChange={setDropdownOpen}>
@@ -76,23 +93,12 @@ export default function FilterActionButton({
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <DropdownMenuItem
-                  onClick={() =>
-                    onAdd({
-                      action,
-                      filterBy: 'by_file',
-                      withComment: true,
-                    })
-                  }
+                  onClick={() => onSelectOption(action, 'by_file', true)}
                 >
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() =>
-                    onAdd({
-                      action,
-                      filterBy: 'by_file',
-                    })
-                  }
+                  onClick={() => onSelectOption(action, 'by_file', false)}
                 >
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
                 </DropdownMenuItem>
@@ -106,23 +112,12 @@ export default function FilterActionButton({
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <DropdownMenuItem
-                  onClick={() =>
-                    onAdd({
-                      action,
-                      filterBy: 'by_purl',
-                      withComment: true,
-                    })
-                  }
+                  onClick={() => onSelectOption(action, 'by_purl', true)}
                 >
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() =>
-                    onAdd({
-                      action,
-                      filterBy: 'by_purl',
-                    })
-                  }
+                  onClick={() => onSelectOption(action, 'by_purl', false)}
                 >
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
                 </DropdownMenuItem>

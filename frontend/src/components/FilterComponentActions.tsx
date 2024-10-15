@@ -1,28 +1,40 @@
 import { Check, PackageMinus, Replace } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useConfirm } from '@/hooks/useConfirm';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
-import { FilterAction, OnAddFilterArgs } from '@/modules/components/domain';
+import { FilterAction } from '@/modules/components/domain';
+import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import FilterActionButton from './FilterActionButton';
+import ReplaceComponentDialog from './ReplaceComponentDialog';
 import { ScrollArea } from './ui/scroll-area';
 import { useToast } from './ui/use-toast';
 
 export default function FilterComponentActions() {
+  const [showReplaceComponentDialog, setShowReplaceComponentDialog] =
+    useState(false);
   const { ask } = useConfirm();
   const { prompt } = useInputPrompt();
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const selectedResults = useResultsStore((state) => state.selectedResults);
-  const handleCompleteResult = useResultsStore(
-    (state) => state.handleCompleteResult
+
+  const withComment = useComponentFilterStore((state) => state.withComment);
+  const action = useComponentFilterStore((state) => state.action);
+  const filterBy = useComponentFilterStore((state) => state.filterBy);
+  const onFilterComponent = useComponentFilterStore(
+    (state) => state.onFilterComponent
   );
 
-  const handleAddFilter = async (args: OnAddFilterArgs) => {
-    const { filterBy, withComment } = args;
+  const handleAddFilter = async () => {
+    if (!filterBy) {
+      console.error('ERROR: filterBy is not set');
+      return;
+    }
 
     try {
       let comment: string | undefined;
@@ -38,7 +50,7 @@ export default function FilterComponentActions() {
         if (!comment) return;
       }
 
-      return filterActions[filterBy](args);
+      return filterActions[filterBy]();
     } catch (e) {
       console.error(e);
       toast({
@@ -50,11 +62,11 @@ export default function FilterComponentActions() {
     }
   };
 
-  const handleFilterComponentByPurl = async (args: OnAddFilterArgs) => {
+  const handleFilterComponentByPurl = async () => {
     const confirm = await ask(
       <div>
         <p>
-          This action will {args.action} all matches with{' '}
+          This action will {action} all matches with{' '}
           {selectedResults.length > 1
             ? `the following PURLs: `
             : `the same PURL:`}
@@ -75,50 +87,61 @@ export default function FilterComponentActions() {
     );
 
     if (confirm) {
-      return handleFilterComponent(args);
+      return handleFilterComponent();
     }
   };
 
-  const handleFilterComponentByFile = async (args: OnAddFilterArgs) => {
-    return handleFilterComponent(args);
+  const handleFilterComponentByFile = async () => {
+    return handleFilterComponent();
   };
 
-  const handleFilterComponent = async (args: OnAddFilterArgs) => {
-    const nextResultRoute = await handleCompleteResult(args);
+  const handleFilterComponent = async () => {
+    const nextResultRoute = await onFilterComponent();
 
     if (nextResultRoute) {
       navigate(nextResultRoute);
     }
   };
 
-  const filterActions: Record<
-    'by_file' | 'by_purl',
-    (args: OnAddFilterArgs) => Promise<void>
-  > = {
+  const filterActions: Record<'by_file' | 'by_purl', () => Promise<void>> = {
     by_file: handleFilterComponentByFile,
     by_purl: handleFilterComponentByPurl,
   };
 
+  const handleReplaceComponent = () => {
+    setShowReplaceComponentDialog(true);
+  };
+
   return (
-    <div className="flex gap-2 md:justify-center">
-      <FilterActionButton
-        action={FilterAction.Include}
-        icon={<Check className="h-5 w-5 stroke-green-500" />}
-        description="By including a file/component, you force the engine to consider it with priority in future scans."
-        onAdd={handleAddFilter}
-      />
-      <FilterActionButton
-        action={FilterAction.Remove}
-        description="Dismissing a file/component will exclude it from future scan results."
-        icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
-        onAdd={handleAddFilter}
-      />
-      <FilterActionButton
-        action={FilterAction.Replace}
-        description="Dismissing a file/component will exclude it from future scan results."
-        icon={<Replace className="h-5 w-5 stroke-yellow-500" />}
-        onAdd={handleAddFilter}
-      />
-    </div>
+    <>
+      <div className="flex gap-2 md:justify-center">
+        <FilterActionButton
+          action={FilterAction.Include}
+          icon={<Check className="h-5 w-5 stroke-green-500" />}
+          description="By including a file/component, you force the engine to consider it with priority in future scans."
+          onAdd={handleAddFilter}
+        />
+        <FilterActionButton
+          action={FilterAction.Remove}
+          description="Dismissing a file/component will exclude it from future scan results."
+          icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
+          onAdd={handleAddFilter}
+        />
+        <FilterActionButton
+          action={FilterAction.Replace}
+          description="Dismissing a file/component will exclude it from future scan results."
+          icon={<Replace className="h-5 w-5 stroke-yellow-500" />}
+          onAdd={handleReplaceComponent}
+        />
+      </div>
+      {showReplaceComponentDialog && (
+        <ReplaceComponentDialog
+          open
+          handleCancel={() => {}}
+          handleConfirm={() => {}}
+          onOpenChange={() => {}}
+        />
+      )}
+    </>
   );
 }

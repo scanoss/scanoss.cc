@@ -49,11 +49,15 @@ func (s *ComponentServiceImpl) ClearAllFilters() error {
 	return s.scanossSettingsRepo.ClearAllFilters()
 }
 
-func (s *ComponentServiceImpl) GetInitialFilters() ([]scanossSettingsEntities.ComponentFilter, []scanossSettingsEntities.ComponentFilter) {
+func (s *ComponentServiceImpl) GetInitialFilters() scanossSettingsEntities.InitialFilters {
 	sf := s.scanossSettingsRepo.GetSettingsFileContent()
-	include, remove := sf.Bom.Include, sf.Bom.Remove
+	include, remove, replace := sf.Bom.Include, sf.Bom.Remove, sf.Bom.Replace
 
-	return include, remove
+	return scanossSettingsEntities.InitialFilters{
+		Include: include,
+		Remove:  remove,
+		Replace: replace,
+	}
 }
 
 func (s *ComponentServiceImpl) GetDeclaredComponents() ([]entities.DeclaredComponent, error) {
@@ -65,18 +69,26 @@ func (s *ComponentServiceImpl) GetDeclaredComponents() ([]entities.DeclaredCompo
 	scanossSettingsDeclaredPurls := s.scanossSettingsRepo.GetDeclaredPurls()
 
 	purlToComponent := make(map[string]string)
-
-	for _, result := range results {
-		for _, purl := range result.Purl {
-			purlToComponent[purl] = result.ComponentName
-		}
-	}
-
-	addedPurls := make(map[string]struct{})
 	declaredComponents := make([]entities.DeclaredComponent, 0)
+	addedPurls := make(map[string]struct{})
+
+	// for _, result := range results {
+	// 	log.Println("result", result.ComponentName, result.Purl)
+
+	// 	if result.Purl == nil || len(*result.Purl) == 0 {
+	// 		continue
+	// 	}
+	// 	declaredComponents = append(declaredComponents, entities.DeclaredComponent{
+	// 		Purl: (*result.Purl)[0],
+	// 		Name: result.ComponentName,
+	// 	})
+	// }
 
 	for _, result := range results {
-		purl := result.Purl[0]
+		if result.Purl == nil || len(*result.Purl) == 0 {
+			continue
+		}
+		purl := (*result.Purl)[0]
 		if _, found := addedPurls[purl]; !found {
 			declaredComponents = append(declaredComponents, entities.DeclaredComponent{
 				Purl: purl,

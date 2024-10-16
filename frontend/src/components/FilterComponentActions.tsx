@@ -26,10 +26,6 @@ export default function FilterComponentActions() {
     }
   };
 
-  const handleReplaceComponent = () => {
-    setShowReplaceComponentDialog(true);
-  };
-
   return (
     <>
       <div className="flex gap-2 md:justify-center">
@@ -47,12 +43,20 @@ export default function FilterComponentActions() {
         />
         <FilterActionButton
           action={FilterAction.Replace}
-          description="Dismissing a file/component will exclude it from future scan results."
+          description="Replace detected components with another one."
           icon={<Replace className="h-5 w-5 stroke-yellow-500" />}
-          onAdd={handleReplaceComponent}
+          onAdd={() => setShowReplaceComponentDialog(true)}
         />
       </div>
-      {showReplaceComponentDialog && <ReplaceComponentDialog />}
+      {showReplaceComponentDialog && (
+        <ReplaceComponentDialog
+          onOpenChange={() => setShowReplaceComponentDialog((prev) => !prev)}
+          onReplaceComponent={() => {
+            handleFilterComponent();
+            setShowReplaceComponentDialog(false);
+          }}
+        />
+      )}
     </>
   );
 }

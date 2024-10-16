@@ -28,7 +28,7 @@ func TestGetResults(t *testing.T) {
 		{
 			Path:      "path/to/file",
 			MatchType: "file",
-			Purl:      []string{"pkg:example/package"},
+			Purl:      &[]string{"pkg:example/package"},
 		},
 	}, nil)
 
@@ -41,6 +41,6 @@ func TestGetResults(t *testing.T) {
 	assert.Equal(t, results[0], entities.Result{
 		Path:      "path/to/file",
 		MatchType: "file",
-		Purl:      []string{"pkg:example/package"},
+		Purl:      &[]string{"pkg:example/package"},
 	})
 }

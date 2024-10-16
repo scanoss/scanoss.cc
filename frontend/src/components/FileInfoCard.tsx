@@ -24,6 +24,7 @@ export default function FileInfoCard({
 
   const isResultDismissed = filterConfig?.action === FilterAction.Remove;
   const isResultIncluded = filterConfig?.action === FilterAction.Include;
+  const isResultReplaced = filterConfig?.action === FilterAction.Replace;
 
   const shouldShowStateInfo =
     (fileType === 'local' && filterConfig?.type === 'by_file') ||
@@ -38,6 +39,8 @@ export default function FileInfoCard({
             isResultIncluded,
           'border-l-4 border-red-600 border-l-red-600 bg-red-950':
             isResultDismissed,
+          'border-l-4 border-yellow-600 border-l-yellow-600 bg-yellow-950':
+            isResultReplaced,
         }
       )}
     >
@@ -59,6 +62,9 @@ export default function FileInfoCard({
           )}
           {isResultDismissed && (
             <p className="text-xs text-red-500">Dismissed</p>
+          )}
+          {isResultReplaced && (
+            <p className="text-xs text-yellow-500">Dismissed</p>
           )}
         </div>
       )}

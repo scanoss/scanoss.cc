@@ -6,10 +6,10 @@ import (
 )
 
 type Result struct {
-	Path          string   `json:"path"`
-	MatchType     string   `json:"match_type"`
-	Purl          []string `json:"purl,omitempty"`
-	ComponentName string   `json:"component_name"`
+	Path          string    `json:"path"`
+	MatchType     string    `json:"match_type"`
+	Purl          *[]string `json:"purl,omitempty"`
+	ComponentName string    `json:"component"`
 }
 
 const (
@@ -43,7 +43,7 @@ type ResultFilter interface {
 type Match struct {
 	ID            string   `json:"id"`
 	Purl          []string `json:"purl,omitempty"`
-	ComponentName string   `json:"component_name"`
+	ComponentName string   `json:"component"`
 }
 
 var (

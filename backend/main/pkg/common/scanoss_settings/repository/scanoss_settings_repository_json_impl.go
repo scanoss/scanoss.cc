@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"reflect"
 
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
@@ -73,6 +72,8 @@ func (r *ScanossSettingsJsonRepository) AddBomEntry(newEntry entities.ComponentF
 		targetList = &sf.Bom.Remove
 	case "include":
 		targetList = &sf.Bom.Include
+	case "replace":
+		targetList = &sf.Bom.Replace
 	default:
 		return fmt.Errorf("invalid filter action: %s", filterAction)
 	}
@@ -89,6 +90,7 @@ func (r *ScanossSettingsJsonRepository) removeDuplicatesFromAllLists(newEntry en
 
 	sf.Bom.Remove = removeDuplicatesFromList(sf.Bom.Remove, newEntry)
 	sf.Bom.Include = removeDuplicatesFromList(sf.Bom.Include, newEntry)
+	sf.Bom.Replace = removeDuplicatesFromList(sf.Bom.Replace, newEntry)
 }
 
 func removeDuplicatesFromList(list []entities.ComponentFilter, newEntry entities.ComponentFilter) []entities.ComponentFilter {
@@ -112,22 +114,37 @@ func (r *ScanossSettingsJsonRepository) ClearAllFilters() error {
 	sf := r.GetSettingsFileContent()
 	sf.Bom.Include = []entities.ComponentFilter{}
 	sf.Bom.Remove = []entities.ComponentFilter{}
+	sf.Bom.Replace = []entities.ComponentFilter{}
 	return nil
 }
 
 func (r *ScanossSettingsJsonRepository) GetDeclaredPurls() []string {
 	sf := r.GetSettingsFileContent()
 
-	bom := reflect.ValueOf(sf)
+	includedComponents := extractPurlsFromBom(sf.Bom.Include)
+	removedComponents := extractPurlsFromBom(sf.Bom.Remove)
+	replacedComponents := extractPurlsFromBom(sf.Bom.Replace)
 
-	declaredPurls := make([]string, 0)
+	totalLength := len(includedComponents) + len(removedComponents) + len(replacedComponents)
+	declaredPurls := make([]string, 0, totalLength)
 
-	for i := 0; i < bom.NumField(); i++ {
-		filters := bom.Field(i).Interface().([]entities.ComponentFilter)
-		for _, filter := range filters {
-			declaredPurls = append(declaredPurls, filter.Purl)
-		}
-	}
+	declaredPurls = append(declaredPurls, includedComponents...)
+	declaredPurls = append(declaredPurls, removedComponents...)
+	declaredPurls = append(declaredPurls, replacedComponents...)
 
 	return declaredPurls
+}
+
+func extractPurlsFromBom(componentFilters []entities.ComponentFilter) []string {
+	if len(componentFilters) == 0 {
+		return []string{}
+	}
+
+	extractedPurls := make([]string, 0)
+
+	for _, cf := range componentFilters {
+		extractedPurls = append(extractedPurls, cf.Purl)
+	}
+
+	return extractedPurls
 }

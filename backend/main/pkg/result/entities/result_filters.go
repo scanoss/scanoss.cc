@@ -54,7 +54,7 @@ func (f *ResultFilterMatchType) IsValid(result Result) bool {
 func (f *ResultQueryFilter) IsValid(result Result) bool {
 	queryLower := strings.ToLower(f.query)
 	pathLower := strings.ToLower(result.Path)
-	purlLower := strings.ToLower(result.Purl[0])
+	purlLower := strings.ToLower((*result.Purl)[0])
 
 	return strings.Contains(pathLower, queryLower) || strings.Contains(purlLower, queryLower)
 }

@@ -87,13 +87,13 @@ func TestGetDeclaredComponents(t *testing.T) {
 				ComponentName: "component1",
 				Path:          "path/to/file",
 				MatchType:     "file",
-				Purl:          []string{"pkg:npm/purl1"},
+				Purl:          &[]string{"pkg:npm/purl1"},
 			},
 			{
 				ComponentName: "component2",
 				Path:          "path/to/file2",
 				MatchType:     "snippet",
-				Purl:          []string{"pkg:github/purl2"},
+				Purl:          &[]string{"pkg:github/purl2"},
 			},
 		}
 
@@ -130,13 +130,13 @@ func TestGetDeclaredComponents(t *testing.T) {
 				ComponentName: "component1",
 				Path:          "path/to/file",
 				MatchType:     "file",
-				Purl:          []string{"pkg:npm/purl1"},
+				Purl:          &[]string{"pkg:npm/purl1"},
 			},
 			{
 				ComponentName: "component2",
 				Path:          "path/to/file2",
 				MatchType:     "snippet",
-				Purl:          []string{"pkg:github/purl2"},
+				Purl:          &[]string{"pkg:github/purl2"},
 			},
 		}
 
@@ -176,13 +176,13 @@ func TestGetDeclaredComponents(t *testing.T) {
 				ComponentName: "component1",
 				Path:          "path/to/file",
 				MatchType:     "file",
-				Purl:          []string{"pkg:npm/purl1"},
+				Purl:          &[]string{"pkg:npm/purl1"},
 			},
 			{
 				ComponentName: "component2",
 				Path:          "path/to/file2",
 				MatchType:     "snippet",
-				Purl:          []string{"pkg:github/purl2"},
+				Purl:          &[]string{"pkg:github/purl2"},
 			},
 		}
 

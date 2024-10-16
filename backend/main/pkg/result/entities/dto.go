@@ -24,6 +24,7 @@ type FilterAction string
 const (
 	Include FilterAction = "include"
 	Remove  FilterAction = "remove"
+	Replace FilterAction = "replace"
 )
 
 type FilterType string

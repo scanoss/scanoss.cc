@@ -41,6 +41,12 @@ type ComponentFilter struct {
 	ReplaceWith string               `json:"replace_with,omitempty"`
 }
 
+type InitialFilters struct {
+	Include []ComponentFilter
+	Remove  []ComponentFilter
+	Replace []ComponentFilter
+}
+
 func (sf *SettingsFile) Equal(other *SettingsFile) (bool, error) {
 	originalSettingsFileJson, err := json.Marshal(sf)
 	if err != nil {
@@ -60,8 +66,9 @@ func (sf *SettingsFile) Equal(other *SettingsFile) (bool, error) {
 func (sf *SettingsFile) GetResultWorkflowState(result entities.Result) entities.WorkflowState {
 	included, _ := sf.IsResultIncluded(result)
 	removed, _ := sf.IsResultRemoved(result)
+	replaced, _ := sf.IsResultReplaced(result)
 
-	if included || removed {
+	if included || removed || replaced {
 		return entities.Completed
 	}
 
@@ -76,12 +83,16 @@ func (sf *SettingsFile) IsResultRemoved(result entities.Result) (bool, int) {
 	return sf.IsResultInList(result, sf.Bom.Remove)
 }
 
+func (sf *SettingsFile) IsResultReplaced(result entities.Result) (bool, int) {
+	return sf.IsResultInList(result, sf.Bom.Replace)
+}
+
 func (sf *SettingsFile) IsResultInList(result entities.Result, list []ComponentFilter) (bool, int) {
 	i := slices.IndexFunc(list, func(cf ComponentFilter) bool {
 		if cf.Path != "" && cf.Purl != "" {
-			return cf.Path == result.Path && slices.Contains(result.Purl, cf.Purl)
+			return cf.Path == result.Path && slices.Contains(*result.Purl, cf.Purl)
 		}
-		return slices.Contains(result.Purl, cf.Purl)
+		return slices.Contains(*result.Purl, cf.Purl)
 	})
 
 	return i != -1, i
@@ -97,6 +108,9 @@ func (sf *SettingsFile) GetResultFilterConfig(result entities.Result) entities.F
 	} else if removed, i := sf.IsResultRemoved(result); removed {
 		filterAction = entities.Remove
 		filterType = getResultFilterType(sf.Bom.Remove[i])
+	} else if replaced, i := sf.IsResultReplaced(result); replaced {
+		filterAction = entities.Replace
+		filterType = getResultFilterType(sf.Bom.Replace[i])
 	}
 
 	return entities.FilterConfig{
@@ -119,6 +133,10 @@ func (sf *SettingsFile) GetResultComment(result entities.Result) string {
 
 	if removed, i := sf.IsResultRemoved(result); removed {
 		return sf.Bom.Remove[i].Comment
+	}
+
+	if replaced, i := sf.IsResultReplaced(result); replaced {
+		return sf.Bom.Replace[i].Comment
 	}
 
 	return ""

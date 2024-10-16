@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"sort"
+
 	"github.com/go-playground/validator"
 	"github.com/labstack/gommon/log"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
@@ -28,8 +30,8 @@ func NewComponentController(service service.ComponentService, mapper mappers.Com
 }
 
 func (c *ComponentControllerImpl) initializeActionHistory() {
-	include, remove := c.service.GetInitialFilters()
-	for _, include := range include {
+	initialFilters := c.service.GetInitialFilters()
+	for _, include := range initialFilters.Include {
 		c.actionHistory = append(c.actionHistory, []entities.ComponentFilterDTO{
 			{
 				Path:   include.Path,
@@ -39,7 +41,7 @@ func (c *ComponentControllerImpl) initializeActionHistory() {
 			},
 		})
 	}
-	for _, remove := range remove {
+	for _, remove := range initialFilters.Remove {
 		c.actionHistory = append(c.actionHistory, []entities.ComponentFilterDTO{
 			{
 				Path:   remove.Path,
@@ -49,6 +51,18 @@ func (c *ComponentControllerImpl) initializeActionHistory() {
 			},
 		})
 	}
+
+	for _, replace := range initialFilters.Replace {
+		c.actionHistory = append(c.actionHistory, []entities.ComponentFilterDTO{
+			{
+				Path:   replace.Path,
+				Purl:   replace.Purl,
+				Usage:  string(replace.Usage),
+				Action: entities.Replace,
+			},
+		})
+	}
+
 	c.currentAction = len(c.actionHistory) - 1
 }
 
@@ -122,5 +136,15 @@ func (c *ComponentControllerImpl) CanRedo() (bool, error) {
 }
 
 func (c *ComponentControllerImpl) GetDeclaredComponents() ([]entities.DeclaredComponent, error) {
-	return c.service.GetDeclaredComponents()
+	declaredComponents, err := c.service.GetDeclaredComponents()
+
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(declaredComponents, func(i, j int) bool {
+		return declaredComponents[i].Name < declaredComponents[j].Name
+	})
+
+	return declaredComponents, nil
 }

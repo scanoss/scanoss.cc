@@ -194,6 +194,8 @@ function SidebarItem({ result, onSelect, selectionType }: SidebarItemProps) {
     result.filter_config?.action === FilterAction.Remove;
   const isResultIncluded =
     result.filter_config?.action === FilterAction.Include;
+  const isResultReplaced =
+    result.filter_config?.action === FilterAction.Replace;
 
   const fileName = getFileName(result.path);
   const directory = getDirectory(result.path);
@@ -215,8 +217,11 @@ function SidebarItem({ result, onSelect, selectionType }: SidebarItemProps) {
             <span
               className={clsx(
                 'absolute bottom-0 right-0 h-1 w-1 rounded-full',
-                isResultDismissed && 'bg-red-600',
-                isResultIncluded && 'bg-green-600'
+                {
+                  'bg-yellow-600': isResultReplaced,
+                  'bg-green-600': isResultIncluded,
+                  'bg-red-600': isResultDismissed,
+                }
               )}
             ></span>
           </span>

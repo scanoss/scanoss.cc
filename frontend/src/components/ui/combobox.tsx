@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 interface ComboboxProps {
   buttonClassName?: string;
   emptyText: string;
+  isLoading?: boolean;
   options: { value: string; label: string }[];
   placeholder: string;
   popoverClassName?: string;
@@ -31,6 +32,7 @@ interface ComboboxProps {
 export function Combobox({
   buttonClassName,
   emptyText,
+  isLoading,
   options,
   placeholder,
   popoverClassName,
@@ -40,7 +42,7 @@ export function Combobox({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger asChild disabled={isLoading}>
         <Button
           variant="outline"
           role="combobox"
@@ -50,7 +52,11 @@ export function Combobox({
           {value
             ? options.find((option) => option.value === value)?.label
             : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          {isLoading ? (
+            <Loader className="h-4 w-4 animate-spin" />
+          ) : (
+            <ChevronsUpDown className="h-4 w-4" />
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className={clsx('w-full p-0', popoverClassName)}>

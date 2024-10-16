@@ -14,17 +14,19 @@ import {
 import { FilterAction } from '../domain';
 
 interface ComponentFilterState {
-  action: FilterAction | null;
+  action: FilterAction | undefined;
   canRedo: boolean;
   canUndo: boolean;
-  comment?: string;
-  filterBy: 'by_file' | 'by_purl' | null;
+  comment: string | undefined;
+  filterBy: 'by_file' | 'by_purl' | undefined;
+  replaceWith: string | undefined;
 }
 
 interface ComponentFilterActions {
   onFilterComponent: () => Promise<string | null>;
   redo: () => Promise<void>;
   setAction: (action: FilterAction) => void;
+  setReplaceWith: (purl: string) => void;
   setFilterBy: (filterBy: 'by_file' | 'by_purl') => void;
   setComment: (comment: string | undefined) => void;
   undo: () => Promise<void>;
@@ -37,21 +39,20 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
   devtools((set, get) => ({
     canUndo: false,
     canRedo: false,
-    action: null,
-    filterBy: null,
-    comment: '',
+    action: undefined,
+    filterBy: undefined,
+    comment: undefined,
+    replaceWith: undefined,
 
     setAction: (action) => set({ action }),
     setFilterBy: (filterBy) => set({ filterBy }),
     setComment: (comment) => set({ comment }),
+    setReplaceWith: (replaceWith) => set({ replaceWith }),
 
     onFilterComponent: async () => {
-      const { filterBy, action, comment } = get();
+      const { filterBy, action, comment, replaceWith } = get();
 
-      if (!action || !filterBy) {
-        // TODO: Handle this...
-        return null;
-      }
+      if (!action || !filterBy) return null;
 
       const selectedResults = useResultsStore.getState().selectedResults;
 
@@ -60,6 +61,7 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
         comment,
         purl: result.purl,
         ...(filterBy === 'by_file' && { path: result.path }),
+        ...(replaceWith && { replace_with: replaceWith }),
       }));
 
       await FileService.filterComponents(finalDto);

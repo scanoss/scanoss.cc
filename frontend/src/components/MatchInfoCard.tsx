@@ -43,9 +43,13 @@ export default function MatchInfoCard() {
     result?.filter_config?.action === FilterAction.Remove;
   const isResultIncluded =
     result?.filter_config?.action === FilterAction.Include;
+  const isResultReplaced =
+    result?.filter_config?.action === FilterAction.Replace;
 
   const isResultFilteredByFile = result?.filter_config?.type === 'by_file';
   const isResultFilteredByPurl = result?.filter_config?.type === 'by_purl';
+
+  console.log(result);
 
   return (
     <div
@@ -102,6 +106,7 @@ export default function MatchInfoCard() {
                   {result.comment && <MessageSquareText className="h-3 w-3" />}
                   {isResultDismissed && 'Dismissed'}
                   {isResultIncluded && 'Included'}
+                  {isResultReplaced && 'Replaced'}
                   {isResultFilteredByFile && ' file'}
                   {isResultFilteredByPurl && ` component`}
                 </Badge>

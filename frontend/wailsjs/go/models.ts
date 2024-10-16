@@ -78,6 +78,7 @@ export namespace entities {
 	    usage?: string;
 	    action: string;
 	    comment?: string;
+	    replace_with?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ComponentFilterDTO(source);
@@ -90,6 +91,21 @@ export namespace entities {
 	        this.usage = source["usage"];
 	        this.action = source["action"];
 	        this.comment = source["comment"];
+	        this.replace_with = source["replace_with"];
+	    }
+	}
+	export class DeclaredComponent {
+	    name: string;
+	    purl: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeclaredComponent(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.purl = source["purl"];
 	    }
 	}
 	export class FileDTO {

@@ -39,3 +39,7 @@ func (h *ComponentHandler) ComponentFilterCanUndo() (bool, error) {
 func (h *ComponentHandler) ComponentFilterCanRedo() (bool, error) {
 	return h.componentModule.Controller.CanRedo()
 }
+
+func (h *ComponentHandler) GetDeclaredComponents() ([]entities.DeclaredComponent, error) {
+	return h.componentModule.Controller.GetDeclaredComponents()
+}

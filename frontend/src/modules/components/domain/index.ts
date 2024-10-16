@@ -19,3 +19,6 @@ export interface OnAddFilterArgs {
   filterBy: 'by_file' | 'by_purl';
   withComment?: boolean;
 }
+
+export const VALID_PURL_REGEX =
+  /^pkg:[a-zA-Z0-9.\-_]+(?:\/[a-zA-Z0-9.\-_]+)?\/[a-zA-Z0-9.\-_]+(?:@[a-zA-Z0-9.\-_]+)?(?:\?[a-zA-Z0-9.\-_=&]+)?(?:#[a-zA-Z0-9.\-_/]+)?$/;

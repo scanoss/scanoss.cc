@@ -19,7 +19,7 @@ func (m ResultMapperImpl) MapToResultDTO(result entities.Result) entities.Result
 	return entities.ResultDTO{
 		MatchType:     entities.MatchType(result.MatchType),
 		Path:          result.Path,
-		Purl:          result.Purl[0],
+		Purl:          (*result.Purl)[0],
 		WorkflowState: m.mapWorkflowState(result),
 		FilterConfig:  m.mapFilterConfig(result),
 		Comment:       m.mapComment(result),

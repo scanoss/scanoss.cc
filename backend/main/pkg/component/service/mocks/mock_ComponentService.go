@@ -227,35 +227,21 @@ func (_c *MockComponentService_GetDeclaredComponents_Call) RunAndReturn(run func
 }
 
 // GetInitialFilters provides a mock function with given fields:
-func (_m *MockComponentService) GetInitialFilters() ([]scanoss_settingsentities.ComponentFilter, []scanoss_settingsentities.ComponentFilter) {
+func (_m *MockComponentService) GetInitialFilters() scanoss_settingsentities.InitialFilters {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetInitialFilters")
 	}
 
-	var r0 []scanoss_settingsentities.ComponentFilter
-	var r1 []scanoss_settingsentities.ComponentFilter
-	if rf, ok := ret.Get(0).(func() ([]scanoss_settingsentities.ComponentFilter, []scanoss_settingsentities.ComponentFilter)); ok {
-		return rf()
-	}
-	if rf, ok := ret.Get(0).(func() []scanoss_settingsentities.ComponentFilter); ok {
+	var r0 scanoss_settingsentities.InitialFilters
+	if rf, ok := ret.Get(0).(func() scanoss_settingsentities.InitialFilters); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]scanoss_settingsentities.ComponentFilter)
-		}
+		r0 = ret.Get(0).(scanoss_settingsentities.InitialFilters)
 	}
 
-	if rf, ok := ret.Get(1).(func() []scanoss_settingsentities.ComponentFilter); ok {
-		r1 = rf()
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).([]scanoss_settingsentities.ComponentFilter)
-		}
-	}
-
-	return r0, r1
+	return r0
 }
 
 // MockComponentService_GetInitialFilters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetInitialFilters'
@@ -275,12 +261,12 @@ func (_c *MockComponentService_GetInitialFilters_Call) Run(run func()) *MockComp
 	return _c
 }
 
-func (_c *MockComponentService_GetInitialFilters_Call) Return(_a0 []scanoss_settingsentities.ComponentFilter, _a1 []scanoss_settingsentities.ComponentFilter) *MockComponentService_GetInitialFilters_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *MockComponentService_GetInitialFilters_Call) Return(_a0 scanoss_settingsentities.InitialFilters) *MockComponentService_GetInitialFilters_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockComponentService_GetInitialFilters_Call) RunAndReturn(run func() ([]scanoss_settingsentities.ComponentFilter, []scanoss_settingsentities.ComponentFilter)) *MockComponentService_GetInitialFilters_Call {
+func (_c *MockComponentService_GetInitialFilters_Call) RunAndReturn(run func() scanoss_settingsentities.InitialFilters) *MockComponentService_GetInitialFilters_Call {
 	_c.Call.Return(run)
 	return _c
 }

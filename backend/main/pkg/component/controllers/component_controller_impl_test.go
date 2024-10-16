@@ -16,7 +16,7 @@ func TestFilterComponent_Integration(t *testing.T) {
 	mockService := serviceMocks.NewMockComponentService(t)
 	mockMapper := mapperMocks.NewMockComponentMapper(t)
 
-	mockService.EXPECT().GetInitialFilters().Return([]scanossSettingsEntities.ComponentFilter{}, []scanossSettingsEntities.ComponentFilter{})
+	mockService.EXPECT().GetInitialFilters().Return(scanossSettingsEntities.InitialFilters{})
 
 	controller := controllers.NewComponentController(mockService, mockMapper)
 

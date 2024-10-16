@@ -10,4 +10,5 @@ type ComponentService interface {
 	FilterComponents(dto []entities.ComponentFilterDTO) error
 	ClearAllFilters() error
 	GetInitialFilters() ([]scanossSettingsEntities.ComponentFilter, []scanossSettingsEntities.ComponentFilter)
+	GetDeclaredComponents() ([]entities.DeclaredComponent, error)
 }

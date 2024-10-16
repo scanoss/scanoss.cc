@@ -112,6 +112,53 @@ func (_c *MockScanossSettingsRepository_ClearAllFilters_Call) RunAndReturn(run f
 	return _c
 }
 
+// GetDeclaredPurls provides a mock function with given fields:
+func (_m *MockScanossSettingsRepository) GetDeclaredPurls() []string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDeclaredPurls")
+	}
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	return r0
+}
+
+// MockScanossSettingsRepository_GetDeclaredPurls_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDeclaredPurls'
+type MockScanossSettingsRepository_GetDeclaredPurls_Call struct {
+	*mock.Call
+}
+
+// GetDeclaredPurls is a helper method to define mock.On call
+func (_e *MockScanossSettingsRepository_Expecter) GetDeclaredPurls() *MockScanossSettingsRepository_GetDeclaredPurls_Call {
+	return &MockScanossSettingsRepository_GetDeclaredPurls_Call{Call: _e.mock.On("GetDeclaredPurls")}
+}
+
+func (_c *MockScanossSettingsRepository_GetDeclaredPurls_Call) Run(run func()) *MockScanossSettingsRepository_GetDeclaredPurls_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockScanossSettingsRepository_GetDeclaredPurls_Call) Return(_a0 []string) *MockScanossSettingsRepository_GetDeclaredPurls_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockScanossSettingsRepository_GetDeclaredPurls_Call) RunAndReturn(run func() []string) *MockScanossSettingsRepository_GetDeclaredPurls_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSettingsFileContent provides a mock function with given fields:
 func (_m *MockScanossSettingsRepository) GetSettingsFileContent() *entities.SettingsFile {
 	ret := _m.Called()

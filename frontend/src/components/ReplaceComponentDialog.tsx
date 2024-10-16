@@ -5,6 +5,7 @@ import { Combobox } from './ui/combobox';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -38,18 +39,18 @@ export default function ReplaceComponentDialog() {
     <Dialog open={open} onOpenChange={() => setOpen(false)}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Replace Component</DialogTitle>
+          <DialogTitle>Replace</DialogTitle>
+          <DialogDescription>
+            You can search for an existing component or manually enter a PURL
+          </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-4">
-          <div>
-            <Label>Component</Label>
-            <Combobox
-              options={placeholderComponentOptions}
-              placeholder="Select component..."
-              emptyText="No components found"
-            />
-          </div>
+          <Combobox
+            options={placeholderComponentOptions}
+            placeholder="Search component..."
+            emptyText="No components found"
+          />
           <div>
             <Label>Purl</Label>
             <Input placeholder="pkg:github/scanoss/scanner.c" />

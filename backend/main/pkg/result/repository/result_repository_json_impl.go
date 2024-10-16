@@ -66,6 +66,7 @@ func (r *ResultRepositoryJsonImpl) parseScanResults(resultByte []byte) ([]entiti
 			scanResult.Path = key
 			scanResult.MatchType = match.ID
 			scanResult.Purl = match.Purl
+			scanResult.ComponentName = match.ComponentName
 			scanResults = append(scanResults, scanResult)
 		}
 	}

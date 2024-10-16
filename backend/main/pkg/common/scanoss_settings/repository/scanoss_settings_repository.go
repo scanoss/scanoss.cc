@@ -1,6 +1,8 @@
 package repository
 
-import "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
+import (
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
+)
 
 type ScanossSettingsRepository interface {
 	Save() error
@@ -9,4 +11,5 @@ type ScanossSettingsRepository interface {
 	AddBomEntry(newEntry entities.ComponentFilter, filterAction string) error
 	ClearAllFilters() error
 	GetSettingsFileContent() *entities.SettingsFile
+	GetDeclaredPurls() []string
 }

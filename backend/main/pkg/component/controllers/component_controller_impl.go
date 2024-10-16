@@ -4,18 +4,21 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/labstack/gommon/log"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/mappers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
 )
 
 type ComponentControllerImpl struct {
 	service       service.ComponentService
+	mapper        mappers.ComponentMapper
 	actionHistory [][]entities.ComponentFilterDTO
 	currentAction int
 }
 
-func NewComponentController(service service.ComponentService) ComponentController {
+func NewComponentController(service service.ComponentService, mapper mappers.ComponentMapper) ComponentController {
 	controller := &ComponentControllerImpl{
 		service:       service,
+		mapper:        mapper,
 		actionHistory: [][]entities.ComponentFilterDTO{},
 		currentAction: -1,
 	}
@@ -116,4 +119,8 @@ func (c *ComponentControllerImpl) CanUndo() (bool, error) {
 
 func (c *ComponentControllerImpl) CanRedo() (bool, error) {
 	return c.currentAction < len(c.actionHistory)-1, nil
+}
+
+func (c *ComponentControllerImpl) GetDeclaredComponents() ([]entities.DeclaredComponent, error) {
+	return c.service.GetDeclaredComponents()
 }

@@ -55,3 +55,8 @@ type Component struct {
 		Elapsed  string `json:"elapsed,omitempty"`
 	} `json:"server"`
 }
+
+type DeclaredComponent struct {
+	Name string `json:"name"`
+	Purl string `json:"purl"`
+}

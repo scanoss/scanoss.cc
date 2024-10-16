@@ -169,6 +169,63 @@ func (_c *MockComponentService_GetComponentByFilePath_Call) RunAndReturn(run fun
 	return _c
 }
 
+// GetDeclaredComponents provides a mock function with given fields:
+func (_m *MockComponentService) GetDeclaredComponents() ([]entities.DeclaredComponent, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDeclaredComponents")
+	}
+
+	var r0 []entities.DeclaredComponent
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]entities.DeclaredComponent, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []entities.DeclaredComponent); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]entities.DeclaredComponent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockComponentService_GetDeclaredComponents_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDeclaredComponents'
+type MockComponentService_GetDeclaredComponents_Call struct {
+	*mock.Call
+}
+
+// GetDeclaredComponents is a helper method to define mock.On call
+func (_e *MockComponentService_Expecter) GetDeclaredComponents() *MockComponentService_GetDeclaredComponents_Call {
+	return &MockComponentService_GetDeclaredComponents_Call{Call: _e.mock.On("GetDeclaredComponents")}
+}
+
+func (_c *MockComponentService_GetDeclaredComponents_Call) Run(run func()) *MockComponentService_GetDeclaredComponents_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockComponentService_GetDeclaredComponents_Call) Return(_a0 []entities.DeclaredComponent, _a1 error) *MockComponentService_GetDeclaredComponents_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockComponentService_GetDeclaredComponents_Call) RunAndReturn(run func() ([]entities.DeclaredComponent, error)) *MockComponentService_GetDeclaredComponents_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetInitialFilters provides a mock function with given fields:
 func (_m *MockComponentService) GetInitialFilters() ([]scanoss_settingsentities.ComponentFilter, []scanoss_settingsentities.ComponentFilter) {
 	ret := _m.Called()

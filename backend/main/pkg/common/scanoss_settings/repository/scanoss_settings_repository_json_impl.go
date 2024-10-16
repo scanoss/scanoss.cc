@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
@@ -112,4 +113,21 @@ func (r *ScanossSettingsJsonRepository) ClearAllFilters() error {
 	sf.Bom.Include = []entities.ComponentFilter{}
 	sf.Bom.Remove = []entities.ComponentFilter{}
 	return nil
+}
+
+func (r *ScanossSettingsJsonRepository) GetDeclaredPurls() []string {
+	sf := r.GetSettingsFileContent()
+
+	bom := reflect.ValueOf(sf)
+
+	declaredPurls := make([]string, 0)
+
+	for i := 0; i < bom.NumField(); i++ {
+		filters := bom.Field(i).Interface().([]entities.ComponentFilter)
+		for _, filter := range filters {
+			declaredPurls = append(declaredPurls, filter.Purl)
+		}
+	}
+
+	return declaredPurls
 }

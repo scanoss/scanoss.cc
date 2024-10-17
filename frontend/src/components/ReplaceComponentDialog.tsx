@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
-import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 
 import { GetDeclaredComponents } from '../../wailsjs/go/handlers/ComponentHandler';
 import { entities } from '../../wailsjs/go/models';
@@ -49,7 +48,7 @@ const ReplaceComponentFormSchema = z.object({
 
 interface ReplaceComponentDialogProps {
   onOpenChange: () => void;
-  onReplaceComponent: () => void;
+  onReplaceComponent: (replaceWith: string) => void;
 }
 
 export default function ReplaceComponentDialog({
@@ -57,14 +56,11 @@ export default function ReplaceComponentDialog({
   onReplaceComponent,
 }: ReplaceComponentDialogProps) {
   const { toast } = useToast();
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
   const [declaredComponents, setDeclaredComponents] = useState<
     entities.DeclaredComponent[]
   >([]);
-
-  const setReplaceWith = useComponentFilterStore(
-    (state) => state.setReplaceWith
-  );
 
   const form = useForm<z.infer<typeof ReplaceComponentFormSchema>>({
     resolver: zodResolver(ReplaceComponentFormSchema),
@@ -81,11 +77,7 @@ export default function ReplaceComponentDialog({
   });
 
   const onSubmit = (values: z.infer<typeof ReplaceComponentFormSchema>) => {
-    setReplaceWith(values.purl);
-
-    setTimeout(() => {
-      onReplaceComponent();
-    }, 200);
+    onReplaceComponent(values.purl);
   };
 
   const onComponentCreated = (component: entities.DeclaredComponent) => {
@@ -129,7 +121,7 @@ export default function ReplaceComponentDialog({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Component</FormLabel>
-                    <Popover>
+                    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -157,9 +149,10 @@ export default function ReplaceComponentDialog({
                             <CommandGroup>
                               <CommandItem asChild>
                                 <div
-                                  onClick={() =>
-                                    setNewComponentDialogOpen(true)
-                                  }
+                                  onClick={() => {
+                                    setNewComponentDialogOpen(true);
+                                    setPopoverOpen(false);
+                                  }}
                                 >
                                   <Plus className="mr-2 h-4 w-4" />
                                   Add new component
@@ -175,6 +168,7 @@ export default function ReplaceComponentDialog({
                                     key={component.purl}
                                     onSelect={() => {
                                       form.setValue('purl', component.purl);
+                                      setPopoverOpen(false);
                                     }}
                                   >
                                     <Check

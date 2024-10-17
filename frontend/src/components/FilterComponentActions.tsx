@@ -2,29 +2,56 @@ import { Check, PackageMinus, Replace } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { withErrorHandling } from '@/lib/errors';
 import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 
 import FilterActionButton from './FilterActionButton';
 import ReplaceComponentDialog from './ReplaceComponentDialog';
+import { useToast } from './ui/use-toast';
 
 export default function FilterComponentActions() {
+  const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [showReplaceComponentDialog, setShowReplaceComponentDialog] =
-    useState(false);
+  const [showReplaceComponentDialog, setShowReplaceComponentDialog] = useState(false);
 
-  const onFilterComponent = useComponentFilterStore(
-    (state) => state.onFilterComponent
-  );
+  const onFilterComponent = useComponentFilterStore((state) => state.onFilterComponent);
 
-  const handleFilterComponent = async () => {
-    const nextResultRoute = await onFilterComponent();
+  const handleFilterComponent = withErrorHandling({
+    asyncFn: async (replaceWith?: string) => {
+      const nextResultRoute = await onFilterComponent({
+        replaceWith,
+      });
 
-    if (nextResultRoute) {
-      navigate(nextResultRoute);
-    }
-  };
+      if (nextResultRoute) {
+        navigate(nextResultRoute);
+      }
+    },
+    onError: (error) => {
+      console.error(error);
+      toast({
+        title: 'Error',
+        description: 'An error occurred while filtering the component. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleReplaceComponent = withErrorHandling({
+    asyncFn: async (replaceWith: string) => {
+      await handleFilterComponent(replaceWith);
+      setShowReplaceComponentDialog(false);
+    },
+    onError: (error) => {
+      console.error(error);
+      toast({
+        title: 'Error',
+        description: 'An error occurred while replacing the component. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   return (
     <>
@@ -51,10 +78,7 @@ export default function FilterComponentActions() {
       {showReplaceComponentDialog && (
         <ReplaceComponentDialog
           onOpenChange={() => setShowReplaceComponentDialog((prev) => !prev)}
-          onReplaceComponent={() => {
-            handleFilterComponent();
-            setShowReplaceComponentDialog(false);
-          }}
+          onReplaceComponent={handleReplaceComponent}
         />
       )}
     </>

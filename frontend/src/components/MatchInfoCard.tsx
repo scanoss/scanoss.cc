@@ -4,18 +4,10 @@ import { MessageSquareText } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { FilterAction } from '@/modules/components/domain';
 import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
-import {
-  MatchType,
-  matchTypePresentation,
-  resultStatusPresentation,
-} from '@/modules/results/domain';
+import { MatchType, matchTypePresentation, resultStatusPresentation } from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
@@ -39,17 +31,12 @@ export default function MatchInfoCard() {
   const status = result?.workflow_state;
   const matchPresentation = matchTypePresentation[component.id as MatchType];
 
-  const isResultDismissed =
-    result?.filter_config?.action === FilterAction.Remove;
-  const isResultIncluded =
-    result?.filter_config?.action === FilterAction.Include;
-  const isResultReplaced =
-    result?.filter_config?.action === FilterAction.Replace;
+  const isResultDismissed = result?.filter_config?.action === FilterAction.Remove;
+  const isResultIncluded = result?.filter_config?.action === FilterAction.Include;
+  const isResultReplaced = result?.filter_config?.action === FilterAction.Replace;
 
   const isResultFilteredByFile = result?.filter_config?.type === 'by_file';
   const isResultFilteredByPurl = result?.filter_config?.type === 'by_purl';
-
-  console.log(result);
 
   return (
     <div
@@ -75,9 +62,7 @@ export default function MatchInfoCard() {
         ) : null}
         <div>
           <div className={matchPresentation.muted}>Detected</div>
-          <div className={matchPresentation.accent}>
-            {matchPresentation.label}
-          </div>
+          <div className={matchPresentation.accent}>{matchPresentation.label}</div>
         </div>
         <div>
           <div className={matchPresentation.muted}>Match</div>
@@ -87,10 +72,7 @@ export default function MatchInfoCard() {
           <div>
             <div className={matchPresentation.muted}>Status</div>
             <Badge
-              className={clsx(
-                'flex items-center gap-1 font-normal',
-                resultStatusPresentation[status].badgeStyles
-              )}
+              className={clsx('flex items-center gap-1 font-normal', resultStatusPresentation[status].badgeStyles)}
             >
               {resultStatusPresentation[status].icon}
               {resultStatusPresentation[status].label}

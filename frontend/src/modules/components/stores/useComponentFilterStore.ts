@@ -19,14 +19,16 @@ interface ComponentFilterState {
   canUndo: boolean;
   comment: string | undefined;
   filterBy: 'by_file' | 'by_purl' | undefined;
-  replaceWith: string | undefined;
+}
+
+export interface OnFilterComponentArgs {
+  replaceWith?: string;
 }
 
 interface ComponentFilterActions {
-  onFilterComponent: () => Promise<string | null>;
+  onFilterComponent: (args?: OnFilterComponentArgs) => Promise<string | null>;
   redo: () => Promise<void>;
   setAction: (action: FilterAction) => void;
-  setReplaceWith: (purl: string) => void;
   setFilterBy: (filterBy: 'by_file' | 'by_purl') => void;
   setComment: (comment: string | undefined) => void;
   undo: () => Promise<void>;
@@ -42,17 +44,22 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
     action: undefined,
     filterBy: undefined,
     comment: undefined,
-    replaceWith: undefined,
 
     setAction: (action) => set({ action }),
     setFilterBy: (filterBy) => set({ filterBy }),
     setComment: (comment) => set({ comment }),
-    setReplaceWith: (replaceWith) => set({ replaceWith }),
 
-    onFilterComponent: async () => {
-      const { filterBy, action, comment, replaceWith } = get();
+    onFilterComponent: async (args?: OnFilterComponentArgs) => {
+      const { replaceWith } = args || {};
+      const { filterBy, action, comment } = get();
 
-      if (!action || !filterBy) return null;
+      if (!action || !filterBy) {
+        throw new Error('There was an error filtering the component. Please try again.');
+      }
+
+      if (action === FilterAction.Replace && !replaceWith) {
+        throw new Error('There was an error replacing the component. Please try again.');
+      }
 
       const selectedResults = useResultsStore.getState().selectedResults;
 
@@ -70,16 +77,10 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
       await useResultsStore.getState().fetchResults();
 
       // Clear the selection after completing the action
-      useResultsStore.setState(
-        { selectedResults: [] },
-        false,
-        'CLEAR_SELECTED_RESULTS'
-      );
+      useResultsStore.setState({ selectedResults: [] }, false, 'CLEAR_SELECTED_RESULTS');
 
       const allResults = useResultsStore.getState().results;
-      const pendingResults = allResults.filter(
-        (result) => result.workflow_state === 'pending'
-      );
+      const pendingResults = allResults.filter((result) => result.workflow_state === 'pending');
 
       return getNextPendingResultPathRoute(pendingResults);
     },
@@ -97,10 +98,7 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
     },
 
     updateUndoRedoState: async () => {
-      const [canUndo, canRedo] = await Promise.all([
-        ComponentFilterCanUndo(),
-        ComponentFilterCanRedo(),
-      ]);
+      const [canUndo, canRedo] = await Promise.all([ComponentFilterCanUndo(), ComponentFilterCanRedo()]);
       set({ canUndo, canRedo }, false, 'UPDATE_UNDO_REDO_STATE');
     },
   }))

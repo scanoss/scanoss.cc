@@ -73,18 +73,6 @@ func (s *ComponentServiceImpl) GetDeclaredComponents() ([]entities.DeclaredCompo
 	declaredComponents := make([]entities.DeclaredComponent, 0)
 	addedPurls := make(map[string]struct{})
 
-	// for _, result := range results {
-	// 	log.Println("result", result.ComponentName, result.Purl)
-
-	// 	if result.Purl == nil || len(*result.Purl) == 0 {
-	// 		continue
-	// 	}
-	// 	declaredComponents = append(declaredComponents, entities.DeclaredComponent{
-	// 		Purl: (*result.Purl)[0],
-	// 		Name: result.ComponentName,
-	// 	})
-	// }
-
 	for _, result := range results {
 		if result.Purl == nil || len(*result.Purl) == 0 {
 			continue

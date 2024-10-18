@@ -1,15 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
-import { Check, ChevronsUpDown, Plus } from 'lucide-react';
+import { Check, ChevronsUpDown, CircleAlert, FileWarning, Plus, Terminal } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
+import { FilterAction } from '@/modules/components/domain';
+import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 
 import { GetDeclaredComponents } from '../../wailsjs/go/handlers/ComponentHandler';
 import { entities } from '../../wailsjs/go/models';
+import FilterByPurlList from './FilterByPurlList';
 import NewComponentDialog from './NewComponentDialog';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
 import {
   Command,
@@ -20,30 +24,18 @@ import {
   CommandList,
   CommandSeparator,
 } from './ui/command';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from './ui/form';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { ScrollArea } from './ui/scroll-area';
+import { Textarea } from './ui/textarea';
 import { useToast } from './ui/use-toast';
 
 const ReplaceComponentFormSchema = z.object({
   purl: z.string().min(1, 'You must select a component.'),
+  comment: z.string().optional(),
 });
 
 interface ReplaceComponentDialogProps {
@@ -51,21 +43,21 @@ interface ReplaceComponentDialogProps {
   onReplaceComponent: (replaceWith: string) => void;
 }
 
-export default function ReplaceComponentDialog({
-  onOpenChange,
-  onReplaceComponent,
-}: ReplaceComponentDialogProps) {
+export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponent }: ReplaceComponentDialogProps) {
   const { toast } = useToast();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
-  const [declaredComponents, setDeclaredComponents] = useState<
-    entities.DeclaredComponent[]
-  >([]);
+  const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
+
+  const withComment = useComponentFilterStore((state) => state.withComment);
+  const filterBy = useComponentFilterStore((state) => state.filterBy);
+  const setComment = useComponentFilterStore((state) => state.setComment);
 
   const form = useForm<z.infer<typeof ReplaceComponentFormSchema>>({
     resolver: zodResolver(ReplaceComponentFormSchema),
     defaultValues: {
       purl: '',
+      comment: '',
     },
   });
 
@@ -81,9 +73,7 @@ export default function ReplaceComponentDialog({
   };
 
   const onComponentCreated = (component: entities.DeclaredComponent) => {
-    const alreadyExists = declaredComponents.some(
-      (c) => c.purl === component.purl
-    );
+    const alreadyExists = declaredComponents.some((c) => c.purl === component.purl);
     if (alreadyExists) {
       return toast({
         title: 'Warning',
@@ -108,10 +98,7 @@ export default function ReplaceComponentDialog({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Replace</DialogTitle>
-              <DialogDescription>
-                You can search for an existing component or manually enter a
-                PURL
-              </DialogDescription>
+              <DialogDescription>You can search for an existing component or manually enter a PURL</DialogDescription>
             </DialogHeader>
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -127,15 +114,10 @@ export default function ReplaceComponentDialog({
                           <Button
                             variant="outline"
                             role="combobox"
-                            className={cn(
-                              'justify-between',
-                              !field.value && 'text-muted-foreground'
-                            )}
+                            className={cn('justify-between', !field.value && 'text-muted-foreground')}
                           >
                             {field.value
-                              ? declaredComponents?.find(
-                                  (component) => component.purl === field.value
-                                )?.name
+                              ? declaredComponents?.find((component) => component.purl === field.value)?.name
                               : 'Select component'}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -174,16 +156,12 @@ export default function ReplaceComponentDialog({
                                     <Check
                                       className={cn(
                                         'mr-2 h-4 w-4',
-                                        component.purl === field.value
-                                          ? 'opacity-100'
-                                          : 'opacity-0'
+                                        component.purl === field.value ? 'opacity-100' : 'opacity-0'
                                       )}
                                     />
                                     <div>
                                       <p>{component.name}</p>
-                                      <p className="text-xs text-muted-foreground">
-                                        {component.purl}
-                                      </p>
+                                      <p className="text-xs text-muted-foreground">{component.purl}</p>
                                     </div>
                                   </CommandItem>
                                 ))}
@@ -200,12 +178,41 @@ export default function ReplaceComponentDialog({
 
               <div>
                 <Label>Purl</Label>
-                <Input
-                  value={selectedPurl}
-                  disabled
-                  className="disabled:cursor-default"
-                />
+                <Input value={selectedPurl} disabled className="disabled:cursor-default" />
               </div>
+
+              {withComment && (
+                <FormField
+                  control={form.control}
+                  name="comment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Comment</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          autoCapitalize="off"
+                          onChange={(e) => {
+                            field.onChange(e);
+                            setComment(e.target.value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {filterBy === 'by_purl' && (
+                <Alert>
+                  <CircleAlert className="h-4 w-4" />
+                  <AlertTitle>Be careful!</AlertTitle>
+                  <AlertDescription>
+                    <FilterByPurlList action={FilterAction.Replace} />
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <DialogFooter>
                 <Button variant="ghost" onClick={onOpenChange}>

@@ -19,6 +19,7 @@ interface ComponentFilterState {
   canUndo: boolean;
   comment: string | undefined;
   filterBy: 'by_file' | 'by_purl' | undefined;
+  withComment: boolean;
 }
 
 export interface OnFilterComponentArgs {
@@ -31,6 +32,7 @@ interface ComponentFilterActions {
   setAction: (action: FilterAction) => void;
   setFilterBy: (filterBy: 'by_file' | 'by_purl') => void;
   setComment: (comment: string | undefined) => void;
+  setWithComment: (withComment: boolean) => void;
   undo: () => Promise<void>;
   updateUndoRedoState: () => Promise<void>;
 }
@@ -44,10 +46,12 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
     action: undefined,
     filterBy: undefined,
     comment: undefined,
+    withComment: false,
 
     setAction: (action) => set({ action }),
     setFilterBy: (filterBy) => set({ filterBy }),
     setComment: (comment) => set({ comment }),
+    setWithComment: (withComment) => set({ withComment }),
 
     onFilterComponent: async (args?: OnFilterComponentArgs) => {
       const { replaceWith } = args || {};

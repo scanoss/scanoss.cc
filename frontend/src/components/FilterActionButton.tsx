@@ -20,9 +20,8 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
-import useResultsStore from '@/modules/results/stores/useResultsStore';
 
-import { ScrollArea } from './ui/scroll-area';
+import FilterByPurlList from './FilterByPurlList';
 
 interface FilterActionProps {
   action: FilterAction;
@@ -40,10 +39,11 @@ export default function FilterActionButton({ action, description, icon, onAdd }:
   const setAction = useComponentFilterStore((state) => state.setAction);
   const setComment = useComponentFilterStore((state) => state.setComment);
   const setFilterBy = useComponentFilterStore((state) => state.setFilterBy);
+  const setWithComment = useComponentFilterStore((state) => state.setWithComment);
 
-  const selectedResults = useResultsStore((state) => state.selectedResults);
+  const actionsThatShouldPromptForCommentOrConfirmation = [FilterAction.Include, FilterAction.Remove];
 
-  const onSelectOption = async (action: FilterAction, filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
+  const maybePromptForCommentOrConfirmation = async (filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
     let comment: string | undefined;
 
     if (withComment) {
@@ -56,9 +56,17 @@ export default function FilterActionButton({ action, description, icon, onAdd }:
       if (!confirm) return;
     }
 
+    setComment(comment);
+  };
+
+  const onSelectOption = async (action: FilterAction, filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
     setAction(action);
     setFilterBy(filterBy);
-    setComment(comment);
+    setWithComment(withComment);
+
+    if (actionsThatShouldPromptForCommentOrConfirmation.includes(action)) {
+      await maybePromptForCommentOrConfirmation(filterBy, withComment);
+    }
 
     onAdd();
   };
@@ -74,26 +82,7 @@ export default function FilterActionButton({ action, description, icon, onAdd }:
   };
 
   const handleConfirmByPurl = async (): Promise<boolean> => {
-    return ask(
-      <div>
-        <p>
-          This action will {action} all matches with{' '}
-          {selectedResults.length > 1 ? `the following PURLs: ` : `the same PURL:`}
-        </p>
-
-        {selectedResults.length > 1 ? (
-          <ScrollArea className="py-2">
-            <ul className="max-h-[200px] list-disc pl-6">
-              {selectedResults.map((result) => (
-                <li key={result.path}>{result.purl?.detected}</li>
-              ))}
-            </ul>
-          </ScrollArea>
-        ) : (
-          <p>{selectedResults[0]?.purl?.detected}</p>
-        )}
-      </div>
-    );
+    return ask(<FilterByPurlList action={action} />);
   };
 
   return (

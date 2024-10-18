@@ -16,6 +16,10 @@ func GetValidator() *validator.Validate {
 }
 
 func ValidatePurl(fl validator.FieldLevel) bool {
+	if fl.Field().String() == "" {
+		return true
+	}
+
 	_, err := purlutils.PurlFromString(fl.Field().String())
 
 	return err == nil

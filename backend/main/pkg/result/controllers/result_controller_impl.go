@@ -3,11 +3,11 @@ package controllers
 import (
 	"sort"
 
-	"github.com/go-playground/validator"
 	"github.com/labstack/gommon/log"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/mappers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/service"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 )
 
 type ResultControllerImpl struct {
@@ -23,8 +23,7 @@ func NewResultController(service service.ResultService, mapper mappers.ResultMap
 }
 
 func (c *ResultControllerImpl) GetAll(dto *entities.RequestResultDTO) ([]entities.ResultDTO, error) {
-	validate := validator.New()
-	err := validate.Struct(dto)
+	err := utils.GetValidator().Struct(dto)
 	if err != nil {
 		log.Errorf("Validation error: %v", err)
 		return []entities.ResultDTO{}, err

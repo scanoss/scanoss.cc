@@ -1,6 +1,8 @@
 import { Check, CircleDotDashed } from 'lucide-react';
 import { ReactNode } from 'react';
 
+import { FilterAction } from '@/modules/components/domain';
+
 export enum MatchType {
   File = 'file',
   Snippet = 'snippet',
@@ -12,10 +14,7 @@ interface ResultStatusPresentation {
   icon: ReactNode;
 }
 
-export const resultStatusPresentation: Record<
-  string,
-  ResultStatusPresentation
-> = {
+export const resultStatusPresentation: Record<string, ResultStatusPresentation> = {
   pending: {
     badgeStyles:
       'bg-[color:hsl(200,40%,20%)] text-white border-[color:hsl(200,40%,30%)] hover:bg-[color:hsl(200,40%,20%)]',
@@ -52,5 +51,39 @@ export const matchTypePresentation: Record<MatchType, MatchTypePresentation> = {
     accent: 'text-snippet-accent',
     muted: 'text-muted-foreground',
     label: 'Snippet',
+  },
+};
+
+interface StateInfoPresentation {
+  label: string;
+  stateInfoContainerStyles: string;
+  stateInfoSidebarIndicatorStyles: string;
+  stateInfoTextStyles: string;
+}
+
+export const stateInfoPresentation: Record<FilterAction, StateInfoPresentation> = {
+  [FilterAction.Include]: {
+    label: 'Included',
+    stateInfoContainerStyles: 'border-l-4 border-green-600 border-l-green-600 bg-green-950',
+    stateInfoSidebarIndicatorStyles: 'bg-green-600',
+    stateInfoTextStyles: 'text-green-600',
+  },
+  [FilterAction.Remove]: {
+    label: 'Removed',
+    stateInfoContainerStyles: 'border-l-4 border-green-600 border-l-green-600 bg-green-950',
+    stateInfoSidebarIndicatorStyles: 'bg-red-600',
+    stateInfoTextStyles: 'text-green-600',
+  },
+  [FilterAction.Replace]: {
+    label: 'Replaced',
+    stateInfoContainerStyles: 'border-l-4 border-green-600 border-l-green-600 bg-green-950',
+    stateInfoSidebarIndicatorStyles: 'bg-yellow-600',
+    stateInfoTextStyles: 'text-green-600',
+  },
+  [FilterAction.Ignore]: {
+    label: 'Ignored',
+    stateInfoContainerStyles: 'border-l-4 border-gray-600 border-l-gray-600 bg-gray-950',
+    stateInfoSidebarIndicatorStyles: 'bg-gray-600',
+    stateInfoTextStyles: 'text-gray-600',
   },
 };

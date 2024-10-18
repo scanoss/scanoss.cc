@@ -126,18 +126,18 @@ func getResultFilterType(cf ComponentFilter) entities.FilterType {
 	return entities.ByPurl
 }
 
-func (sf *SettingsFile) GetResultComment(result entities.Result) string {
+func (sf *SettingsFile) GetBomEntryFromResult(result entities.Result) ComponentFilter {
 	if included, i := sf.IsResultIncluded(result); included {
-		return sf.Bom.Include[i].Comment
+		return sf.Bom.Include[i]
 	}
 
 	if removed, i := sf.IsResultRemoved(result); removed {
-		return sf.Bom.Remove[i].Comment
+		return sf.Bom.Remove[i]
 	}
 
 	if replaced, i := sf.IsResultReplaced(result); replaced {
-		return sf.Bom.Replace[i].Comment
+		return sf.Bom.Replace[i]
 	}
 
-	return ""
+	return ComponentFilter{}
 }

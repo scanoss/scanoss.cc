@@ -152,9 +152,25 @@ export namespace entities {
 	        this.query = source["query"];
 	    }
 	}
+	export class ResultPurl {
+	    detected?: string;
+	    concluded?: string;
+	    concluded_purl_url?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ResultPurl(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.detected = source["detected"];
+	        this.concluded = source["concluded"];
+	        this.concluded_purl_url = source["concluded_purl_url"];
+	    }
+	}
 	export class ResultDTO {
 	    path: string;
-	    purl: string;
+	    purl?: ResultPurl;
 	    match_type: string;
 	    workflow_state?: string;
 	    filter_config?: FilterConfig;
@@ -167,7 +183,7 @@ export namespace entities {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.path = source["path"];
-	        this.purl = source["purl"];
+	        this.purl = this.convertValues(source["purl"], ResultPurl);
 	        this.match_type = source["match_type"];
 	        this.workflow_state = source["workflow_state"];
 	        this.filter_config = this.convertValues(source["filter_config"], FilterConfig);

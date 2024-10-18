@@ -5,16 +5,21 @@ import { MessageSquareText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import useSelectedResult from '@/hooks/useSelectedResult';
 import { FilterAction } from '@/modules/components/domain';
 import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
-import { MatchType, matchTypePresentation, resultStatusPresentation } from '@/modules/results/domain';
+import {
+  MatchType,
+  matchTypePresentation,
+  resultStatusPresentation,
+  stateInfoPresentation,
+} from '@/modules/results/domain';
 import ResultService from '@/modules/results/infra/service';
-import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import ComponentDetailTooltip from './ComponentDetailTooltip';
 
 export default function MatchInfoCard() {
-  const results = useResultsStore((state) => state.results);
+  const result = useSelectedResult();
   const localFilePath = useLocalFilePath();
 
   const { data: component } = useQuery({
@@ -26,17 +31,13 @@ export default function MatchInfoCard() {
     return <Skeleton className="min-h-[68px] w-full"></Skeleton>;
   }
 
-  const result = results.find((result) => result.path === localFilePath);
-
   const status = result?.workflow_state;
   const matchPresentation = matchTypePresentation[component.id as MatchType];
 
-  const isResultDismissed = result?.filter_config?.action === FilterAction.Remove;
-  const isResultIncluded = result?.filter_config?.action === FilterAction.Include;
-  const isResultReplaced = result?.filter_config?.action === FilterAction.Replace;
-
   const isResultFilteredByFile = result?.filter_config?.type === 'by_file';
   const isResultFilteredByPurl = result?.filter_config?.type === 'by_purl';
+
+  const filterPresentation = stateInfoPresentation[result?.filter_config?.action as FilterAction];
 
   return (
     <div
@@ -86,9 +87,7 @@ export default function MatchInfoCard() {
                 <div className={matchPresentation.muted}>Decision</div>
                 <Badge className="flex items-center gap-1 font-normal">
                   {result.comment && <MessageSquareText className="h-3 w-3" />}
-                  {isResultDismissed && 'Dismissed'}
-                  {isResultIncluded && 'Included'}
-                  {isResultReplaced && 'Replaced'}
+                  {filterPresentation?.label}
                   {isResultFilteredByFile && ' file'}
                   {isResultFilteredByPurl && ` component`}
                 </Badge>

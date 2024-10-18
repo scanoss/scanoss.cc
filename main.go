@@ -5,11 +5,13 @@ import (
 	"embed"
 	"fmt"
 
+	"github.com/go-playground/validator"
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 
 	"github.com/scanoss/scanoss.lui/backend/main/cmd"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 
 	"github.com/scanoss/scanoss.lui/backend/handlers"
 	"github.com/wailsapp/wails/v2"
@@ -27,6 +29,10 @@ var version = ""
 var icon []byte
 
 func main() {
+
+	validate := validator.New()
+	validate.RegisterValidation("valid-purl", utils.ValidatePurl)
+	utils.SetValidator(validate)
 
 	cmd.Init()
 

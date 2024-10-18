@@ -3,11 +3,12 @@ package controllers
 import (
 	"sort"
 
-	"github.com/go-playground/validator"
 	"github.com/labstack/gommon/log"
+
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/mappers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 )
 
 type ComponentControllerImpl struct {
@@ -72,9 +73,8 @@ func (c *ComponentControllerImpl) GetComponentByPath(filePath string) (entities.
 }
 
 func (c *ComponentControllerImpl) FilterComponents(dto []entities.ComponentFilterDTO) error {
-	validate := validator.New()
 	for _, filter := range dto {
-		err := validate.Struct(filter)
+		err := utils.GetValidator().Struct(filter)
 		if err != nil {
 			log.Errorf("Validation error: %v", err)
 			return err

@@ -66,7 +66,7 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
       const finalDto = selectedResults.map((result) => ({
         action,
         comment,
-        purl: result.purl,
+        purl: result.purl?.detected ?? '',
         ...(filterBy === 'by_file' && { path: result.path }),
         ...(replaceWith && { replace_with: replaceWith }),
       }));

@@ -18,10 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
-import {
-  FilterAction,
-  filterActionLabelMap,
-} from '@/modules/components/domain';
+import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
@@ -34,12 +31,7 @@ interface FilterActionProps {
   onAdd: () => Promise<void> | void;
 }
 
-export default function FilterActionButton({
-  action,
-  description,
-  icon,
-  onAdd,
-}: FilterActionProps) {
+export default function FilterActionButton({ action, description, icon, onAdd }: FilterActionProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const { prompt } = useInputPrompt();
@@ -51,11 +43,7 @@ export default function FilterActionButton({
 
   const selectedResults = useResultsStore((state) => state.selectedResults);
 
-  const onSelectOption = async (
-    action: FilterAction,
-    filterBy: 'by_file' | 'by_purl',
-    withComment: boolean
-  ) => {
+  const onSelectOption = async (action: FilterAction, filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
     let comment: string | undefined;
 
     if (withComment) {
@@ -90,21 +78,19 @@ export default function FilterActionButton({
       <div>
         <p>
           This action will {action} all matches with{' '}
-          {selectedResults.length > 1
-            ? `the following PURLs: `
-            : `the same PURL:`}
+          {selectedResults.length > 1 ? `the following PURLs: ` : `the same PURL:`}
         </p>
 
         {selectedResults.length > 1 ? (
           <ScrollArea className="py-2">
             <ul className="max-h-[200px] list-disc pl-6">
               {selectedResults.map((result) => (
-                <li key={result.path}>{result.purl}</li>
+                <li key={result.path}>{result.purl?.detected}</li>
               ))}
             </ul>
           </ScrollArea>
         ) : (
-          <p>{selectedResults[0]?.purl}</p>
+          <p>{selectedResults[0]?.purl?.detected}</p>
         )}
       </div>
     );
@@ -138,9 +124,7 @@ export default function FilterActionButton({
       </div>
       <DropdownMenuContent className="max-w-[400px]">
         <DropdownMenuLabel>
-          <span className="text-xs font-normal text-muted-foreground">
-            {description}
-          </span>
+          <span className="text-xs font-normal text-muted-foreground">{description}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />
         <DropdownMenuGroup>
@@ -148,14 +132,10 @@ export default function FilterActionButton({
             <DropdownMenuSubTrigger>File</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
-                <DropdownMenuItem
-                  onClick={() => onSelectOption(action, 'by_file', true)}
-                >
+                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_file', true)}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onSelectOption(action, 'by_file', false)}
-                >
+                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_file', false)}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
@@ -167,14 +147,10 @@ export default function FilterActionButton({
             <DropdownMenuSubTrigger>Component</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
-                <DropdownMenuItem
-                  onClick={() => onSelectOption(action, 'by_purl', true)}
-                >
+                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_purl', true)}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onSelectOption(action, 'by_purl', false)}
-                >
+                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_purl', false)}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>

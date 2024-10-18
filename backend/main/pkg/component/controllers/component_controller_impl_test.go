@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/go-playground/validator"
+	internal_test "github.com/scanoss/scanoss.lui/backend/main/internal"
 	scanossSettingsEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/controllers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
@@ -12,7 +13,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func init() {
+	internal_test.InitValidatorForTests()
+}
+
 func TestFilterComponent_Integration(t *testing.T) {
+
 	mockService := serviceMocks.NewMockComponentService(t)
 	mockMapper := mapperMocks.NewMockComponentMapper(t)
 
@@ -23,7 +29,7 @@ func TestFilterComponent_Integration(t *testing.T) {
 	t.Run("No errors", func(t *testing.T) {
 		dto := entities.ComponentFilterDTO{
 			Path:   "test/path",
-			Purl:   "test:purl",
+			Purl:   "pkg:github/test",
 			Usage:  "file",
 			Action: entities.Include,
 		}
@@ -37,7 +43,7 @@ func TestFilterComponent_Integration(t *testing.T) {
 	t.Run("Validation error", func(t *testing.T) {
 		dto := entities.ComponentFilterDTO{
 			Path:   "test/path",
-			Purl:   "pkg:purl.com/test",
+			Purl:   "pkg:github/test2",
 			Usage:  "file",
 			Action: entities.FilterAction("unsupported"),
 		}

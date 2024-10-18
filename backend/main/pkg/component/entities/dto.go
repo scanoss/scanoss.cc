@@ -74,5 +74,5 @@ type ComponentFilterDTO struct {
 	Usage       string       `json:"usage,omitempty"`
 	Action      FilterAction `json:"action" validate:"required,eq=include|eq=remove|eq=replace"`
 	Comment     string       `json:"comment,omitempty"`
-	ReplaceWith string       `json:"replace_with,omitempty" validate:"valid-purl"`
+	ReplaceWith string       `json:"replace_with,omitempty" validate:"omitempty,valid-purl"`
 }

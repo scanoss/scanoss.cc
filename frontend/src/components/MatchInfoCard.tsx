@@ -49,9 +49,9 @@ export default function MatchInfoCard() {
     <div
       className={clsx(
         'flex items-center justify-between rounded-sm p-3',
-        matchPresentation.background,
         matchPresentation.foreground,
-        isResultRemoved && '!text-muted-foreground !line-through'
+        matchPresentation.background,
+        isResultRemoved && 'bg-card text-muted-foreground line-through'
       )}
     >
       <div className="flex flex-wrap items-center gap-8 text-sm">
@@ -70,7 +70,7 @@ export default function MatchInfoCard() {
         ) : null}
         <div>
           <div className={matchPresentation.muted}>Detected</div>
-          <div className={matchPresentation.accent}>{matchPresentation.label}</div>
+          <div className={clsx(!isResultRemoved && matchPresentation.accent)}>{matchPresentation.label}</div>
         </div>
         <div>
           <div className={matchPresentation.muted}>Match</div>
@@ -80,7 +80,10 @@ export default function MatchInfoCard() {
           <div>
             <div className={matchPresentation.muted}>Status</div>
             <Badge
-              className={clsx('flex items-center gap-1 font-normal', resultStatusPresentation[status].badgeStyles)}
+              className={clsx(
+                'flex items-center gap-1 font-normal',
+                isResultRemoved ? 'bg-gray-800 text-muted-foreground' : resultStatusPresentation[status].badgeStyles
+              )}
             >
               {resultStatusPresentation[status].icon}
               {resultStatusPresentation[status].label}
@@ -92,7 +95,12 @@ export default function MatchInfoCard() {
             <TooltipTrigger asChild>
               <div>
                 <div className={matchPresentation.muted}>Decision</div>
-                <Badge className="flex items-center gap-1 font-normal">
+                <Badge
+                  className={clsx(
+                    'flex items-center gap-1 font-normal',
+                    isResultRemoved && 'bg-gray-800 text-muted-foreground'
+                  )}
+                >
                   {result.comment && <MessageSquareText className="h-3 w-3" />}
                   {filterPresentation?.label}
                   {isResultFilteredByFile && ' file'}

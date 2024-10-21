@@ -5,6 +5,7 @@ import { entities } from 'wailsjs/go/models';
 import Link from '@/components/Link';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import useSelectedResult from '@/hooks/useSelectedResult';
+import { FilterAction } from '@/modules/components/domain';
 import { MatchType, matchTypePresentation } from '@/modules/results/domain';
 
 interface ComponentDetailTooltipProps {
@@ -14,9 +15,9 @@ interface ComponentDetailTooltipProps {
 export default function ComponentDetailTooltip({ component }: ComponentDetailTooltipProps) {
   const result = useSelectedResult();
 
-  const isPurlReplaced = !!result?.concluded_purl;
+  const isResultReplaced = result?.filter_config?.action === FilterAction.Replace;
 
-  if (isPurlReplaced) {
+  if (isResultReplaced) {
     return (
       <div className="flex items-center gap-4">
         <DetectedPurlTooltip component={component} replaced />
@@ -33,6 +34,8 @@ function DetectedPurlTooltip({ component, replaced }: { component: entities.Comp
   const result = useSelectedResult();
   const matchPresentation = matchTypePresentation[component.id as MatchType];
 
+  const isResultRemoved = result?.filter_config?.action === FilterAction.Remove;
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -43,7 +46,7 @@ function DetectedPurlTooltip({ component, replaced }: { component: entities.Comp
         >
           <div
             className={clsx('text-lg font-bold leading-tight', {
-              [matchPresentation.accent]: !replaced,
+              [matchPresentation.accent]: !replaced && !isResultRemoved,
             })}
           >
             {component.component}

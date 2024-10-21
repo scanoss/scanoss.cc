@@ -23,7 +23,10 @@ interface ComponentFilterState {
 }
 
 export interface OnFilterComponentArgs {
-  replaceWith?: string;
+  replaceWith?: {
+    purl: string;
+    name: string;
+  };
 }
 
 interface ComponentFilterActions {
@@ -70,9 +73,12 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
       const finalDto = selectedResults.map((result) => ({
         action,
         comment,
-        purl: result.purl?.detected ?? '',
+        purl: result.detected_purl ?? '',
         ...(filterBy === 'by_file' && { path: result.path }),
-        ...(replaceWith && { replace_with: replaceWith }),
+        ...(replaceWith && {
+          replace_with_purl: replaceWith.purl,
+          replace_with_name: replaceWith.name,
+        }),
       }));
 
       await FileService.filterComponents(finalDto);

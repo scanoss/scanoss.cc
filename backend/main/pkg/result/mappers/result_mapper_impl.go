@@ -19,16 +19,15 @@ func NewResultMapper(scanossSettings *scanossSettingsEntities.ScanossSettings) R
 
 func (m ResultMapperImpl) MapToResultDTO(result entities.Result) entities.ResultDTO {
 	return entities.ResultDTO{
-		MatchType: entities.MatchType(result.MatchType),
-		Path:      result.Path,
-		Purl: entities.ResultPurl{
-			Detected:         (*result.Purl)[0],
-			Concluded:        m.mapConcludedPurl(result),
-			ConcludedPurlUrl: m.mapConcludedPurlUrl(result),
-		},
-		WorkflowState: m.mapWorkflowState(result),
-		FilterConfig:  m.mapFilterConfig(result),
-		Comment:       m.mapComment(result),
+		MatchType:        entities.MatchType(result.MatchType),
+		Path:             result.Path,
+		DetectedPurl:     (*result.Purl)[0],
+		ConcludedPurl:    m.mapConcludedPurl(result),
+		ConcludedPurlUrl: m.mapConcludedPurlUrl(result),
+		ConcludedName:    m.mapConcludedName(result),
+		WorkflowState:    m.mapWorkflowState(result),
+		FilterConfig:     m.mapFilterConfig(result),
+		Comment:          m.mapComment(result),
 	}
 }
 
@@ -77,4 +76,7 @@ func (m *ResultMapperImpl) mapConcludedPurlUrl(result entities.Result) string {
 	}
 
 	return purlUrl
+}
+func (m ResultMapperImpl) mapConcludedName(result entities.Result) string {
+	return m.scanossSettings.SettingsFile.GetBomEntryFromResult(result).ComponentName
 }

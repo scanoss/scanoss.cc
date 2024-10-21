@@ -21,12 +21,12 @@ export default function FilterByPurlList({ action }: FilterByPurlListProps) {
         <ScrollArea className="py-2">
           <ul className="max-h-[200px] list-disc pl-6">
             {selectedResults.map((result) => (
-              <li key={result.path}>{result.purl?.detected}</li>
+              <li key={result.path}>{result.detected_purl}</li>
             ))}
           </ul>
         </ScrollArea>
       ) : (
-        <p>{selectedResults[0]?.purl?.detected}</p>
+        <p>{selectedResults[0]?.detected_purl}</p>
       )}
     </div>
   );

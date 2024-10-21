@@ -78,7 +78,8 @@ export namespace entities {
 	    usage?: string;
 	    action: string;
 	    comment?: string;
-	    replace_with?: string;
+	    replace_with_purl?: string;
+	    replace_with_name?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ComponentFilterDTO(source);
@@ -91,7 +92,8 @@ export namespace entities {
 	        this.usage = source["usage"];
 	        this.action = source["action"];
 	        this.comment = source["comment"];
-	        this.replace_with = source["replace_with"];
+	        this.replace_with_purl = source["replace_with_purl"];
+	        this.replace_with_name = source["replace_with_name"];
 	    }
 	}
 	export class DeclaredComponent {
@@ -152,29 +154,16 @@ export namespace entities {
 	        this.query = source["query"];
 	    }
 	}
-	export class ResultPurl {
-	    detected?: string;
-	    concluded?: string;
-	    concluded_purl_url?: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new ResultPurl(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.detected = source["detected"];
-	        this.concluded = source["concluded"];
-	        this.concluded_purl_url = source["concluded_purl_url"];
-	    }
-	}
 	export class ResultDTO {
 	    path: string;
-	    purl?: ResultPurl;
 	    match_type: string;
 	    workflow_state?: string;
 	    filter_config?: FilterConfig;
 	    comment?: string;
+	    detected_purl?: string;
+	    concluded_purl?: string;
+	    concluded_purl_url?: string;
+	    concluded_name?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ResultDTO(source);
@@ -183,11 +172,14 @@ export namespace entities {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.path = source["path"];
-	        this.purl = this.convertValues(source["purl"], ResultPurl);
 	        this.match_type = source["match_type"];
 	        this.workflow_state = source["workflow_state"];
 	        this.filter_config = this.convertValues(source["filter_config"], FilterConfig);
 	        this.comment = source["comment"];
+	        this.detected_purl = source["detected_purl"];
+	        this.concluded_purl = source["concluded_purl"];
+	        this.concluded_purl_url = source["concluded_purl_url"];
+	        this.concluded_name = source["concluded_name"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { ArrowRight } from 'lucide-react';
 import { entities } from 'wailsjs/go/models';
 
 import Link from '@/components/Link';
@@ -12,45 +13,98 @@ interface ComponentDetailTooltipProps {
 
 export default function ComponentDetailTooltip({ component }: ComponentDetailTooltipProps) {
   const result = useSelectedResult();
-  const matchPresentation = matchTypePresentation[component.id as MatchType];
 
-  const isPurlReplaced = !!result?.purl?.concluded;
-  const currentPurl = isPurlReplaced ? result?.purl?.concluded : result?.purl?.detected;
-  const originallyDetectedPurl = result?.purl?.detected;
-  const purlTooltipLabel = isPurlReplaced ? 'Detected PURL' : 'PURL';
-  const shouldShowUrl = isPurlReplaced ? !!result.purl?.concluded_purl_url : !!component.url;
-  const urlToShow = isPurlReplaced ? result.purl?.concluded_purl_url : component.url;
+  const isPurlReplaced = !!result?.concluded_purl;
+
+  if (isPurlReplaced) {
+    return (
+      <div className="flex items-center gap-4">
+        <DetectedPurlTooltip component={component} replaced />
+        <ArrowRight className="h-4 w-4 text-primary-foreground" />
+        <ConcludedPurlTooltip component={component} />
+      </div>
+    );
+  }
+
+  return <DetectedPurlTooltip component={component} />;
+}
+
+function DetectedPurlTooltip({ component, replaced }: { component: entities.ComponentDTO; replaced?: boolean }) {
+  const result = useSelectedResult();
+  const matchPresentation = matchTypePresentation[component.id as MatchType];
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className="cursor-pointer">
-          <div className={clsx('text-lg font-bold leading-tight', matchPresentation.accent)}>{component.component}</div>
-          <div>{currentPurl}</div>
+        <div
+          className={clsx('cursor-pointer', {
+            'text-muted-foreground line-through opacity-70': replaced,
+          })}
+        >
+          <div
+            className={clsx('text-lg font-bold leading-tight', {
+              [matchPresentation.accent]: !replaced,
+            })}
+          >
+            {component.component}
+          </div>
+          <div>{result?.detected_purl}</div>
         </div>
       </TooltipTrigger>
       <TooltipContent side="bottom" align="start" className="p-4">
         <div className="flex flex-col gap-4">
-          {component.purl?.length ? (
-            <div>
-              <p className="font-medium">{purlTooltipLabel}</p>
-              <p className="text-muted-foreground">{isPurlReplaced ? originallyDetectedPurl : currentPurl}</p>
-            </div>
-          ) : null}
           <div>
-            <p className="font-medium">VERSION</p>
-            <p className="text-muted-foreground">{component.version}</p>
+            <p className="font-medium">PURL</p>
+            <p className="text-muted-foreground">{result?.detected_purl}</p>
           </div>
-          {!isPurlReplaced && component.licenses?.length ? (
+          {component.version && (
+            <div>
+              <p className="font-medium">VERSION</p>
+              <p className="text-muted-foreground">{component.version}</p>
+            </div>
+          )}
+          {component.licenses?.length ? (
             <div>
               <p className="font-medium">LICENSE</p>
               <p className="text-muted-foreground">{component.licenses?.[0].name}</p>
             </div>
           ) : null}
-          {shouldShowUrl && (
+          {component.url && (
             <div>
               <p className="font-medium">URL</p>
-              <Link to={urlToShow as string} />
+              <Link to={component.url as string} />
+            </div>
+          )}
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function ConcludedPurlTooltip({ component }: { component: entities.ComponentDTO }) {
+  const result = useSelectedResult();
+  const matchPresentation = matchTypePresentation[component.id as MatchType];
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="cursor-pointer">
+          <div className={clsx('text-lg font-bold leading-tight', matchPresentation.accent)}>
+            {result?.concluded_name || component.component}
+          </div>
+          <div>{result?.concluded_purl}</div>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" align="start" className="p-4">
+        <div className="flex flex-col gap-4">
+          <div>
+            <p className="font-medium">PURL</p>
+            <p className="text-muted-foreground">{result?.concluded_purl}</p>
+          </div>
+          {result?.concluded_purl_url && (
+            <div>
+              <p className="font-medium">URL</p>
+              <Link to={result?.concluded_purl_url as string} />
             </div>
           )}
         </div>

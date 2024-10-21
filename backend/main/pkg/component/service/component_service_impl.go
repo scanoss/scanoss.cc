@@ -31,11 +31,12 @@ func (s *ComponentServiceImpl) GetComponentByFilePath(filePath string) (entities
 func (s *ComponentServiceImpl) FilterComponents(dto []entities.ComponentFilterDTO) error {
 	for _, item := range dto {
 		newFilter := &scanossSettingsEntities.ComponentFilter{
-			Path:        item.Path,
-			Purl:        item.Purl,
-			Usage:       scanossSettingsEntities.ComponentFilterUsage(item.Usage),
-			Comment:     item.Comment,
-			ReplaceWith: item.ReplaceWith,
+			Path:          item.Path,
+			Purl:          item.Purl,
+			Usage:         scanossSettingsEntities.ComponentFilterUsage(item.Usage),
+			Comment:       item.Comment,
+			ReplaceWith:   item.ReplaceWithPurl,
+			ComponentName: item.ReplaceWithName,
 		}
 		if err := s.scanossSettingsRepo.AddBomEntry(*newFilter, string(item.Action)); err != nil {
 			fmt.Printf("error adding bom entry: %s", err)

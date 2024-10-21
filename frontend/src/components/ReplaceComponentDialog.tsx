@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 import { cn } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
-import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
+import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
 import { GetDeclaredComponents } from '../../wailsjs/go/handlers/ComponentHandler';
 import { entities } from '../../wailsjs/go/models';
@@ -34,13 +34,14 @@ import { Textarea } from './ui/textarea';
 import { useToast } from './ui/use-toast';
 
 const ReplaceComponentFormSchema = z.object({
+  name: z.string().min(1, 'You must select a component.'),
   purl: z.string().min(1, 'You must select a component.'),
   comment: z.string().optional(),
 });
 
 interface ReplaceComponentDialogProps {
   onOpenChange: () => void;
-  onReplaceComponent: (replaceWith: string) => void;
+  onReplaceComponent: (args: OnFilterComponentArgs) => void;
 }
 
 export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponent }: ReplaceComponentDialogProps) {
@@ -56,6 +57,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   const form = useForm<z.infer<typeof ReplaceComponentFormSchema>>({
     resolver: zodResolver(ReplaceComponentFormSchema),
     defaultValues: {
+      name: '',
       purl: '',
       comment: '',
     },
@@ -69,7 +71,12 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   });
 
   const onSubmit = (values: z.infer<typeof ReplaceComponentFormSchema>) => {
-    onReplaceComponent(values.purl);
+    onReplaceComponent({
+      replaceWith: {
+        name: values.name,
+        purl: values.purl,
+      },
+    });
   };
 
   const onComponentCreated = (component: entities.DeclaredComponent) => {
@@ -82,6 +89,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     }
     setDeclaredComponents((prevState) => [...prevState, component]);
     form.setValue('purl', component.purl);
+    form.setValue('name', component.name);
     setNewComponentDialogOpen(false);
   };
 
@@ -150,6 +158,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                                     key={component.purl}
                                     onSelect={() => {
                                       form.setValue('purl', component.purl);
+                                      form.setValue('name', component.name);
                                       setPopoverOpen(false);
                                     }}
                                   >

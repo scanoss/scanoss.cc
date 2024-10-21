@@ -39,23 +39,30 @@ export default function MatchInfoCard() {
 
   const filterPresentation = stateInfoPresentation[result?.filter_config?.action as FilterAction];
 
+  const isResultReplaced = result?.filter_config?.action === FilterAction.Replace;
+  const isResultRemoved = result?.filter_config?.action === FilterAction.Remove;
+
+  const shouldShowVersion = !isResultReplaced && component.version;
+  const shouldShowLicense = !isResultReplaced && component.licenses?.length;
+
   return (
     <div
       className={clsx(
         'flex items-center justify-between rounded-sm p-3',
         matchPresentation.background,
-        matchPresentation.foreground
+        matchPresentation.foreground,
+        isResultRemoved && '!text-muted-foreground !line-through'
       )}
     >
       <div className="flex flex-wrap items-center gap-8 text-sm">
         <ComponentDetailTooltip component={component} />
-        {component.version && (
+        {shouldShowVersion && (
           <div>
             <div className={matchPresentation.muted}>Version</div>
             <div>{component.version}</div>
           </div>
         )}
-        {component.licenses?.length ? (
+        {shouldShowLicense ? (
           <div>
             <div className={matchPresentation.muted}>License</div>
             <div>{component.licenses?.[0].name}</div>

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { withErrorHandling } from '@/lib/errors';
 import { FilterAction } from '@/modules/components/domain';
-import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
+import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
 import FilterActionButton from './FilterActionButton';
 import ReplaceComponentDialog from './ReplaceComponentDialog';
@@ -19,10 +19,8 @@ export default function FilterComponentActions() {
   const onFilterComponent = useComponentFilterStore((state) => state.onFilterComponent);
 
   const handleFilterComponent = withErrorHandling({
-    asyncFn: async (replaceWith?: string) => {
-      const nextResultRoute = await onFilterComponent({
-        replaceWith,
-      });
+    asyncFn: async (args?: OnFilterComponentArgs) => {
+      const nextResultRoute = await onFilterComponent(args);
 
       if (nextResultRoute) {
         navigate(nextResultRoute);
@@ -39,8 +37,8 @@ export default function FilterComponentActions() {
   });
 
   const handleReplaceComponent = withErrorHandling({
-    asyncFn: async (replaceWith: string) => {
-      await handleFilterComponent(replaceWith);
+    asyncFn: async (args: OnFilterComponentArgs) => {
+      await handleFilterComponent(args);
       setShowReplaceComponentDialog(false);
     },
     onError: (error) => {

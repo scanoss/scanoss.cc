@@ -34,21 +34,16 @@ const (
 	ByPurl FilterType = "by_purl"
 )
 
-type ResultPurl struct {
-	// Original purl detected in results.json
-	Detected string `json:"detected,omitempty"`
-	// This is the purl that was replaced_with
-	Concluded        string `json:"concluded,omitempty"`
-	ConcludedPurlUrl string `json:"concluded_purl_url,omitempty"`
-}
-
 type ResultDTO struct {
-	Path          string        `json:"path"`
-	Purl          ResultPurl    `json:"purl,omitempty"`
-	MatchType     MatchType     `json:"match_type"`
-	WorkflowState WorkflowState `json:"workflow_state,omitempty"`
-	FilterConfig  FilterConfig  `json:"filter_config,omitempty"`
-	Comment       string        `json:"comment,omitempty"`
+	Path             string        `json:"path"`
+	MatchType        MatchType     `json:"match_type"`
+	WorkflowState    WorkflowState `json:"workflow_state,omitempty"`
+	FilterConfig     FilterConfig  `json:"filter_config,omitempty"`
+	Comment          string        `json:"comment,omitempty"`
+	DetectedPurl     string        `json:"detected_purl,omitempty"`
+	ConcludedPurl    string        `json:"concluded_purl,omitempty"`
+	ConcludedPurlUrl string        `json:"concluded_purl_url,omitempty"`
+	ConcludedName    string        `json:"concluded_name,omitempty"`
 }
 
 type RequestResultDTO struct {

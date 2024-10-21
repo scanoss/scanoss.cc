@@ -41,7 +41,7 @@ export default function ComponentDetailTooltip({ component }: ComponentDetailToo
             <p className="font-medium">VERSION</p>
             <p className="text-muted-foreground">{component.version}</p>
           </div>
-          {component.licenses?.length ? (
+          {!isPurlReplaced && component.licenses?.length ? (
             <div>
               <p className="font-medium">LICENSE</p>
               <p className="text-muted-foreground">{component.licenses?.[0].name}</p>

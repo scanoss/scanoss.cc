@@ -13,4 +13,4 @@ help: ## Show available commands
 
 run: ## Runs the application in development mode
 	$(eval APPARGS := $(ARGS))
-	@wails dev -ldflags "-X main.version=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "$(APPARGS)")
+	@wails dev -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/pkg/common/version.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "$(APPARGS)")

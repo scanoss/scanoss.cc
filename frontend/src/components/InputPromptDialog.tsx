@@ -4,22 +4,13 @@ import useEnvironment from '@/hooks/useEnvironment';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
 
 import { Button } from './ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Textarea } from './ui/textarea';
 
 export default function InputPromptDialog() {
   const { modifierKey } = useEnvironment();
   const { isPrompting, options, confirm, cancel } = useInputPrompt();
-  const [inputValue, setInputValue] = useState(
-    options?.input.defaultValue ?? ''
-  );
+  const [inputValue, setInputValue] = useState(options?.input.defaultValue ?? '');
 
   const handleConfirm = () => {
     confirm(inputValue);
@@ -48,24 +39,14 @@ export default function InputPromptDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            {description && <p className="mb-1">{description}</p>}
-          </DialogDescription>
+          <DialogDescription>{description && <p className="mb-1">{description}</p>}</DialogDescription>
         </DialogHeader>
 
         {options.input.type === 'textarea' && (
           <div>
-            <Textarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
+            <Textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} />
             <p className="mt-2 text-xs text-muted-foreground">
-              Use{' '}
-              <span className="rounded bg-primary px-1.5">
-                {modifierKey} + return
-              </span>{' '}
-              to confirm
+              Use <span className="rounded bg-primary px-1.5">{modifierKey} + return</span> to confirm
             </p>
           </div>
         )}
@@ -76,6 +57,7 @@ export default function InputPromptDialog() {
           </Button>
           <Button onClick={handleConfirm} disabled={!inputValue}>
             {confirmText ?? 'Confirm'}{' '}
+            <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
           </Button>
         </DialogFooter>
       </DialogContent>

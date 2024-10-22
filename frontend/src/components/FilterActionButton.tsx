@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
+import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 
@@ -29,8 +30,8 @@ interface FilterActionProps {
   description: string;
   icon: React.ReactNode;
   onAdd: () => Promise<void> | void;
-  shortcutKeyByFile: string;
-  shortcutKeyByPurl: string;
+  shortcutKeysByFile: string[];
+  shortcutKeysByPurl: string[];
 }
 
 export default function FilterActionButton({
@@ -38,8 +39,8 @@ export default function FilterActionButton({
   description,
   icon,
   onAdd,
-  shortcutKeyByFile,
-  shortcutKeyByPurl,
+  shortcutKeysByFile,
+  shortcutKeysByPurl,
 }: FilterActionProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -69,6 +70,18 @@ export default function FilterActionButton({
     setComment(comment);
   };
 
+  const handleConfirmByPurl = async (): Promise<boolean> => ask(<FilterByPurlList action={action} />);
+
+  const handleGetComment = async (): Promise<string | undefined> => {
+    return prompt({
+      title: 'Add comments',
+      input: {
+        defaultValue: '',
+        type: 'textarea',
+      },
+    });
+  };
+
   const onSelectOption = async (action: FilterAction, filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
     setAction(action);
     setFilterBy(filterBy);
@@ -81,19 +94,14 @@ export default function FilterActionButton({
     onAdd();
   };
 
-  const handleGetComment = async (): Promise<string | undefined> => {
-    return prompt({
-      title: 'Add comments',
-      input: {
-        defaultValue: '',
-        type: 'textarea',
-      },
-    });
-  };
+  const handleFilterByFileWithComments = () => onSelectOption(action, 'by_file', true);
+  const handleFilterByPurlWithComments = () => onSelectOption(action, 'by_purl', true);
+  const handleFilterByFileWithoutComments = () => onSelectOption(action, 'by_file', false);
+  const handleFilterByPurlWithoutComments = () => onSelectOption(action, 'by_purl', false);
 
-  const handleConfirmByPurl = async (): Promise<boolean> => {
-    return ask(<FilterByPurlList action={action} />);
-  };
+  // For now we allow only to use shortcuts to filter without comments
+  useKeyboardShortcut(shortcutKeysByFile, handleFilterByFileWithoutComments);
+  useKeyboardShortcut(shortcutKeysByPurl, handleFilterByPurlWithoutComments);
 
   return (
     <DropdownMenu onOpenChange={setDropdownOpen}>
@@ -131,12 +139,12 @@ export default function FilterActionButton({
             <DropdownMenuSubTrigger>File</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent className="min-w-[300px]">
-                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_file', true)}>
+                <DropdownMenuItem onClick={handleFilterByFileWithComments}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_file', false)}>
+                <DropdownMenuItem onClick={handleFilterByFileWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
-                  <DropdownMenuShortcut className="uppercase">⌘ + {shortcutKeyByFile}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut className="uppercase">⌘ + {shortcutKeysByFile.join(' ')}</DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
@@ -147,12 +155,12 @@ export default function FilterActionButton({
             <DropdownMenuSubTrigger>Component</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent className="min-w-[300px]">
-                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_purl', true)}>
+                <DropdownMenuItem onClick={handleFilterByPurlWithComments}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_purl', false)}>
+                <DropdownMenuItem onClick={handleFilterByPurlWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
-                  <DropdownMenuShortcut className="uppercase">⌘ + {shortcutKeyByPurl}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut className="uppercase">⌘ + {shortcutKeysByPurl.join(' ')}</DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useConfirm } from '@/hooks/useConfirm';
+import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 
 import {
   AlertDialog,
@@ -18,9 +19,7 @@ interface ConfirmDialogProps {
   showPersistDecision?: boolean;
 }
 
-export default function ConfirmDialog({
-  showPersistDecision = false,
-}: ConfirmDialogProps) {
+export default function ConfirmDialog({ showPersistDecision = false }: ConfirmDialogProps) {
   const { isAsking, message, deny, confirm, onPersistDecision } = useConfirm();
   const [persistDecision, setPersistDecision] = useState(false);
 
@@ -30,6 +29,8 @@ export default function ConfirmDialog({
     }
     confirm();
   };
+
+  useKeyboardShortcut(['enter'], handleConfirm);
 
   return (
     <AlertDialog open={isAsking} onOpenChange={deny}>
@@ -42,11 +43,7 @@ export default function ConfirmDialog({
               <Checkbox
                 id="persistDecision"
                 checked={persistDecision}
-                onCheckedChange={(checked) =>
-                  typeof checked === 'boolean'
-                    ? setPersistDecision(checked)
-                    : undefined
-                }
+                onCheckedChange={(checked) => (typeof checked === 'boolean' ? setPersistDecision(checked) : undefined)}
               />
               <div className="grid gap-1.5 leading-none">
                 <label
@@ -56,8 +53,7 @@ export default function ConfirmDialog({
                   Don&apos;t ask me again
                 </label>
                 <p className="text-sm text-muted-foreground">
-                  This action will be performed without asking for confirmation
-                  in the future
+                  This action will be performed without asking for confirmation in the future
                 </p>
               </div>
             </div>
@@ -65,7 +61,9 @@ export default function ConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={deny}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm}>Confirm</AlertDialogAction>
+          <AlertDialogAction onClick={handleConfirm}>
+            Confirm <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

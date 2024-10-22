@@ -1,44 +1,55 @@
 import { useEffect, useRef } from 'react';
 
+type KeySequence = string[];
+type ShortcutCallback = () => void;
+
 interface KeyboardShortcutOptions {
-  // Time in ms to reset the key sequence
-  resetDelay?: number;
+  resetDelay?: number; // Time in ms to reset the key sequence
 }
 
 export default function useKeyboardShortcut(
-  keys: string[],
-  callback: () => void,
+  keys: KeySequence,
+  callback: ShortcutCallback,
   options: KeyboardShortcutOptions = {}
 ): void {
   const { resetDelay = 1000 } = options;
   const pressedKeys = useRef<string[]>([]);
-  const modifierPressed = useRef<boolean>(false);
   const resetTimeout = useRef<NodeJS.Timeout>();
 
   const isPressingModifierKey = (event: KeyboardEvent): boolean => {
     return event.metaKey || event.ctrlKey;
   };
 
-  const isAnyAllowedKeyPressed = (event: KeyboardEvent) => {
-    return keys.some((k) => k.toLowerCase() === event.key.toLowerCase());
-  };
-
   const resetKeySequence = () => {
     pressedKeys.current = [];
-    modifierPressed.current = false;
+  };
+
+  const checkSequence = (currentKey: string): boolean => {
+    const currentIndex = pressedKeys.current.length;
+    return keys[currentIndex]?.toLowerCase() === currentKey.toLowerCase();
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    const currentKey = event.key.toLowerCase();
-
-    if (isPressingModifierKey(event)) {
-      modifierPressed.current = true;
+    if (!isPressingModifierKey(event)) {
+      resetKeySequence();
       return;
     }
 
-    if (!modifierPressed.current) return;
+    const currentKey = event.key.toLowerCase();
 
-    if (isAnyAllowedKeyPressed(event)) {
+    if (currentKey === 'meta' || currentKey === 'control') {
+      return;
+    }
+
+    if (!checkSequence(currentKey)) {
+      resetKeySequence();
+      if (currentKey === keys[0].toLowerCase()) {
+        pressedKeys.current.push(currentKey);
+      }
+      return;
+    }
+
+    if (keys.some((k) => k.toLowerCase() === currentKey)) {
       event.preventDefault();
     }
 
@@ -50,27 +61,17 @@ export default function useKeyboardShortcut(
 
     resetTimeout.current = setTimeout(resetKeySequence, resetDelay);
 
-    const currentSequence = pressedKeys.current;
-    if (currentSequence.length === keys.length && currentSequence.every((k, i) => k === keys[i].toLowerCase())) {
+    if (pressedKeys.current.length === keys.length) {
       callback();
       resetKeySequence();
     }
   };
 
-  const handleKeyUp = (event: KeyboardEvent) => {
-    if (isPressingModifierKey(event)) {
-      modifierPressed.current = false;
-      pressedKeys.current = [];
-    }
-  };
-
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', handleKeyUp);
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('keyup', handleKeyUp);
       if (resetTimeout.current) {
         clearTimeout(resetTimeout.current);
       }

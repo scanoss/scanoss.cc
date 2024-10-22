@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { cn } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
@@ -98,6 +99,8 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
       setDeclaredComponents(data);
     }
   }, [data]);
+
+  useKeyboardShortcut(['enter'], form.handleSubmit(onSubmit));
 
   return (
     <>
@@ -227,7 +230,9 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 <Button variant="ghost" onClick={onOpenChange}>
                   Cancel
                 </Button>
-                <Button type="submit">Confirm</Button>
+                <Button type="submit">
+                  Confirm <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>

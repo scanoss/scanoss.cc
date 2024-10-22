@@ -11,6 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -28,9 +29,18 @@ interface FilterActionProps {
   description: string;
   icon: React.ReactNode;
   onAdd: () => Promise<void> | void;
+  shortcutKeyByFile: string;
+  shortcutKeyByPurl: string;
 }
 
-export default function FilterActionButton({ action, description, icon, onAdd }: FilterActionProps) {
+export default function FilterActionButton({
+  action,
+  description,
+  icon,
+  onAdd,
+  shortcutKeyByFile,
+  shortcutKeyByPurl,
+}: FilterActionProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const { prompt } = useInputPrompt();
@@ -120,12 +130,13 @@ export default function FilterActionButton({ action, description, icon, onAdd }:
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>File</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent>
+              <DropdownMenuSubContent className="min-w-[300px]">
                 <DropdownMenuItem onClick={() => onSelectOption(action, 'by_file', true)}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onSelectOption(action, 'by_file', false)}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
+                  <DropdownMenuShortcut className="uppercase">⌘ + {shortcutKeyByFile}</DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
@@ -135,12 +146,13 @@ export default function FilterActionButton({ action, description, icon, onAdd }:
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Component</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent>
+              <DropdownMenuSubContent className="min-w-[300px]">
                 <DropdownMenuItem onClick={() => onSelectOption(action, 'by_purl', true)}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onSelectOption(action, 'by_purl', false)}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
+                  <DropdownMenuShortcut className="uppercase">⌘ + {shortcutKeyByPurl}</DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>

@@ -1,7 +1,6 @@
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { RotateCcw, RotateCw, Save } from 'lucide-react';
-import { useEffect } from 'react';
 
 import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
@@ -56,7 +55,7 @@ export default function ActionToolbar() {
     <div className="flex justify-end gap-4">
       <div className="flex gap-2">
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Button variant="ghost" className="h-full w-14 rounded-none" onClick={() => undo()} disabled={!canUndo}>
               <div className="flex flex-col items-center gap-1">
                 <span className="text-xs">Undo</span>
@@ -67,7 +66,7 @@ export default function ActionToolbar() {
           <TooltipContent>Undo (⌘ + Z)</TooltipContent>
         </Tooltip>
         <Tooltip>
-          <TooltipTrigger>
+          <TooltipTrigger asChild>
             <Button variant="ghost" className="h-full w-14 rounded-none" onClick={() => redo()} disabled={!canRedo}>
               <div className="flex flex-col items-center gap-1">
                 <span className="text-xs">Redo</span>

@@ -7,6 +7,8 @@ import (
 
 	"github.com/scanoss/scanoss.lui/backend/handlers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
+	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -71,4 +73,20 @@ func (a *App) beforeClose(ctx context.Context, sbh *handlers.ScanossSettingsHand
 	}
 
 	return false
+}
+
+func (a *App) initializeMenu() {
+	AppMenu := menu.NewMenu()
+
+	if env := runtime.Environment(a.ctx); env.Platform == "darwin" {
+		AppMenu.Append(menu.AppMenu())
+		AppMenu.Append(menu.EditMenu())
+	}
+
+	HelpMenu := AppMenu.AddSubmenu("Help")
+	HelpMenu.AddText("Report Issue", nil, func(cd *menu.CallbackData) {
+		utils.OpenMailClient(utils.SCANOSS_SUPPORT_MAILBOX, "Report an issue", utils.GetIssueReportBody(a.ctx))
+	})
+
+	runtime.MenuSetApplicationMenu(a.ctx, AppMenu)
 }

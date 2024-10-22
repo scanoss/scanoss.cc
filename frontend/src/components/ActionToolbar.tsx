@@ -47,9 +47,9 @@ export default function ActionToolbar() {
     },
   });
 
-  useKeyboardShortcut('z', undo);
-  useKeyboardShortcut('r', redo);
-  useKeyboardShortcut('s', saveChanges);
+  useKeyboardShortcut(['z'], undo);
+  useKeyboardShortcut(['r'], redo);
+  useKeyboardShortcut(['s'], saveChanges);
 
   return (
     <div className="flex justify-end gap-4">

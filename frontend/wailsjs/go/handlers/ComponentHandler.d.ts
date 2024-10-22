@@ -13,3 +13,5 @@ export function ComponentFilterRedo():Promise<void>;
 export function ComponentFilterUndo():Promise<void>;
 
 export function ComponentGet(arg1:string):Promise<entities.ComponentDTO>;
+
+export function GetDeclaredComponents():Promise<Array<entities.DeclaredComponent>>;

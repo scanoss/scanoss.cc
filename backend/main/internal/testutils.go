@@ -3,12 +3,22 @@ package internal_test
 import (
 	"testing"
 
+	"github.com/go-playground/validator"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 	"github.com/stretchr/testify/mock"
 )
 
+func InitValidatorForTests() {
+	v := validator.New()
+	v.RegisterValidation("valid-purl", utils.ValidatePurl)
+	utils.SetValidator(v)
+}
+
 func InitializeTestEnvironment(t *testing.T) func() {
 	t.Helper()
+
+	InitValidatorForTests()
 
 	cfgPath := t.TempDir() + "/config.json"
 	configModule := config.NewConfigModule(cfgPath)

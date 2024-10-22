@@ -27,7 +27,7 @@ func TestGetResults(t *testing.T) {
 		assert.Len(t, results, 1)
 		assert.Equal(t, "path/to/file", results[0].Path)
 		assert.Equal(t, "file", results[0].MatchType)
-		assert.Equal(t, []string{"pkg:example/package"}, results[0].Purl)
+		assert.Equal(t, &[]string{"pkg:example/package"}, results[0].Purl)
 	})
 
 	t.Run("With filter", func(t *testing.T) {
@@ -44,7 +44,7 @@ func TestGetResults(t *testing.T) {
 		assert.Len(t, results, 1)
 		assert.Equal(t, "path/to/file", results[0].Path)
 		assert.Equal(t, "file", results[0].MatchType)
-		assert.Equal(t, []string{"pkg:example/package"}, results[0].Purl)
+		assert.Equal(t, []string{"pkg:example/package"}, (*results[0].Purl))
 	})
 
 	t.Run("Read file error", func(t *testing.T) {

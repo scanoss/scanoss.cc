@@ -3,12 +3,17 @@ package controllers_test
 import (
 	"testing"
 
+	internal_test "github.com/scanoss/scanoss.lui/backend/main/internal"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/controllers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
 	mapperMocks "github.com/scanoss/scanoss.lui/backend/main/pkg/result/mappers/mocks"
 	serviceMocks "github.com/scanoss/scanoss.lui/backend/main/pkg/result/service/mocks"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	internal_test.InitValidatorForTests()
+}
 
 func TestGetAll(t *testing.T) {
 	mockService := serviceMocks.NewMockResultService(t)
@@ -24,12 +29,12 @@ func TestGetAll(t *testing.T) {
 			{
 				Path:      "path/to/file",
 				MatchType: "file",
-				Purl:      []string{"pkg:npm/purl1"},
+				Purl:      &[]string{"pkg:npm/purl1"},
 			},
 			{
 				Path:      "path/to/file2",
 				MatchType: "snippet",
-				Purl:      []string{"pkg:github/purl2"},
+				Purl:      &[]string{"pkg:github/purl2"},
 			},
 		}
 		expectedDTOs := []entities.ResultDTO{
@@ -44,8 +49,8 @@ func TestGetAll(t *testing.T) {
 			},
 		}
 
-		mockService.On("GetResults", filter).Return(results, nil)
-		mockMapper.On("MapToResultDTOList", results).Return(expectedDTOs)
+		mockService.EXPECT().GetResults(filter).Return(results, nil)
+		mockMapper.EXPECT().MapToResultDTOList(results).Return(expectedDTOs)
 
 		actualDTOs, err := controller.GetAll(dto)
 

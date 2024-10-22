@@ -21,7 +21,7 @@ func TestMapToResultDTO(t *testing.T) {
 			result: entities.Result{
 				MatchType: "file",
 				Path:      "path/to/file",
-				Purl:      []string{"pkg:purl-test"},
+				Purl:      &[]string{"pkg:purl-test"},
 			},
 			expected: entities.ResultDTO{
 				Path:          "path/to/file",
@@ -37,7 +37,7 @@ func TestMapToResultDTO(t *testing.T) {
 			result: entities.Result{
 				Path:      "another/path/to/file",
 				MatchType: "file",
-				Purl:      []string{"pkg:another-purl-test"},
+				Purl:      &[]string{"pkg:another-purl-test"},
 			},
 			expected: entities.ResultDTO{
 				Path:          "another/path/to/file",
@@ -50,7 +50,7 @@ func TestMapToResultDTO(t *testing.T) {
 			result: entities.Result{
 				Path:      "path/to/removed/file",
 				MatchType: "snippet",
-				Purl:      []string{"pkg:removed-file"},
+				Purl:      &[]string{"pkg:removed-file"},
 			},
 			expected: entities.ResultDTO{
 				Path:          "path/to/removed/file",

@@ -9,4 +9,5 @@ type ComponentController interface {
 	Redo() error
 	CanUndo() (bool, error)
 	CanRedo() (bool, error)
+	GetDeclaredComponents() ([]entities.DeclaredComponent, error)
 }

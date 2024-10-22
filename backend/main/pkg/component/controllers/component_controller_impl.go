@@ -1,21 +1,27 @@
 package controllers
 
 import (
-	"github.com/go-playground/validator"
+	"sort"
+
 	"github.com/labstack/gommon/log"
+
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/mappers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 )
 
 type ComponentControllerImpl struct {
 	service       service.ComponentService
+	mapper        mappers.ComponentMapper
 	actionHistory [][]entities.ComponentFilterDTO
 	currentAction int
 }
 
-func NewComponentController(service service.ComponentService) ComponentController {
+func NewComponentController(service service.ComponentService, mapper mappers.ComponentMapper) ComponentController {
 	controller := &ComponentControllerImpl{
 		service:       service,
+		mapper:        mapper,
 		actionHistory: [][]entities.ComponentFilterDTO{},
 		currentAction: -1,
 	}
@@ -25,8 +31,8 @@ func NewComponentController(service service.ComponentService) ComponentControlle
 }
 
 func (c *ComponentControllerImpl) initializeActionHistory() {
-	include, remove := c.service.GetInitialFilters()
-	for _, include := range include {
+	initialFilters := c.service.GetInitialFilters()
+	for _, include := range initialFilters.Include {
 		c.actionHistory = append(c.actionHistory, []entities.ComponentFilterDTO{
 			{
 				Path:   include.Path,
@@ -36,7 +42,7 @@ func (c *ComponentControllerImpl) initializeActionHistory() {
 			},
 		})
 	}
-	for _, remove := range remove {
+	for _, remove := range initialFilters.Remove {
 		c.actionHistory = append(c.actionHistory, []entities.ComponentFilterDTO{
 			{
 				Path:   remove.Path,
@@ -46,6 +52,18 @@ func (c *ComponentControllerImpl) initializeActionHistory() {
 			},
 		})
 	}
+
+	for _, replace := range initialFilters.Replace {
+		c.actionHistory = append(c.actionHistory, []entities.ComponentFilterDTO{
+			{
+				Path:   replace.Path,
+				Purl:   replace.Purl,
+				Usage:  string(replace.Usage),
+				Action: entities.Replace,
+			},
+		})
+	}
+
 	c.currentAction = len(c.actionHistory) - 1
 }
 
@@ -55,9 +73,8 @@ func (c *ComponentControllerImpl) GetComponentByPath(filePath string) (entities.
 }
 
 func (c *ComponentControllerImpl) FilterComponents(dto []entities.ComponentFilterDTO) error {
-	validate := validator.New()
 	for _, filter := range dto {
-		err := validate.Struct(filter)
+		err := utils.GetValidator().Struct(filter)
 		if err != nil {
 			log.Errorf("Validation error: %v", err)
 			return err
@@ -116,4 +133,18 @@ func (c *ComponentControllerImpl) CanUndo() (bool, error) {
 
 func (c *ComponentControllerImpl) CanRedo() (bool, error) {
 	return c.currentAction < len(c.actionHistory)-1, nil
+}
+
+func (c *ComponentControllerImpl) GetDeclaredComponents() ([]entities.DeclaredComponent, error) {
+	declaredComponents, err := c.service.GetDeclaredComponents()
+
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(declaredComponents, func(i, j int) bool {
+		return declaredComponents[i].Name < declaredComponents[j].Name
+	})
+
+	return declaredComponents, nil
 }

@@ -78,6 +78,8 @@ export namespace entities {
 	    usage?: string;
 	    action: string;
 	    comment?: string;
+	    replace_with_purl?: string;
+	    replace_with_name?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ComponentFilterDTO(source);
@@ -90,6 +92,22 @@ export namespace entities {
 	        this.usage = source["usage"];
 	        this.action = source["action"];
 	        this.comment = source["comment"];
+	        this.replace_with_purl = source["replace_with_purl"];
+	        this.replace_with_name = source["replace_with_name"];
+	    }
+	}
+	export class DeclaredComponent {
+	    name: string;
+	    purl: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DeclaredComponent(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.purl = source["purl"];
 	    }
 	}
 	export class FileDTO {
@@ -138,11 +156,14 @@ export namespace entities {
 	}
 	export class ResultDTO {
 	    path: string;
-	    purl: string;
 	    match_type: string;
 	    workflow_state?: string;
 	    filter_config?: FilterConfig;
 	    comment?: string;
+	    detected_purl?: string;
+	    concluded_purl?: string;
+	    concluded_purl_url?: string;
+	    concluded_name?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ResultDTO(source);
@@ -151,11 +172,14 @@ export namespace entities {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.path = source["path"];
-	        this.purl = source["purl"];
 	        this.match_type = source["match_type"];
 	        this.workflow_state = source["workflow_state"];
 	        this.filter_config = this.convertValues(source["filter_config"], FilterConfig);
 	        this.comment = source["comment"];
+	        this.detected_purl = source["detected_purl"];
+	        this.concluded_purl = source["concluded_purl"];
+	        this.concluded_purl_url = source["concluded_purl_url"];
+	        this.concluded_name = source["concluded_name"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

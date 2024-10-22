@@ -41,13 +41,6 @@ const extractFileLanguage = (path: string): string | null => {
   return languages[fileExtension];
 };
 
-/*
-export const mapToGitFile = (response: GitFileDTO[]): GitFile[] =>
-  response.map((file) => ({
-    path: file.path,
-  }));
-*/
-
 export const mapToLocalFile = (response: FileDTO): LocalFile => {
   return {
     content: response.content,

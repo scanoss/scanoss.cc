@@ -9,5 +9,6 @@ type ComponentService interface {
 	GetComponentByFilePath(filePath string) (entities.Component, error)
 	FilterComponents(dto []entities.ComponentFilterDTO) error
 	ClearAllFilters() error
-	GetInitialFilters() ([]scanossSettingsEntities.ComponentFilter, []scanossSettingsEntities.ComponentFilter)
+	GetInitialFilters() scanossSettingsEntities.InitialFilters
+	GetDeclaredComponents() ([]entities.DeclaredComponent, error)
 }

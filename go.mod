@@ -9,6 +9,7 @@ toolchain go1.22.5
 require (
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/labstack/gommon v0.4.0
+	github.com/scanoss/go-purl-helper v0.2.1
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	github.com/wailsapp/wails/v2 v2.9.2
@@ -32,6 +33,7 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/package-url/packageurl-go v0.1.3 // indirect
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

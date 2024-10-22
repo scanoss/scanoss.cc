@@ -25,3 +25,7 @@ export function ComponentFilterUndo() {
 export function ComponentGet(arg1) {
   return window['go']['handlers']['ComponentHandler']['ComponentGet'](arg1);
 }
+
+export function GetDeclaredComponents() {
+  return window['go']['handlers']['ComponentHandler']['GetDeclaredComponents']();
+}

@@ -2,14 +2,14 @@ import { Label } from '@/components/ui/label';
 import useQueryState from '@/hooks/useQueryState';
 import { MatchType } from '@/modules/results/domain';
 
-import { matchTypeIconMap } from '../../../components/Sidebar';
+import { matchTypeIconMap } from './Sidebar';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../../../components/ui/select';
+} from './ui/select';
 
 export default function MatchTypeSelector() {
   const [filterByMatchType, setFilterByMatchType] = useQueryState<

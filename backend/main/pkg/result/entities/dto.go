@@ -24,6 +24,7 @@ type FilterAction string
 const (
 	Include FilterAction = "include"
 	Remove  FilterAction = "remove"
+	Replace FilterAction = "replace"
 )
 
 type FilterType string
@@ -34,12 +35,15 @@ const (
 )
 
 type ResultDTO struct {
-	Path          string        `json:"path"`
-	Purl          string        `json:"purl"`
-	MatchType     MatchType     `json:"match_type"`
-	WorkflowState WorkflowState `json:"workflow_state,omitempty"`
-	FilterConfig  FilterConfig  `json:"filter_config,omitempty"`
-	Comment       string        `json:"comment,omitempty"`
+	Path             string        `json:"path"`
+	MatchType        MatchType     `json:"match_type"`
+	WorkflowState    WorkflowState `json:"workflow_state,omitempty"`
+	FilterConfig     FilterConfig  `json:"filter_config,omitempty"`
+	Comment          string        `json:"comment,omitempty"`
+	DetectedPurl     string        `json:"detected_purl,omitempty"`
+	ConcludedPurl    string        `json:"concluded_purl,omitempty"`
+	ConcludedPurlUrl string        `json:"concluded_purl_url,omitempty"`
+	ConcludedName    string        `json:"concluded_name,omitempty"`
 }
 
 type RequestResultDTO struct {

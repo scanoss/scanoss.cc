@@ -4,20 +4,17 @@ import { ReactNode, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { entities } from 'wailsjs/go/models';
 
+import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
 import useQueryState from '@/hooks/useQueryState';
 import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
+import { FilterAction } from '@/modules/components/domain';
 import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
-import ResultSearchBar from '@/modules/results/components/ResultSearchBar';
-import { FilterAction, MatchType } from '@/modules/results/domain';
+import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
-import MatchTypeSelector from '../modules/results/components/MatchTypeSelector';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from './ui/collapsible';
+import MatchTypeSelector from './MatchTypeSelector';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
@@ -26,29 +23,15 @@ export default function Sidebar() {
   const navigate = useNavigate();
 
   const fetchResults = useResultsStore((state) => state.fetchResults);
-  const setSelectedResults = useResultsStore(
-    (state) => state.setSelectedResults
-  );
+  const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
   const selectResultRange = useResultsStore((state) => state.selectResultRange);
-  const toggleResultSelection = useResultsStore(
-    (state) => state.toggleResultSelection
-  );
+  const toggleResultSelection = useResultsStore((state) => state.toggleResultSelection);
   const results = useResultsStore((state) => state.results);
-  const setLastSelectedIndex = useResultsStore(
-    (state) => state.setLastSelectedIndex
-  );
-  const setLastSelectionType = useResultsStore(
-    (state) => state.setLastSelectionType
-  );
+  const setLastSelectedIndex = useResultsStore((state) => state.setLastSelectedIndex);
+  const setLastSelectionType = useResultsStore((state) => state.setLastSelectionType);
 
-  const pendingResults = useMemo(
-    () => results.filter((r) => r.workflow_state === 'pending'),
-    [results]
-  );
-  const completedResults = useMemo(
-    () => results.filter((r) => r.workflow_state === 'completed'),
-    [results]
-  );
+  const pendingResults = useMemo(() => results.filter((r) => r.workflow_state === 'pending'), [results]);
+  const completedResults = useMemo(() => results.filter((r) => r.workflow_state === 'completed'), [results]);
 
   const [filterByMatchType] = useQueryState('matchType', 'all');
   const [query] = useQueryState('q', '');
@@ -80,9 +63,7 @@ export default function Sidebar() {
       const index = results.findIndex((r) => r.path === currentPath);
 
       if (index !== -1) {
-        setLastSelectionType(
-          results[index].workflow_state as 'pending' | 'completed'
-        );
+        setLastSelectionType(results[index].workflow_state as 'pending' | 'completed');
         setLastSelectedIndex(index);
         setSelectedResults([results[index]]);
       }
@@ -90,10 +71,7 @@ export default function Sidebar() {
   }, [currentPath, results]);
 
   useEffect(() => {
-    fetchResults(
-      filterByMatchType === 'all' ? undefined : filterByMatchType,
-      debouncedQuery
-    );
+    fetchResults(filterByMatchType === 'all' ? undefined : filterByMatchType, debouncedQuery);
   }, [fetchResults, filterByMatchType, debouncedQuery]);
 
   return (
@@ -134,20 +112,11 @@ export default function Sidebar() {
 interface ResultSectionProps {
   title: string;
   results: entities.ResultDTO[];
-  onSelect: (
-    e: React.MouseEvent,
-    result: entities.ResultDTO,
-    selectionType: 'pending' | 'completed'
-  ) => void;
+  onSelect: (e: React.MouseEvent, result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   selectionType: 'pending' | 'completed';
 }
 
-function ResultSection({
-  title,
-  results,
-  onSelect,
-  selectionType,
-}: ResultSectionProps) {
+function ResultSection({ title, results, onSelect, selectionType }: ResultSectionProps) {
   return (
     <Collapsible defaultOpen className="flex-1">
       <CollapsibleTrigger className="group w-full">
@@ -161,12 +130,7 @@ function ResultSection({
       {results.length > 0 && (
         <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
           {results.map((result) => (
-            <SidebarItem
-              key={result.path}
-              result={result}
-              onSelect={onSelect}
-              selectionType={selectionType}
-            />
+            <SidebarItem key={result.path} result={result} onSelect={onSelect} selectionType={selectionType} />
           ))}
         </CollapsibleContent>
       )}
@@ -176,11 +140,7 @@ function ResultSection({
 
 interface SidebarItemProps {
   result: entities.ResultDTO;
-  onSelect: (
-    e: React.MouseEvent,
-    result: entities.ResultDTO,
-    selectionType: 'pending' | 'completed'
-  ) => void;
+  onSelect: (e: React.MouseEvent, result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   selectionType: 'pending' | 'completed';
 }
 
@@ -189,13 +149,10 @@ function SidebarItem({ result, onSelect, selectionType }: SidebarItemProps) {
 
   const isSelected = selectedResults.some((r) => r.path === result.path);
 
-  const isResultDismissed =
-    result.filter_config?.action === FilterAction.Remove;
-  const isResultIncluded =
-    result.filter_config?.action === FilterAction.Include;
-
   const fileName = getFileName(result.path);
   const directory = getDirectory(result.path);
+
+  const presentation = stateInfoPresentation[result.filter_config?.action as FilterAction];
 
   return (
     <Tooltip>
@@ -214,19 +171,13 @@ function SidebarItem({ result, onSelect, selectionType }: SidebarItemProps) {
             <span
               className={clsx(
                 'absolute bottom-0 right-0 h-1 w-1 rounded-full',
-                isResultDismissed && 'bg-red-600',
-                isResultIncluded && 'bg-green-600'
+                presentation?.stateInfoSidebarIndicatorStyles ?? 'bg-transparent'
               )}
             ></span>
           </span>
           <div className="flex min-w-0 items-center">
             {directory && <span className="truncate">{directory}</span>}
-            <span
-              className={clsx(
-                'whitespace-nowrap',
-                !isSelected && 'text-foreground'
-              )}
-            >
+            <span className={clsx('whitespace-nowrap', !isSelected && 'text-foreground')}>
               {directory ? `/${fileName}` : fileName}
             </span>
           </div>

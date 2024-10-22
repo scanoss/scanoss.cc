@@ -7,6 +7,7 @@ import (
 
 	"github.com/scanoss/scanoss.lui/backend/handlers"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/version"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -25,7 +26,7 @@ func NewApp() *App {
 // Only set window title on non-darwin platforms
 func (a *App) maybeSetWindowTitle() {
 	if env := runtime.Environment(a.ctx); env.Platform != "darwin" {
-		runtime.WindowSetTitle(a.ctx, fmt.Sprintf("Scanoss Lui %s", version))
+		runtime.WindowSetTitle(a.ctx, fmt.Sprintf("Scanoss Lui %s", version.AppVersion))
 	}
 }
 

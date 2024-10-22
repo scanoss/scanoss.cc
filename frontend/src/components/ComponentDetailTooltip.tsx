@@ -35,15 +35,12 @@ function DetectedPurlTooltip({ component, replaced }: { component: entities.Comp
   const matchPresentation = matchTypePresentation[component.id as MatchType];
 
   const isResultRemoved = result?.filter_config?.action === FilterAction.Remove;
+  const removedStyles = isResultRemoved || replaced ? 'line-through opacity-70 text-muted-foreground' : '';
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div
-          className={clsx('cursor-pointer', {
-            'text-muted-foreground line-through opacity-70': replaced,
-          })}
-        >
+        <div className={clsx('cursor-pointer', removedStyles)}>
           <div
             className={clsx('text-lg font-bold leading-tight', {
               [matchPresentation.accent]: !replaced && !isResultRemoved,
@@ -63,13 +60,13 @@ function DetectedPurlTooltip({ component, replaced }: { component: entities.Comp
           {component.version && (
             <div>
               <p className="font-medium">VERSION</p>
-              <p className="text-muted-foreground">{component.version}</p>
+              <p className={clsx('text-muted-foreground')}>{component.version}</p>
             </div>
           )}
           {component.licenses?.length ? (
             <div>
               <p className="font-medium">LICENSE</p>
-              <p className="text-muted-foreground">{component.licenses?.[0].name}</p>
+              <p className={clsx('text-muted-foreground')}>{component.licenses?.[0].name}</p>
             </div>
           ) : null}
           {component.url && (

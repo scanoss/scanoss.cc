@@ -4,8 +4,109 @@ type KeySequence = string[];
 type ShortcutCallback = () => void;
 
 interface KeyboardShortcutOptions {
-  resetDelay?: number; // Time in ms to reset the key sequence
+  resetDelay?: number;
 }
+
+interface Shortcut {
+  id: string;
+  keys: KeySequence;
+  callback: ShortcutCallback;
+  pressedKeys: string[];
+  resetDelay: number;
+  resetTimeout?: NodeJS.Timeout;
+}
+
+class ShortcutManager {
+  private static instance: ShortcutManager;
+  private shortcuts: Map<string, Shortcut> = new Map();
+  private listenerAttached = false;
+
+  private constructor() {}
+
+  static getInstance(): ShortcutManager {
+    if (!ShortcutManager.instance) {
+      ShortcutManager.instance = new ShortcutManager();
+    }
+    return ShortcutManager.instance;
+  }
+
+  private setupListener() {
+    if (this.listenerAttached) return;
+
+    document.addEventListener('keydown', this.handleKeyDown);
+    this.listenerAttached = true;
+  }
+
+  private handleKeyDown = (event: KeyboardEvent) => {
+    const isModifierKey = event.metaKey || event.ctrlKey;
+    if (!isModifierKey) return;
+
+    const currentKey = event.key.toLowerCase();
+    if (currentKey === 'meta' || currentKey === 'control') return;
+
+    this.shortcuts.forEach((shortcut) => {
+      const currentIndex = shortcut.pressedKeys.length;
+      const expectedKey = shortcut.keys[currentIndex]?.toLowerCase();
+
+      if (currentKey !== expectedKey) {
+        this.resetShortcut(shortcut.id);
+        if (currentKey === shortcut.keys[0].toLowerCase()) {
+          shortcut.pressedKeys.push(currentKey);
+        }
+        return;
+      }
+
+      if (shortcut.keys.some((k) => k.toLowerCase() === currentKey)) {
+        event.preventDefault();
+      }
+
+      shortcut.pressedKeys.push(currentKey);
+
+      if (shortcut.resetTimeout) {
+        clearTimeout(shortcut.resetTimeout);
+      }
+
+      shortcut.resetTimeout = setTimeout(() => {
+        this.resetShortcut(shortcut.id);
+      }, shortcut.resetDelay);
+
+      if (shortcut.pressedKeys.length === shortcut.keys.length) {
+        shortcut.callback();
+        this.resetShortcut(shortcut.id);
+      }
+    });
+  };
+
+  private resetShortcut(id: string) {
+    const shortcut = this.shortcuts.get(id);
+    if (shortcut) {
+      shortcut.pressedKeys = [];
+      if (shortcut.resetTimeout) {
+        clearTimeout(shortcut.resetTimeout);
+      }
+    }
+  }
+
+  registerShortcut(shortcut: Shortcut): void {
+    this.shortcuts.set(shortcut.id, shortcut);
+    this.setupListener();
+  }
+
+  unregisterShortcut(id: string): void {
+    const shortcut = this.shortcuts.get(id);
+    if (shortcut?.resetTimeout) {
+      clearTimeout(shortcut.resetTimeout);
+    }
+    this.shortcuts.delete(id);
+
+    if (this.shortcuts.size === 0 && this.listenerAttached) {
+      document.removeEventListener('keydown', this.handleKeyDown);
+      this.listenerAttached = false;
+    }
+  }
+}
+
+let shortcutCounter = 0;
 
 export default function useKeyboardShortcut(
   keys: KeySequence,
@@ -13,68 +114,22 @@ export default function useKeyboardShortcut(
   options: KeyboardShortcutOptions = {}
 ): void {
   const { resetDelay = 1000 } = options;
-  const pressedKeys = useRef<string[]>([]);
-  const resetTimeout = useRef<NodeJS.Timeout>();
-
-  const isPressingModifierKey = (event: KeyboardEvent): boolean => {
-    return event.metaKey || event.ctrlKey;
-  };
-
-  const resetKeySequence = () => {
-    pressedKeys.current = [];
-  };
-
-  const checkSequence = (currentKey: string): boolean => {
-    const currentIndex = pressedKeys.current.length;
-    return keys[currentIndex]?.toLowerCase() === currentKey.toLowerCase();
-  };
-
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (!isPressingModifierKey(event)) {
-      resetKeySequence();
-      return;
-    }
-
-    const currentKey = event.key.toLowerCase();
-
-    if (currentKey === 'meta' || currentKey === 'control') {
-      return;
-    }
-
-    if (!checkSequence(currentKey)) {
-      resetKeySequence();
-      if (currentKey === keys[0].toLowerCase()) {
-        pressedKeys.current.push(currentKey);
-      }
-      return;
-    }
-
-    if (keys.some((k) => k.toLowerCase() === currentKey)) {
-      event.preventDefault();
-    }
-
-    pressedKeys.current.push(currentKey);
-
-    if (resetTimeout.current) {
-      clearTimeout(resetTimeout.current);
-    }
-
-    resetTimeout.current = setTimeout(resetKeySequence, resetDelay);
-
-    if (pressedKeys.current.length === keys.length) {
-      callback();
-      resetKeySequence();
-    }
-  };
+  const shortcutId = useRef(`shortcut-${++shortcutCounter}`);
+  const manager = ShortcutManager.getInstance();
 
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
+    const shortcut: Shortcut = {
+      id: shortcutId.current,
+      keys,
+      callback,
+      pressedKeys: [],
+      resetDelay,
+    };
+
+    manager.registerShortcut(shortcut);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      if (resetTimeout.current) {
-        clearTimeout(resetTimeout.current);
-      }
+      manager.unregisterShortcut(shortcutId.current);
     };
   }, [keys, callback, resetDelay]);
 }

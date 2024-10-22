@@ -11,6 +11,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 
 	"github.com/scanoss/scanoss.lui/backend/main/cmd"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/version"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 
 	"github.com/scanoss/scanoss.lui/backend/handlers"
@@ -21,9 +22,6 @@ import (
 
 //go:embed all:frontend/dist
 var assets embed.FS
-
-// Gets updated build time using -ldflags
-var version = ""
 
 //go:embed build/assets/icon.gif
 var icon []byte
@@ -36,7 +34,7 @@ func main() {
 
 	cmd.Init()
 
-	fmt.Println("App Version: ", version)
+	fmt.Println("App Version: ", version.AppVersion)
 
 	app := NewApp()
 
@@ -79,7 +77,7 @@ func main() {
 			WindowIsTranslucent:  true,
 			About: &mac.AboutInfo{
 				Title:   "Scanoss Lightweight User Interface",
-				Message: "Version: " + version,
+				Message: "Version: " + version.AppVersion,
 				Icon:    icon,
 			},
 		},

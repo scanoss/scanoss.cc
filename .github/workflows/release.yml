@@ -15,284 +15,276 @@ env:
   NODE_VERSION: "16.x"
 
 jobs:
+  build_mac:
+    name: Build for MacOS
+    runs-on: macos-latest
 
-    build_mac:
-      name: Build for MacOS
-      runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-          with:
-            submodules: recursive
+      # Setup and configure GoLang
+      - name: Setup GoLang
+        uses: actions/setup-go@v5
+        with:
+          check-latest: true
+          go-version: ${{ env.GOLANG_VERSION }}
+      - run: go version
+        shell: bash
 
-        # Setup and configure GoLang
-        - name: Setup GoLang
-          uses: actions/setup-go@v5
-          with:
-            check-latest: true
-            go-version: ${{ env.GOLANG_VERSION }}
-        - run: go version
-          shell: bash
+      # Setup and configure NodeJS
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
-        # Setup and configure NodeJS
-        - name: Setup NodeJS
-          uses: actions/setup-node@v4
-          with:
-            node-version: ${{ env.NODE_VERSION }}
+      # Install Wails
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        shell: bash
 
-        # Install Wails
-        - name: Install Wails
-          run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
-          shell: bash
+      #TODO: Check if is used
+      - name: Install macOS Wails deps
+        run: brew install mitchellh/gon/gon
+        shell: bash
 
-        #TODO: Check if is used
-        - name: Install macOS Wails deps
-          run: brew install mitchellh/gon/gon
-          shell: bash
+      # Build
+      - name: Build App
+        run: |
+          mkdir build
+          cp -r assets build/assets
+          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/pkg/common/version.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal" --nopackage -webview2 download -o scanoss-lui-macos
+        shell: bash
 
-        # Build
-        - name: Build App
-          run: |
-            mkdir build
-            cp -r assets build/assets
-            wails build -ldflags "-X main.version=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal" --nopackage -webview2 download -o scanoss-lui-macos
-          shell: bash
+      # Set execution permissions
+      - name: Add macOS perms
+        run: chmod +x ./build/bin/scanoss-lui-macos
+        shell: bash
 
+      # macOS Signing
+      - name: Import Code-Signing Certificates for macOS
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: Apple-Actions/import-codesign-certs@v3
+        with:
+          keychain-password: ${{ secrets.APPLE_PASSWORD }}
+          p12-file-base64: ${{ secrets.MACOS_DEVELOPER_CERT }}
+          p12-password: ${{ secrets.MACOS_DEVELOPER_CERT_PASSWORD }}
 
-        # Set execution permissions
-        - name: Add macOS perms
-          run: chmod +x ./build/bin/scanoss-lui-macos
-          shell: bash
+      - name: Sign and Notarize
+        env:
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_ID: apple@scanoss.com
+          APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
+          APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
+        run: |
+          echo "Signing Package with App Certificate"
+          codesign --timestamp --deep --options runtime -s "$APP_CERTIFICATE"  --verbose ./build/bin/scanoss-lui-macos
 
+          echo "Verifying Code Signature"
+          codesign --verify --verbose=4 ./build/bin/scanoss-lui-macos
 
-        # macOS Signing
-        - name: Import Code-Signing Certificates for macOS
-          if: startsWith(github.ref, 'refs/tags/')
-          uses: Apple-Actions/import-codesign-certs@v3
-          with:
-            keychain-password: ${{ secrets.APPLE_PASSWORD }}
-            p12-file-base64: ${{ secrets.MACOS_DEVELOPER_CERT }}
-            p12-password: ${{ secrets.MACOS_DEVELOPER_CERT_PASSWORD }}
+          echo "Detailed Signature Information"
+          codesign -dvv ./build/bin/scanoss-lui-macos
 
-        - name: Sign and Notarize
-          env:
-            APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-            APPLE_ID: apple@scanoss.com
-            APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
-            APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
-          run: |
-            echo "Signing Package with App Certificate"
-            codesign --timestamp --deep --options runtime -s "$APP_CERTIFICATE"  --verbose ./build/bin/scanoss-lui-macos
+          echo "Checking Gatekeeper Acceptance (Before Notarization)"
+          spctl -a -vv ./build/bin/scanoss-lui-macos || echo "Gatekeeper rejection expected before notarization"
 
-            echo "Verifying Code Signature"
-            codesign --verify --verbose=4 ./build/bin/scanoss-lui-macos
+          echo "Creating zip archive"
+          ditto -c -k --sequesterRsrc --keepParent ./build/bin/scanoss-lui-macos ./build/bin/scanoss-lui-macos.zip
 
-            echo "Detailed Signature Information"
-            codesign -dvv ./build/bin/scanoss-lui-macos
+          echo "Submitting for Notarization"
+          xcrun notarytool submit ./build/bin/scanoss-lui-macos.zip --apple-id "$APPLE_ID" --team-id "$APPLE_DEVELOPER_ID" --password "$APPLE_PASSWORD" --wait
 
-            echo "Checking Gatekeeper Acceptance (Before Notarization)"
-            spctl -a -vv ./build/bin/scanoss-lui-macos || echo "Gatekeeper rejection expected before notarization"
+          echo "Checking Notarization Status"
+          xcrun notarytool history --apple-id "$APPLE_ID" --team-id "$APPLE_DEVELOPER_ID" --password "$APPLE_PASSWORD"
 
-            echo "Creating zip archive"
-            ditto -c -k --sequesterRsrc --keepParent ./build/bin/scanoss-lui-macos ./build/bin/scanoss-lui-macos.zip
+          chmod +x ./build/bin/scanoss-lui-macos
 
-            echo "Submitting for Notarization"
-            xcrun notarytool submit ./build/bin/scanoss-lui-macos.zip --apple-id "$APPLE_ID" --team-id "$APPLE_DEVELOPER_ID" --password "$APPLE_PASSWORD" --wait
+          echo "Signing and Notarization Complete"
 
-            echo "Checking Notarization Status"
-            xcrun notarytool history --apple-id "$APPLE_ID" --team-id "$APPLE_DEVELOPER_ID" --password "$APPLE_PASSWORD"
+      - name: Upload build assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact_m
+          path: ./build/bin/*.zip
 
-            chmod +x ./build/bin/scanoss-lui-macos
+  build_linux:
+    name: Build for Linux
+    runs-on: ubuntu-20.04
 
-            echo "Signing and Notarization Complete"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-        - name: Upload build assets
-          uses: actions/upload-artifact@v4
-          with:
-            name: artifact_m
-            path: ./build/bin/*.zip
+      # Setup and configure GoLang
+      - name: Setup GoLang
+        uses: actions/setup-go@v5
+        with:
+          check-latest: true
+          go-version: ${{ env.GOLANG_VERSION }}
+      - run: go version
+        shell: bash
+      # Setup and configure NodeJS
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
+      # Install Wails
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        shell: bash
 
-    build_linux:
-        name: Build for Linux
-        runs-on: ubuntu-20.04
+      # Install Linux Wails deps
+      - name: Install Linux Wails deps
+        run: sudo apt-get update && sudo apt-get install libgtk-3-0 libwebkit2gtk-4.0-dev gcc-aarch64-linux-gnu
+        shell: bash
 
-        steps:
-          - name: Checkout
-            uses: actions/checkout@v4
-            with:
-              submodules: recursive
+      # Build
+      - name: Build Linux App
+        run: |
+          mkdir build
+          cp -r assets build/assets
+          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/pkg/common/version.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "linux/amd64" -webview2 download -o scanoss-lui-linux
+        shell: bash
 
-          # Setup and configure GoLang
-          - name: Setup GoLang
-            uses: actions/setup-go@v5
-            with:
-              check-latest: true
-              go-version: ${{ env.GOLANG_VERSION }}
-          - run: go version
-            shell: bash
-          # Setup and configure NodeJS
-          - name: Setup NodeJS
-            uses: actions/setup-node@v4
-            with:
-              node-version: ${{ env.NODE_VERSION }}
+      - name: Add Linux perms
+        run: chmod +x ./build/bin/scanoss-lui-linux
+        shell: bash
 
-          # Install Wails
-          - name: Install Wails
-            run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
-            shell: bash
+      - name: Build Linux zip file
+        shell: bash
+        run: |
+          cd ./build/bin/ && zip scanoss-lui-linux.zip scanoss-lui-linux
 
-          # Install Linux Wails deps
-          - name: Install Linux Wails deps
-            run: sudo apt-get update && sudo apt-get install libgtk-3-0 libwebkit2gtk-4.0-dev gcc-aarch64-linux-gnu
-            shell: bash
+      # Upload build assets
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact_l
+          path: |
+            ./build/bin/*.zip
 
-          # Build
-          - name: Build Linux App
-            run: |
-              mkdir build
-              cp -r assets build/assets
-              wails build -ldflags "-X main.version=$(git tag --sort=-version:refname | head -n 1)" --platform "linux/amd64" -webview2 download -o scanoss-lui-linux
-            shell: bash
+  build_w:
+    name: Build for Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-          - name: Add Linux perms
-            run: chmod +x ./build/bin/scanoss-lui-linux
-            shell: bash
+      # Setup and configure GoLang
+      - name: Setup GoLang
+        uses: actions/setup-go@v5
+        with:
+          check-latest: true
+          go-version: ${{ env.GOLANG_VERSION }}
+      - run: go version
+        shell: bash
 
-          - name: Build Linux zip file
-            shell: bash
-            run: |
-              cd ./build/bin/ && zip scanoss-lui-linux.zip scanoss-lui-linux
+      # Setup and configure Node JS
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
-        # Upload build assets
-          - uses: actions/upload-artifact@v4
-            with:
-              name: artifact_l
-              path: |
-                ./build/bin/*.zip
-            
+      # Install Wails
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        shell: bash
 
-    build_w:
-      name: Build for Windows
-      runs-on: windows-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-          with:
-            submodules: recursive
+      # Build
+      - name: Build Windows App
+        run: |
+          mkdir build
+          cp -r assets build/assets
+          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/pkg/common/version.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o ${{env.ARTIFACT_NAME_PREFIX}}-windows.exe
+        shell: bash
 
-        # Setup and configure GoLang
-        - name: Setup GoLang
-          uses: actions/setup-go@v5
-          with:
-            check-latest: true
-            go-version: ${{ env.GOLANG_VERSION }}
-        - run: go version
-          shell: bash
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact_w_unsigned
+          path: |
+            build/bin/${{ env.ARTIFACT_NAME_PREFIX }}*.exe
 
-        # Setup and configure Node JS
-        - name: Setup NodeJS
-          uses: actions/setup-node@v4
-          with:
-            node-version: ${{ env.NODE_VERSION }}
+  build_w_sign:
+    name: "Sign with CodeSignTool"
+    needs: [build_w]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact W unsigned
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact_w_unsigned
 
-        # Install Wails
-        - name: Install Wails
-          run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
-          shell: bash
+        #This stage locates the unsigned .exe binary and move to win_unsigned folder.
+        #CodeSignTool does not support reading and writting into the same filepath
+      - name: Find Windows Artifact Path
+        id: win-path-artifact
+        run: |
+          export WIN_BINARY_FILEPATH=$(ls ${{ env.ARTIFACT_NAME_PREFIX }}*.exe)
+          mkdir win_unsigned
+          mv "$WIN_BINARY_FILEPATH" win_unsigned/
+          echo "ARTIFACT_WIN_PATH=win_unsigned/$WIN_BINARY_FILEPATH" >> "$GITHUB_OUTPUT"
 
-        # Build
-        - name: Build Windows App
-          run: |
-            mkdir build
-            cp -r assets build/assets
-            wails build -ldflags "-X main.version=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o ${{env.ARTIFACT_NAME_PREFIX}}-windows.exe
-          shell: bash
+      - name: Sign Windows Artifact with CodeSignTool
+        uses: sslcom/esigner-codesign@develop
+        env:
+          ARTIFACT_WIN_PATH: ${{ steps.win-path-artifact.outputs.ARTIFACT_WIN_PATH }}
+        with:
+          command: sign
+          username: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_ES_USERNAME}}
+          password: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_ES_PASSWORD}}
+          credential_id: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_CREDENTIAL_ID}}
+          totp_secret: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_ES_TOTP_SECRET}}
+          file_path: ${GITHUB_WORKSPACE}/${{ env.ARTIFACT_WIN_PATH }}
+          output_path: ${GITHUB_WORKSPACE}
 
-        - uses: actions/upload-artifact@v4
-          with:
-            name: artifact_w_unsigned
-            path: |
-              build/bin/${{ env.ARTIFACT_NAME_PREFIX }}*.exe            
-                
-                
+      - name: zip file
+        shell: bash
+        run: |
+          mkdir -p build/bin
+          export WIN_BINARY_FILEPATH=$(ls ${{ env.ARTIFACT_NAME_PREFIX }}*.exe)
+          zip ./build/bin/scanoss-lui-win.zip $WIN_BINARY_FILEPATH
 
-    build_w_sign:
-      name: "Sign with CodeSignTool"
-      needs: [build_w]
-      runs-on: ubuntu-latest
-      steps:
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact_w
+          path: |
+            build/bin/*.zip
 
-        - name: Download artifact W unsigned
-          uses: actions/download-artifact@v4
-          with:
-            name: artifact_w_unsigned
+  create_release:
+    needs: [build_w_sign, build_mac, build_linux]
+    runs-on: ubuntu-latest
 
-          #This stage locates the unsigned .exe binary and move to win_unsigned folder.
-          #CodeSignTool does not support reading and writting into the same filepath
-        - name: Find Windows Artifact Path
-          id: win-path-artifact
-          run: |
-            export WIN_BINARY_FILEPATH=$(ls ${{ env.ARTIFACT_NAME_PREFIX }}*.exe)
-            mkdir win_unsigned
-            mv "$WIN_BINARY_FILEPATH" win_unsigned/
-            echo "ARTIFACT_WIN_PATH=win_unsigned/$WIN_BINARY_FILEPATH" >> "$GITHUB_OUTPUT"
+    steps:
+      - name: Download artifact W
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact_w
 
-        - name: Sign Windows Artifact with CodeSignTool
-          uses: sslcom/esigner-codesign@develop
-          env:
-            ARTIFACT_WIN_PATH: ${{ steps.win-path-artifact.outputs.ARTIFACT_WIN_PATH }}
-          with:
-            command: sign
-            username: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_ES_USERNAME}}
-            password: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_ES_PASSWORD}}
-            credential_id: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_CREDENTIAL_ID}}
-            totp_secret: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_ES_TOTP_SECRET}}
-            file_path:  ${GITHUB_WORKSPACE}/${{ env.ARTIFACT_WIN_PATH }}
-            output_path:  ${GITHUB_WORKSPACE}
+      - name: Download artifact M
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact_m
 
-        - name: zip file
-          shell: bash
-          run: |
-            mkdir -p build/bin
-            export WIN_BINARY_FILEPATH=$(ls ${{ env.ARTIFACT_NAME_PREFIX }}*.exe)
-            zip ./build/bin/scanoss-lui-win.zip $WIN_BINARY_FILEPATH    
+      - name: Download artifact L
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact_l
 
-        - uses: actions/upload-artifact@v4
-          with:
-            name: artifact_w
-            path: |
-              build/bin/*.zip
-    
+      - name: Publish release draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PROMPT_DISABLED: "disable"
+        run: |
+          gh release create ${{github.ref_name}} \
+                            --repo ${{ github.server_url }}/${{ github.repository }} \
+                            --generate-notes \
+                            --draft \
+                            $(ls *.zip)
 
-    create_release:
-      needs: [ build_w_sign, build_mac, build_linux ]
-      runs-on: ubuntu-latest
-
-      steps:
-        - name: Download artifact W
-          uses: actions/download-artifact@v4
-          with:
-            name: artifact_w
-
-        - name: Download artifact M
-          uses: actions/download-artifact@v4
-          with:
-            name: artifact_m
-
-        - name: Download artifact L
-          uses: actions/download-artifact@v4
-          with:
-            name: artifact_l
-
-        - name: Publish release draft
-          env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            GH_PROMPT_DISABLED: "disable"
-          run: |
-            gh release create ${{github.ref_name}} \
-                              --repo ${{ github.server_url }}/${{ github.repository }} \
-                              --generate-notes \
-                              --draft \
-                              $(ls *.zip)    

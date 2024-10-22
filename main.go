@@ -52,6 +52,7 @@ func main() {
 		WindowStartState: options.Maximised,
 		OnStartup: func(ctx context.Context) {
 			app.startup(ctx)
+			app.initializeMenu()
 		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
 			return app.beforeClose(ctx, scanossBomHandler)

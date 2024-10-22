@@ -81,7 +81,6 @@ func (a *App) initializeMenu() {
 
 	if env := runtime.Environment(a.ctx); env.Platform == "darwin" {
 		AppMenu.Append(menu.AppMenu())
-		AppMenu.Append(menu.EditMenu())
 	}
 
 	HelpMenu := AppMenu.AddSubmenu("Help")

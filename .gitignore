@@ -2,6 +2,7 @@ build
 node_modules
 frontend/dist
 .idea
+.vscode
 
 .scanoss
 scanoss.json

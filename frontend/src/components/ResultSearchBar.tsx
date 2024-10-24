@@ -7,13 +7,11 @@ import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
 
 export default function ResultSearchBar() {
+  const [query, setQuery] = useQueryState<string>('q', '');
   const { modifierKey } = useEnvironment();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [query, setQuery] = useQueryState<string>('q', '');
 
-  useKeyboardShortcut([modifierKey.keyCode, 'f'], () => {
-    inputRef.current?.focus();
-  });
+  useKeyboardShortcut([modifierKey.keyCode, 'f'], () => inputRef.current?.focus());
 
   return (
     <div className="relative grid w-full items-center gap-1.5">

@@ -6,24 +6,24 @@ import { MatchType } from '../domain';
 import ResultService from '../infra/service';
 
 interface ResultsState {
+  completedResults: entities.ResultDTO[];
   error: string | null;
   isLoading: boolean;
   lastSelectedIndex: number;
   lastSelectionType: 'pending' | 'completed' | null;
   pendingResults: entities.ResultDTO[];
-  completedResults: entities.ResultDTO[];
   selectedResults: entities.ResultDTO[];
 }
 
 interface ResultsActions {
   fetchResults: (matchType?: MatchType, query?: string) => Promise<void>;
+  getNextResult: () => entities.ResultDTO;
+  getPreviousResult: () => entities.ResultDTO;
   selectResultRange: (endResult: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   setLastSelectedIndex: (index: number) => void;
   setLastSelectionType: (type: 'pending' | 'completed') => void;
   setSelectedResults: (selectedResults: entities.ResultDTO[]) => void;
   toggleResultSelection: (result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
-  getNextResult: () => entities.ResultDTO;
-  getPreviousResult: () => entities.ResultDTO;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -35,7 +35,6 @@ const useResultsStore = create<ResultsStore>()(
     isLoading: false,
     error: null,
     lastSelectedIndex: -1,
-    anchorIndex: -1,
     selectedResults: [],
     lastSelectionType: null,
 
@@ -50,10 +49,9 @@ const useResultsStore = create<ResultsStore>()(
       set({ isLoading: true, error: null }, false, 'FETCH_RESULTS');
       try {
         const results = await ResultService.getAll(matchType, query);
-        set({
-          completedResults: results.filter((r) => r.workflow_state === 'completed'),
-          pendingResults: results.filter((r) => r.workflow_state === 'pending'),
-        });
+        const pendingResults = results.filter((r) => r.workflow_state === 'pending');
+        const completedResults = results.filter((r) => r.workflow_state === 'completed');
+        set({ pendingResults, completedResults });
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'An error occurred while fetching results',
@@ -125,7 +123,8 @@ const useResultsStore = create<ResultsStore>()(
       const { pendingResults, completedResults, lastSelectionType, selectedResults } = get();
 
       const resultsOfType = lastSelectionType === 'pending' ? pendingResults : completedResults;
-      const newResultIndex = resultsOfType.findIndex((r) => r.path === selectedResults[0]?.path) + 1;
+      const lastResultInSelection = selectedResults[selectedResults.length - 1]; // To handle multi select as well
+      const newResultIndex = resultsOfType.findIndex((r) => r.path === lastResultInSelection.path) + 1;
       let nextResult: entities.ResultDTO;
 
       if (newResultIndex >= resultsOfType.length) {

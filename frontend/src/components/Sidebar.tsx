@@ -11,6 +11,7 @@ import useQueryState from '@/hooks/useQueryState';
 import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
+import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
@@ -34,11 +35,11 @@ export default function Sidebar() {
   const getNextResult = useResultsStore((state) => state.getNextResult);
   const getPreviousResult = useResultsStore((state) => state.getPreviousResult);
 
+  const results = useMemo(() => [...pendingResults, ...completedResults], [pendingResults, completedResults]);
+
   const [filterByMatchType] = useQueryState('matchType', 'all');
   const [query] = useQueryState('q', '');
-  const debouncedQuery: string = useDebounce(query, 300);
-
-  const results = useMemo(() => [...pendingResults, ...completedResults], [pendingResults, completedResults]);
+  const debouncedQuery: string = useDebounce(query, DEBOUNCE_QUERY_MS);
 
   const handleSelectFiles = (
     e: React.MouseEvent,
@@ -53,8 +54,10 @@ export default function Sidebar() {
       toggleResultSelection(result, selectionType);
     } else {
       const resultsOfType = selectionType === 'pending' ? pendingResults : completedResults;
-      setLastSelectionType(selectionType);
-      setLastSelectedIndex(resultsOfType.findIndex((r) => r.path === result.path)); // Update last selected index
+      const lastSelectedIndex = resultsOfType.findIndex((r) => r.path === result.path);
+
+      setLastSelectionType(result.workflow_state as 'pending' | 'completed');
+      setLastSelectedIndex(lastSelectedIndex);
       setSelectedResults([result]);
       handleNavigateToResult(result);
     }
@@ -81,7 +84,7 @@ export default function Sidebar() {
 
   useEffect(() => {
     fetchResults(filterByMatchType === 'all' ? undefined : filterByMatchType, debouncedQuery);
-  }, [fetchResults, filterByMatchType, debouncedQuery]);
+  }, [filterByMatchType, debouncedQuery]);
 
   useKeyboardShortcut(['j'], () => handleNavigateToResult(getPreviousResult()));
   useKeyboardShortcut(['k'], () => handleNavigateToResult(getNextResult()));

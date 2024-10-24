@@ -27,18 +27,18 @@ export default function Sidebar() {
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
   const selectResultRange = useResultsStore((state) => state.selectResultRange);
   const toggleResultSelection = useResultsStore((state) => state.toggleResultSelection);
-  const results = useResultsStore((state) => state.results);
+  const pendingResults = useResultsStore((state) => state.pendingResults);
+  const completedResults = useResultsStore((state) => state.completedResults);
   const setLastSelectedIndex = useResultsStore((state) => state.setLastSelectedIndex);
   const setLastSelectionType = useResultsStore((state) => state.setLastSelectionType);
   const getNextResult = useResultsStore((state) => state.getNextResult);
   const getPreviousResult = useResultsStore((state) => state.getPreviousResult);
 
-  const pendingResults = useMemo(() => results.filter((r) => r.workflow_state === 'pending'), [results]);
-  const completedResults = useMemo(() => results.filter((r) => r.workflow_state === 'completed'), [results]);
-
   const [filterByMatchType] = useQueryState('matchType', 'all');
   const [query] = useQueryState('q', '');
   const debouncedQuery: string = useDebounce(query, 300);
+
+  const results = useMemo(() => [...pendingResults, ...completedResults], [pendingResults, completedResults]);
 
   const handleSelectFiles = (
     e: React.MouseEvent,
@@ -52,7 +52,9 @@ export default function Sidebar() {
     } else if (e.metaKey || e.ctrlKey) {
       toggleResultSelection(result, selectionType);
     } else {
-      setLastSelectedIndex(results.findIndex((r) => r.path === result.path)); // Update last selected index
+      const resultsOfType = selectionType === 'pending' ? pendingResults : completedResults;
+      setLastSelectionType(selectionType);
+      setLastSelectedIndex(resultsOfType.findIndex((r) => r.path === result.path)); // Update last selected index
       setSelectedResults([result]);
       handleNavigateToResult(result);
     }

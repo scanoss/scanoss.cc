@@ -10,7 +10,8 @@ interface ResultsState {
   isLoading: boolean;
   lastSelectedIndex: number;
   lastSelectionType: 'pending' | 'completed' | null;
-  results: entities.ResultDTO[];
+  pendingResults: entities.ResultDTO[];
+  completedResults: entities.ResultDTO[];
   selectedResults: entities.ResultDTO[];
 }
 
@@ -19,7 +20,6 @@ interface ResultsActions {
   selectResultRange: (endResult: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   setLastSelectedIndex: (index: number) => void;
   setLastSelectionType: (type: 'pending' | 'completed') => void;
-  setResults: (results: entities.ResultDTO[]) => void;
   setSelectedResults: (selectedResults: entities.ResultDTO[]) => void;
   toggleResultSelection: (result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   getNextResult: () => entities.ResultDTO;
@@ -30,7 +30,8 @@ type ResultsStore = ResultsState & ResultsActions;
 
 const useResultsStore = create<ResultsStore>()(
   devtools((set, get) => ({
-    results: [],
+    pendingResults: [],
+    completedResults: [],
     isLoading: false,
     error: null,
     lastSelectedIndex: -1,
@@ -45,20 +46,14 @@ const useResultsStore = create<ResultsStore>()(
     setLastSelectionType: (type: 'pending' | 'completed') =>
       set({ lastSelectionType: type }, false, 'SET_LAST_SELECTION_TYPE'),
 
-    setResults: (results) =>
-      set(
-        {
-          results,
-        },
-        false,
-        'SET_RESULTS'
-      ),
-
     fetchResults: async (matchType, query) => {
       set({ isLoading: true, error: null }, false, 'FETCH_RESULTS');
       try {
         const results = await ResultService.getAll(matchType, query);
-        get().setResults(results);
+        set({
+          completedResults: results.filter((r) => r.workflow_state === 'completed'),
+          pendingResults: results.filter((r) => r.workflow_state === 'pending'),
+        });
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'An error occurred while fetching results',
@@ -91,7 +86,7 @@ const useResultsStore = create<ResultsStore>()(
 
     selectResultRange: (endResult, selectionType) =>
       set((state) => {
-        const { results, selectedResults, lastSelectedIndex, lastSelectionType } = state;
+        const { selectedResults, lastSelectedIndex, lastSelectionType, pendingResults, completedResults } = state;
 
         const resultType = endResult.workflow_state as 'pending' | 'completed';
 
@@ -103,15 +98,21 @@ const useResultsStore = create<ResultsStore>()(
           };
         }
 
+        const resultsOfType = lastSelectionType === 'pending' ? pendingResults : completedResults;
+
         const startIndex =
-          lastSelectedIndex !== -1 ? lastSelectedIndex : results.findIndex((r) => r.path === selectedResults[0]?.path);
-        const endIndex = results.findIndex((r) => r.path === endResult.path);
+          lastSelectedIndex !== -1
+            ? lastSelectedIndex
+            : resultsOfType.findIndex((r) => r.path === selectedResults[0]?.path);
+        const endIndex = resultsOfType.findIndex((r) => r.path === endResult.path);
 
         if (startIndex === -1 || endIndex === -1) return state;
 
         const [start, end] = startIndex < endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
 
-        const newSelectedResults = results.slice(start, end + 1).filter((r) => r.workflow_state === selectionType);
+        const newSelectedResults = resultsOfType
+          .slice(start, end + 1)
+          .filter((r) => r.workflow_state === selectionType);
 
         return {
           selectedResults: newSelectedResults,
@@ -121,15 +122,14 @@ const useResultsStore = create<ResultsStore>()(
       }),
 
     getNextResult: () => {
-      const { results, lastSelectionType, selectedResults } = get();
+      const { pendingResults, completedResults, lastSelectionType, selectedResults } = get();
 
-      const resultsOfType = results.filter((r) => r.workflow_state === lastSelectionType);
+      const resultsOfType = lastSelectionType === 'pending' ? pendingResults : completedResults;
       const newResultIndex = resultsOfType.findIndex((r) => r.path === selectedResults[0]?.path) + 1;
       let nextResult: entities.ResultDTO;
 
       if (newResultIndex >= resultsOfType.length) {
-        const oppositeType = lastSelectionType === 'pending' ? 'completed' : 'pending';
-        const oppositeResults = results.filter((r) => r.workflow_state === oppositeType);
+        const oppositeResults = lastSelectionType === 'pending' ? completedResults : pendingResults;
         nextResult = oppositeResults[0];
 
         return nextResult;
@@ -140,15 +140,14 @@ const useResultsStore = create<ResultsStore>()(
       return nextResult;
     },
     getPreviousResult: () => {
-      const { results, lastSelectionType, selectedResults } = get();
+      const { pendingResults, completedResults, lastSelectionType, selectedResults } = get();
 
-      const resultsOfType = results.filter((r) => r.workflow_state === lastSelectionType);
+      const resultsOfType = lastSelectionType === 'pending' ? pendingResults : completedResults;
       const newResultIndex = resultsOfType.findIndex((r) => r.path === selectedResults[0]?.path) - 1;
       let previousResult: entities.ResultDTO;
 
       if (newResultIndex === -1) {
-        const oppositeType = lastSelectionType === 'pending' ? 'completed' : 'pending';
-        const oppositeResults = results.filter((r) => r.workflow_state === oppositeType);
+        const oppositeResults = lastSelectionType === 'pending' ? completedResults : pendingResults;
         previousResult = oppositeResults[oppositeResults.length - 1];
 
         return previousResult;

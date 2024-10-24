@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { withErrorHandling } from '@/lib/errors';
+import { encodeFilePath } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
@@ -20,10 +21,12 @@ export default function FilterComponentActions() {
 
   const handleFilterComponent = withErrorHandling({
     asyncFn: async (args?: OnFilterComponentArgs) => {
-      const nextResultRoute = await onFilterComponent(args);
+      const nextResult = await onFilterComponent(args);
 
-      if (nextResultRoute) {
-        navigate(nextResultRoute);
+      if (nextResult) {
+        navigate({
+          pathname: `/files/${encodeFilePath(nextResult.path)}`,
+        });
       }
     },
     onError: (error) => {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useConfirm } from '@/hooks/useConfirm';
+import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 
 import {
@@ -20,6 +21,7 @@ interface ConfirmDialogProps {
 }
 
 export default function ConfirmDialog({ showPersistDecision = false }: ConfirmDialogProps) {
+  const { modifierKey } = useEnvironment();
   const { isAsking, message, deny, confirm, onPersistDecision } = useConfirm();
   const [persistDecision, setPersistDecision] = useState(false);
 
@@ -30,7 +32,7 @@ export default function ConfirmDialog({ showPersistDecision = false }: ConfirmDi
     confirm();
   };
 
-  useKeyboardShortcut(['enter'], handleConfirm);
+  useKeyboardShortcut([modifierKey.keyCode, 'enter'], handleConfirm);
 
   return (
     <AlertDialog open={isAsking} onOpenChange={deny}>

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { cn } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
@@ -47,6 +48,7 @@ interface ReplaceComponentDialogProps {
 
 export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponent }: ReplaceComponentDialogProps) {
   const { toast } = useToast();
+  const { modifierKey } = useEnvironment();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
@@ -100,7 +102,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     }
   }, [data]);
 
-  useKeyboardShortcut(['enter'], form.handleSubmit(onSubmit));
+  useKeyboardShortcut([modifierKey.keyCode, 'enter'], form.handleSubmit(onSubmit));
 
   return (
     <>

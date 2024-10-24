@@ -5,6 +5,7 @@ type ShortcutCallback = () => void;
 
 interface KeyboardShortcutOptions {
   resetDelay?: number;
+  preventRegistering?: boolean;
 }
 
 interface Shortcut {
@@ -38,11 +39,7 @@ class ShortcutManager {
   }
 
   private handleKeyDown = (event: KeyboardEvent) => {
-    const isModifierKey = event.metaKey || event.ctrlKey;
-    if (!isModifierKey) return;
-
     const currentKey = event.key.toLowerCase();
-    if (currentKey === 'meta' || currentKey === 'control') return;
 
     this.shortcuts.forEach((shortcut) => {
       const currentIndex = shortcut.pressedKeys.length;
@@ -113,11 +110,13 @@ export default function useKeyboardShortcut(
   callback: ShortcutCallback,
   options: KeyboardShortcutOptions = {}
 ): void {
-  const { resetDelay = 1000 } = options;
+  const { resetDelay = 1000, preventRegistering = false } = options;
   const shortcutId = useRef(`shortcut-${++shortcutCounter}`);
   const manager = ShortcutManager.getInstance();
 
   useEffect(() => {
+    if (preventRegistering) return;
+
     const shortcut: Shortcut = {
       id: shortcutId.current,
       keys,
@@ -131,5 +130,5 @@ export default function useKeyboardShortcut(
     return () => {
       manager.unregisterShortcut(shortcutId.current);
     };
-  }, [keys, callback, resetDelay]);
+  }, [keys, callback, resetDelay, preventRegistering]);
 }

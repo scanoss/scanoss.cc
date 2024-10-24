@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import useEnvironment from '@/hooks/useEnvironment';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
+import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
@@ -22,13 +23,9 @@ export default function InputPromptDialog() {
     setInputValue('');
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (!inputValue) return;
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      e.preventDefault();
-      handleConfirm();
-    }
-  };
+  useKeyboardShortcut([modifierKey.keyCode, 'Enter'], handleConfirm, {
+    preventRegistering: !inputValue,
+  });
 
   if (!isPrompting || !options) return null;
 
@@ -44,9 +41,9 @@ export default function InputPromptDialog() {
 
         {options.input.type === 'textarea' && (
           <div>
-            <Textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} />
+            <Textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
             <p className="mt-2 text-xs text-muted-foreground">
-              Use <span className="rounded bg-primary px-1.5">{modifierKey} + return</span> to confirm
+              Use <span className="rounded bg-primary px-1.5">{modifierKey.label} + return</span> to confirm
             </p>
           </div>
         )}

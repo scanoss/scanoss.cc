@@ -16,18 +16,14 @@ interface ResultsState {
 
 interface ResultsActions {
   fetchResults: (matchType?: MatchType, query?: string) => Promise<void>;
-  selectResultRange: (
-    endResult: entities.ResultDTO,
-    selectionType: 'pending' | 'completed'
-  ) => void;
+  selectResultRange: (endResult: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   setLastSelectedIndex: (index: number) => void;
   setLastSelectionType: (type: 'pending' | 'completed') => void;
   setResults: (results: entities.ResultDTO[]) => void;
   setSelectedResults: (selectedResults: entities.ResultDTO[]) => void;
-  toggleResultSelection: (
-    result: entities.ResultDTO,
-    selectionType: 'pending' | 'completed'
-  ) => void;
+  toggleResultSelection: (result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
+  getNextResult: () => entities.ResultDTO;
+  getPreviousResult: () => entities.ResultDTO;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -42,11 +38,9 @@ const useResultsStore = create<ResultsStore>()(
     selectedResults: [],
     lastSelectionType: null,
 
-    setSelectedResults: (selectedResults) =>
-      set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
+    setSelectedResults: (selectedResults) => set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
-    setLastSelectedIndex: (index) =>
-      set({ lastSelectedIndex: index }, false, 'SET_LAST_SELECTED_INDEX'),
+    setLastSelectedIndex: (index) => set({ lastSelectedIndex: index }, false, 'SET_LAST_SELECTED_INDEX'),
 
     setLastSelectionType: (type: 'pending' | 'completed') =>
       set({ lastSelectionType: type }, false, 'SET_LAST_SELECTION_TYPE'),
@@ -67,10 +61,7 @@ const useResultsStore = create<ResultsStore>()(
         get().setResults(results);
       } catch (error) {
         set({
-          error:
-            error instanceof Error
-              ? error.message
-              : 'An error occurred while fetching results',
+          error: error instanceof Error ? error.message : 'An error occurred while fetching results',
         });
       } finally {
         set({ isLoading: false }, false, 'FETCH_RESULTS');
@@ -89,9 +80,7 @@ const useResultsStore = create<ResultsStore>()(
         const index = selectedResults.findIndex((r) => r.path === result.path);
 
         if (index !== -1) {
-          const newSelectedResults = selectedResults.filter(
-            (_, i) => i !== index
-          );
+          const newSelectedResults = selectedResults.filter((_, i) => i !== index);
           return { selectedResults: newSelectedResults };
         } else {
           return {
@@ -102,12 +91,7 @@ const useResultsStore = create<ResultsStore>()(
 
     selectResultRange: (endResult, selectionType) =>
       set((state) => {
-        const {
-          results,
-          selectedResults,
-          lastSelectedIndex,
-          lastSelectionType,
-        } = state;
+        const { results, selectedResults, lastSelectedIndex, lastSelectionType } = state;
 
         const resultType = endResult.workflow_state as 'pending' | 'completed';
 
@@ -120,21 +104,14 @@ const useResultsStore = create<ResultsStore>()(
         }
 
         const startIndex =
-          lastSelectedIndex !== -1
-            ? lastSelectedIndex
-            : results.findIndex((r) => r.path === selectedResults[0]?.path);
+          lastSelectedIndex !== -1 ? lastSelectedIndex : results.findIndex((r) => r.path === selectedResults[0]?.path);
         const endIndex = results.findIndex((r) => r.path === endResult.path);
 
         if (startIndex === -1 || endIndex === -1) return state;
 
-        const [start, end] =
-          startIndex < endIndex
-            ? [startIndex, endIndex]
-            : [endIndex, startIndex];
+        const [start, end] = startIndex < endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
 
-        const newSelectedResults = results
-          .slice(start, end + 1)
-          .filter((r) => r.workflow_state === selectionType);
+        const newSelectedResults = results.slice(start, end + 1).filter((r) => r.workflow_state === selectionType);
 
         return {
           selectedResults: newSelectedResults,
@@ -142,6 +119,31 @@ const useResultsStore = create<ResultsStore>()(
           lastSelectionType: selectionType,
         };
       }),
+
+    getNextResult: () => {
+      const currentResultIndex = get().lastSelectedIndex;
+
+      const nextResultIndex = currentResultIndex + 1;
+      const nextResult = get().results[nextResultIndex];
+
+      if (nextResult) {
+        set({ lastSelectedIndex: nextResultIndex, selectedResults: [nextResult] });
+      }
+
+      return nextResult;
+    },
+    getPreviousResult: () => {
+      const currentResultIndex = get().lastSelectedIndex;
+
+      const previousResultIndex = currentResultIndex - 1;
+      const previousResult = get().results[previousResultIndex];
+
+      if (previousResult) {
+        set({ lastSelectedIndex: previousResultIndex, selectedResults: [previousResult] });
+      }
+
+      return previousResult;
+    },
   }))
 );
 

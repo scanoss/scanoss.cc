@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useConfirm } from '@/hooks/useConfirm';
+import useEnvironment from '@/hooks/useEnvironment';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
@@ -44,8 +45,9 @@ export default function FilterActionButton({
 }: FilterActionProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const { prompt } = useInputPrompt();
   const { ask } = useConfirm();
+  const { modifierKey } = useEnvironment();
+  const { prompt } = useInputPrompt();
 
   const setAction = useComponentFilterStore((state) => state.setAction);
   const setComment = useComponentFilterStore((state) => state.setComment);
@@ -99,9 +101,10 @@ export default function FilterActionButton({
   const handleFilterByFileWithoutComments = () => onSelectOption(action, 'by_file', false);
   const handleFilterByPurlWithoutComments = () => onSelectOption(action, 'by_purl', false);
 
-  // For now we allow only to use shortcuts to filter without comments
-  useKeyboardShortcut(shortcutKeysByFile, handleFilterByFileWithoutComments);
-  useKeyboardShortcut(shortcutKeysByPurl, handleFilterByPurlWithoutComments);
+  useKeyboardShortcut(['Shift', ...shortcutKeysByFile], handleFilterByFileWithComments);
+  useKeyboardShortcut(['Shift', ...shortcutKeysByPurl], handleFilterByPurlWithComments);
+  useKeyboardShortcut([modifierKey.keyCode, ...shortcutKeysByFile], handleFilterByFileWithoutComments);
+  useKeyboardShortcut([modifierKey.keyCode, ...shortcutKeysByPurl], handleFilterByPurlWithoutComments);
 
   return (
     <DropdownMenu onOpenChange={setDropdownOpen}>
@@ -141,6 +144,7 @@ export default function FilterActionButton({
               <DropdownMenuSubContent className="min-w-[300px]">
                 <DropdownMenuItem onClick={handleFilterByFileWithComments}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
+                  <DropdownMenuShortcut className="uppercase">⇧ + {shortcutKeysByFile.join(' ')}</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleFilterByFileWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
@@ -157,6 +161,7 @@ export default function FilterActionButton({
               <DropdownMenuSubContent className="min-w-[300px]">
                 <DropdownMenuItem onClick={handleFilterByPurlWithComments}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
+                  <DropdownMenuShortcut className="uppercase">⇧ + {shortcutKeysByPurl.join(' ')}</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleFilterByPurlWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>

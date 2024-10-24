@@ -6,6 +6,8 @@ import { entities } from 'wailsjs/go/models';
 
 import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
+import useEnvironment from '@/hooks/useEnvironment';
+import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
 import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
@@ -19,6 +21,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function Sidebar() {
+  const { modifierKey } = useEnvironment();
   const currentPath = useLocalFilePath();
   const navigate = useNavigate();
 
@@ -29,6 +32,8 @@ export default function Sidebar() {
   const results = useResultsStore((state) => state.results);
   const setLastSelectedIndex = useResultsStore((state) => state.setLastSelectedIndex);
   const setLastSelectionType = useResultsStore((state) => state.setLastSelectionType);
+  const getNextResult = useResultsStore((state) => state.getNextResult);
+  const getPreviousResult = useResultsStore((state) => state.getPreviousResult);
 
   const pendingResults = useMemo(() => results.filter((r) => r.workflow_state === 'pending'), [results]);
   const completedResults = useMemo(() => results.filter((r) => r.workflow_state === 'completed'), [results]);
@@ -51,11 +56,15 @@ export default function Sidebar() {
     } else {
       setLastSelectedIndex(results.findIndex((r) => r.path === result.path)); // Update last selected index
       setSelectedResults([result]);
-      navigate({
-        pathname: `/files/${encodeFilePath(result.path)}`,
-        search: `?matchType=${filterByMatchType}&q=${query}`,
-      });
+      handleNavigateToResult(result);
     }
+  };
+
+  const handleNavigateToResult = (result: entities.ResultDTO) => {
+    navigate({
+      pathname: `/files/${encodeFilePath(result.path)}`,
+      search: `?matchType=${filterByMatchType}&q=${query}`,
+    });
   };
 
   useEffect(() => {
@@ -73,6 +82,11 @@ export default function Sidebar() {
   useEffect(() => {
     fetchResults(filterByMatchType === 'all' ? undefined : filterByMatchType, debouncedQuery);
   }, [fetchResults, filterByMatchType, debouncedQuery]);
+
+  useKeyboardShortcut(['j'], () => handleNavigateToResult(getPreviousResult()));
+  useKeyboardShortcut(['k'], () => handleNavigateToResult(getNextResult()));
+  useKeyboardShortcut(['ArrowUp'], () => handleNavigateToResult(getPreviousResult()));
+  useKeyboardShortcut(['ArrowDown'], () => handleNavigateToResult(getNextResult()));
 
   return (
     <aside className="flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-md">

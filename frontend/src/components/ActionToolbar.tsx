@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { RotateCcw, RotateCw, Save } from 'lucide-react';
 
 import useDebounce from '@/hooks/useDebounce';
+import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
@@ -15,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { useToast } from './ui/use-toast';
 
 export default function ActionToolbar() {
+  const { modifierKey } = useEnvironment();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -47,9 +49,9 @@ export default function ActionToolbar() {
     },
   });
 
-  useKeyboardShortcut(['z'], undo);
-  useKeyboardShortcut(['r'], redo);
-  useKeyboardShortcut(['s'], saveChanges);
+  useKeyboardShortcut([modifierKey.keyCode, 'z'], undo);
+  useKeyboardShortcut([modifierKey.keyCode, 'r'], redo);
+  useKeyboardShortcut([modifierKey.keyCode, 's'], saveChanges);
 
   return (
     <div className="flex justify-end gap-4">

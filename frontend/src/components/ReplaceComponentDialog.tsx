@@ -205,7 +205,6 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                       <FormControl>
                         <Textarea
                           {...field}
-                          autoCapitalize="off"
                           onChange={(e) => {
                             field.onChange(e);
                             setComment(e.target.value);

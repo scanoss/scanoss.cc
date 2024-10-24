@@ -6,21 +6,8 @@ import { VALID_PURL_REGEX } from '@/modules/components/domain';
 
 import { entities } from '../../wailsjs/go/models';
 import { Button } from './ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from './ui/form';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { Input } from './ui/input';
 
 interface NewComponentDialogProps {
@@ -33,10 +20,7 @@ const NewComponentFormSchema = z.object({
   purl: z.string().regex(VALID_PURL_REGEX, 'Invalid PURL'),
 });
 
-export default function NewComponentDialog({
-  onOpenChange,
-  onCreated,
-}: NewComponentDialogProps) {
+export default function NewComponentDialog({ onOpenChange, onCreated }: NewComponentDialogProps) {
   const form = useForm<z.infer<typeof NewComponentFormSchema>>({
     resolver: zodResolver(NewComponentFormSchema),
     defaultValues: {
@@ -79,7 +63,7 @@ export default function NewComponentDialog({
                 <FormItem>
                   <FormLabel>PURL</FormLabel>
                   <FormControl>
-                    <Input {...field} autoCapitalize="off" type="text" />
+                    <Input {...field} type="text" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

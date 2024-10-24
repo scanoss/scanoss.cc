@@ -12,6 +12,7 @@ export default function ResultSearchBar() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useKeyboardShortcut([modifierKey.keyCode, 'f'], () => inputRef.current?.focus());
+  useKeyboardShortcut([modifierKey.keyCode, 'a'], () => inputRef.current?.select());
 
   return (
     <div className="relative grid w-full items-center gap-1.5">
@@ -22,9 +23,8 @@ export default function ResultSearchBar() {
         name="q"
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search"
-        type="search"
         value={query}
-        autoCapitalize="off"
+        type="text"
       />
       <span className="absolute right-3 text-xs leading-none text-muted-foreground">⌘ + F</span>
     </div>

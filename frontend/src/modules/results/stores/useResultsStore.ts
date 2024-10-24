@@ -121,26 +121,40 @@ const useResultsStore = create<ResultsStore>()(
       }),
 
     getNextResult: () => {
-      const currentResultIndex = get().lastSelectedIndex;
+      const { results, lastSelectionType, selectedResults } = get();
 
-      const nextResultIndex = currentResultIndex + 1;
-      const nextResult = get().results[nextResultIndex];
+      const resultsOfType = results.filter((r) => r.workflow_state === lastSelectionType);
+      const newResultIndex = resultsOfType.findIndex((r) => r.path === selectedResults[0]?.path) + 1;
+      let nextResult: entities.ResultDTO;
 
-      if (nextResult) {
-        set({ lastSelectedIndex: nextResultIndex, selectedResults: [nextResult] });
+      if (newResultIndex >= resultsOfType.length) {
+        const oppositeType = lastSelectionType === 'pending' ? 'completed' : 'pending';
+        const oppositeResults = results.filter((r) => r.workflow_state === oppositeType);
+        nextResult = oppositeResults[0];
+
+        return nextResult;
       }
+
+      nextResult = resultsOfType[newResultIndex];
 
       return nextResult;
     },
     getPreviousResult: () => {
-      const currentResultIndex = get().lastSelectedIndex;
+      const { results, lastSelectionType, selectedResults } = get();
 
-      const previousResultIndex = currentResultIndex - 1;
-      const previousResult = get().results[previousResultIndex];
+      const resultsOfType = results.filter((r) => r.workflow_state === lastSelectionType);
+      const newResultIndex = resultsOfType.findIndex((r) => r.path === selectedResults[0]?.path) - 1;
+      let previousResult: entities.ResultDTO;
 
-      if (previousResult) {
-        set({ lastSelectedIndex: previousResultIndex, selectedResults: [previousResult] });
+      if (newResultIndex === -1) {
+        const oppositeType = lastSelectionType === 'pending' ? 'completed' : 'pending';
+        const oppositeResults = results.filter((r) => r.workflow_state === oppositeType);
+        previousResult = oppositeResults[oppositeResults.length - 1];
+
+        return previousResult;
       }
+
+      previousResult = resultsOfType[newResultIndex];
 
       return previousResult;
     },

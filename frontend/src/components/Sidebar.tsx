@@ -6,7 +6,6 @@ import { entities } from 'wailsjs/go/models';
 
 import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
-import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
 import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
@@ -21,7 +20,6 @@ import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function Sidebar() {
-  const { modifierKey } = useEnvironment();
   const currentPath = useLocalFilePath();
   const navigate = useNavigate();
 

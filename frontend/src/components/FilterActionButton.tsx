@@ -56,20 +56,27 @@ export default function FilterActionButton({
 
   const actionsThatShouldPromptForCommentOrConfirmation = [FilterAction.Include, FilterAction.Remove];
 
-  const maybePromptForCommentOrConfirmation = async (filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
+  const maybePromptForCommentOrConfirmation = async (
+    filterBy: 'by_file' | 'by_purl',
+    withComment: boolean
+  ): Promise<boolean> => {
     let comment: string | undefined;
 
     if (withComment) {
       comment = await handleGetComment();
+
+      if (!comment) return false;
     }
 
     if (filterBy === 'by_purl') {
       const confirm = await handleConfirmByPurl();
 
-      if (!confirm) return;
+      if (!confirm) return false;
     }
 
     setComment(comment);
+
+    return true;
   };
 
   const handleConfirmByPurl = async (): Promise<boolean> => ask(<FilterByPurlList action={action} />);
@@ -90,7 +97,9 @@ export default function FilterActionButton({
     setWithComment(withComment);
 
     if (actionsThatShouldPromptForCommentOrConfirmation.includes(action)) {
-      await maybePromptForCommentOrConfirmation(filterBy, withComment);
+      const shouldContinue = await maybePromptForCommentOrConfirmation(filterBy, withComment);
+
+      if (!shouldContinue) return;
     }
 
     onAdd();

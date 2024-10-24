@@ -32,7 +32,7 @@ export default function InputPromptDialog() {
   const { title, description, cancelText, confirmText } = options;
 
   return (
-    <Dialog open={isPrompting} onOpenChange={cancel}>
+    <Dialog open={isPrompting} onOpenChange={handleCancel}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

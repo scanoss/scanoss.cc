@@ -11,6 +11,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -18,6 +19,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
+import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import useSelectedResult from '@/hooks/useSelectedResult';
+import { getShortcutDisplay } from '@/lib/shortcuts';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 
@@ -28,13 +32,28 @@ interface FilterActionProps {
   description: string;
   icon: React.ReactNode;
   onAdd: () => Promise<void> | void;
+  shortcutKeysByFileWithComments: string;
+  shortcutKeysByFileWithoutComments: string;
+  shortcutKeysByComponentWithComments: string;
+  shortcutKeysByComponentWithoutComments: string;
 }
 
-export default function FilterActionButton({ action, description, icon, onAdd }: FilterActionProps) {
+export default function FilterActionButton({
+  action,
+  description,
+  icon,
+  onAdd,
+  shortcutKeysByFileWithComments,
+  shortcutKeysByFileWithoutComments,
+  shortcutKeysByComponentWithComments,
+  shortcutKeysByComponentWithoutComments,
+}: FilterActionProps) {
+  const selectedResult = useSelectedResult();
+  const isCompletedResult = selectedResult?.workflow_state === 'completed';
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const { prompt } = useInputPrompt();
   const { ask } = useConfirm();
+  const { prompt } = useInputPrompt();
 
   const setAction = useComponentFilterStore((state) => state.setAction);
   const setComment = useComponentFilterStore((state) => state.setComment);
@@ -43,33 +62,30 @@ export default function FilterActionButton({ action, description, icon, onAdd }:
 
   const actionsThatShouldPromptForCommentOrConfirmation = [FilterAction.Include, FilterAction.Remove];
 
-  const maybePromptForCommentOrConfirmation = async (filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
+  const maybePromptForCommentOrConfirmation = async (
+    filterBy: 'by_file' | 'by_purl',
+    withComment: boolean
+  ): Promise<boolean> => {
     let comment: string | undefined;
 
     if (withComment) {
       comment = await handleGetComment();
+
+      if (!comment) return false;
     }
 
     if (filterBy === 'by_purl') {
       const confirm = await handleConfirmByPurl();
 
-      if (!confirm) return;
+      if (!confirm) return false;
     }
 
     setComment(comment);
+
+    return true;
   };
 
-  const onSelectOption = async (action: FilterAction, filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
-    setAction(action);
-    setFilterBy(filterBy);
-    setWithComment(withComment);
-
-    if (actionsThatShouldPromptForCommentOrConfirmation.includes(action)) {
-      await maybePromptForCommentOrConfirmation(filterBy, withComment);
-    }
-
-    onAdd();
-  };
+  const handleConfirmByPurl = async (): Promise<boolean> => ask(<FilterByPurlList action={action} />);
 
   const handleGetComment = async (): Promise<string | undefined> => {
     return prompt({
@@ -81,18 +97,50 @@ export default function FilterActionButton({ action, description, icon, onAdd }:
     });
   };
 
-  const handleConfirmByPurl = async (): Promise<boolean> => {
-    return ask(<FilterByPurlList action={action} />);
+  const onSelectOption = async (action: FilterAction, filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
+    // TODO: Show modal here
+    if (isCompletedResult) return;
+
+    setAction(action);
+    setFilterBy(filterBy);
+    setWithComment(withComment);
+
+    if (actionsThatShouldPromptForCommentOrConfirmation.includes(action)) {
+      const shouldContinue = await maybePromptForCommentOrConfirmation(filterBy, withComment);
+
+      if (!shouldContinue) return;
+    }
+
+    onAdd();
   };
+
+  const handleFilterByFileWithComments = () => onSelectOption(action, 'by_file', true);
+  const handleFilterByPurlWithComments = () => onSelectOption(action, 'by_purl', true);
+  const handleFilterByFileWithoutComments = () => onSelectOption(action, 'by_file', false);
+  const handleFilterByPurlWithoutComments = () => onSelectOption(action, 'by_purl', false);
+
+  useKeyboardShortcut(shortcutKeysByFileWithoutComments, handleFilterByFileWithoutComments, {
+    enabled: !isCompletedResult,
+  });
+  useKeyboardShortcut(shortcutKeysByComponentWithoutComments, handleFilterByPurlWithoutComments, {
+    enabled: !isCompletedResult,
+  });
+  useKeyboardShortcut(shortcutKeysByFileWithComments, handleFilterByFileWithComments, {
+    enabled: !isCompletedResult,
+  });
+  useKeyboardShortcut(shortcutKeysByComponentWithComments, handleFilterByPurlWithComments, {
+    enabled: !isCompletedResult,
+  });
 
   return (
     <DropdownMenu onOpenChange={setDropdownOpen}>
       <div className="group flex h-full">
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger asChild disabled={isCompletedResult}>
           <Button
             variant="ghost"
             size="lg"
             className="h-full w-14 rounded-none enabled:group-hover:bg-accent enabled:group-hover:text-accent-foreground"
+            disabled={isCompletedResult}
           >
             <div className="flex flex-col items-center justify-center gap-1">
               <span className="text-xs">{filterActionLabelMap[action]}</span>
@@ -100,8 +148,11 @@ export default function FilterActionButton({ action, description, icon, onAdd }:
             </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuTrigger asChild>
-          <button className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent">
+        <DropdownMenuTrigger asChild disabled={isCompletedResult}>
+          <button
+            className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent"
+            disabled={isCompletedResult}
+          >
             <ChevronDown
               className={clsx(
                 'h-4 w-4 stroke-muted-foreground transition-transform enabled:hover:stroke-accent-foreground',
@@ -120,12 +171,16 @@ export default function FilterActionButton({ action, description, icon, onAdd }:
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>File</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_file', true)}>
-                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_file', false)}>
+              <DropdownMenuSubContent className="min-w-[300px]">
+                <DropdownMenuItem onClick={handleFilterByFileWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
+                  <DropdownMenuShortcut>
+                    {getShortcutDisplay(shortcutKeysByFileWithoutComments)[0]}
+                  </DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleFilterByFileWithComments}>
+                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithComments)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
@@ -135,12 +190,18 @@ export default function FilterActionButton({ action, description, icon, onAdd }:
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Component</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_purl', true)}>
-                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onSelectOption(action, 'by_purl', false)}>
+              <DropdownMenuSubContent className="min-w-[300px]">
+                <DropdownMenuItem onClick={handleFilterByPurlWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
+                  <DropdownMenuShortcut>
+                    {getShortcutDisplay(shortcutKeysByComponentWithoutComments)[0]}
+                  </DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleFilterByPurlWithComments}>
+                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
+                  <DropdownMenuShortcut>
+                    {getShortcutDisplay(shortcutKeysByComponentWithComments)[0]}
+                  </DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>

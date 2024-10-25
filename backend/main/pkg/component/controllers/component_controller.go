@@ -7,7 +7,7 @@ type ComponentController interface {
 	FilterComponents(dto []entities.ComponentFilterDTO) error
 	Undo() error
 	Redo() error
-	CanUndo() (bool, error)
-	CanRedo() (bool, error)
+	CanUndo() bool
+	CanRedo() bool
 	GetDeclaredComponents() ([]entities.DeclaredComponent, error)
 }

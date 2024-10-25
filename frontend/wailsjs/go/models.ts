@@ -203,6 +203,94 @@ export namespace entities {
 
 }
 
+export namespace keyboard {
+	
+	export enum Action {
+	    Undo = "undo",
+	    Redo = "redo",
+	    Save = "save",
+	    Confirm = "confirm",
+	    FocusSearch = "focusSearch",
+	    SelectAll = "selectAll",
+	    MoveUp = "moveUp",
+	    MoveDown = "moveDown",
+	    IncludeFileWithoutComments = "includeFileWithoutComments",
+	    IncludeFileWithComments = "includeFileWithComments",
+	    IncludeComponentWithoutComments = "includeComponentWithoutComments",
+	    IncludeComponentWithComments = "includeComponentWithComments",
+	    DismissFileWithoutComments = "dismissFileWithoutComments",
+	    DismissFileWithComments = "dismissFileWithComments",
+	    DismissComponentWithoutComments = "dismissComponentWithoutComments",
+	    DismissComponentWithComments = "dismissComponentWithComments",
+	    ReplaceFileWithoutComments = "replaceFileWithoutComments",
+	    ReplaceFileWithComments = "replaceFileWithComments",
+	    ReplaceComponentWithoutComments = "replaceComponentWithoutComments",
+	    ReplaceComponentWithComments = "replaceComponentWithComments",
+	}
+	export class Shortcut {
+	    name: string;
+	    description: string;
+	    accelerator?: keys.Accelerator;
+	    alternativeAccelerator?: keys.Accelerator;
+	    keys: string;
+	    group?: string;
+	    action?: Action;
+	
+	    static createFrom(source: any = {}) {
+	        return new Shortcut(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.description = source["description"];
+	        this.accelerator = this.convertValues(source["accelerator"], keys.Accelerator);
+	        this.alternativeAccelerator = this.convertValues(source["alternativeAccelerator"], keys.Accelerator);
+	        this.keys = source["keys"];
+	        this.group = source["group"];
+	        this.action = source["action"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
+export namespace keys {
+	
+	export class Accelerator {
+	    Key: string;
+	    Modifiers: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new Accelerator(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Key = source["Key"];
+	        this.Modifiers = source["Modifiers"];
+	    }
+	}
+
+}
+
 export namespace scanoss_settings {
 	
 	export class Module {

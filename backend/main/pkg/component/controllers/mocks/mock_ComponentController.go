@@ -21,7 +21,7 @@ func (_m *MockComponentController) EXPECT() *MockComponentController_Expecter {
 }
 
 // CanRedo provides a mock function with given fields:
-func (_m *MockComponentController) CanRedo() (bool, error) {
+func (_m *MockComponentController) CanRedo() bool {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
@@ -29,23 +29,13 @@ func (_m *MockComponentController) CanRedo() (bool, error) {
 	}
 
 	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func() (bool, error)); ok {
-		return rf()
-	}
 	if rf, ok := ret.Get(0).(func() bool); ok {
 		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // MockComponentController_CanRedo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CanRedo'
@@ -65,18 +55,18 @@ func (_c *MockComponentController_CanRedo_Call) Run(run func()) *MockComponentCo
 	return _c
 }
 
-func (_c *MockComponentController_CanRedo_Call) Return(_a0 bool, _a1 error) *MockComponentController_CanRedo_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *MockComponentController_CanRedo_Call) Return(_a0 bool) *MockComponentController_CanRedo_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockComponentController_CanRedo_Call) RunAndReturn(run func() (bool, error)) *MockComponentController_CanRedo_Call {
+func (_c *MockComponentController_CanRedo_Call) RunAndReturn(run func() bool) *MockComponentController_CanRedo_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // CanUndo provides a mock function with given fields:
-func (_m *MockComponentController) CanUndo() (bool, error) {
+func (_m *MockComponentController) CanUndo() bool {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
@@ -84,23 +74,13 @@ func (_m *MockComponentController) CanUndo() (bool, error) {
 	}
 
 	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func() (bool, error)); ok {
-		return rf()
-	}
 	if rf, ok := ret.Get(0).(func() bool); ok {
 		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // MockComponentController_CanUndo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CanUndo'
@@ -120,12 +100,12 @@ func (_c *MockComponentController_CanUndo_Call) Run(run func()) *MockComponentCo
 	return _c
 }
 
-func (_c *MockComponentController_CanUndo_Call) Return(_a0 bool, _a1 error) *MockComponentController_CanUndo_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *MockComponentController_CanUndo_Call) Return(_a0 bool) *MockComponentController_CanUndo_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockComponentController_CanUndo_Call) RunAndReturn(run func() (bool, error)) *MockComponentController_CanUndo_Call {
+func (_c *MockComponentController_CanUndo_Call) RunAndReturn(run func() bool) *MockComponentController_CanUndo_Call {
 	_c.Call.Return(run)
 	return _c
 }

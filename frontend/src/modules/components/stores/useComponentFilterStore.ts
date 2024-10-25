@@ -3,7 +3,6 @@ import { devtools } from 'zustand/middleware';
 
 import FileService from '@/modules/files/infra/service';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
-import { getNextPendingResultPathRoute } from '@/modules/results/utils';
 
 import {
   ComponentFilterCanRedo,
@@ -11,6 +10,7 @@ import {
   ComponentFilterRedo,
   ComponentFilterUndo,
 } from '../../../../wailsjs/go/handlers/ComponentHandler';
+import { entities } from '../../../../wailsjs/go/models';
 import { FilterAction } from '../domain';
 
 interface ComponentFilterState {
@@ -30,7 +30,7 @@ export interface OnFilterComponentArgs {
 }
 
 interface ComponentFilterActions {
-  onFilterComponent: (args?: OnFilterComponentArgs) => Promise<string | null>;
+  onFilterComponent: (args?: OnFilterComponentArgs) => Promise<entities.ResultDTO | null>;
   redo: () => Promise<void>;
   setAction: (action: FilterAction) => void;
   setFilterBy: (filterBy: 'by_file' | 'by_purl') => void;
@@ -81,18 +81,16 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
         }),
       }));
 
+      const nextResult = useResultsStore.getState().getNextResult();
+
       await FileService.filterComponents(finalDto);
 
       await get().updateUndoRedoState();
       await useResultsStore.getState().fetchResults();
 
-      // Clear the selection after completing the action
       useResultsStore.setState({ selectedResults: [] }, false, 'CLEAR_SELECTED_RESULTS');
 
-      const allResults = useResultsStore.getState().results;
-      const pendingResults = allResults.filter((result) => result.workflow_state === 'pending');
-
-      return getNextPendingResultPathRoute(pendingResults);
+      return nextResult;
     },
 
     undo: async () => {

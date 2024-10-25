@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { cn } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
@@ -99,11 +101,15 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     }
   }, [data]);
 
+  const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => form.handleSubmit(onSubmit), {
+    enableOnFormTags: true,
+  });
+
   return (
     <>
       <Form {...form}>
         <Dialog open onOpenChange={onOpenChange}>
-          <DialogContent>
+          <DialogContent ref={ref} tabIndex={-1}>
             <DialogHeader>
               <DialogTitle>Replace</DialogTitle>
               <DialogDescription>You can search for an existing component or manually enter a PURL</DialogDescription>
@@ -200,7 +206,6 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                       <FormControl>
                         <Textarea
                           {...field}
-                          autoCapitalize="off"
                           onChange={(e) => {
                             field.onChange(e);
                             setComment(e.target.value);
@@ -227,7 +232,9 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 <Button variant="ghost" onClick={onOpenChange}>
                   Cancel
                 </Button>
-                <Button type="submit">Confirm</Button>
+                <Button type="submit">
+                  Confirm <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>

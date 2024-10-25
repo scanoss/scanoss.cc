@@ -1,10 +1,9 @@
 import clsx from 'clsx';
 import { File, Github } from 'lucide-react';
 
+import useSelectedResult from '@/hooks/useSelectedResult';
 import { FilterAction } from '@/modules/components/domain';
-import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
 import { stateInfoPresentation } from '@/modules/results/domain';
-import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 interface FileInfoCardProps {
   title: string;
@@ -13,9 +12,7 @@ interface FileInfoCardProps {
 }
 
 export default function FileInfoCard({ title, subtitle, fileType }: FileInfoCardProps) {
-  const results = useResultsStore((state) => state.results);
-  const localFilePath = useLocalFilePath();
-  const result = results.find((result) => result.path === localFilePath);
+  const result = useSelectedResult();
 
   const filterConfig = result?.filter_config;
 

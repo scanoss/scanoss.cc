@@ -6,10 +6,13 @@ import { entities } from 'wailsjs/go/models';
 
 import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
+import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
+import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
@@ -26,16 +29,18 @@ export default function Sidebar() {
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
   const selectResultRange = useResultsStore((state) => state.selectResultRange);
   const toggleResultSelection = useResultsStore((state) => state.toggleResultSelection);
-  const results = useResultsStore((state) => state.results);
+  const pendingResults = useResultsStore((state) => state.pendingResults);
+  const completedResults = useResultsStore((state) => state.completedResults);
   const setLastSelectedIndex = useResultsStore((state) => state.setLastSelectedIndex);
   const setLastSelectionType = useResultsStore((state) => state.setLastSelectionType);
+  const getNextResult = useResultsStore((state) => state.getNextResult);
+  const getPreviousResult = useResultsStore((state) => state.getPreviousResult);
 
-  const pendingResults = useMemo(() => results.filter((r) => r.workflow_state === 'pending'), [results]);
-  const completedResults = useMemo(() => results.filter((r) => r.workflow_state === 'completed'), [results]);
+  const results = useMemo(() => [...pendingResults, ...completedResults], [pendingResults, completedResults]);
 
   const [filterByMatchType] = useQueryState('matchType', 'all');
   const [query] = useQueryState('q', '');
-  const debouncedQuery: string = useDebounce(query, 300);
+  const debouncedQuery: string = useDebounce(query, DEBOUNCE_QUERY_MS);
 
   const handleSelectFiles = (
     e: React.MouseEvent,
@@ -49,13 +54,21 @@ export default function Sidebar() {
     } else if (e.metaKey || e.ctrlKey) {
       toggleResultSelection(result, selectionType);
     } else {
-      setLastSelectedIndex(results.findIndex((r) => r.path === result.path)); // Update last selected index
+      const resultsOfType = selectionType === 'pending' ? pendingResults : completedResults;
+      const lastSelectedIndex = resultsOfType.findIndex((r) => r.path === result.path);
+
+      setLastSelectionType(result.workflow_state as 'pending' | 'completed');
+      setLastSelectedIndex(lastSelectedIndex);
       setSelectedResults([result]);
-      navigate({
-        pathname: `/files/${encodeFilePath(result.path)}`,
-        search: `?matchType=${filterByMatchType}&q=${query}`,
-      });
+      handleNavigateToResult(result);
     }
+  };
+
+  const handleNavigateToResult = (result: entities.ResultDTO) => {
+    navigate({
+      pathname: `/files/${encodeFilePath(result.path)}`,
+      search: `?matchType=${filterByMatchType}&q=${query}`,
+    });
   };
 
   useEffect(() => {
@@ -72,7 +85,14 @@ export default function Sidebar() {
 
   useEffect(() => {
     fetchResults(filterByMatchType === 'all' ? undefined : filterByMatchType, debouncedQuery);
-  }, [fetchResults, filterByMatchType, debouncedQuery]);
+  }, [filterByMatchType, debouncedQuery]);
+
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveUp.keys, () => handleNavigateToResult(getPreviousResult()), {
+    enableOnFormTags: false,
+  });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveDown.keys, () => handleNavigateToResult(getNextResult()), {
+    enableOnFormTags: false,
+  });
 
   return (
     <aside className="flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-md">

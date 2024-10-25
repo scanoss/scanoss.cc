@@ -32,11 +32,11 @@ func (h *ComponentHandler) ComponentFilterRedo() error {
 	return h.componentModule.Controller.Redo()
 }
 
-func (h *ComponentHandler) ComponentFilterCanUndo() (bool, error) {
+func (h *ComponentHandler) ComponentFilterCanUndo() bool {
 	return h.componentModule.Controller.CanUndo()
 }
 
-func (h *ComponentHandler) ComponentFilterCanRedo() (bool, error) {
+func (h *ComponentHandler) ComponentFilterCanRedo() bool {
 	return h.componentModule.Controller.CanRedo()
 }
 

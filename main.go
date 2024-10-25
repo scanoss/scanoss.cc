@@ -11,6 +11,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 
 	"github.com/scanoss/scanoss.lui/backend/main/cmd"
+	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/keyboard"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/version"
 	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
 
@@ -36,12 +37,13 @@ func main() {
 
 	fmt.Println("App Version: ", version.AppVersion)
 
-	app := NewApp()
-
 	fileHandler := handlers.NewFileHandler()
 	scanossBomHandler := handlers.NewScanossSettingsHandler()
 	resultHandler := handlers.NewResultHandler()
 	componentHandler := handlers.NewComponentHandler()
+	keyboardService := keyboard.NewKeyboardServiceInMemoryImpl()
+
+	app := NewApp()
 
 	//Create application with options
 	err := wails.Run(&options.App{
@@ -52,6 +54,7 @@ func main() {
 		WindowStartState: options.Maximised,
 		OnStartup: func(ctx context.Context) {
 			app.startup(ctx)
+			app.initializeMenu(keyboardService.GetGroupedShortcuts())
 		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
 			return app.beforeClose(ctx, scanossBomHandler)
@@ -62,6 +65,10 @@ func main() {
 			resultHandler,
 			componentHandler,
 			scanossBomHandler,
+			keyboardService,
+		},
+		EnumBind: []interface{}{
+			keyboard.AllShortcutActions,
 		},
 		Windows: &windows.Options{
 			WebviewIsTransparent: true,

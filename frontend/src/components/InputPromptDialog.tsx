@@ -1,81 +1,60 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import useEnvironment from '@/hooks/useEnvironment';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
+import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 
 import { Button } from './ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Textarea } from './ui/textarea';
 
 export default function InputPromptDialog() {
   const { modifierKey } = useEnvironment();
   const { isPrompting, options, confirm, cancel } = useInputPrompt();
-  const [inputValue, setInputValue] = useState(
-    options?.input.defaultValue ?? ''
-  );
+  const [inputValue, setInputValue] = useState('');
 
-  const handleConfirm = () => {
-    confirm(inputValue);
-    setInputValue('');
-  };
-
-  const handleCancel = () => {
-    cancel();
-    setInputValue('');
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (!inputValue) return;
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      e.preventDefault();
-      handleConfirm();
+  useEffect(() => {
+    if (!isPrompting) {
+      setInputValue('');
     }
-  };
+  }, [isPrompting]);
 
-  if (!isPrompting || !options) return null;
-
-  const { title, description, cancelText, confirmText } = options;
+  const ref = useKeyboardShortcut(
+    KEYBOARD_SHORTCUTS.confirm.keys,
+    () => confirm(inputValue),
+    {
+      enableOnFormTags: true,
+    },
+    [inputValue]
+  );
 
   return (
     <Dialog open={isPrompting} onOpenChange={cancel}>
-      <DialogContent>
+      <DialogContent ref={ref} tabIndex={-1}>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{options?.title}</DialogTitle>
           <DialogDescription>
-            {description && <p className="mb-1">{description}</p>}
+            {options?.description && <p className="mb-1">{options?.description}</p>}
           </DialogDescription>
         </DialogHeader>
 
-        {options.input.type === 'textarea' && (
+        {options?.input.type === 'textarea' && (
           <div>
-            <Textarea
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
+            <Textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
             <p className="mt-2 text-xs text-muted-foreground">
-              Use{' '}
-              <span className="rounded bg-primary px-1.5">
-                {modifierKey} + return
-              </span>{' '}
-              to confirm
+              Use <span className="rounded bg-primary px-1.5">{modifierKey.label} + return</span> to confirm
             </p>
           </div>
         )}
 
         <DialogFooter>
-          <Button variant="ghost" onClick={handleCancel}>
-            {cancelText ?? 'Cancel'}
+          <Button variant="ghost" onClick={cancel}>
+            {options?.cancelText ?? 'Cancel'}
           </Button>
-          <Button onClick={handleConfirm} disabled={!inputValue}>
-            {confirmText ?? 'Confirm'}{' '}
+          <Button onClick={() => confirm(inputValue)} disabled={!inputValue}>
+            {options?.confirmText ?? 'Confirm'}{' '}
+            <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
           </Button>
         </DialogFooter>
       </DialogContent>

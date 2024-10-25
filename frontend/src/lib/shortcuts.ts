@@ -141,3 +141,19 @@ export const KEYBOARD_SHORTCUTS: Record<KeyboardShortcutAction, KeyboardShortcut
     keys: 'shift+e, shift+mod+f3',
   },
 };
+
+export const getShortcutDisplay = (keys: string): string[] => {
+  return keys.split(',').map((keyCombo) => {
+    const parts = keyCombo.trim().split('+');
+
+    return parts
+      .map((p) => {
+        if (p.toLowerCase() === 'mod') return '⌘';
+        if (p.toLowerCase() === 'up') return '↑';
+        if (p.toLowerCase() === 'down') return '↓';
+
+        return p;
+      })
+      .join('+');
+  });
+};

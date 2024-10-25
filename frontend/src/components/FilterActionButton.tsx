@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -21,6 +21,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useSelectedResult from '@/hooks/useSelectedResult';
+import { getShortcutDisplay } from '@/lib/shortcuts';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 
@@ -131,21 +132,6 @@ export default function FilterActionButton({
     enabled: !isCompletedResult,
   });
 
-  const getShortcutLabel = useCallback((keys: string) => {
-    const defaultShortcut = keys.split(',')[0];
-    const parts = defaultShortcut.split('+');
-
-    return parts
-      .map((p) => {
-        if (p.toLowerCase() === 'mod') return '⌘';
-        if (p.toLowerCase() === 'shift') return '⇧';
-        if (p.toLowerCase() === 'ctrl') return '⌃';
-
-        return p.toUpperCase();
-      })
-      .join('+');
-  }, []);
-
   return (
     <DropdownMenu onOpenChange={setDropdownOpen}>
       <div className="group flex h-full">
@@ -188,11 +174,13 @@ export default function FilterActionButton({
               <DropdownMenuSubContent className="min-w-[300px]">
                 <DropdownMenuItem onClick={handleFilterByFileWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutLabel(shortcutKeysByFileWithoutComments)}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut>
+                    {getShortcutDisplay(shortcutKeysByFileWithoutComments)[0]}
+                  </DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleFilterByFileWithComments}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutLabel(shortcutKeysByFileWithComments)}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithComments)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
@@ -206,12 +194,14 @@ export default function FilterActionButton({
                 <DropdownMenuItem onClick={handleFilterByPurlWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
                   <DropdownMenuShortcut>
-                    {getShortcutLabel(shortcutKeysByComponentWithoutComments)}
+                    {getShortcutDisplay(shortcutKeysByComponentWithoutComments)[0]}
                   </DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleFilterByPurlWithComments}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutLabel(shortcutKeysByComponentWithComments)}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut>
+                    {getShortcutDisplay(shortcutKeysByComponentWithComments)[0]}
+                  </DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>

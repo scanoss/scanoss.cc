@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { withErrorHandling } from '@/lib/errors';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { encodeFilePath } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
@@ -62,24 +63,30 @@ export default function FilterComponentActions() {
           icon={<Check className="h-5 w-5 stroke-green-500" />}
           description="By including a file/component, you force the engine to consider it with priority in future scans."
           onAdd={handleFilterComponent}
-          shortcutKeysByFile="f1"
-          shortcutKeysByPurl="shift+f1"
+          shortcutKeysByFileWithcomments={KEYBOARD_SHORTCUTS.includeFileWithComments.keys}
+          shortcutKeysByFileWithoutComments={KEYBOARD_SHORTCUTS.includeFileWithoutComments.keys}
+          shortcutKeysByComponentWithcomments={KEYBOARD_SHORTCUTS.includeComponentWithComments.keys}
+          shortcutKeysByComponentWithoutComments={KEYBOARD_SHORTCUTS.includeComponentWithoutComments.keys}
         />
         <FilterActionButton
           action={FilterAction.Remove}
           description="Dismissing a file/component will exclude it from future scan results."
           icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
           onAdd={handleFilterComponent}
-          shortcutKeysByFile="f2"
-          shortcutKeysByPurl="shift+f2"
+          shortcutKeysByFileWithcomments={KEYBOARD_SHORTCUTS.dismissFileWithComments.keys}
+          shortcutKeysByFileWithoutComments={KEYBOARD_SHORTCUTS.dismissFileWithoutComments.keys}
+          shortcutKeysByComponentWithcomments={KEYBOARD_SHORTCUTS.dismissComponentWithComments.keys}
+          shortcutKeysByComponentWithoutComments={KEYBOARD_SHORTCUTS.dismissComponentWithoutComments.keys}
         />
         <FilterActionButton
           action={FilterAction.Replace}
           description="Replace detected components with another one."
           icon={<Replace className="h-5 w-5 stroke-yellow-500" />}
           onAdd={() => setShowReplaceComponentDialog(true)}
-          shortcutKeysByFile="f3"
-          shortcutKeysByPurl="shift+f3"
+          shortcutKeysByFileWithcomments={KEYBOARD_SHORTCUTS.replaceFileWithComments.keys}
+          shortcutKeysByFileWithoutComments={KEYBOARD_SHORTCUTS.replaceFileWithoutComments.keys}
+          shortcutKeysByComponentWithcomments={KEYBOARD_SHORTCUTS.replaceComponentWithComments.keys}
+          shortcutKeysByComponentWithoutComments={KEYBOARD_SHORTCUTS.replaceComponentWithoutComments.keys}
         />
       </div>
       {showReplaceComponentDialog && (

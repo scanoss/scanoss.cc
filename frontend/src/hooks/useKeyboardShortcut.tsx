@@ -5,17 +5,10 @@ import { HotkeysEvent } from 'react-hotkeys-hook/dist/types';
 export default function useKeyboardShortcut(
   keys: string | string[],
   callback: (event: KeyboardEvent, handler: HotkeysEvent) => void,
-  options: Options = {},
+  options: Options = {
+    preventDefault: true,
+  },
   deps: unknown[] = []
 ) {
-  return useHotkeys(
-    keys,
-    callback,
-    {
-      preventDefault: true,
-      enableOnFormTags: true,
-      ...options,
-    },
-    deps
-  );
+  return useHotkeys(keys, callback, options, deps);
 }

@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { cn } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
@@ -100,7 +101,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     }
   }, [data]);
 
-  const ref = useKeyboardShortcut('mod+enter', () => form.handleSubmit(onSubmit));
+  const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => form.handleSubmit(onSubmit));
 
   return (
     <>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import useEnvironment from '@/hooks/useEnvironment';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
@@ -19,7 +20,7 @@ export default function InputPromptDialog() {
     }
   }, [isPrompting]);
 
-  const ref = useKeyboardShortcut('mod+enter', () => confirm(inputValue), {}, [inputValue]);
+  const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => confirm(inputValue), {}, [inputValue]);
 
   return (
     <Dialog open={isPrompting} onOpenChange={cancel}>

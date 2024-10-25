@@ -8,6 +8,7 @@ import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
@@ -86,16 +87,10 @@ export default function Sidebar() {
     fetchResults(filterByMatchType === 'all' ? undefined : filterByMatchType, debouncedQuery);
   }, [filterByMatchType, debouncedQuery]);
 
-  useKeyboardShortcut('k', () => handleNavigateToResult(getPreviousResult()), {
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveUp.keys, () => handleNavigateToResult(getPreviousResult()), {
     enableOnFormTags: false,
   });
-  useKeyboardShortcut('j', () => handleNavigateToResult(getNextResult()), {
-    enableOnFormTags: false,
-  });
-  useKeyboardShortcut('up', () => handleNavigateToResult(getPreviousResult()), {
-    enableOnFormTags: false,
-  });
-  useKeyboardShortcut('down', () => handleNavigateToResult(getNextResult()), {
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveDown.keys, () => handleNavigateToResult(getNextResult()), {
     enableOnFormTags: false,
   });
 

@@ -1,5 +1,6 @@
 import { useConfirm } from '@/hooks/useConfirm';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 
 import {
   AlertDialog,
@@ -15,7 +16,7 @@ import {
 export default function ConfirmDialog() {
   const { isAsking, message, deny, confirm } = useConfirm();
 
-  const ref = useKeyboardShortcut('mod+enter', confirm, {}, [isAsking]);
+  const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, confirm, {}, [isAsking]);
 
   return (
     <AlertDialog open={isAsking} onOpenChange={deny}>

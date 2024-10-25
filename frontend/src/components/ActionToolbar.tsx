@@ -5,6 +5,7 @@ import { RotateCcw, RotateCw, Save } from 'lucide-react';
 import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 import FileService from '@/modules/files/infra/service';
 import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
@@ -48,9 +49,9 @@ export default function ActionToolbar() {
     },
   });
 
-  useKeyboardShortcut('mod+z', undo);
-  useKeyboardShortcut('mod+shift+z', redo);
-  useKeyboardShortcut('mod+s', () => saveChanges());
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.undo.keys, undo);
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.redo.keys, redo);
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.save.keys, () => saveChanges());
 
   return (
     <div className="flex justify-end gap-4">

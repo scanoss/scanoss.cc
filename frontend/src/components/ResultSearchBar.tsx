@@ -4,13 +4,14 @@ import { useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 
 export default function ResultSearchBar() {
   const [query, setQuery] = useQueryState<string>('q', '');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useKeyboardShortcut('mod+f', () => inputRef.current?.focus());
-  useKeyboardShortcut('mod+a', () => inputRef.current?.select());
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.focusSearch.keys, () => inputRef.current?.focus());
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.selectAll.keys, () => inputRef.current?.select());
 
   return (
     <div className="relative grid w-full items-center gap-1.5">

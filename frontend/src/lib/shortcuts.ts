@@ -1,30 +1,4 @@
-export enum KeyboardShortcutAction {
-  UNDO = 'undo',
-  REDO = 'redo',
-  SAVE = 'save',
-  CONFIRM = 'confirm',
-
-  FOCUS_SEARCH = 'focusSearch',
-  SELECT_ALL = 'selectAll',
-
-  MOVE_UP = 'moveUp',
-  MOVE_DOWN = 'moveDown',
-
-  INCLUDE_FILE_WITHOUT_COMMENTS = 'includeFileWithoutComments',
-  INCLUDE_FILE_WITH_COMMENTS = 'includeFileWithComments',
-  INCLUDE_COMPONENT_WITHOUT_COMMENTS = 'includeComponentWithoutComments',
-  INCLUDE_COMPONENT_WITH_COMMENTS = 'includeComponentWithComments',
-
-  DISMISS_FILE_WITHOUT_COMMENTS = 'dismissFileWithoutComments',
-  DISMISS_FILE_WITH_COMMENTS = 'dismissFileWithComments',
-  DISMISS_COMPONENT_WITHOUT_COMMENTS = 'dismissComponentWithoutComments',
-  DISMISS_COMPONENT_WITH_COMMENTS = 'dismissComponentWithComments',
-
-  REPLACE_FILE_WITHOUT_COMMENTS = 'replaceFileWithoutComments',
-  REPLACE_FILE_WITH_COMMENTS = 'replaceFileWithComments',
-  REPLACE_COMPONENT_WITHOUT_COMMENTS = 'replaceComponentWithoutComments',
-  REPLACE_COMPONENT_WITH_COMMENTS = 'replaceComponentWithComments',
-}
+import { keyboard } from '../../wailsjs/go/models';
 
 interface KeyboardShortcut {
   name: string;
@@ -32,110 +6,110 @@ interface KeyboardShortcut {
   keys: string;
 }
 
-export const KEYBOARD_SHORTCUTS: Record<KeyboardShortcutAction, KeyboardShortcut> = {
+export const KEYBOARD_SHORTCUTS: Record<keyboard.Action, KeyboardShortcut> = {
   // Global
-  [KeyboardShortcutAction.UNDO]: {
+  [keyboard.Action.Undo]: {
     name: 'Undo',
     description: 'Undo the last action',
     keys: 'mod+z',
   },
-  [KeyboardShortcutAction.REDO]: {
+  [keyboard.Action.Redo]: {
     name: 'Redo',
     description: 'Redo the last action',
     keys: 'mod+shift+z',
   },
-  [KeyboardShortcutAction.SAVE]: {
+  [keyboard.Action.Save]: {
     name: 'Save',
     description: 'Save the current changes',
     keys: 'mod+s',
   },
-  [KeyboardShortcutAction.CONFIRM]: {
+  [keyboard.Action.Confirm]: {
     name: 'Confirm',
     description: 'Confirm the current action',
     keys: 'mod+enter',
   },
-  [KeyboardShortcutAction.FOCUS_SEARCH]: {
+  [keyboard.Action.FocusSearch]: {
     name: 'Focus Search',
     description: 'Focus the search bar',
     keys: 'mod+f',
   },
-  [KeyboardShortcutAction.SELECT_ALL]: {
+  [keyboard.Action.SelectAll]: {
     name: 'Select All',
     description: 'Select all text',
     keys: 'mod+a',
   },
 
   // Navigation
-  [KeyboardShortcutAction.MOVE_UP]: {
+  [keyboard.Action.MoveUp]: {
     name: 'Move Up',
     description: 'Move the selection up',
     keys: 'up, k',
   },
-  [KeyboardShortcutAction.MOVE_DOWN]: {
+  [keyboard.Action.MoveDown]: {
     name: 'Move Down',
     description: 'Move the selection down',
     keys: 'down, j',
   },
 
   // Actions
-  [KeyboardShortcutAction.INCLUDE_FILE_WITHOUT_COMMENTS]: {
+  [keyboard.Action.IncludeFileWithoutComments]: {
     name: 'Include File Without Comments',
     description: 'Include the file without comments',
     keys: 'i, f1',
   },
-  [KeyboardShortcutAction.INCLUDE_FILE_WITH_COMMENTS]: {
+  [keyboard.Action.IncludeFileWithComments]: {
     name: 'Include File With Comments',
     description: 'Include the file with comments',
     keys: 'shift+i, shift+f1',
   },
-  [KeyboardShortcutAction.INCLUDE_COMPONENT_WITHOUT_COMMENTS]: {
+  [keyboard.Action.IncludeComponentWithoutComments]: {
     name: 'Include Component Without Comments',
     description: 'Include the component without comments',
     keys: 'c, mod+f1',
   },
-  [KeyboardShortcutAction.INCLUDE_COMPONENT_WITH_COMMENTS]: {
+  [keyboard.Action.IncludeComponentWithComments]: {
     name: 'Include Component With Comments',
     description: 'Include the component with comments',
     keys: 'shift+c, shift+mod+f1',
   },
 
-  [KeyboardShortcutAction.DISMISS_FILE_WITHOUT_COMMENTS]: {
+  [keyboard.Action.DismissFileWithoutComments]: {
     name: 'Dismiss File Without Comments',
     description: 'Dismiss the file without comments',
     keys: 'd, f2',
   },
-  [KeyboardShortcutAction.DISMISS_FILE_WITH_COMMENTS]: {
+  [keyboard.Action.DismissFileWithComments]: {
     name: 'Dismiss File With Comments',
     description: 'Dismiss the file with comments',
     keys: 'shift+d, shift+f2',
   },
-  [KeyboardShortcutAction.DISMISS_COMPONENT_WITHOUT_COMMENTS]: {
+  [keyboard.Action.DismissComponentWithoutComments]: {
     name: 'Dismiss Component Without Comments',
     description: 'Dismiss the component without comments',
     keys: 'x, mod+f2',
   },
-  [KeyboardShortcutAction.DISMISS_COMPONENT_WITH_COMMENTS]: {
+  [keyboard.Action.DismissComponentWithComments]: {
     name: 'Dismiss Component With Comments',
     description: 'Dismiss the component with comments',
     keys: 'shift+x, shift+mod+f2',
   },
 
-  [KeyboardShortcutAction.REPLACE_FILE_WITHOUT_COMMENTS]: {
+  [keyboard.Action.ReplaceFileWithoutComments]: {
     name: 'Replace File Without Comments',
     description: 'Replace the file without comments',
     keys: 'r, f3',
   },
-  [KeyboardShortcutAction.REPLACE_FILE_WITH_COMMENTS]: {
+  [keyboard.Action.ReplaceFileWithComments]: {
     name: 'Replace File With Comments',
     description: 'Replace the file with comments',
     keys: 'shift+r, shift+f3',
   },
-  [KeyboardShortcutAction.REPLACE_COMPONENT_WITHOUT_COMMENTS]: {
+  [keyboard.Action.ReplaceComponentWithoutComments]: {
     name: 'Replace Component Without Comments',
     description: 'Replace the component without comments',
     keys: 'e, mod+f3',
   },
-  [KeyboardShortcutAction.REPLACE_COMPONENT_WITH_COMMENTS]: {
+  [keyboard.Action.ReplaceComponentWithComments]: {
     name: 'Replace Component With Comments',
     description: 'Replace the component with comments',
     keys: 'shift+e, shift+mod+f3',

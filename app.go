@@ -90,18 +90,14 @@ func (a *App) initializeMenu(groupedShortcuts map[keyboard.Group][]keyboard.Shor
 
 	// Global edit menu
 	EditMenu := AppMenu.AddSubmenu("Edit")
-	for action, shortcut := range globalShortcuts {
-		EditMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {
-			runtime.EventsEmit(a.ctx, string(action))
-		})
+	for _, shortcut := range globalShortcuts {
+		EditMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {})
 	}
 
 	// Actions menu
 	ActionsMenu := AppMenu.AddSubmenu("Actions")
-	for action, shortcut := range actionShortcuts {
-		ActionsMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {
-			runtime.EventsEmit(a.ctx, string(action))
-		})
+	for _, shortcut := range actionShortcuts {
+		ActionsMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {})
 	}
 
 	// Help menu

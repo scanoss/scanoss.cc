@@ -16,7 +16,14 @@ import {
 export default function ConfirmDialog() {
   const { isAsking, message, deny, confirm } = useConfirm();
 
-  const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, confirm, {}, [isAsking]);
+  const ref = useKeyboardShortcut(
+    KEYBOARD_SHORTCUTS.confirm.keys,
+    confirm,
+    {
+      enableOnFormTags: true,
+    },
+    [isAsking]
+  );
 
   return (
     <AlertDialog open={isAsking} onOpenChange={deny}>

@@ -19,6 +19,7 @@ import {
 import { useConfirm } from '@/hooks/useConfirm';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import useSelectedResult from '@/hooks/useSelectedResult';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 
@@ -45,6 +46,8 @@ export default function FilterActionButton({
   shortcutKeysByComponentWithcomments,
   shortcutKeysByComponentWithoutComments,
 }: FilterActionProps) {
+  const selectedResult = useSelectedResult();
+  const isCompletedResult = selectedResult?.workflow_state === 'completed';
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const { ask } = useConfirm();
@@ -93,6 +96,9 @@ export default function FilterActionButton({
   };
 
   const onSelectOption = async (action: FilterAction, filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
+    // TODO: Show modal here
+    if (isCompletedResult) return;
+
     setAction(action);
     setFilterBy(filterBy);
     setWithComment(withComment);
@@ -111,19 +117,30 @@ export default function FilterActionButton({
   const handleFilterByFileWithoutComments = () => onSelectOption(action, 'by_file', false);
   const handleFilterByPurlWithoutComments = () => onSelectOption(action, 'by_purl', false);
 
-  useKeyboardShortcut(shortcutKeysByFileWithoutComments, handleFilterByFileWithoutComments);
-  useKeyboardShortcut(shortcutKeysByFileWithcomments, handleFilterByFileWithComments);
-  useKeyboardShortcut(shortcutKeysByComponentWithoutComments, handleFilterByPurlWithoutComments);
-  useKeyboardShortcut(shortcutKeysByComponentWithcomments, handleFilterByPurlWithComments);
+  useKeyboardShortcut(shortcutKeysByFileWithoutComments, handleFilterByFileWithoutComments, {
+    enabled: !isCompletedResult,
+    preventDefault: true,
+  });
+  useKeyboardShortcut(shortcutKeysByFileWithcomments, handleFilterByFileWithComments, {
+    enabled: !isCompletedResult,
+  });
+  useKeyboardShortcut(shortcutKeysByComponentWithoutComments, handleFilterByPurlWithoutComments, {
+    enabled: !isCompletedResult,
+  });
+  useKeyboardShortcut(shortcutKeysByComponentWithcomments, handleFilterByPurlWithComments, {
+    enabled: !isCompletedResult,
+    preventDefault: true,
+  });
 
   return (
     <DropdownMenu onOpenChange={setDropdownOpen}>
       <div className="group flex h-full">
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger asChild disabled={isCompletedResult}>
           <Button
             variant="ghost"
             size="lg"
             className="h-full w-14 rounded-none enabled:group-hover:bg-accent enabled:group-hover:text-accent-foreground"
+            disabled={isCompletedResult}
           >
             <div className="flex flex-col items-center justify-center gap-1">
               <span className="text-xs">{filterActionLabelMap[action]}</span>
@@ -131,8 +148,11 @@ export default function FilterActionButton({
             </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuTrigger asChild>
-          <button className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent">
+        <DropdownMenuTrigger asChild disabled={isCompletedResult}>
+          <button
+            className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent"
+            disabled={isCompletedResult}
+          >
             <ChevronDown
               className={clsx(
                 'h-4 w-4 stroke-muted-foreground transition-transform enabled:hover:stroke-accent-foreground',

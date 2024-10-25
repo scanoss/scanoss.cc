@@ -20,7 +20,14 @@ export default function InputPromptDialog() {
     }
   }, [isPrompting]);
 
-  const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => confirm(inputValue), {}, [inputValue]);
+  const ref = useKeyboardShortcut(
+    KEYBOARD_SHORTCUTS.confirm.keys,
+    () => confirm(inputValue),
+    {
+      enableOnFormTags: true,
+    },
+    [inputValue]
+  );
 
   return (
     <Dialog open={isPrompting} onOpenChange={cancel}>

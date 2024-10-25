@@ -63,9 +63,9 @@ export default function FilterComponentActions() {
           icon={<Check className="h-5 w-5 stroke-green-500" />}
           description="By including a file/component, you force the engine to consider it with priority in future scans."
           onAdd={handleFilterComponent}
-          shortcutKeysByFileWithcomments={KEYBOARD_SHORTCUTS.includeFileWithComments.keys}
+          shortcutKeysByFileWithComments={KEYBOARD_SHORTCUTS.includeFileWithComments.keys}
           shortcutKeysByFileWithoutComments={KEYBOARD_SHORTCUTS.includeFileWithoutComments.keys}
-          shortcutKeysByComponentWithcomments={KEYBOARD_SHORTCUTS.includeComponentWithComments.keys}
+          shortcutKeysByComponentWithComments={KEYBOARD_SHORTCUTS.includeComponentWithComments.keys}
           shortcutKeysByComponentWithoutComments={KEYBOARD_SHORTCUTS.includeComponentWithoutComments.keys}
         />
         <FilterActionButton
@@ -73,9 +73,9 @@ export default function FilterComponentActions() {
           description="Dismissing a file/component will exclude it from future scan results."
           icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
           onAdd={handleFilterComponent}
-          shortcutKeysByFileWithcomments={KEYBOARD_SHORTCUTS.dismissFileWithComments.keys}
+          shortcutKeysByFileWithComments={KEYBOARD_SHORTCUTS.dismissFileWithComments.keys}
           shortcutKeysByFileWithoutComments={KEYBOARD_SHORTCUTS.dismissFileWithoutComments.keys}
-          shortcutKeysByComponentWithcomments={KEYBOARD_SHORTCUTS.dismissComponentWithComments.keys}
+          shortcutKeysByComponentWithComments={KEYBOARD_SHORTCUTS.dismissComponentWithComments.keys}
           shortcutKeysByComponentWithoutComments={KEYBOARD_SHORTCUTS.dismissComponentWithoutComments.keys}
         />
         <FilterActionButton
@@ -83,9 +83,9 @@ export default function FilterComponentActions() {
           description="Replace detected components with another one."
           icon={<Replace className="h-5 w-5 stroke-yellow-500" />}
           onAdd={() => setShowReplaceComponentDialog(true)}
-          shortcutKeysByFileWithcomments={KEYBOARD_SHORTCUTS.replaceFileWithComments.keys}
+          shortcutKeysByFileWithComments={KEYBOARD_SHORTCUTS.replaceFileWithComments.keys}
           shortcutKeysByFileWithoutComments={KEYBOARD_SHORTCUTS.replaceFileWithoutComments.keys}
-          shortcutKeysByComponentWithcomments={KEYBOARD_SHORTCUTS.replaceComponentWithComments.keys}
+          shortcutKeysByComponentWithComments={KEYBOARD_SHORTCUTS.replaceComponentWithComments.keys}
           shortcutKeysByComponentWithoutComments={KEYBOARD_SHORTCUTS.replaceComponentWithoutComments.keys}
         />
       </div>

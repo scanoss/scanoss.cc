@@ -5,7 +5,7 @@ import { HotkeysEvent } from 'react-hotkeys-hook/dist/types';
 export default function useKeyboardShortcut(
   keys: string | string[],
   callback: (event: KeyboardEvent, handler: HotkeysEvent) => void,
-  options: Options,
+  options?: Options,
   deps: unknown[] = []
 ) {
   return useHotkeys(

@@ -62,24 +62,24 @@ export default function FilterComponentActions() {
           icon={<Check className="h-5 w-5 stroke-green-500" />}
           description="By including a file/component, you force the engine to consider it with priority in future scans."
           onAdd={handleFilterComponent}
-          shortcutKeysByFile={['i', 'f']}
-          shortcutKeysByPurl={['i', 'c']}
+          shortcutKeysByFile="f1"
+          shortcutKeysByPurl="shift+f1"
         />
         <FilterActionButton
           action={FilterAction.Remove}
           description="Dismissing a file/component will exclude it from future scan results."
           icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
           onAdd={handleFilterComponent}
-          shortcutKeysByFile={['d', 'f']}
-          shortcutKeysByPurl={['d', 'c']}
+          shortcutKeysByFile="f2"
+          shortcutKeysByPurl="shift+f2"
         />
         <FilterActionButton
           action={FilterAction.Replace}
           description="Replace detected components with another one."
           icon={<Replace className="h-5 w-5 stroke-yellow-500" />}
           onAdd={() => setShowReplaceComponentDialog(true)}
-          shortcutKeysByFile={['r', 'f']}
-          shortcutKeysByPurl={['r', 'c']}
+          shortcutKeysByFile="f3"
+          shortcutKeysByPurl="shift+f3"
         />
       </div>
       {showReplaceComponentDialog && (

@@ -3,7 +3,6 @@ import { useMutation } from '@tanstack/react-query';
 import { RotateCcw, RotateCw, Save } from 'lucide-react';
 
 import useDebounce from '@/hooks/useDebounce';
-import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
@@ -18,7 +17,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { useToast } from './ui/use-toast';
 
 export default function ActionToolbar() {
-  const { modifierKey } = useEnvironment();
   const { toast } = useToast();
 
   const undo = useComponentFilterStore((state) => state.undo);
@@ -50,9 +48,9 @@ export default function ActionToolbar() {
     },
   });
 
-  useKeyboardShortcut([modifierKey.keyCode, 'z'], undo);
-  useKeyboardShortcut([modifierKey.keyCode, 'r'], redo);
-  useKeyboardShortcut([modifierKey.keyCode, 's'], saveChanges);
+  useKeyboardShortcut('mod+z', undo);
+  useKeyboardShortcut('mod+shift+z', redo);
+  useKeyboardShortcut('mod+s', () => saveChanges());
 
   return (
     <div className="flex justify-end gap-4">
@@ -77,7 +75,7 @@ export default function ActionToolbar() {
               </div>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Redo (⌘ + R)</TooltipContent>
+          <TooltipContent>Redo (⌘ ⇧ Z)</TooltipContent>
         </Tooltip>
       </div>
       <Separator orientation="vertical" className="h-1/2 self-center" />

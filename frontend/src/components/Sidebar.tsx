@@ -86,10 +86,18 @@ export default function Sidebar() {
     fetchResults(filterByMatchType === 'all' ? undefined : filterByMatchType, debouncedQuery);
   }, [filterByMatchType, debouncedQuery]);
 
-  useKeyboardShortcut(['j'], () => handleNavigateToResult(getPreviousResult()));
-  useKeyboardShortcut(['k'], () => handleNavigateToResult(getNextResult()));
-  useKeyboardShortcut(['ArrowUp'], () => handleNavigateToResult(getPreviousResult()));
-  useKeyboardShortcut(['ArrowDown'], () => handleNavigateToResult(getNextResult()));
+  useKeyboardShortcut('k', () => handleNavigateToResult(getPreviousResult()), {
+    enableOnFormTags: false,
+  });
+  useKeyboardShortcut('j', () => handleNavigateToResult(getNextResult()), {
+    enableOnFormTags: false,
+  });
+  useKeyboardShortcut('up', () => handleNavigateToResult(getPreviousResult()), {
+    enableOnFormTags: false,
+  });
+  useKeyboardShortcut('down', () => handleNavigateToResult(getNextResult()), {
+    enableOnFormTags: false,
+  });
 
   return (
     <aside className="flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-md">

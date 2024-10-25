@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +18,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useConfirm } from '@/hooks/useConfirm';
-import useEnvironment from '@/hooks/useEnvironment';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
@@ -31,8 +30,8 @@ interface FilterActionProps {
   description: string;
   icon: React.ReactNode;
   onAdd: () => Promise<void> | void;
-  shortcutKeysByFile: string[];
-  shortcutKeysByPurl: string[];
+  shortcutKeysByFile: string;
+  shortcutKeysByPurl: string;
 }
 
 export default function FilterActionButton({
@@ -46,7 +45,6 @@ export default function FilterActionButton({
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const { ask } = useConfirm();
-  const { modifierKey } = useEnvironment();
   const { prompt } = useInputPrompt();
 
   const setAction = useComponentFilterStore((state) => state.setAction);
@@ -110,10 +108,24 @@ export default function FilterActionButton({
   const handleFilterByFileWithoutComments = () => onSelectOption(action, 'by_file', false);
   const handleFilterByPurlWithoutComments = () => onSelectOption(action, 'by_purl', false);
 
-  useKeyboardShortcut(['Shift', ...shortcutKeysByFile], handleFilterByFileWithComments);
-  useKeyboardShortcut(['Shift', ...shortcutKeysByPurl], handleFilterByPurlWithComments);
-  useKeyboardShortcut([modifierKey.keyCode, ...shortcutKeysByFile], handleFilterByFileWithoutComments);
-  useKeyboardShortcut([modifierKey.keyCode, ...shortcutKeysByPurl], handleFilterByPurlWithoutComments);
+  const keysByFileWithComments = `alt+${shortcutKeysByFile}`;
+  const keysByPurlWithComments = `alt+${shortcutKeysByPurl}`;
+
+  useKeyboardShortcut(shortcutKeysByFile, handleFilterByFileWithoutComments);
+  useKeyboardShortcut(keysByFileWithComments, handleFilterByFileWithComments);
+  useKeyboardShortcut(shortcutKeysByPurl, handleFilterByPurlWithoutComments);
+  useKeyboardShortcut(keysByPurlWithComments, handleFilterByPurlWithComments);
+
+  const getShortcutLabel = useCallback((keys: string) => {
+    const parts = keys.split('+');
+    return parts
+      .map((p) => {
+        if (p === 'shift') return '⇧';
+        if (p === 'mod') return '⌘';
+        return p;
+      })
+      .join('  ');
+  }, []);
 
   return (
     <DropdownMenu onOpenChange={setDropdownOpen}>
@@ -151,13 +163,17 @@ export default function FilterActionButton({
             <DropdownMenuSubTrigger>File</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent className="min-w-[300px]">
-                <DropdownMenuItem onClick={handleFilterByFileWithComments}>
-                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
-                  <DropdownMenuShortcut className="uppercase">⇧ + {shortcutKeysByFile.join(' ')}</DropdownMenuShortcut>
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleFilterByFileWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
-                  <DropdownMenuShortcut className="uppercase">⌘ + {shortcutKeysByFile.join(' ')}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut className="uppercase">
+                    {getShortcutLabel(shortcutKeysByFile)}
+                  </DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleFilterByFileWithComments}>
+                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
+                  <DropdownMenuShortcut className="uppercase">
+                    {getShortcutLabel(keysByFileWithComments)}
+                  </DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
@@ -168,13 +184,17 @@ export default function FilterActionButton({
             <DropdownMenuSubTrigger>Component</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
               <DropdownMenuSubContent className="min-w-[300px]">
-                <DropdownMenuItem onClick={handleFilterByPurlWithComments}>
-                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
-                  <DropdownMenuShortcut className="uppercase">⇧ + {shortcutKeysByPurl.join(' ')}</DropdownMenuShortcut>
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleFilterByPurlWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without Comments`}</span>
-                  <DropdownMenuShortcut className="uppercase">⌘ + {shortcutKeysByPurl.join(' ')}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut className="uppercase">
+                    {getShortcutLabel(shortcutKeysByPurl)}
+                  </DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleFilterByPurlWithComments}>
+                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
+                  <DropdownMenuShortcut className="uppercase">
+                    {getShortcutLabel(keysByPurlWithComments)}
+                  </DropdownMenuShortcut>
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>

@@ -2,17 +2,15 @@ import { Search } from 'lucide-react';
 import { useRef } from 'react';
 
 import { Input } from '@/components/ui/input';
-import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
 
 export default function ResultSearchBar() {
   const [query, setQuery] = useQueryState<string>('q', '');
-  const { modifierKey } = useEnvironment();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useKeyboardShortcut([modifierKey.keyCode, 'f'], () => inputRef.current?.focus());
-  useKeyboardShortcut([modifierKey.keyCode, 'a'], () => inputRef.current?.select());
+  useKeyboardShortcut('mod+f', () => inputRef.current?.focus());
+  useKeyboardShortcut('mod+a', () => inputRef.current?.select());
 
   return (
     <div className="relative grid w-full items-center gap-1.5">

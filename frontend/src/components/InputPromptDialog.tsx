@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import useEnvironment from '@/hooks/useEnvironment';
 import { useInputPrompt } from '@/hooks/useInputPrompt';
@@ -11,35 +11,27 @@ import { Textarea } from './ui/textarea';
 export default function InputPromptDialog() {
   const { modifierKey } = useEnvironment();
   const { isPrompting, options, confirm, cancel } = useInputPrompt();
-  const [inputValue, setInputValue] = useState(options?.input.defaultValue ?? '');
+  const [inputValue, setInputValue] = useState('');
 
-  const handleConfirm = () => {
-    confirm(inputValue);
-    setInputValue('');
-  };
+  useEffect(() => {
+    if (!isPrompting) {
+      setInputValue('');
+    }
+  }, [isPrompting]);
 
-  const handleCancel = () => {
-    cancel();
-    setInputValue('');
-  };
-
-  useKeyboardShortcut([modifierKey.keyCode, 'Enter'], handleConfirm, {
-    preventRegistering: !inputValue,
-  });
-
-  if (!isPrompting || !options) return null;
-
-  const { title, description, cancelText, confirmText } = options;
+  const ref = useKeyboardShortcut('mod+enter', () => confirm(inputValue), {}, [inputValue]);
 
   return (
-    <Dialog open={isPrompting} onOpenChange={handleCancel}>
-      <DialogContent>
+    <Dialog open={isPrompting} onOpenChange={cancel}>
+      <DialogContent ref={ref} tabIndex={-1}>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description && <p className="mb-1">{description}</p>}</DialogDescription>
+          <DialogTitle>{options?.title}</DialogTitle>
+          <DialogDescription>
+            {options?.description && <p className="mb-1">{options?.description}</p>}
+          </DialogDescription>
         </DialogHeader>
 
-        {options.input.type === 'textarea' && (
+        {options?.input.type === 'textarea' && (
           <div>
             <Textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
             <p className="mt-2 text-xs text-muted-foreground">
@@ -49,11 +41,11 @@ export default function InputPromptDialog() {
         )}
 
         <DialogFooter>
-          <Button variant="ghost" onClick={handleCancel}>
-            {cancelText ?? 'Cancel'}
+          <Button variant="ghost" onClick={cancel}>
+            {options?.cancelText ?? 'Cancel'}
           </Button>
-          <Button onClick={handleConfirm} disabled={!inputValue}>
-            {confirmText ?? 'Confirm'}{' '}
+          <Button onClick={() => confirm(inputValue)} disabled={!inputValue}>
+            {options?.confirmText ?? 'Confirm'}{' '}
             <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
           </Button>
         </DialogFooter>

@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import CodeViewer from '@/components/CodeViewer';
 import { getFileName } from '@/lib/utils';
 import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
-import FileService from '@/modules/files/infra/service';
-import ResultService from '@/modules/results/infra/service';
 
+import { GetComponentByPath } from '../../wailsjs/go/service/ComponentServiceImpl';
+import { GetLocalFile, GetRemoteFile } from '../../wailsjs/go/service/FileServiceImpl';
 import FileInfoCard from './FileInfoCard';
 import Header from './Header';
 import MatchInfoCard from './MatchInfoCard';
@@ -19,7 +19,7 @@ export default function MatchComparison() {
     isError: isErrorLocalFileContent,
   } = useQuery({
     queryKey: ['localFileContent', localFilePath],
-    queryFn: () => FileService.getLocalFileContent(localFilePath),
+    queryFn: () => GetLocalFile(localFilePath),
   });
 
   const {
@@ -28,12 +28,12 @@ export default function MatchComparison() {
     isError: isErrorRemoteFileContent,
   } = useQuery({
     queryKey: ['remoteFileContent', localFilePath],
-    queryFn: () => FileService.getRemoteFileContent(localFilePath),
+    queryFn: () => GetRemoteFile(localFilePath),
   });
 
   const { data: component } = useQuery({
     queryKey: ['component', localFilePath],
-    queryFn: () => ResultService.getComponent(localFilePath),
+    queryFn: () => GetComponentByPath(localFilePath),
   });
 
   return (
@@ -46,16 +46,8 @@ export default function MatchComparison() {
           <div className="col-span-2">
             <MatchInfoCard />
           </div>
-          <FileInfoCard
-            title="Local file"
-            subtitle={getFileName(localFilePath)}
-            fileType="local"
-          />
-          <FileInfoCard
-            title="Remote file"
-            subtitle={component?.file}
-            fileType="remote"
-          />
+          <FileInfoCard title="Local file" subtitle={getFileName(localFilePath)} fileType="local" />
+          <FileInfoCard title="Remote file" subtitle={component?.file} fileType="remote" />
           <CodeViewer
             content={localFileContent?.content}
             isError={isErrorLocalFileContent}

@@ -1,12 +1,11 @@
-// import { useEffect } from 'react';
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
-import KeyboardShortcutsDialog from '@/components/keyboard-shortcuts-dialog';
+import KeyboardShortcutsDialog from '@/components/KeyboardShortcutsDialog';
 import Sidebar from '@/components/Sidebar';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 
-import { EventsOn } from '../../wailsjs/runtime';
+import { EventsOn } from '../../wailsjs/runtime/runtime';
 
 export default function Root() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);

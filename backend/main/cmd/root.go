@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
+	"github.com/scanoss/scanoss.lui/backend/main/config"
 	"github.com/spf13/cobra"
 )
 
@@ -28,11 +28,11 @@ var rootCmd = &cobra.Command{
 	--scan-root Scanned folder
 	--input Path to results.json file`,
 	Run: func(cmd *cobra.Command, args []string) {
-		initConfigModule(configurationPath)
-		setInputFile(inputFile)
-		setScanRoot(scanRoot)
-		setApiKey(apiKey)
-		setApiUrl(apiUrl)
+		initConfigModule()
+		setInputFile()
+		setScanRoot()
+		setApiKey()
+		setApiUrl()
 	},
 }
 var configureCmd = &cobra.Command{
@@ -45,10 +45,9 @@ var configureCmd = &cobra.Command{
 		os.Exit(0)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-
-		initConfigModule(configurationPath)
-		setApiKey(apiKey)
-		setApiUrl(apiUrl)
+		initConfigModule()
+		setApiKey()
+		setApiUrl()
 
 		if apiKey == "" && apiUrl == "" {
 			os.Exit(0)
@@ -97,24 +96,30 @@ func Init() {
 	}
 }
 
-func initConfigModule(configFile string) {
-	pathToConfig := configFile
-	if pathToConfig == "" {
-		pathToConfig = config.GetDefaultConfigLocation()
+func initConfigModule() {
+	var configPath string
+	if configurationPath == "" {
+		configPath = config.GetDefaultConfigLocation()
+	} else {
+		configPath = configurationPath
 	}
 
-	c := config.NewConfigModule(pathToConfig)
-	c.Init()
-	// Load the config
-	if err := c.LoadConfig(); err != nil {
-		fmt.Printf("Make sure you have a %s file in the root of your project", config.GetDefaultConfigFileName())
+	fmt.Println("Configuration file path: ", configPath)
+
+	cfg := config.NewConfigModule(configPath)
+	err := cfg.Init()
+	if err != nil {
+		fmt.Println("Error initializing config: ", err)
+		os.Exit(1)
+	}
+	if err = cfg.LoadConfig(); err != nil {
+		fmt.Println("Error loading config: ", err)
 		os.Exit(1)
 	}
 }
 
-func setInputFile(resultFile string) {
-	input := resultFile
-	if input != "" {
+func setInputFile() {
+	if inputFile != "" {
 		config.Get().ResultFilePath = inputFile
 	} else {
 		resultFilePath := config.Get().ResultFilePath
@@ -127,16 +132,16 @@ func setInputFile(resultFile string) {
 	}
 }
 
-func setScanRoot(root string) {
-	if root != "" {
+func setScanRoot() {
+	if scanRoot != "" {
 		// Win OS only
 		if runtime.GOOS == "windows" {
 			// Create a regex pattern to match double slashes
 			re := regexp.MustCompile(`\\+`)
-			pathForwardSlash := re.ReplaceAllString(root, "/")
+			pathForwardSlash := re.ReplaceAllString(scanRoot, "/")
 			config.Get().ScanRoot = pathForwardSlash
 		} else {
-			config.Get().ScanRoot = root
+			config.Get().ScanRoot = scanRoot
 		}
 	}
 	if config.Get().ScanRoot == ROOT_FOLDER || config.Get().ScanRoot == "" {
@@ -146,7 +151,7 @@ func setScanRoot(root string) {
 
 }
 
-func setApiKey(apiKey string) {
+func setApiKey() {
 	if apiKey == "" {
 		return
 	}
@@ -155,7 +160,7 @@ func setApiKey(apiKey string) {
 	config.Get().ApiUrl = config.SCNOSS_PREMIUM_API_URL
 }
 
-func setApiUrl(apiUrl string) {
+func setApiUrl() {
 	if apiUrl == "" {
 		return
 	}

@@ -14,8 +14,8 @@ import {
   resultStatusPresentation,
   stateInfoPresentation,
 } from '@/modules/results/domain';
-import ResultService from '@/modules/results/infra/service';
 
+import { GetComponentByPath } from '../../wailsjs/go/service/ComponentServiceImpl';
 import ComponentDetailTooltip from './ComponentDetailTooltip';
 
 export default function MatchInfoCard() {
@@ -24,7 +24,7 @@ export default function MatchInfoCard() {
 
   const { data: component } = useQuery({
     queryKey: ['component', localFilePath],
-    queryFn: () => ResultService.getComponent(localFilePath),
+    queryFn: () => GetComponentByPath(localFilePath),
   });
 
   if (!component) {

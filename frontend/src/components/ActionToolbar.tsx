@@ -7,11 +7,11 @@ import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
-import FileService from '@/modules/files/infra/service';
 import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
+import { Save as SaveBomChanges } from '../../wailsjs/go/service/ScanossSettingsServiceImp';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -32,7 +32,7 @@ export default function ActionToolbar() {
   const debouncedQuery = useDebounce<string>(query, DEBOUNCE_QUERY_MS);
 
   const { mutate: saveChanges, isPending } = useMutation({
-    mutationFn: () => FileService.saveBomChanges(),
+    mutationFn: SaveBomChanges,
     onSuccess: async () => {
       toast({
         title: 'Success',

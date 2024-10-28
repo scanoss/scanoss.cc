@@ -11,11 +11,12 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/windows"
 
 	"github.com/scanoss/scanoss.lui/backend/main/cmd"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/keyboard"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/version"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
+	"github.com/scanoss/scanoss.lui/backend/main/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/mappers"
+	"github.com/scanoss/scanoss.lui/backend/main/repository"
+	"github.com/scanoss/scanoss.lui/backend/main/service"
+	"github.com/scanoss/scanoss.lui/backend/main/utils"
 
-	"github.com/scanoss/scanoss.lui/backend/handlers"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
@@ -35,15 +36,29 @@ func main() {
 
 	cmd.Init()
 
-	fmt.Println("App Version: ", version.AppVersion)
-
-	fileHandler := handlers.NewFileHandler()
-	scanossBomHandler := handlers.NewScanossSettingsHandler()
-	resultHandler := handlers.NewResultHandler()
-	componentHandler := handlers.NewComponentHandler()
-	keyboardService := keyboard.NewKeyboardServiceInMemoryImpl()
+	fmt.Println("App Version: ", entities.AppVersion)
 
 	app := NewApp()
+
+	fr := utils.NewDefaultFileReader()
+
+	// Repositories
+	componentRepository := repository.NewJSONComponentRepository(fr)
+	scanossSettingsRepository := repository.NewScanossSettingsJsonRepository(fr)
+	scanossSettingsRepository.Init()
+	resultRepository := repository.NewResultRepositoryJsonImpl(fr)
+	fileRepository := repository.NewFileRepositoryImpl()
+
+	// Mappers
+	resultMapper := mappers.NewResultMapper(entities.ScanossSettingsJson)
+	componentMapper := mappers.NewComponentMapper()
+
+	// Services
+	componentService := service.NewComponentServiceImpl(componentRepository, scanossSettingsRepository, resultRepository, componentMapper)
+	fileService := service.NewFileService(fileRepository, componentRepository)
+	keyboardService := service.NewKeyboardServiceInMemoryImpl()
+	resultService := service.NewResultServiceImpl(resultRepository, resultMapper)
+	scanossSettingsService := service.NewScanossSettingsServiceImpl(scanossSettingsRepository)
 
 	//Create application with options
 	err := wails.Run(&options.App{
@@ -53,22 +68,21 @@ func main() {
 		},
 		WindowStartState: options.Maximised,
 		OnStartup: func(ctx context.Context) {
-			app.startup(ctx)
-			app.initializeMenu(keyboardService.GetGroupedShortcuts())
+			app.Init(ctx, scanossSettingsService, keyboardService)
 		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
-			return app.beforeClose(ctx, scanossBomHandler)
+			return app.BeforeClose(ctx)
 		},
 		Bind: []interface{}{
 			app,
-			fileHandler,
-			resultHandler,
-			componentHandler,
-			scanossBomHandler,
+			componentService,
+			fileService,
 			keyboardService,
+			resultService,
+			scanossSettingsService,
 		},
 		EnumBind: []interface{}{
-			keyboard.AllShortcutActions,
+			entities.AllShortcutActions,
 		},
 		Windows: &windows.Options{
 			WebviewIsTransparent: true,
@@ -84,7 +98,7 @@ func main() {
 			WindowIsTranslucent:  true,
 			About: &mac.AboutInfo{
 				Title:   "Scanoss Lightweight User Interface",
-				Message: "Version: " + version.AppVersion,
+				Message: "Version: " + entities.AppVersion,
 				Icon:    icon,
 			},
 		},

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { v4 as uuidv4 } from 'uuid';
 
 import CodeViewer from '@/components/CodeViewer';
 import { getFileName } from '@/lib/utils';
@@ -55,6 +56,7 @@ export default function MatchComparison() {
             language={localFileContent?.language}
             highlightLines={component?.lines}
             editorType="local"
+            editorId={uuidv4()}
           />
           <CodeViewer
             content={remoteFileContent?.content}
@@ -63,6 +65,7 @@ export default function MatchComparison() {
             language={remoteFileContent?.language}
             highlightLines={component?.oss_lines}
             editorType="remote"
+            editorId={uuidv4()}
           />
         </div>
       </main>

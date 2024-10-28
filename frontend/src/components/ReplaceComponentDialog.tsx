@@ -11,8 +11,8 @@ import { cn } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
-import { GetDeclaredComponents } from '../../wailsjs/go/handlers/ComponentHandler';
 import { entities } from '../../wailsjs/go/models';
+import { GetDeclaredComponents } from '../../wailsjs/go/service/ComponentServiceImpl';
 import FilterByPurlList from './FilterByPurlList';
 import NewComponentDialog from './NewComponentDialog';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';

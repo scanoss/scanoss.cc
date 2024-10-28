@@ -38,7 +38,7 @@ go_lint_docker: ## Run docker instance of Go linting across the code base
 
 run: ## Runs the application in development mode
 	$(eval APPARGS := $(ARGS))
-	@wails dev -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/pkg/common/version.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "$(APPARGS)")
+	@wails dev -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/entities.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "$(APPARGS)")
 
 npm: ## Install NPM dependencies for the frontend
 	@echo "Running npm install for frontend..."
@@ -51,8 +51,8 @@ cp_assets: ## Copy the necessary assets to the build folder
 
 build: cp_assets  ## Build the application image
 	@echo "Building application image..."
-	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/pkg/common/version.AppVersion=$(VERSION)"
+	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/entities.AppVersion=$(VERSION)"
 
 binary: cp_assets  ## Build application binary only (no package)
 	@echo "Build application binary only..."
-	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/pkg/common/version.AppVersion=$(VERSION)" --nopackage
+	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/entities.AppVersion=$(VERSION)" --nopackage

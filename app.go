@@ -5,46 +5,48 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/scanoss/scanoss.lui/backend/handlers"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/config"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/keyboard"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/common/version"
-	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
+	"github.com/scanoss/scanoss.lui/backend/main/config"
+	"github.com/scanoss/scanoss.lui/backend/main/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/service"
+	"github.com/scanoss/scanoss.lui/backend/main/utils"
 	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/menu/keys"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// App struct
 type App struct {
-	ctx context.Context
+	ctx                    context.Context
+	scanossSettingsService service.ScanossSettingsService
+	keyboardService        service.KeyboardService
 }
 
-// NewApp creates a new App application struct
 func NewApp() *App {
 	return &App{}
 }
 
-// Only set window title on non-darwin platforms
+func (a *App) Init(ctx context.Context, scanossSettingsService service.ScanossSettingsService, keyboardService service.KeyboardService) {
+	a.ctx = ctx
+	a.scanossSettingsService = scanossSettingsService
+	a.keyboardService = keyboardService
+	a.startup()
+}
+
+func (a *App) startup() {
+	a.maybeSetWindowTitle()
+	a.initializeMenu()
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Config file path: %s", config.Get().ScanSettingsFilePath))
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Results file path: %s", config.Get().ResultFilePath))
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Scan Root file path: %s", config.Get().ScanRoot))
+}
+
 func (a *App) maybeSetWindowTitle() {
 	if env := runtime.Environment(a.ctx); env.Platform != "darwin" {
-		runtime.WindowSetTitle(a.ctx, fmt.Sprintf("Scanoss Lui %s", version.AppVersion))
+		runtime.WindowSetTitle(a.ctx, fmt.Sprintf("Scanoss Lui %s", entities.AppVersion))
 	}
 }
 
-// startup is called when the app starts. The context is saved
-// so we can call the runtime methods
-func (a *App) startup(ctx context.Context) {
-	a.ctx = ctx
-	a.maybeSetWindowTitle()
-	runtime.LogInfo(ctx, "Config file path: "+config.GetInstance().GetConfigPath())
-	runtime.LogInfo(ctx, "Results file path: "+config.Get().ResultFilePath)
-	runtime.LogInfo(ctx, "Scan Root file path: "+config.Get().ScanRoot)
-}
-
-func (a *App) beforeClose(ctx context.Context, sbh *handlers.ScanossSettingsHandler) (prevent bool) {
-
-	hasUnsavedChanges, err := sbh.HasUnsavedChanges()
+func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
+	hasUnsavedChanges, err := a.scanossSettingsService.HasUnsavedChanges()
 
 	if err != nil {
 		runtime.LogError(ctx, "Error checking for unsaved changes: "+err.Error())
@@ -69,7 +71,7 @@ func (a *App) beforeClose(ctx context.Context, sbh *handlers.ScanossSettingsHand
 	confirmOptions := []string{"Yes", "Ok"}
 
 	if slices.Contains(confirmOptions, result) {
-		err := sbh.SaveScanossSettingsFile()
+		err := a.scanossSettingsService.Save()
 		if err != nil {
 			runtime.LogError(ctx, "Error saving scanoss bom file: "+err.Error())
 		}
@@ -78,15 +80,16 @@ func (a *App) beforeClose(ctx context.Context, sbh *handlers.ScanossSettingsHand
 	return false
 }
 
-func (a *App) initializeMenu(groupedShortcuts map[keyboard.Group][]keyboard.Shortcut) {
+func (a *App) initializeMenu() {
 	AppMenu := menu.NewMenu()
 
 	if env := runtime.Environment(a.ctx); env.Platform == "darwin" {
 		AppMenu.Append(menu.AppMenu())
 	}
 
-	actionShortcuts := groupedShortcuts[keyboard.GroupActions]
-	globalShortcuts := groupedShortcuts[keyboard.GroupGlobal]
+	groupedShortcuts := a.keyboardService.GetGroupedShortcuts()
+	actionShortcuts := groupedShortcuts[entities.GroupActions]
+	globalShortcuts := groupedShortcuts[entities.GroupGlobal]
 
 	// Global edit menu
 	EditMenu := AppMenu.AddSubmenu("Edit")

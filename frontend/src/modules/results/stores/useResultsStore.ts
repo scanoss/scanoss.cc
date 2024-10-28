@@ -2,8 +2,8 @@ import { entities } from 'wailsjs/go/models';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import { GetAll } from '../../../../wailsjs/go/service/ResultServiceImpl';
 import { MatchType } from '../domain';
-import ResultService from '../infra/service';
 
 interface ResultsState {
   completedResults: entities.ResultDTO[];
@@ -48,7 +48,10 @@ const useResultsStore = create<ResultsStore>()(
     fetchResults: async (matchType, query) => {
       set({ isLoading: true, error: null }, false, 'FETCH_RESULTS');
       try {
-        const results = await ResultService.getAll(matchType, query);
+        const results = await GetAll({
+          match_type: matchType,
+          query,
+        });
         const pendingResults = results.filter((r) => r.workflow_state === 'pending');
         const completedResults = results.filter((r) => r.workflow_state === 'completed');
         set({ pendingResults, completedResults });

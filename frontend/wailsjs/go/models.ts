@@ -1,5 +1,83 @@
 export namespace entities {
 	
+	export enum Action {
+	    Undo = "undo",
+	    Redo = "redo",
+	    Save = "save",
+	    Confirm = "confirm",
+	    FocusSearch = "focusSearch",
+	    SelectAll = "selectAll",
+	    MoveUp = "moveUp",
+	    MoveDown = "moveDown",
+	    IncludeFileWithoutComments = "includeFileWithoutComments",
+	    IncludeFileWithComments = "includeFileWithComments",
+	    IncludeComponentWithoutComments = "includeComponentWithoutComments",
+	    IncludeComponentWithComments = "includeComponentWithComments",
+	    DismissFileWithoutComments = "dismissFileWithoutComments",
+	    DismissFileWithComments = "dismissFileWithComments",
+	    DismissComponentWithoutComments = "dismissComponentWithoutComments",
+	    DismissComponentWithComments = "dismissComponentWithComments",
+	    ReplaceFileWithoutComments = "replaceFileWithoutComments",
+	    ReplaceFileWithComments = "replaceFileWithComments",
+	    ReplaceComponentWithoutComments = "replaceComponentWithoutComments",
+	    ReplaceComponentWithComments = "replaceComponentWithComments",
+	}
+	export class ComponentFilter {
+	    path?: string;
+	    purl: string;
+	    usage?: string;
+	    comment?: string;
+	    replace_with?: string;
+	    component_name?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ComponentFilter(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.path = source["path"];
+	        this.purl = source["purl"];
+	        this.usage = source["usage"];
+	        this.comment = source["comment"];
+	        this.replace_with = source["replace_with"];
+	        this.component_name = source["component_name"];
+	    }
+	}
+	export class Bom {
+	    include?: ComponentFilter[];
+	    remove?: ComponentFilter[];
+	    replace?: ComponentFilter[];
+	
+	    static createFrom(source: any = {}) {
+	        return new Bom(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.include = this.convertValues(source["include"], ComponentFilter);
+	        this.remove = this.convertValues(source["remove"], ComponentFilter);
+	        this.replace = this.convertValues(source["replace"], ComponentFilter);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class ComponentDTO {
 	    id: string;
 	    lines?: string;
@@ -72,6 +150,7 @@ export namespace entities {
 		    return a;
 		}
 	}
+	
 	export class ComponentFilterDTO {
 	    path?: string;
 	    purl: string;
@@ -114,6 +193,7 @@ export namespace entities {
 	    name: string;
 	    path: string;
 	    content: string;
+	    language: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new FileDTO(source);
@@ -124,6 +204,7 @@ export namespace entities {
 	        this.name = source["name"];
 	        this.path = source["path"];
 	        this.content = source["content"];
+	        this.language = source["language"];
 	    }
 	}
 	export class FilterConfig {
@@ -139,6 +220,40 @@ export namespace entities {
 	        this.action = source["action"];
 	        this.type = source["type"];
 	    }
+	}
+	export class InitialFilters {
+	    Include: ComponentFilter[];
+	    Remove: ComponentFilter[];
+	    Replace: ComponentFilter[];
+	
+	    static createFrom(source: any = {}) {
+	        return new InitialFilters(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Include = this.convertValues(source["Include"], ComponentFilter);
+	        this.Remove = this.convertValues(source["Remove"], ComponentFilter);
+	        this.Replace = this.convertValues(source["Replace"], ComponentFilter);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class RequestResultDTO {
 	    match_type?: string;
@@ -200,32 +315,35 @@ export namespace entities {
 		    return a;
 		}
 	}
-
-}
-
-export namespace keyboard {
+	export class SettingsFile {
+	    bom: Bom;
 	
-	export enum Action {
-	    Undo = "undo",
-	    Redo = "redo",
-	    Save = "save",
-	    Confirm = "confirm",
-	    FocusSearch = "focusSearch",
-	    SelectAll = "selectAll",
-	    MoveUp = "moveUp",
-	    MoveDown = "moveDown",
-	    IncludeFileWithoutComments = "includeFileWithoutComments",
-	    IncludeFileWithComments = "includeFileWithComments",
-	    IncludeComponentWithoutComments = "includeComponentWithoutComments",
-	    IncludeComponentWithComments = "includeComponentWithComments",
-	    DismissFileWithoutComments = "dismissFileWithoutComments",
-	    DismissFileWithComments = "dismissFileWithComments",
-	    DismissComponentWithoutComments = "dismissComponentWithoutComments",
-	    DismissComponentWithComments = "dismissComponentWithComments",
-	    ReplaceFileWithoutComments = "replaceFileWithoutComments",
-	    ReplaceFileWithComments = "replaceFileWithComments",
-	    ReplaceComponentWithoutComments = "replaceComponentWithoutComments",
-	    ReplaceComponentWithComments = "replaceComponentWithComments",
+	    static createFrom(source: any = {}) {
+	        return new SettingsFile(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.bom = this.convertValues(source["bom"], Bom);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class Shortcut {
 	    name: string;
@@ -286,25 +404,6 @@ export namespace keys {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.Key = source["Key"];
 	        this.Modifiers = source["Modifiers"];
-	    }
-	}
-
-}
-
-export namespace scanoss_settings {
-	
-	export class Module {
-	    Controller: any;
-	    Service: any;
-	
-	    static createFrom(source: any = {}) {
-	        return new Module(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.Controller = source["Controller"];
-	        this.Service = source["Service"];
 	    }
 	}
 

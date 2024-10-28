@@ -1,16 +1,10 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import FileService from '@/modules/files/infra/service';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
-import {
-  ComponentFilterCanRedo,
-  ComponentFilterCanUndo,
-  ComponentFilterRedo,
-  ComponentFilterUndo,
-} from '../../../../wailsjs/go/handlers/ComponentHandler';
 import { entities } from '../../../../wailsjs/go/models';
+import { CanRedo, CanUndo, FilterComponents, Redo, Undo } from '../../../../wailsjs/go/service/ComponentServiceImpl';
 import { FilterAction } from '../domain';
 
 interface ComponentFilterState {
@@ -83,7 +77,7 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
 
       const nextResult = useResultsStore.getState().getNextResult();
 
-      await FileService.filterComponents(finalDto);
+      await FilterComponents(finalDto);
 
       await get().updateUndoRedoState();
       await useResultsStore.getState().fetchResults();
@@ -94,19 +88,19 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
     },
 
     undo: async () => {
-      await ComponentFilterUndo();
+      await Undo();
       await get().updateUndoRedoState();
       await useResultsStore.getState().fetchResults();
     },
 
     redo: async () => {
-      await ComponentFilterRedo();
+      await Redo();
       await get().updateUndoRedoState();
       await useResultsStore.getState().fetchResults();
     },
 
     updateUndoRedoState: async () => {
-      const [canUndo, canRedo] = await Promise.all([ComponentFilterCanUndo(), ComponentFilterCanRedo()]);
+      const [canUndo, canRedo] = await Promise.all([CanUndo(), CanRedo()]);
       set({ canUndo, canRedo }, false, 'UPDATE_UNDO_REDO_STATE');
     },
   }))

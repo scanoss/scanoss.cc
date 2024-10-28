@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/labstack/gommon/log"
 	"github.com/scanoss/scanoss.lui/backend/main/entities"
@@ -65,6 +66,21 @@ func (s *ComponentServiceImpl) setInitialFilters() {
 	}
 }
 
+func (s *ComponentServiceImpl) ClearAllFilters() error {
+	return s.scanossSettingsRepo.ClearAllFilters()
+}
+
+func (s *ComponentServiceImpl) GetInitialFilters() entities.InitialFilters {
+	sf := s.scanossSettingsRepo.GetSettings()
+	include, remove, replace := sf.Bom.Include, sf.Bom.Remove, sf.Bom.Replace
+
+	return entities.InitialFilters{
+		Include: include,
+		Remove:  remove,
+		Replace: replace,
+	}
+}
+
 func (s *ComponentServiceImpl) GetComponentByPath(filePath string) (entities.ComponentDTO, error) {
 	c, err := s.repo.FindByFilePath(filePath)
 	if err != nil {
@@ -84,20 +100,7 @@ func (s *ComponentServiceImpl) FilterComponents(dto []entities.ComponentFilterDT
 		}
 	}
 
-	for _, item := range dto {
-		newFilter := &entities.ComponentFilter{
-			Path:          item.Path,
-			Purl:          item.Purl,
-			Usage:         entities.ComponentFilterUsage(item.Usage),
-			Comment:       item.Comment,
-			ReplaceWith:   item.ReplaceWithPurl,
-			ComponentName: item.ReplaceWithName,
-		}
-		if err := s.scanossSettingsRepo.AddBomEntry(*newFilter, string(item.Action)); err != nil {
-			fmt.Printf("error adding bom entry: %s", err)
-			return err
-		}
-	}
+	s.applyFilters(dto)
 
 	s.undoStack = append(s.undoStack, dto)
 	s.redoStack = nil
@@ -105,19 +108,41 @@ func (s *ComponentServiceImpl) FilterComponents(dto []entities.ComponentFilterDT
 	return nil
 }
 
-func (s *ComponentServiceImpl) ClearAllFilters() error {
-	return s.scanossSettingsRepo.ClearAllFilters()
-}
+func (s *ComponentServiceImpl) applyFilters(dto []entities.ComponentFilterDTO) error {
+	var wg sync.WaitGroup
+	errChan := make(chan error, len(dto))
 
-func (s *ComponentServiceImpl) GetInitialFilters() entities.InitialFilters {
-	sf := s.scanossSettingsRepo.GetSettings()
-	include, remove, replace := sf.Bom.Include, sf.Bom.Remove, sf.Bom.Replace
-
-	return entities.InitialFilters{
-		Include: include,
-		Remove:  remove,
-		Replace: replace,
+	for _, item := range dto {
+		wg.Add(1)
+		go func(item entities.ComponentFilterDTO) {
+			defer wg.Done()
+			newFilter := entities.ComponentFilter{
+				Path:          item.Path,
+				Purl:          item.Purl,
+				Usage:         entities.ComponentFilterUsage(item.Usage),
+				Comment:       item.Comment,
+				ReplaceWith:   item.ReplaceWithPurl,
+				ComponentName: item.ReplaceWithName,
+			}
+			if err := s.scanossSettingsRepo.AddBomEntry(newFilter, string(item.Action)); err != nil {
+				fmt.Printf("error adding bom entry: %s", err)
+				errChan <- err
+			}
+		}(item)
 	}
+
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+
+	for err := range errChan {
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *ComponentServiceImpl) GetDeclaredComponents() ([]entities.DeclaredComponent, error) {
@@ -177,30 +202,6 @@ func (s *ComponentServiceImpl) Undo() error {
 	return s.reapplyActions()
 }
 
-func (s *ComponentServiceImpl) reapplyActions() error {
-	// We need to clear bom filters so workflow state is properly resetted
-	err := s.ClearAllFilters()
-	if err != nil {
-		return err
-	}
-
-	for _, initialFilterDto := range s.initialFilters {
-		err := s.FilterComponents([]entities.ComponentFilterDTO{initialFilterDto})
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, filterDto := range s.undoStack {
-		err := s.FilterComponents(filterDto)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (s *ComponentServiceImpl) Redo() error {
 	if !s.CanRedo() {
 		return nil
@@ -210,7 +211,11 @@ func (s *ComponentServiceImpl) Redo() error {
 	s.redoStack = s.redoStack[:len(s.redoStack)-1]
 	s.undoStack = append(s.undoStack, nextAction)
 
-	return s.FilterComponents(nextAction)
+	err := s.applyFilters(nextAction)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *ComponentServiceImpl) CanUndo() bool {
@@ -219,4 +224,28 @@ func (s *ComponentServiceImpl) CanUndo() bool {
 
 func (s *ComponentServiceImpl) CanRedo() bool {
 	return len(s.redoStack) > 0
+}
+
+func (s *ComponentServiceImpl) reapplyActions() error {
+	// We need to clear bom filters so workflow state is properly resetted
+	err := s.ClearAllFilters()
+	if err != nil {
+		return err
+	}
+
+	for _, initialFilterDto := range s.initialFilters {
+		err := s.applyFilters([]entities.ComponentFilterDTO{initialFilterDto})
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, filterDto := range s.undoStack {
+		err := s.applyFilters(filterDto)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

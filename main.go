@@ -55,7 +55,7 @@ func main() {
 
 	// Services
 	componentService := service.NewComponentServiceImpl(componentRepository, scanossSettingsRepository, resultRepository, componentMapper)
-	fileService := service.NewFileService(fileRepository)
+	fileService := service.NewFileService(fileRepository, componentRepository)
 	keyboardService := service.NewKeyboardServiceInMemoryImpl()
 	resultService := service.NewResultServiceImpl(resultRepository, resultMapper)
 	scanossSettingsService := service.NewScanossSettingsServiceImpl(scanossSettingsRepository)

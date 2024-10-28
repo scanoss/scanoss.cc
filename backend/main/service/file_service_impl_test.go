@@ -1,63 +1,92 @@
 package service_test
 
-// func TestGetLocalFileContent(t *testing.T) {
-// 	mockRepo := mocks.NewMockFileRepository(t)
-// 	service := NewFileService(mockRepo)
+import (
+	"errors"
+	"testing"
 
-// 	expectedFile := entities.NewFile(
-// 		"",
-// 		"test.js",
-// 		[]byte("function main() {\n\tconsole.log('Hello, World!');\n}"),
-// 	)
-// 	mockRepo.EXPECT().ReadLocalFile("test.js").Return(*expectedFile, nil)
-// 	file, err := service.GetLocalFileContent("test.js")
+	"github.com/scanoss/scanoss.lui/backend/main/entities"
+	"github.com/scanoss/scanoss.lui/backend/main/repository/mocks"
+	"github.com/scanoss/scanoss.lui/backend/main/service"
+	"github.com/stretchr/testify/assert"
+)
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, *expectedFile, file)
-// 	mockRepo.AssertExpectations(t)
-// }
+func TestGetLocalFileContent(t *testing.T) {
+	mockFileRepo := mocks.NewMockFileRepository(t)
+	mockComponentRepo := mocks.NewMockComponentRepository(t)
+	service := service.NewFileService(mockFileRepo, mockComponentRepo)
 
-// func TestGetLocalFileContent_Error(t *testing.T) {
-// 	mockRepo := mocks.NewMockFileRepository(t)
-// 	service := NewFileService(mockRepo)
+	expectedFile := entities.NewFile(
+		"",
+		"test.js",
+		[]byte("function main() {\n\tconsole.log('Hello, World!');\n}"),
+	)
+	mockFileRepo.EXPECT().ReadLocalFile("test.js").Return(*expectedFile, nil)
+	file, err := service.GetLocalFile("test.js")
 
-// 	mockRepo.EXPECT().ReadLocalFile("test.js").Return(entities.File{}, errors.New("file not found"))
+	assert.NoError(t, err)
+	assert.Equal(t, entities.FileDTO{
+		Path:     "test.js",
+		Name:     "test.js",
+		Content:  "function main() {\n\tconsole.log('Hello, World!');\n}",
+		Language: "javascript",
+	}, file)
+	mockFileRepo.AssertExpectations(t)
+	mockComponentRepo.AssertExpectations(t)
+}
 
-// 	file, err := service.GetLocalFileContent("test.js")
+func TestGetLocalFileContent_Error(t *testing.T) {
+	mockFileRepo := mocks.NewMockFileRepository(t)
+	mockComponentRepo := mocks.NewMockComponentRepository(t)
+	service := service.NewFileService(mockFileRepo, mockComponentRepo)
 
-// 	assert.Error(t, err)
-// 	assert.Equal(t, entities.File{}, file)
-// 	mockRepo.AssertExpectations(t)
-// }
+	mockFileRepo.EXPECT().ReadLocalFile("test.js").Return(entities.File{}, errors.New("file not found"))
 
-// func TestGetRemoteFileContent(t *testing.T) {
-// 	mockRepo := mocks.NewMockFileRepository(t)
-// 	service := NewFileService(mockRepo)
+	file, err := service.GetLocalFile("test.js")
 
-// 	expectedFile := entities.NewFile(
-// 		"",
-// 		"test.js",
-// 		[]byte("function main() {\n\tconsole.log('Hello, World!');\n}"),
-// 	)
+	assert.Error(t, err)
+	assert.Equal(t, entities.FileDTO{}, file)
+	mockFileRepo.AssertExpectations(t)
+	mockComponentRepo.AssertExpectations(t)
+}
 
-// 	mockRepo.EXPECT().ReadRemoteFileByMD5("remote.js", "test-md5").Return(*expectedFile, nil)
+func TestGetRemoteFileContent(t *testing.T) {
+	mockFileRepo := mocks.NewMockFileRepository(t)
+	mockComponentRepo := mocks.NewMockComponentRepository(t)
+	service := service.NewFileService(mockFileRepo, mockComponentRepo)
 
-// 	file, err := service.GetRemoteFileContent("remote.js", "test-md5")
+	expectedFile := entities.NewFile(
+		"",
+		"remote.js",
+		[]byte("function main() {\n\tconsole.log('Hello, World!');\n}"),
+	)
 
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, *expectedFile, file)
-// 	mockRepo.AssertExpectations(t)
-// }
+	mockComponentRepo.EXPECT().FindByFilePath("remote.js").Return(entities.Component{FileHash: "test-md5"}, nil)
+	mockFileRepo.EXPECT().ReadRemoteFileByMD5("remote.js", "test-md5").Return(*expectedFile, nil)
 
-// func TestGetRemoteFileContent_Error(t *testing.T) {
-// 	mockRepo := mocks.NewMockFileRepository(t)
-// 	service := NewFileService(mockRepo)
+	file, err := service.GetRemoteFile("remote.js")
 
-// 	mockRepo.EXPECT().ReadRemoteFileByMD5("remote.js", "test-md5").Return(entities.File{}, errors.New("file not found"))
+	assert.NoError(t, err)
+	assert.Equal(t, entities.FileDTO{
+		Path:     "remote.js",
+		Name:     "remote.js",
+		Content:  "function main() {\n\tconsole.log('Hello, World!');\n}",
+		Language: "javascript",
+	}, file)
+	mockFileRepo.AssertExpectations(t)
+	mockComponentRepo.AssertExpectations(t)
+}
 
-// 	file, err := service.GetRemoteFileContent("remote.js", "test-md5")
+func TestGetRemoteFileContent_Error(t *testing.T) {
+	mockFileRepo := mocks.NewMockFileRepository(t)
+	mockComponentRepo := mocks.NewMockComponentRepository(t)
+	service := service.NewFileService(mockFileRepo, mockComponentRepo)
 
-// 	assert.Error(t, err)
-// 	assert.Equal(t, entities.File{}, file)
-// 	mockRepo.AssertExpectations(t)
-// }
+	mockComponentRepo.EXPECT().FindByFilePath("remote.js").Return(entities.Component{}, errors.New("component not found"))
+
+	file, err := service.GetRemoteFile("remote.js")
+
+	assert.Error(t, err)
+	assert.Equal(t, entities.FileDTO{}, file)
+	mockFileRepo.AssertExpectations(t)
+	mockComponentRepo.AssertExpectations(t)
+}

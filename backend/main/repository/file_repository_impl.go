@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/scanoss/scanoss.lui/backend/main/config"
 	"github.com/scanoss/scanoss.lui/backend/main/entities"
-	"github.com/scanoss/scanoss.lui/backend/main/utils"
+	"github.com/scanoss/scanoss.lui/backend/main/internal/fetch"
 )
 
 type FileRepositoryImpl struct{}
@@ -17,17 +17,17 @@ func NewFileRepositoryImpl() FileRepository {
 	return &FileRepositoryImpl{}
 }
 
-func (r *FileRepositoryImpl) ReadLocalFile(filePath string) (entities.File, error) {
-	currentPath := config.Get().ScanRoot
+func (r *FileRepositoryImpl) ReadLocalFile(path string) (entities.File, error) {
+	scanRootPath := config.Get().ScanRoot
 
-	absolutePath := path.Join(currentPath, filePath)
+	absolutePath := filepath.Join(scanRootPath, path)
 
 	content, err := os.ReadFile(absolutePath)
 	if err != nil {
 		return entities.File{}, entities.ErrReadingFile
 	}
 
-	return *entities.NewFile(currentPath, filePath, content), nil
+	return *entities.NewFile(scanRootPath, path, content), nil
 }
 
 func (r *FileRepositoryImpl) ReadRemoteFileByMD5(path string, md5 string) (entities.File, error) {
@@ -41,20 +41,22 @@ func (r *FileRepositoryImpl) ReadRemoteFileByMD5(path string, md5 string) (entit
 		headers["X-Session"] = token
 	}
 
-	options := utils.Options{
+	options := fetch.Options{
 		Method:  http.MethodGet,
 		Headers: headers,
 	}
 
-	body, err := utils.Text(url, options)
+	body, err := fetch.Text(url, options)
 	if err != nil {
 		return entities.File{}, fmt.Errorf("failed to fetch file content: %w", err)
 	}
 
 	basePath, err := os.Getwd()
+	if err != nil {
+		return entities.File{}, fmt.Errorf("failed to get current working directory: %w", err)
+	}
 
 	return *entities.NewFile(basePath, path, []byte(body)), nil
-
 }
 
 func (r *FileRepositoryImpl) GetComponentByFilePath(filePath string) (entities.Component, error) {

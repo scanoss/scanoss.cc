@@ -1,211 +1,234 @@
 package service_test
 
-// import (
-// 	"slices"
-// 	"testing"
+import (
+	"slices"
+	"testing"
 
-// 	internalTest "github.com/scanoss/scanoss.lui/backend/main/internal"
-// 	scanossBomEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/entities"
-// 	scanossBomRepository "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/repository"
-// 	ssMockRepo "github.com/scanoss/scanoss.lui/backend/main/pkg/common/scanoss_settings/repository/mocks"
-// 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/entities"
-// 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository"
-// 	mockRepo "github.com/scanoss/scanoss.lui/backend/main/pkg/component/repository/mocks"
-// 	"github.com/scanoss/scanoss.lui/backend/main/pkg/component/service"
-// 	resultEntities "github.com/scanoss/scanoss.lui/backend/main/pkg/result/entities"
-// 	resultRepository "github.com/scanoss/scanoss.lui/backend/main/pkg/result/repository"
-// 	resultMockRepo "github.com/scanoss/scanoss.lui/backend/main/pkg/result/repository/mocks"
-// 	"github.com/scanoss/scanoss.lui/backend/main/pkg/utils"
-// 	"github.com/stretchr/testify/assert"
-// 	"github.com/stretchr/testify/require"
-// )
+	"github.com/scanoss/scanoss.lui/backend/main/entities"
+	internal_test "github.com/scanoss/scanoss.lui/backend/main/internal"
+	"github.com/scanoss/scanoss.lui/backend/main/mappers"
+	"github.com/scanoss/scanoss.lui/backend/main/mappers/mocks"
+	"github.com/scanoss/scanoss.lui/backend/main/repository"
+	mocksRepo "github.com/scanoss/scanoss.lui/backend/main/repository/mocks"
+	"github.com/scanoss/scanoss.lui/backend/main/service"
+	"github.com/scanoss/scanoss.lui/backend/main/utils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
 
-// func TestInsertComponentFilterActions(t *testing.T) {
-// 	cleanup := internalTest.InitializeTestEnvironment(t)
-// 	defer cleanup()
+func TestInsertComponentFilterActions(t *testing.T) {
+	cleanup := internal_test.InitializeTestEnvironment(t)
+	defer cleanup()
 
-// 	fr := utils.NewDefaultFileReader()
-// 	repo := repository.NewJSONComponentRepository(fr)
-// 	resultRepo := resultRepository.NewResultRepositoryJsonImpl(fr)
-// 	scanossSettingsRepo := scanossBomRepository.NewScanossSettingsJsonRepository(fr)
-// 	settingsFile, _ := scanossSettingsRepo.Read()
-// 	scanossBomEntities.ScanossSettingsJson = &scanossBomEntities.ScanossSettings{
-// 		SettingsFile: &settingsFile,
-// 	}
-// 	service := service.NewComponentService(repo, scanossSettingsRepo, resultRepo)
+	fr := utils.NewDefaultFileReader()
+	repo := repository.NewJSONComponentRepository(fr)
+	resultRepo := repository.NewResultRepositoryJsonImpl(fr)
+	scanossSettingsRepo := repository.NewScanossSettingsJsonRepository(fr)
+	componentMapper := mappers.NewComponentMapper()
 
-// 	tests := []struct {
-// 		name string
-// 		dto  entities.ComponentFilterDTO
-// 	}{
-// 		{
-// 			name: "Include action",
-// 			dto: entities.ComponentFilterDTO{
-// 				Path:   "test/path1",
-// 				Purl:   "pkg:purl1",
-// 				Action: entities.Include,
-// 			},
-// 		},
-// 		{
-// 			name: "Remove action",
-// 			dto: entities.ComponentFilterDTO{
-// 				Path:   "test/path2",
-// 				Purl:   "pkg:purl2",
-// 				Action: entities.Remove,
-// 			},
-// 		},
-// 	}
+	scanossSettingsRepo.Init()
+	settingsFile, _ := scanossSettingsRepo.Read()
+	entities.ScanossSettingsJson = &entities.ScanossSettings{
+		SettingsFile: &settingsFile,
+	}
+	service := service.NewComponentServiceImpl(repo, scanossSettingsRepo, resultRepo, componentMapper)
 
-// 	for _, tc := range tests {
-// 		t.Run(tc.name, func(t *testing.T) {
-// 			err := service.FilterComponents([]entities.ComponentFilterDTO{tc.dto})
-// 			require.NoError(t, err)
+	tests := []struct {
+		name string
+		dto  entities.ComponentFilterDTO
+	}{
+		{
+			name: "Include action",
+			dto: entities.ComponentFilterDTO{
+				Path:   "test/path1",
+				Purl:   "pkg:purl1",
+				Action: entities.Include,
+			},
+		},
+		{
+			name: "Remove action",
+			dto: entities.ComponentFilterDTO{
+				Path:   "test/path2",
+				Purl:   "pkg:purl2",
+				Action: entities.Remove,
+			},
+		},
+	}
 
-// 			var filters = settingsFile.Bom.Include
-// 			if tc.dto.Action == entities.Remove {
-// 				filters = settingsFile.Bom.Remove
-// 			}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := service.FilterComponents([]entities.ComponentFilterDTO{tc.dto})
+			require.NoError(t, err)
 
-// 			i := slices.IndexFunc(filters, func(cf scanossBomEntities.ComponentFilter) bool {
-// 				return cf.Path == tc.dto.Path
-// 			})
+			var filters = settingsFile.Bom.Include
+			if tc.dto.Action == entities.Remove {
+				filters = settingsFile.Bom.Remove
+			}
 
-// 			filter := filters[i]
+			i := slices.IndexFunc(filters, func(cf entities.ComponentFilter) bool {
+				return cf.Path == tc.dto.Path
+			})
 
-// 			require.Equal(t, tc.dto.Path, filter.Path)
-// 			require.Equal(t, tc.dto.Purl, filter.Purl)
-// 		})
-// 	}
-// }
-// func TestGetDeclaredComponents(t *testing.T) {
-// 	t.Run("WHEN Scanoss Settings is empty -> SHOULD return detected components from results file", func(t *testing.T) {
-// 		repo := mockRepo.NewMockComponentRepository(t)
-// 		resultRepo := resultMockRepo.NewMockResultRepository(t)
-// 		scanossSettingsRepo := ssMockRepo.NewMockScanossSettingsRepository(t)
-// 		results := []resultEntities.Result{
-// 			{
-// 				ComponentName: "component1",
-// 				Path:          "path/to/file",
-// 				MatchType:     "file",
-// 				Purl:          &[]string{"pkg:npm/purl1"},
-// 			},
-// 			{
-// 				ComponentName: "component2",
-// 				Path:          "path/to/file2",
-// 				MatchType:     "snippet",
-// 				Purl:          &[]string{"pkg:github/purl2"},
-// 			},
-// 		}
+			filter := filters[i]
 
-// 		resultRepo.EXPECT().GetResults(nil).Return(results, nil)
-// 		scanossSettingsRepo.EXPECT().GetDeclaredPurls().Return(nil)
+			require.Equal(t, tc.dto.Path, filter.Path)
+			require.Equal(t, tc.dto.Purl, filter.Purl)
+		})
+	}
+}
+func TestGetDeclaredComponents(t *testing.T) {
+	t.Run("WHEN Scanoss Settings is empty -> SHOULD return detected components from results file", func(t *testing.T) {
+		repo := mocksRepo.NewMockComponentRepository(t)
+		resultRepo := mocksRepo.NewMockResultRepository(t)
+		scanossSettingsRepo := mocksRepo.NewMockScanossSettingsRepository(t)
+		componentMapper := mocks.NewMockComponentMapper(t)
+		results := []entities.Result{
+			{
+				ComponentName: "component1",
+				Path:          "path/to/file",
+				MatchType:     "file",
+				Purl:          &[]string{"pkg:npm/purl1"},
+			},
+			{
+				ComponentName: "component2",
+				Path:          "path/to/file2",
+				MatchType:     "snippet",
+				Purl:          &[]string{"pkg:github/purl2"},
+			},
+		}
 
-// 		service := service.NewComponentService(repo, scanossSettingsRepo, resultRepo)
+		resultRepo.EXPECT().GetResults(nil).Return(results, nil)
+		scanossSettingsRepo.EXPECT().GetSettings().Return(&entities.SettingsFile{})
+		scanossSettingsRepo.EXPECT().GetDeclaredPurls().Return(nil)
 
-// 		declaredComponents, err := service.GetDeclaredComponents()
-// 		assert.NoError(t, err)
-// 		assert.NotEmpty(t, declaredComponents)
-// 		assert.Len(t, declaredComponents, 2)
-// 		assert.Equal(t, declaredComponents, []entities.DeclaredComponent{
-// 			{
-// 				Purl: "pkg:npm/purl1",
-// 				Name: "component1",
-// 			}, {
-// 				Purl: "pkg:github/purl2",
-// 				Name: "component2",
-// 			},
-// 		})
+		service := service.NewComponentServiceImpl(repo, scanossSettingsRepo, resultRepo, componentMapper)
 
-// 		resultRepo.AssertExpectations(t)
-// 		scanossSettingsRepo.AssertExpectations(t)
-// 	})
+		declaredComponents, err := service.GetDeclaredComponents()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, declaredComponents)
+		assert.Len(t, declaredComponents, 2)
+		assert.Equal(t, declaredComponents, []entities.DeclaredComponent{
+			{
+				Purl: "pkg:npm/purl1",
+				Name: "component1",
+			}, {
+				Purl: "pkg:github/purl2",
+				Name: "component2",
+			},
+		})
 
-// 	t.Run("WHEN Scanoss Settings is NOT empty -> SHOULD return detected components from results file and declared components in scanoss settings", func(t *testing.T) {
-// 		repo := mockRepo.NewMockComponentRepository(t)
-// 		resultRepo := resultMockRepo.NewMockResultRepository(t)
-// 		scanossSettingsRepo := ssMockRepo.NewMockScanossSettingsRepository(t)
+		resultRepo.AssertExpectations(t)
+		scanossSettingsRepo.AssertExpectations(t)
+	})
 
-// 		results := []resultEntities.Result{
-// 			{
-// 				ComponentName: "component1",
-// 				Path:          "path/to/file",
-// 				MatchType:     "file",
-// 				Purl:          &[]string{"pkg:npm/purl1"},
-// 			},
-// 			{
-// 				ComponentName: "component2",
-// 				Path:          "path/to/file2",
-// 				MatchType:     "snippet",
-// 				Purl:          &[]string{"pkg:github/purl2"},
-// 			},
-// 		}
+	t.Run("WHEN Scanoss Settings is NOT empty -> SHOULD return detected components from results file and declared components in scanoss settings", func(t *testing.T) {
+		repo := mocksRepo.NewMockComponentRepository(t)
+		resultRepo := mocksRepo.NewMockResultRepository(t)
+		scanossSettingsRepo := mocksRepo.NewMockScanossSettingsRepository(t)
+		componentMapper := mocks.NewMockComponentMapper(t)
 
-// 		resultRepo.EXPECT().GetResults(nil).Return(results, nil)
-// 		scanossSettingsRepo.EXPECT().GetDeclaredPurls().Return([]string{"pkg:github/purl3"})
+		results := []entities.Result{
+			{
+				ComponentName: "component1",
+				Path:          "path/to/file",
+				MatchType:     "file",
+				Purl:          &[]string{"pkg:npm/purl1"},
+			},
+			{
+				ComponentName: "component2",
+				Path:          "path/to/file2",
+				MatchType:     "snippet",
+				Purl:          &[]string{"pkg:github/purl2"},
+			},
+		}
 
-// 		service := service.NewComponentService(repo, scanossSettingsRepo, resultRepo)
+		resultRepo.EXPECT().GetResults(nil).Return(results, nil)
+		scanossSettingsRepo.EXPECT().GetSettings().Return(&entities.SettingsFile{
+			Bom: entities.Bom{
+				Include: []entities.ComponentFilter{
+					{
+						Purl: "pkg:npm/purl3",
+					},
+				},
+			},
+		})
+		scanossSettingsRepo.EXPECT().GetDeclaredPurls().Return([]string{"pkg:github/purl3"})
 
-// 		declaredComponents, err := service.GetDeclaredComponents()
-// 		assert.NoError(t, err)
-// 		assert.NotEmpty(t, declaredComponents)
-// 		assert.Len(t, declaredComponents, 3)
-// 		assert.Equal(t, declaredComponents, []entities.DeclaredComponent{
-// 			{
-// 				Purl: "pkg:npm/purl1",
-// 				Name: "component1",
-// 			},
-// 			{
-// 				Purl: "pkg:github/purl2",
-// 				Name: "component2",
-// 			}, {
-// 				Purl: "pkg:github/purl3",
-// 				Name: "",
-// 			}})
+		service := service.NewComponentServiceImpl(repo, scanossSettingsRepo, resultRepo, componentMapper)
 
-// 		resultRepo.AssertExpectations(t)
-// 		scanossSettingsRepo.AssertExpectations(t)
-// 	})
+		declaredComponents, err := service.GetDeclaredComponents()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, declaredComponents)
+		assert.Len(t, declaredComponents, 3)
+		assert.Equal(t, declaredComponents, []entities.DeclaredComponent{
+			{
+				Purl: "pkg:npm/purl1",
+				Name: "component1",
+			},
+			{
+				Purl: "pkg:github/purl2",
+				Name: "component2",
+			}, {
+				Purl: "pkg:github/purl3",
+				Name: "",
+			}})
 
-// 	t.Run("WHEN there are repeated purls SHOULD NOT return duplicated values", func(t *testing.T) {
-// 		repo := mockRepo.NewMockComponentRepository(t)
-// 		resultRepo := resultMockRepo.NewMockResultRepository(t)
-// 		scanossSettingsRepo := ssMockRepo.NewMockScanossSettingsRepository(t)
+		resultRepo.AssertExpectations(t)
+		scanossSettingsRepo.AssertExpectations(t)
+		componentMapper.AssertExpectations(t)
+	})
 
-// 		results := []resultEntities.Result{
-// 			{
-// 				ComponentName: "component1",
-// 				Path:          "path/to/file",
-// 				MatchType:     "file",
-// 				Purl:          &[]string{"pkg:npm/purl1"},
-// 			},
-// 			{
-// 				ComponentName: "component2",
-// 				Path:          "path/to/file2",
-// 				MatchType:     "snippet",
-// 				Purl:          &[]string{"pkg:github/purl2"},
-// 			},
-// 		}
+	t.Run("WHEN there are repeated purls SHOULD NOT return duplicated values", func(t *testing.T) {
+		repo := mocksRepo.NewMockComponentRepository(t)
+		resultRepo := mocksRepo.NewMockResultRepository(t)
+		scanossSettingsRepo := mocksRepo.NewMockScanossSettingsRepository(t)
+		componentMapper := mocks.NewMockComponentMapper(t)
 
-// 		resultRepo.EXPECT().GetResults(nil).Return(results, nil)
-// 		scanossSettingsRepo.EXPECT().GetDeclaredPurls().Return([]string{"pkg:github/purl2"})
+		results := []entities.Result{
+			{
+				ComponentName: "component1",
+				Path:          "path/to/file",
+				MatchType:     "file",
+				Purl:          &[]string{"pkg:npm/purl1"},
+			},
+			{
+				ComponentName: "component2",
+				Path:          "path/to/file2",
+				MatchType:     "snippet",
+				Purl:          &[]string{"pkg:github/purl2"},
+			},
+		}
 
-// 		service := service.NewComponentService(repo, scanossSettingsRepo, resultRepo)
+		resultRepo.EXPECT().GetResults(nil).Return(results, nil)
+		scanossSettingsRepo.EXPECT().GetSettings().Return(&entities.SettingsFile{
+			Bom: entities.Bom{
+				Include: []entities.ComponentFilter{
+					{
+						Purl: "pkg:npm/purl2",
+					},
+				},
+			},
+		})
+		scanossSettingsRepo.EXPECT().GetDeclaredPurls().Return([]string{"pkg:github/purl2"})
 
-// 		declaredComponents, err := service.GetDeclaredComponents()
-// 		assert.NoError(t, err)
-// 		assert.NotEmpty(t, declaredComponents)
-// 		assert.Len(t, declaredComponents, 2)
-// 		assert.Equal(t, declaredComponents, []entities.DeclaredComponent{
-// 			{
-// 				Purl: "pkg:npm/purl1",
-// 				Name: "component1",
-// 			},
-// 			{
-// 				Purl: "pkg:github/purl2",
-// 				Name: "component2",
-// 			}})
+		service := service.NewComponentServiceImpl(repo, scanossSettingsRepo, resultRepo, componentMapper)
 
-// 		resultRepo.AssertExpectations(t)
-// 		scanossSettingsRepo.AssertExpectations(t)
-// 	})
-// }
+		declaredComponents, err := service.GetDeclaredComponents()
+		assert.NoError(t, err)
+		assert.NotEmpty(t, declaredComponents)
+		assert.Len(t, declaredComponents, 2)
+		assert.Equal(t, declaredComponents, []entities.DeclaredComponent{
+			{
+				Purl: "pkg:npm/purl1",
+				Name: "component1",
+			},
+			{
+				Purl: "pkg:github/purl2",
+				Name: "component2",
+			}})
+
+		resultRepo.AssertExpectations(t)
+		scanossSettingsRepo.AssertExpectations(t)
+		componentMapper.AssertExpectations(t)
+	})
+}

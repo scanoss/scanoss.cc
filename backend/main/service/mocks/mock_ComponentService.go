@@ -20,47 +20,92 @@ func (_m *MockComponentService) EXPECT() *MockComponentService_Expecter {
 	return &MockComponentService_Expecter{mock: &_m.Mock}
 }
 
-// ClearAllFilters provides a mock function with given fields:
-func (_m *MockComponentService) ClearAllFilters() error {
+// CanRedo provides a mock function with given fields:
+func (_m *MockComponentService) CanRedo() bool {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for ClearAllFilters")
+		panic("no return value specified for CanRedo")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func() error); ok {
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(bool)
 	}
 
 	return r0
 }
 
-// MockComponentService_ClearAllFilters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ClearAllFilters'
-type MockComponentService_ClearAllFilters_Call struct {
+// MockComponentService_CanRedo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CanRedo'
+type MockComponentService_CanRedo_Call struct {
 	*mock.Call
 }
 
-// ClearAllFilters is a helper method to define mock.On call
-func (_e *MockComponentService_Expecter) ClearAllFilters() *MockComponentService_ClearAllFilters_Call {
-	return &MockComponentService_ClearAllFilters_Call{Call: _e.mock.On("ClearAllFilters")}
+// CanRedo is a helper method to define mock.On call
+func (_e *MockComponentService_Expecter) CanRedo() *MockComponentService_CanRedo_Call {
+	return &MockComponentService_CanRedo_Call{Call: _e.mock.On("CanRedo")}
 }
 
-func (_c *MockComponentService_ClearAllFilters_Call) Run(run func()) *MockComponentService_ClearAllFilters_Call {
+func (_c *MockComponentService_CanRedo_Call) Run(run func()) *MockComponentService_CanRedo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *MockComponentService_ClearAllFilters_Call) Return(_a0 error) *MockComponentService_ClearAllFilters_Call {
+func (_c *MockComponentService_CanRedo_Call) Return(_a0 bool) *MockComponentService_CanRedo_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockComponentService_ClearAllFilters_Call) RunAndReturn(run func() error) *MockComponentService_ClearAllFilters_Call {
+func (_c *MockComponentService_CanRedo_Call) RunAndReturn(run func() bool) *MockComponentService_CanRedo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CanUndo provides a mock function with given fields:
+func (_m *MockComponentService) CanUndo() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for CanUndo")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// MockComponentService_CanUndo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CanUndo'
+type MockComponentService_CanUndo_Call struct {
+	*mock.Call
+}
+
+// CanUndo is a helper method to define mock.On call
+func (_e *MockComponentService_Expecter) CanUndo() *MockComponentService_CanUndo_Call {
+	return &MockComponentService_CanUndo_Call{Call: _e.mock.On("CanUndo")}
+}
+
+func (_c *MockComponentService_CanUndo_Call) Run(run func()) *MockComponentService_CanUndo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockComponentService_CanUndo_Call) Return(_a0 bool) *MockComponentService_CanUndo_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockComponentService_CanUndo_Call) RunAndReturn(run func() bool) *MockComponentService_CanUndo_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -111,23 +156,23 @@ func (_c *MockComponentService_FilterComponents_Call) RunAndReturn(run func([]en
 	return _c
 }
 
-// GetComponentByFilePath provides a mock function with given fields: filePath
-func (_m *MockComponentService) GetComponentByFilePath(filePath string) (entities.Component, error) {
+// GetComponentByPath provides a mock function with given fields: filePath
+func (_m *MockComponentService) GetComponentByPath(filePath string) (entities.ComponentDTO, error) {
 	ret := _m.Called(filePath)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetComponentByFilePath")
+		panic("no return value specified for GetComponentByPath")
 	}
 
-	var r0 entities.Component
+	var r0 entities.ComponentDTO
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (entities.Component, error)); ok {
+	if rf, ok := ret.Get(0).(func(string) (entities.ComponentDTO, error)); ok {
 		return rf(filePath)
 	}
-	if rf, ok := ret.Get(0).(func(string) entities.Component); ok {
+	if rf, ok := ret.Get(0).(func(string) entities.ComponentDTO); ok {
 		r0 = rf(filePath)
 	} else {
-		r0 = ret.Get(0).(entities.Component)
+		r0 = ret.Get(0).(entities.ComponentDTO)
 	}
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
@@ -139,30 +184,30 @@ func (_m *MockComponentService) GetComponentByFilePath(filePath string) (entitie
 	return r0, r1
 }
 
-// MockComponentService_GetComponentByFilePath_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetComponentByFilePath'
-type MockComponentService_GetComponentByFilePath_Call struct {
+// MockComponentService_GetComponentByPath_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetComponentByPath'
+type MockComponentService_GetComponentByPath_Call struct {
 	*mock.Call
 }
 
-// GetComponentByFilePath is a helper method to define mock.On call
+// GetComponentByPath is a helper method to define mock.On call
 //   - filePath string
-func (_e *MockComponentService_Expecter) GetComponentByFilePath(filePath interface{}) *MockComponentService_GetComponentByFilePath_Call {
-	return &MockComponentService_GetComponentByFilePath_Call{Call: _e.mock.On("GetComponentByFilePath", filePath)}
+func (_e *MockComponentService_Expecter) GetComponentByPath(filePath interface{}) *MockComponentService_GetComponentByPath_Call {
+	return &MockComponentService_GetComponentByPath_Call{Call: _e.mock.On("GetComponentByPath", filePath)}
 }
 
-func (_c *MockComponentService_GetComponentByFilePath_Call) Run(run func(filePath string)) *MockComponentService_GetComponentByFilePath_Call {
+func (_c *MockComponentService_GetComponentByPath_Call) Run(run func(filePath string)) *MockComponentService_GetComponentByPath_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(string))
 	})
 	return _c
 }
 
-func (_c *MockComponentService_GetComponentByFilePath_Call) Return(_a0 entities.Component, _a1 error) *MockComponentService_GetComponentByFilePath_Call {
+func (_c *MockComponentService_GetComponentByPath_Call) Return(_a0 entities.ComponentDTO, _a1 error) *MockComponentService_GetComponentByPath_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockComponentService_GetComponentByFilePath_Call) RunAndReturn(run func(string) (entities.Component, error)) *MockComponentService_GetComponentByFilePath_Call {
+func (_c *MockComponentService_GetComponentByPath_Call) RunAndReturn(run func(string) (entities.ComponentDTO, error)) *MockComponentService_GetComponentByPath_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -224,47 +269,92 @@ func (_c *MockComponentService_GetDeclaredComponents_Call) RunAndReturn(run func
 	return _c
 }
 
-// GetInitialFilters provides a mock function with given fields:
-func (_m *MockComponentService) GetInitialFilters() entities.InitialFilters {
+// Redo provides a mock function with given fields:
+func (_m *MockComponentService) Redo() error {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetInitialFilters")
+		panic("no return value specified for Redo")
 	}
 
-	var r0 entities.InitialFilters
-	if rf, ok := ret.Get(0).(func() entities.InitialFilters); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
 	} else {
-		r0 = ret.Get(0).(entities.InitialFilters)
+		r0 = ret.Error(0)
 	}
 
 	return r0
 }
 
-// MockComponentService_GetInitialFilters_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetInitialFilters'
-type MockComponentService_GetInitialFilters_Call struct {
+// MockComponentService_Redo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Redo'
+type MockComponentService_Redo_Call struct {
 	*mock.Call
 }
 
-// GetInitialFilters is a helper method to define mock.On call
-func (_e *MockComponentService_Expecter) GetInitialFilters() *MockComponentService_GetInitialFilters_Call {
-	return &MockComponentService_GetInitialFilters_Call{Call: _e.mock.On("GetInitialFilters")}
+// Redo is a helper method to define mock.On call
+func (_e *MockComponentService_Expecter) Redo() *MockComponentService_Redo_Call {
+	return &MockComponentService_Redo_Call{Call: _e.mock.On("Redo")}
 }
 
-func (_c *MockComponentService_GetInitialFilters_Call) Run(run func()) *MockComponentService_GetInitialFilters_Call {
+func (_c *MockComponentService_Redo_Call) Run(run func()) *MockComponentService_Redo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *MockComponentService_GetInitialFilters_Call) Return(_a0 entities.InitialFilters) *MockComponentService_GetInitialFilters_Call {
+func (_c *MockComponentService_Redo_Call) Return(_a0 error) *MockComponentService_Redo_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockComponentService_GetInitialFilters_Call) RunAndReturn(run func() entities.InitialFilters) *MockComponentService_GetInitialFilters_Call {
+func (_c *MockComponentService_Redo_Call) RunAndReturn(run func() error) *MockComponentService_Redo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Undo provides a mock function with given fields:
+func (_m *MockComponentService) Undo() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Undo")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockComponentService_Undo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Undo'
+type MockComponentService_Undo_Call struct {
+	*mock.Call
+}
+
+// Undo is a helper method to define mock.On call
+func (_e *MockComponentService_Expecter) Undo() *MockComponentService_Undo_Call {
+	return &MockComponentService_Undo_Call{Call: _e.mock.On("Undo")}
+}
+
+func (_c *MockComponentService_Undo_Call) Run(run func()) *MockComponentService_Undo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockComponentService_Undo_Call) Return(_a0 error) *MockComponentService_Undo_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockComponentService_Undo_Call) RunAndReturn(run func() error) *MockComponentService_Undo_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/scanoss/scanoss.lui/backend/main/config"
 	"github.com/scanoss/scanoss.lui/backend/main/entities"
@@ -12,7 +13,8 @@ import (
 )
 
 type ScanossSettingsJsonRepository struct {
-	fr utils.FileReader
+	fr    utils.FileReader
+	mutex sync.RWMutex
 }
 
 func NewScanossSettingsJsonRepository(fr utils.FileReader) ScanossSettingsRepository {
@@ -22,6 +24,9 @@ func NewScanossSettingsJsonRepository(fr utils.FileReader) ScanossSettingsReposi
 }
 
 func (r *ScanossSettingsJsonRepository) Init() error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
 	sf, err := r.Read()
 	if err != nil {
 		log.Panicf("Error reading settings file: %s", err)

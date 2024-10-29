@@ -123,6 +123,7 @@ func (s *ComponentServiceImpl) applyFilters(dto []entities.ComponentFilterDTO) e
 				Comment:       item.Comment,
 				ReplaceWith:   item.ReplaceWithPurl,
 				ComponentName: item.ReplaceWithName,
+				License:       item.License,
 			}
 			if err := s.scanossSettingsRepo.AddBomEntry(newFilter, string(item.Action)); err != nil {
 				fmt.Printf("error adding bom entry: %s", err)

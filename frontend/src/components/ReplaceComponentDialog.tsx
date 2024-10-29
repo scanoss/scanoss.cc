@@ -9,12 +9,13 @@ import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { cn } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
-import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
+import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
 import { entities } from '../../wailsjs/go/models';
 import { GetDeclaredComponents } from '../../wailsjs/go/service/ComponentServiceImpl';
 import FilterByPurlList from './FilterByPurlList';
 import NewComponentDialog from './NewComponentDialog';
+import SelectLicenseList from './SelectLicenseList';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
 import {
@@ -39,22 +40,26 @@ const ReplaceComponentFormSchema = z.object({
   name: z.string().min(1, 'You must select a component.'),
   purl: z.string().min(1, 'You must select a component.'),
   comment: z.string().optional(),
+  license: z.string().optional(),
 });
 
 interface ReplaceComponentDialogProps {
   onOpenChange: () => void;
   onReplaceComponent: (args: OnFilterComponentArgs) => void;
+  withComment: boolean;
+  filterBy: 'by_file' | 'by_purl';
 }
 
-export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponent }: ReplaceComponentDialogProps) {
+export default function ReplaceComponentDialog({
+  onOpenChange,
+  onReplaceComponent,
+  withComment,
+  filterBy,
+}: ReplaceComponentDialogProps) {
   const { toast } = useToast();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
-
-  const withComment = useComponentFilterStore((state) => state.withComment);
-  const filterBy = useComponentFilterStore((state) => state.filterBy);
-  const setComment = useComponentFilterStore((state) => state.setComment);
 
   const form = useForm<z.infer<typeof ReplaceComponentFormSchema>>({
     resolver: zodResolver(ReplaceComponentFormSchema),
@@ -62,6 +67,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
       name: '',
       purl: '',
       comment: '',
+      license: '',
     },
   });
 
@@ -73,11 +79,17 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   });
 
   const onSubmit = (values: z.infer<typeof ReplaceComponentFormSchema>) => {
+    const { comment, name, purl, license } = values;
+
     onReplaceComponent({
+      filterBy,
+      comment,
+      license,
       replaceWith: {
-        name: values.name,
-        purl: values.purl,
+        name,
+        purl,
       },
+      action: FilterAction.Replace,
     });
   };
 
@@ -196,6 +208,11 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 <Input value={selectedPurl} disabled className="disabled:cursor-default" />
               </div>
 
+              <FormItem className="flex flex-col">
+                <Label>License</Label>
+                <SelectLicenseList onSelect={(value) => form.setValue('license', value)} />
+              </FormItem>
+
               {withComment && (
                 <FormField
                   control={form.control}
@@ -204,13 +221,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                     <FormItem>
                       <FormLabel>Comment</FormLabel>
                       <FormControl>
-                        <Textarea
-                          {...field}
-                          onChange={(e) => {
-                            field.onChange(e);
-                            setComment(e.target.value);
-                          }}
-                        />
+                        <Textarea {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -227,16 +238,16 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                   </AlertDescription>
                 </Alert>
               )}
-
-              <DialogFooter>
-                <Button variant="ghost" onClick={onOpenChange}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  Confirm <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
-                </Button>
-              </DialogFooter>
             </form>
+
+            <DialogFooter>
+              <Button variant="ghost" onClick={onOpenChange}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Confirm <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </Form>

@@ -48,6 +48,7 @@ func main() {
 	scanossSettingsRepository.Init()
 	resultRepository := repository.NewResultRepositoryJsonImpl(fr)
 	fileRepository := repository.NewFileRepositoryImpl()
+	licenseRepository := repository.NewLicenseJsonRepository(fr)
 
 	// Mappers
 	resultMapper := mappers.NewResultMapper(entities.ScanossSettingsJson)
@@ -59,6 +60,7 @@ func main() {
 	keyboardService := service.NewKeyboardServiceInMemoryImpl()
 	resultService := service.NewResultServiceImpl(resultRepository, resultMapper)
 	scanossSettingsService := service.NewScanossSettingsServiceImpl(scanossSettingsRepository)
+	licenseService := service.NewLicenseServiceImpl(licenseRepository)
 
 	//Create application with options
 	err := wails.Run(&options.App{
@@ -80,6 +82,7 @@ func main() {
 			keyboardService,
 			resultService,
 			scanossSettingsService,
+			licenseService,
 		},
 		EnumBind: []interface{}{
 			entities.AllShortcutActions,

@@ -13,7 +13,7 @@ func NewDefaultFileReader() *DefaultFileReader {
 	return &DefaultFileReader{}
 }
 
-func (d DefaultFileReader) ReadFile(filePath string) ([]byte, error) {
+func (d *DefaultFileReader) ReadFile(filePath string) ([]byte, error) {
 	// Open and read the JSON file
 	file, err := os.Open(filePath)
 	if err != nil {

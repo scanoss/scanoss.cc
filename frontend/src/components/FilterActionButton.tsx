@@ -57,35 +57,6 @@ export default function FilterActionButton({
 
   const actionsThatShouldPromptForCommentOrConfirmation = [FilterAction.Include, FilterAction.Remove];
 
-  const maybePromptForCommentOrConfirmation = async (
-    filterBy: 'by_file' | 'by_purl',
-    withComment: boolean
-  ): Promise<{
-    shouldContinue: boolean;
-    comment?: string;
-  }> => {
-    const res = {
-      shouldContinue: false,
-      comment: '',
-    };
-
-    if (withComment) {
-      const comment = await handleGetComment();
-
-      if (!comment) return res;
-
-      res.comment = comment;
-    }
-
-    if (filterBy === 'by_purl') {
-      const confirm = await handleConfirmByPurl();
-
-      if (!confirm) return res;
-    }
-
-    return res;
-  };
-
   const handleConfirmByPurl = async (): Promise<boolean> => ask(<FilterByPurlList action={action} />);
 
   const handleGetComment = async (): Promise<string | undefined> => {
@@ -98,33 +69,36 @@ export default function FilterActionButton({
     });
   };
 
-  const onSelectOption = async (action: FilterAction, filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
-    // TODO: Show modal here
+  const onSelectOption = async (filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
     if (isCompletedResult) return;
 
     let comment: string | undefined;
     if (actionsThatShouldPromptForCommentOrConfirmation.includes(action)) {
-      const { shouldContinue, comment: introducedComment } = await maybePromptForCommentOrConfirmation(
-        filterBy,
-        withComment
-      );
+      if (withComment) {
+        comment = await handleGetComment();
 
-      if (!shouldContinue) return;
+        if (!comment) return;
+      }
 
-      comment = introducedComment;
+      if (filterBy === 'by_purl') {
+        const confirm = await handleConfirmByPurl();
+
+        if (!confirm) return;
+      }
     }
 
     onAdd({
       action,
       filterBy,
       comment,
+      withComment,
     });
   };
 
-  const handleFilterByFileWithComments = () => onSelectOption(action, 'by_file', true);
-  const handleFilterByPurlWithComments = () => onSelectOption(action, 'by_purl', true);
-  const handleFilterByFileWithoutComments = () => onSelectOption(action, 'by_file', false);
-  const handleFilterByPurlWithoutComments = () => onSelectOption(action, 'by_purl', false);
+  const handleFilterByFileWithComments = () => onSelectOption('by_file', true);
+  const handleFilterByPurlWithComments = () => onSelectOption('by_purl', true);
+  const handleFilterByFileWithoutComments = () => onSelectOption('by_file', false);
+  const handleFilterByPurlWithoutComments = () => onSelectOption('by_purl', false);
 
   useKeyboardShortcut(shortcutKeysByFileWithoutComments, handleFilterByFileWithoutComments, {
     enabled: !isCompletedResult,

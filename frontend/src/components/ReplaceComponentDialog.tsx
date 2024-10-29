@@ -85,11 +85,11 @@ export default function ReplaceComponentDialog({
       filterBy,
       comment,
       license,
+      action: FilterAction.Replace,
       replaceWith: {
         name,
         purl,
       },
-      action: FilterAction.Replace,
     });
   };
 
@@ -121,13 +121,13 @@ export default function ReplaceComponentDialog({
     <>
       <Form {...form}>
         <Dialog open onOpenChange={onOpenChange}>
-          <DialogContent ref={ref} tabIndex={-1}>
-            <DialogHeader>
-              <DialogTitle>Replace</DialogTitle>
-              <DialogDescription>You can search for an existing component or manually enter a PURL</DialogDescription>
-            </DialogHeader>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <DialogContent ref={ref} tabIndex={-1}>
+              <DialogHeader>
+                <DialogTitle>Replace</DialogTitle>
+                <DialogDescription>You can search for an existing component or manually enter a PURL</DialogDescription>
+              </DialogHeader>
 
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="purl"
@@ -238,17 +238,17 @@ export default function ReplaceComponentDialog({
                   </AlertDescription>
                 </Alert>
               )}
-            </form>
 
-            <DialogFooter>
-              <Button variant="ghost" onClick={onOpenChange}>
-                Cancel
-              </Button>
-              <Button type="submit">
-                Confirm <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
-              </Button>
-            </DialogFooter>
-          </DialogContent>
+              <DialogFooter>
+                <Button variant="ghost" onClick={onOpenChange}>
+                  Cancel
+                </Button>
+                <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
+                  Confirm <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </form>
         </Dialog>
       </Form>
       {newComponentDialogOpen && (

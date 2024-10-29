@@ -23,7 +23,7 @@ import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useSelectedResult from '@/hooks/useSelectedResult';
 import { getShortcutDisplay } from '@/lib/shortcuts';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
-import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
+import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
 import FilterByPurlList from './FilterByPurlList';
 
@@ -31,7 +31,7 @@ interface FilterActionProps {
   action: FilterAction;
   description: string;
   icon: React.ReactNode;
-  onAdd: () => Promise<void> | void;
+  onAdd: (args: OnFilterComponentArgs) => Promise<void> | void;
   shortcutKeysByFileWithComments: string;
   shortcutKeysByFileWithoutComments: string;
   shortcutKeysByComponentWithComments: string;
@@ -55,34 +55,35 @@ export default function FilterActionButton({
   const { ask } = useConfirm();
   const { prompt } = useInputPrompt();
 
-  const setAction = useComponentFilterStore((state) => state.setAction);
-  const setComment = useComponentFilterStore((state) => state.setComment);
-  const setFilterBy = useComponentFilterStore((state) => state.setFilterBy);
-  const setWithComment = useComponentFilterStore((state) => state.setWithComment);
-
   const actionsThatShouldPromptForCommentOrConfirmation = [FilterAction.Include, FilterAction.Remove];
 
   const maybePromptForCommentOrConfirmation = async (
     filterBy: 'by_file' | 'by_purl',
     withComment: boolean
-  ): Promise<boolean> => {
-    let comment: string | undefined;
+  ): Promise<{
+    shouldContinue: boolean;
+    comment?: string;
+  }> => {
+    const res = {
+      shouldContinue: false,
+      comment: '',
+    };
 
     if (withComment) {
-      comment = await handleGetComment();
+      const comment = await handleGetComment();
 
-      if (!comment) return false;
+      if (!comment) return res;
+
+      res.comment = comment;
     }
 
     if (filterBy === 'by_purl') {
       const confirm = await handleConfirmByPurl();
 
-      if (!confirm) return false;
+      if (!confirm) return res;
     }
 
-    setComment(comment);
-
-    return true;
+    return res;
   };
 
   const handleConfirmByPurl = async (): Promise<boolean> => ask(<FilterByPurlList action={action} />);
@@ -101,17 +102,23 @@ export default function FilterActionButton({
     // TODO: Show modal here
     if (isCompletedResult) return;
 
-    setAction(action);
-    setFilterBy(filterBy);
-    setWithComment(withComment);
-
+    let comment: string | undefined;
     if (actionsThatShouldPromptForCommentOrConfirmation.includes(action)) {
-      const shouldContinue = await maybePromptForCommentOrConfirmation(filterBy, withComment);
+      const { shouldContinue, comment: introducedComment } = await maybePromptForCommentOrConfirmation(
+        filterBy,
+        withComment
+      );
 
       if (!shouldContinue) return;
+
+      comment = introducedComment;
     }
 
-    onAdd();
+    onAdd({
+      action,
+      filterBy,
+      comment,
+    });
   };
 
   const handleFilterByFileWithComments = () => onSelectOption(action, 'by_file', true);

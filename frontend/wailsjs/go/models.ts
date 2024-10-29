@@ -29,6 +29,7 @@ export namespace entities {
 	    comment?: string;
 	    replace_with?: string;
 	    component_name?: string;
+	    license?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ComponentFilter(source);
@@ -42,6 +43,7 @@ export namespace entities {
 	        this.comment = source["comment"];
 	        this.replace_with = source["replace_with"];
 	        this.component_name = source["component_name"];
+	        this.license = source["license"];
 	    }
 	}
 	export class Bom {
@@ -159,6 +161,7 @@ export namespace entities {
 	    comment?: string;
 	    replace_with_purl?: string;
 	    replace_with_name?: string;
+	    license?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ComponentFilterDTO(source);
@@ -173,6 +176,7 @@ export namespace entities {
 	        this.comment = source["comment"];
 	        this.replace_with_purl = source["replace_with_purl"];
 	        this.replace_with_name = source["replace_with_name"];
+	        this.license = source["license"];
 	    }
 	}
 	export class DeclaredComponent {
@@ -254,6 +258,22 @@ export namespace entities {
 		    }
 		    return a;
 		}
+	}
+	export class License {
+	    name: string;
+	    licenseId: string;
+	    reference: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new License(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.licenseId = source["licenseId"];
+	        this.reference = source["reference"];
+	    }
 	}
 	export class RequestResultDTO {
 	    match_type?: string;

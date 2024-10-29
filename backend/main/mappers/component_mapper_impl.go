@@ -32,7 +32,7 @@ func (m *ComponentMapperImpl) MapToComponentDTO(componentEntity entities.Compone
 		Latest:      componentEntity.Latest,
 	}
 
-	var licenses []entities.License
+	var licenses []entities.ComponentLicense
 	if len(componentEntity.Licenses) > 0 {
 		for _, l := range componentEntity.Licenses {
 			// patentHints ,copyleft0 checklistURL string, osadlUpdated string, source string, url string, incompatibleWith string

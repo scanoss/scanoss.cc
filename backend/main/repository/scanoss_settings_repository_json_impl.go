@@ -84,6 +84,9 @@ func (r *ScanossSettingsJsonRepository) HasUnsavedChanges() (bool, error) {
 }
 
 func (r *ScanossSettingsJsonRepository) AddBomEntry(newEntry entities.ComponentFilter, filterAction string) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
 	sf := r.GetSettings()
 	var targetList *[]entities.ComponentFilter
 

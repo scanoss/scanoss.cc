@@ -33,6 +33,7 @@ type ComponentFilter struct {
 	Comment       string               `json:"comment,omitempty"`
 	ReplaceWith   string               `json:"replace_with,omitempty"`
 	ComponentName string               `json:"component_name,omitempty"`
+	License       string               `json:"license,omitempty"`
 }
 
 type InitialFilters struct {

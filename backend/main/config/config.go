@@ -57,7 +57,7 @@ func Get() *Config {
 }
 
 func NewConfigModule(configPath string) *ConfigModule {
-	GetInstance().configPath = configPath
+	GetInstance().configPath = utils.ExpandPath(configPath)
 	return GetInstance()
 }
 

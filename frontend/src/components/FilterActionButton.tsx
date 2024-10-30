@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -26,7 +26,12 @@ import { FilterAction, filterActionLabelMap } from '@/modules/components/domain'
 import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
 import FilterByPurlList from './FilterByPurlList';
+import SelectLicenseList from './SelectLicenseList';
 
+interface SelectOptionArgs {
+  filterBy: 'by_file' | 'by_purl';
+  withComment: boolean;
+}
 interface FilterActionProps {
   action: FilterAction;
   description: string;
@@ -51,29 +56,41 @@ export default function FilterActionButton({
   const selectedResult = useSelectedResult();
   const isCompletedResult = selectedResult?.workflow_state === 'completed';
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const withDifferentLicense = useRef(false);
 
   const { ask } = useConfirm();
   const { prompt } = useInputPrompt();
 
-  const actionsThatShouldPromptForCommentOrConfirmation = [FilterAction.Include, FilterAction.Remove];
+  const actionsThatShouldPromptForAdditionalSteps = [FilterAction.Include, FilterAction.Remove];
 
-  const handleConfirmByPurl = async (): Promise<boolean> => ask(<FilterByPurlList action={action} />);
+  const shouldShowDifferentLicenseOption = action !== FilterAction.Replace;
 
-  const handleGetComment = async (): Promise<string | undefined> => {
-    return prompt({
-      title: 'Add comments',
-      input: {
-        defaultValue: '',
-        type: 'textarea',
-      },
-    });
-  };
+  const handleFilterByFileWithComments = () => onSelectOption({ filterBy: 'by_file', withComment: true });
+  const handleFilterByPurlWithComments = () => onSelectOption({ filterBy: 'by_purl', withComment: true });
+  const handleFilterByFileWithoutComments = () => onSelectOption({ filterBy: 'by_file', withComment: false });
+  const handleFilterByPurlWithoutComments = () => onSelectOption({ filterBy: 'by_purl', withComment: false });
+  const handleFilterByFileWithCommentsAndDifferentLicense = () => onSelectWithDifferentLicense(handleFilterByFileWithComments);
+  const handleFilterByPurlWithCommentsAndDifferentLicense = () => onSelectWithDifferentLicense(handleFilterByPurlWithComments);
+  const handleFilterByFileWithoutCommentsAndDifferentLicense = () => onSelectWithDifferentLicense(handleFilterByFileWithoutComments);
+  const handleFilterByPurlWithoutCommentsAndDifferentLicense = () => onSelectWithDifferentLicense(handleFilterByPurlWithoutComments);
 
-  const onSelectOption = async (filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
+  const onSelectOption = async ({ filterBy, withComment }: SelectOptionArgs) => {
     if (isCompletedResult) return;
 
     let comment: string | undefined;
-    if (actionsThatShouldPromptForCommentOrConfirmation.includes(action)) {
+    let license: string | undefined;
+    if (actionsThatShouldPromptForAdditionalSteps.includes(action)) {
+      if (withDifferentLicense) {
+        await prompt({
+          title: 'Select License',
+          input: {
+            component: <SelectLicenseList onSelect={(selectedLicense) => (license = selectedLicense)} />,
+          },
+        });
+
+        if (!license) return;
+      }
+
       if (withComment) {
         comment = await handleGetComment();
 
@@ -92,13 +109,26 @@ export default function FilterActionButton({
       filterBy,
       comment,
       withComment,
+      license,
     });
   };
 
-  const handleFilterByFileWithComments = () => onSelectOption('by_file', true);
-  const handleFilterByPurlWithComments = () => onSelectOption('by_purl', true);
-  const handleFilterByFileWithoutComments = () => onSelectOption('by_file', false);
-  const handleFilterByPurlWithoutComments = () => onSelectOption('by_purl', false);
+  const handleConfirmByPurl = async (): Promise<boolean> => ask(<FilterByPurlList action={action} />);
+
+  const handleGetComment = async (): Promise<string | undefined> => {
+    return prompt({
+      title: 'Add comments',
+      input: {
+        defaultValue: '',
+        type: 'textarea',
+      },
+    });
+  };
+
+  const onSelectWithDifferentLicense = async (cb: () => Promise<void>) => {
+    withDifferentLicense.current = true;
+    await cb();
+  };
 
   useKeyboardShortcut(shortcutKeysByFileWithoutComments, handleFilterByFileWithoutComments, {
     enabled: !isCompletedResult,
@@ -130,10 +160,7 @@ export default function FilterActionButton({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuTrigger asChild disabled={isCompletedResult}>
-          <button
-            className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent"
-            disabled={isCompletedResult}
-          >
+          <button className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent" disabled={isCompletedResult}>
             <ChevronDown
               className={clsx(
                 'h-4 w-4 stroke-muted-foreground transition-transform enabled:hover:stroke-accent-foreground',
@@ -152,17 +179,26 @@ export default function FilterActionButton({
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>File</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent className="min-w-[300px]">
+              <DropdownMenuSubContent className="min-w-[420px]">
                 <DropdownMenuItem onClick={handleFilterByFileWithoutComments}>
-                  <span className="first-letter:uppercase">{`${action} without Comments`}</span>
-                  <DropdownMenuShortcut>
-                    {getShortcutDisplay(shortcutKeysByFileWithoutComments)[0]}
-                  </DropdownMenuShortcut>
+                  <span className="first-letter:uppercase">{`${action} without comments`}</span>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithoutComments)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
+                {shouldShowDifferentLicenseOption && (
+                  <DropdownMenuItem onClick={handleFilterByFileWithoutCommentsAndDifferentLicense}>
+                    <span className="first-letter:uppercase">{`${action} with a different license and no comments`}</span>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleFilterByFileWithComments}>
-                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
+                  <span className="first-letter:uppercase">{`${action} with comments`}</span>
                   <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithComments)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
+                {shouldShowDifferentLicenseOption && (
+                  <DropdownMenuItem onClick={handleFilterByFileWithCommentsAndDifferentLicense}>
+                    <span className="first-letter:uppercase">{`${action} with a different license and comments`}</span>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
@@ -171,19 +207,26 @@ export default function FilterActionButton({
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Component</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent className="min-w-[300px]">
+              <DropdownMenuSubContent className="min-w-[420px]">
                 <DropdownMenuItem onClick={handleFilterByPurlWithoutComments}>
-                  <span className="first-letter:uppercase">{`${action} without Comments`}</span>
-                  <DropdownMenuShortcut>
-                    {getShortcutDisplay(shortcutKeysByComponentWithoutComments)[0]}
-                  </DropdownMenuShortcut>
+                  <span className="first-letter:uppercase">{`${action} without comments`}</span>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByComponentWithoutComments)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
+                {shouldShowDifferentLicenseOption && (
+                  <DropdownMenuItem onClick={handleFilterByPurlWithoutCommentsAndDifferentLicense}>
+                    <span className="first-letter:uppercase">{`${action} with a different license and no comments`}</span>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleFilterByPurlWithComments}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
-                  <DropdownMenuShortcut>
-                    {getShortcutDisplay(shortcutKeysByComponentWithComments)[0]}
-                  </DropdownMenuShortcut>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByComponentWithComments)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
+                {shouldShowDifferentLicenseOption && (
+                  <DropdownMenuItem onClick={handleFilterByPurlWithCommentsAndDifferentLicense}>
+                    <span className="first-letter:uppercase">{`${action} with a different license and comments`}</span>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>

@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import { GetAll as GetAllLicenses } from '../../wailsjs/go/service/LicenseServiceImpl';
 import { Button } from './ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
-import { FormControl } from './ui/form';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { ScrollArea } from './ui/scroll-area';
 
@@ -32,16 +31,10 @@ export default function SelectLicenseList({ onSelect }: SelectLicenseListProps) 
   return (
     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>
-        <FormControl>
-          <Button
-            variant="outline"
-            role="combobox"
-            className={cn('justify-between', !value && 'text-muted-foreground')}
-          >
-            {value ? licenses?.find((license) => license.licenseId === value)?.licenseId : 'Select license'}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </FormControl>
+        <Button variant="outline" role="combobox" className={cn('justify-between', !value && 'text-muted-foreground')}>
+          {value ? licenses?.find((license) => license.licenseId === value)?.licenseId : 'Select license'}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="min-w-[420px] p-0">
         <Command>

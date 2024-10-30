@@ -15,9 +15,7 @@ export default function InputPromptDialog() {
   const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
-    if (!isPrompting) {
-      setInputValue('');
-    }
+    if (!isPrompting) setInputValue('');
   }, [isPrompting]);
 
   const ref = useKeyboardShortcut(
@@ -39,7 +37,7 @@ export default function InputPromptDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        {options?.input.type === 'textarea' && (
+        {options?.input && 'type' in options.input && options.input.type === 'textarea' && (
           <div>
             <Textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
             <p className="mt-2 text-xs text-muted-foreground">
@@ -48,11 +46,13 @@ export default function InputPromptDialog() {
           </div>
         )}
 
+        {options?.input && 'component' in options.input && options.input.component}
+
         <DialogFooter>
           <Button variant="ghost" onClick={cancel}>
             {options?.cancelText ?? 'Cancel'}
           </Button>
-          <Button onClick={() => confirm(inputValue)} disabled={!inputValue}>
+          <Button onClick={() => confirm(inputValue)}>
             {options?.confirmText ?? 'Confirm'}{' '}
             <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
           </Button>

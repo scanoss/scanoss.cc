@@ -42,7 +42,7 @@ export default function KeyboardShortcutsDialog({ open, onOpenChange }: { open: 
                       <>
                         <span
                           key={index}
-                          className="mr-1 rounded-sm bg-muted p-0.5 text-xs capitalize leading-tight text-gray-800"
+                          className="mr-1 flex min-w-5 items-center justify-center rounded-sm bg-muted p-0.5 text-xs capitalize leading-tight text-muted-foreground"
                         >
                           {keyCombo}
                         </span>

@@ -2,7 +2,7 @@ import * as monaco from 'monaco-editor';
 
 export interface EditorManager {
   addEditor(id: string, editor: monaco.editor.IStandaloneCodeEditor): void;
-  scrollToLine(id: string, line: number): void;
+  scrollToLineIfNotVisible(id: string, line: number): void;
   highlightLines(id: string, ranges: { start: number; end: number }[], className: string): void;
   syncCursor(id: string): void;
   syncScroll(id: string): void;
@@ -44,25 +44,25 @@ export class MonacoManager implements EditorManager {
       this.editors.push({ id, editor });
     }
 
-    if (options?.revealLine) {
-      this.scrollToLine(id, options.revealLine);
-    }
-
     if (options?.highlight) {
       this.highlightLines(id, options.highlight.ranges, options.highlight.className);
     }
 
     setTimeout(() => {
-      this.syncScroll(id);
+      if (options?.revealLine) {
+        this.scrollToLineIfNotVisible(id, options.revealLine);
+      }
+
       this.syncCursor(id);
-    }, 500);
+      this.syncScroll(id);
+    }, 200);
   }
 
   public getEditor(id: string): monaco.editor.IStandaloneCodeEditor | null {
     return this.editors.find((e) => e.id === id)?.editor || null;
   }
 
-  public scrollToLine(id: string, line: number) {
+  public scrollToLineIfNotVisible(id: string, line: number) {
     const editor = this.getEditor(id);
     if (!editor) return;
 

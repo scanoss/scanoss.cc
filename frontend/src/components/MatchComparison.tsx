@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import CodeViewer from '@/components/CodeViewer';
 import { getFileName } from '@/lib/utils';
-import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
+import useLocalFilePath from '@/hooks/useLocalFilePath';
 
 import { GetComponentByPath } from '../../wailsjs/go/service/ComponentServiceImpl';
 import { GetLocalFile, GetRemoteFile } from '../../wailsjs/go/service/FileServiceImpl';

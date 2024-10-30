@@ -11,7 +11,7 @@ import useQueryState from '@/hooks/useQueryState';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
-import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
+import useLocalFilePath from '@/hooks/useLocalFilePath';
 import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
@@ -42,11 +42,7 @@ export default function Sidebar() {
   const [query] = useQueryState('q', '');
   const debouncedQuery: string = useDebounce(query, DEBOUNCE_QUERY_MS);
 
-  const handleSelectFiles = (
-    e: React.MouseEvent,
-    result: entities.ResultDTO,
-    selectionType: 'pending' | 'completed'
-  ) => {
+  const handleSelectFiles = (e: React.MouseEvent, result: entities.ResultDTO, selectionType: 'pending' | 'completed') => {
     e.preventDefault();
 
     if (e.shiftKey) {
@@ -111,18 +107,8 @@ export default function Sidebar() {
 
       <ScrollArea>
         <div className="flex flex-1 flex-col gap-2">
-          <ResultSection
-            title="Pending files"
-            results={pendingResults}
-            onSelect={handleSelectFiles}
-            selectionType="pending"
-          />
-          <ResultSection
-            title="Completed files"
-            results={completedResults}
-            onSelect={handleSelectFiles}
-            selectionType="completed"
-          />
+          <ResultSection title="Pending files" results={pendingResults} onSelect={handleSelectFiles} selectionType="pending" />
+          <ResultSection title="Completed files" results={completedResults} onSelect={handleSelectFiles} selectionType="completed" />
         </div>
       </ScrollArea>
     </aside>
@@ -189,17 +175,12 @@ function SidebarItem({ result, onSelect, selectionType }: SidebarItemProps) {
           <span className="relative">
             {matchTypeIconMap[result.match_type as MatchType]}
             <span
-              className={clsx(
-                'absolute bottom-0 right-0 h-1 w-1 rounded-full',
-                presentation?.stateInfoSidebarIndicatorStyles ?? 'bg-transparent'
-              )}
+              className={clsx('absolute bottom-0 right-0 h-1 w-1 rounded-full', presentation?.stateInfoSidebarIndicatorStyles ?? 'bg-transparent')}
             ></span>
           </span>
           <div className="flex min-w-0 items-center">
             {directory && <span className="truncate">{directory}</span>}
-            <span className={clsx('whitespace-nowrap', !isSelected && 'text-foreground')}>
-              {directory ? `/${fileName}` : fileName}
-            </span>
+            <span className={clsx('whitespace-nowrap', !isSelected && 'text-foreground')}>{directory ? `/${fileName}` : fileName}</span>
           </div>
         </div>
       </TooltipTrigger>

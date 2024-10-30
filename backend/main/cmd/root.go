@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/scanoss/scanoss.lui/backend/main/config"
+	"github.com/scanoss/scanoss.lui/backend/main/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -120,7 +121,7 @@ func initConfigModule() {
 
 func setInputFile() {
 	if inputFile != "" {
-		config.Get().ResultFilePath = inputFile
+		config.Get().ResultFilePath = utils.ExpandPath(inputFile)
 	} else {
 		resultFilePath := config.Get().ResultFilePath
 		if resultFilePath != "" && strings.HasPrefix(resultFilePath, ROOT_FOLDER) {
@@ -141,7 +142,7 @@ func setScanRoot() {
 			pathForwardSlash := re.ReplaceAllString(scanRoot, "/")
 			config.Get().ScanRoot = pathForwardSlash
 		} else {
-			config.Get().ScanRoot = scanRoot
+			config.Get().ScanRoot = utils.ExpandPath(scanRoot)
 		}
 	}
 	if config.Get().ScanRoot == ROOT_FOLDER || config.Get().ScanRoot == "" {

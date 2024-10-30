@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 type DefaultFileReader struct{}
@@ -15,7 +17,8 @@ func NewDefaultFileReader() *DefaultFileReader {
 
 func (d DefaultFileReader) ReadFile(filePath string) ([]byte, error) {
 	// Open and read the JSON file
-	file, err := os.Open(filePath)
+	expandedPath := ExpandPath(filePath)
+	file, err := os.Open(expandedPath)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -88,4 +91,25 @@ func IsWritableFile(path string) bool {
 	mode := fileInfo.Mode()
 
 	return mode&0200 != 0
+}
+
+func ExpandPath(path string) string {
+	if !strings.HasPrefix(path, "~") {
+		return path
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+
+	if path == "~" {
+		return homeDir
+	}
+
+	if strings.HasPrefix(path, "~/") {
+		return filepath.Join(homeDir, path[2:])
+	}
+
+	return path
 }

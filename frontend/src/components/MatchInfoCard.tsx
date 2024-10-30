@@ -50,7 +50,7 @@ export default function MatchInfoCard() {
   return (
     <div
       className={clsx(
-        'flex items-center justify-between rounded-sm p-3',
+        'flex items-center justify-between p-3',
         matchPresentation.foreground,
         matchPresentation.background,
         isResultRemoved && '!bg-card'

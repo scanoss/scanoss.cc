@@ -7,12 +7,12 @@ import { createHashRouter, RouterProvider } from 'react-router-dom';
 
 import ConfirmDialog from './components/ConfirmDialog';
 import InputPromptDialog from './components/InputPromptDialog';
+import MatchComparison from './components/MatchComparison';
 import { Toaster } from './components/ui/toaster';
 import { TooltipProvider } from './components/ui/tooltip';
 import { ConfirmDialogProvider } from './providers/ConfirmDialogProvider';
 import { InputPromptDialogProvider } from './providers/InputPromptDialogProvider';
 import Index from './routes';
-import FileComparison from './routes/files/match';
 import Root from './routes/root';
 
 const queryClient = new QueryClient();
@@ -25,7 +25,7 @@ const router = createHashRouter([
       { index: true, element: <Index /> },
       {
         path: 'files/:filePath',
-        element: <FileComparison />,
+        element: <MatchComparison />,
       },
     ],
   },

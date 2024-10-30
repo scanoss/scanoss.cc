@@ -7,13 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import useSelectedResult from '@/hooks/useSelectedResult';
 import { FilterAction } from '@/modules/components/domain';
-import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
-import {
-  MatchType,
-  matchTypePresentation,
-  resultStatusPresentation,
-  stateInfoPresentation,
-} from '@/modules/results/domain';
+import useLocalFilePath from '@/hooks/useLocalFilePath';
+import { MatchType, matchTypePresentation, resultStatusPresentation, stateInfoPresentation } from '@/modules/results/domain';
 
 import { GetComponentByPath } from '../../wailsjs/go/service/ComponentServiceImpl';
 import ComponentDetailTooltip from './ComponentDetailTooltip';
@@ -81,9 +76,7 @@ export default function MatchInfoCard() {
         {status && (
           <div>
             <div className={matchPresentation.muted}>Status</div>
-            <Badge
-              className={clsx('flex items-center gap-1 font-normal', resultStatusPresentation[status].badgeStyles)}
-            >
+            <Badge className={clsx('flex items-center gap-1 font-normal', resultStatusPresentation[status].badgeStyles)}>
               {resultStatusPresentation[status].icon}
               {resultStatusPresentation[status].label}
             </Badge>
@@ -104,9 +97,7 @@ export default function MatchInfoCard() {
             </TooltipTrigger>
             {result.comment && (
               <TooltipContent side="bottom" align="start" className="px-4 py-2">
-                <pre className="m-0 whitespace-pre-wrap break-words font-sans text-muted-foreground">
-                  {result.comment}
-                </pre>
+                <pre className="m-0 whitespace-pre-wrap break-words font-sans text-muted-foreground">{result.comment}</pre>
               </TooltipContent>
             )}
           </Tooltip>

@@ -6,6 +6,7 @@ export interface EditorManager {
   highlightLines(id: string, ranges: { start: number; end: number }[], className: string): void;
   syncCursor(id: string): void;
   syncScroll(id: string): void;
+  getScrollEnabled(): boolean;
 }
 
 interface AddEditorOptions {
@@ -26,6 +27,7 @@ export class MonacoManager implements EditorManager {
   private editors: { id: string; editor: monaco.editor.IStandaloneCodeEditor }[] = [];
   private cursorSyncListeners: { [id: string]: monaco.IDisposable } = {};
   private scrollSyncListeners: { [id: string]: monaco.IDisposable } = {};
+  private scrollEnabled = true;
 
   private constructor() {}
 
@@ -58,18 +60,22 @@ export class MonacoManager implements EditorManager {
     }, 200);
   }
 
+  public getScrollEnabled(): boolean {
+    return this.scrollEnabled;
+  }
+
   public getEditor(id: string): monaco.editor.IStandaloneCodeEditor | null {
     return this.editors.find((e) => e.id === id)?.editor || null;
   }
 
-  public scrollToLineIfNotVisible(id: string, line: number) {
+  public scrollToLineIfNotVisible(id: string, line: number): void {
     const editor = this.getEditor(id);
     if (!editor) return;
 
     editor.revealLineInCenterIfOutsideViewport(line, monaco.editor.ScrollType.Smooth);
   }
 
-  public highlightLines(id: string, ranges: HighlightRange[], className: string) {
+  public highlightLines(id: string, ranges: HighlightRange[], className: string): void {
     const editor = this.getEditor(id);
     if (!editor) return;
 
@@ -83,7 +89,9 @@ export class MonacoManager implements EditorManager {
 
   public syncScroll(id: string) {
     const editor = this.getEditor(id);
-    if (!editor || this.scrollSyncListeners[id]) return;
+    if (!editor) return;
+
+    console.log('syncScroll', id);
 
     this.scrollSyncListeners[id] = editor.onDidScrollChange(() => {
       const scrollTop = editor.getScrollTop();
@@ -95,7 +103,7 @@ export class MonacoManager implements EditorManager {
 
   public syncCursor(id: string) {
     const editor = this.getEditor(id);
-    if (!editor || this.cursorSyncListeners[id]) return;
+    if (!editor) return;
 
     this.cursorSyncListeners[id] = editor.onDidChangeCursorPosition(() => {
       const position = editor.getPosition();
@@ -104,6 +112,21 @@ export class MonacoManager implements EditorManager {
       this.editors.forEach(({ id: otherId, editor: otherEditor }) => {
         if (otherId !== id) otherEditor.setPosition(position);
       });
+    });
+  }
+
+  public toggleSyncScroll() {
+    this.scrollEnabled = !this.scrollEnabled;
+
+    if (!Object.keys(this.scrollSyncListeners).length) {
+      return this.editors.forEach(({ id }) => this.syncScroll(id));
+    }
+
+    return this.editors.forEach(({ id }) => {
+      if (this.scrollSyncListeners[id]) {
+        this.scrollSyncListeners[id].dispose();
+        delete this.scrollSyncListeners[id];
+      }
     });
   }
 }

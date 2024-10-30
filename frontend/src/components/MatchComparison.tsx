@@ -7,6 +7,7 @@ import useLocalFilePath from '@/hooks/useLocalFilePath';
 
 import { GetComponentByPath } from '../../wailsjs/go/service/ComponentServiceImpl';
 import { GetLocalFile, GetRemoteFile } from '../../wailsjs/go/service/FileServiceImpl';
+import EditorToolbar from './EditorToolbar';
 import FileInfoCard from './FileInfoCard';
 import Header from './Header';
 import MatchInfoCard from './MatchInfoCard';
@@ -42,13 +43,16 @@ export default function MatchComparison() {
       <header className="h-[65px] border-b border-b-border px-6">
         <Header />
       </header>
-      <main className="flex-1 p-6">
-        <div className="grid h-full grid-cols-2 grid-rows-[auto_auto_1fr] gap-4">
+      <main className="flex-1">
+        <div className="grid h-full grid-cols-2 grid-rows-[auto_auto_auto_1fr]">
           <div className="col-span-2">
             <MatchInfoCard />
           </div>
           <FileInfoCard title="Local file" subtitle={getFileName(localFilePath)} fileType="local" />
           <FileInfoCard title="Remote file" subtitle={component?.file} fileType="remote" />
+          <div className="col-span-2">
+            <EditorToolbar />
+          </div>
           <CodeViewer
             content={localFileContent?.content}
             isError={isErrorLocalFileContent}

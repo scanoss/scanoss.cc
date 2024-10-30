@@ -25,8 +25,9 @@ export default function FileInfoCard({ title, subtitle, fileType }: FileInfoCard
   return (
     <div
       className={clsx(
-        'flex justify-between rounded-sm border border-border bg-card p-3 text-sm',
-        shouldShowStateInfo && presentation?.stateInfoContainerStyles
+        'flex justify-between border border-l-0 border-t-0 p-3 text-sm',
+        shouldShowStateInfo && presentation?.stateInfoContainerStyles,
+        fileType === 'remote' && 'border-r-0'
       )}
     >
       <div>

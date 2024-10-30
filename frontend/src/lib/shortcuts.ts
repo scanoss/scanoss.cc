@@ -126,7 +126,7 @@ export const getShortcutDisplay = (keys: string): string[] => {
         if (p.toLowerCase() === 'up') return '↑';
         if (p.toLowerCase() === 'down') return '↓';
 
-        return p;
+        return p.toUpperCase();
       })
       .join('+');
   });

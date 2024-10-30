@@ -8,11 +8,26 @@ export interface EditorManager {
   syncScroll(id: string): void;
 }
 
+interface AddEditorOptions {
+  revealLine?: number;
+  highlight?: {
+    ranges: HighlightRange[];
+    className: string;
+  };
+}
+
+export interface HighlightRange {
+  start: number;
+  end: number;
+}
+
 export class MonacoManager implements EditorManager {
   private static instance: MonacoManager;
   private editors: { id: string; editor: monaco.editor.IStandaloneCodeEditor }[] = [];
   private cursorSyncListeners: { [id: string]: monaco.IDisposable } = {};
   private scrollSyncListeners: { [id: string]: monaco.IDisposable } = {};
+  private isProgrammaticScroll: boolean = false;
+  private isProgrammaticCursor: boolean = false;
 
   private constructor() {}
 
@@ -23,12 +38,20 @@ export class MonacoManager implements EditorManager {
     return MonacoManager.instance;
   }
 
-  public addEditor(id: string, editor: monaco.editor.IStandaloneCodeEditor) {
+  public addEditor(id: string, editor: monaco.editor.IStandaloneCodeEditor, options?: AddEditorOptions) {
     const existingEditorIndex = this.editors.findIndex((e) => e.id === id);
     if (existingEditorIndex > -1) {
       this.editors[existingEditorIndex] = { id, editor };
     } else {
       this.editors.push({ id, editor });
+    }
+
+    if (options?.revealLine) {
+      this.scrollToLine(id, options.revealLine);
+    }
+
+    if (options?.highlight) {
+      this.highlightLines(id, options.highlight.ranges, options.highlight.className);
     }
 
     this.syncScroll(id);
@@ -43,10 +66,12 @@ export class MonacoManager implements EditorManager {
     const editor = this.getEditor(id);
     if (!editor) return;
 
+    this.isProgrammaticScroll = true;
     editor.revealLineInCenterIfOutsideViewport(line, monaco.editor.ScrollType.Smooth);
+    setTimeout(() => (this.isProgrammaticScroll = false), 100); // Adjust timeout as needed
   }
 
-  public highlightLines(id: string, ranges: { start: number; end: number }[], className: string) {
+  public highlightLines(id: string, ranges: HighlightRange[], className: string) {
     const editor = this.getEditor(id);
     if (!editor) return;
 
@@ -63,6 +88,8 @@ export class MonacoManager implements EditorManager {
     if (!editor || this.scrollSyncListeners[id]) return;
 
     this.scrollSyncListeners[id] = editor.onDidScrollChange(() => {
+      if (this.isProgrammaticScroll) return;
+
       const scrollTop = editor.getScrollTop();
       this.editors.forEach(({ id: otherId, editor: otherEditor }) => {
         if (otherId !== id) otherEditor.setScrollTop(scrollTop);
@@ -75,12 +102,16 @@ export class MonacoManager implements EditorManager {
     if (!editor || this.cursorSyncListeners[id]) return;
 
     this.cursorSyncListeners[id] = editor.onDidChangeCursorPosition(() => {
+      if (this.isProgrammaticCursor) return;
+
       const position = editor.getPosition();
       if (!position) return;
 
+      this.isProgrammaticCursor = true;
       this.editors.forEach(({ id: otherId, editor: otherEditor }) => {
         if (otherId !== id) otherEditor.setPosition(position);
       });
+      setTimeout(() => (this.isProgrammaticCursor = false), 100); // Adjust timeout as needed
     });
   }
 }

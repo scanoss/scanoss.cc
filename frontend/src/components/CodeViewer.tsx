@@ -2,7 +2,7 @@ import { Editor } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
 import { useRef } from 'react';
 
-import { MonacoManager } from '@/lib/editor';
+import { HighlightRange, MonacoManager } from '@/lib/editor';
 import { getHighlightLineRanges } from '@/modules/results/utils';
 
 import { Skeleton } from './ui/skeleton';
@@ -35,28 +35,27 @@ export default function CodeViewer({
   const monacoManager = MonacoManager.getInstance();
 
   const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
-    console.log('CodeViewer handleEditorMount');
     editorRef.current = editor;
-    monacoManager.addEditor(editorId, editor);
 
     const className = editorType === 'local' ? 'bg-highlight-local-line' : 'bg-highlight-remote-line';
+    const highlightRanges: HighlightRange[] = [];
 
     if (highlightAll) {
       const totalLines = editor.getModel()?.getLineCount();
       if (totalLines) {
-        monacoManager.highlightLines(editorId, [{ start: 1, end: totalLines }], className);
+        highlightRanges.push({ start: 1, end: totalLines });
       }
-      return;
     }
 
     if (highlightLines) {
       const ranges = getHighlightLineRanges(highlightLines);
-
-      monacoManager.highlightLines(editorId, ranges, className);
-      setTimeout(() => {
-        monacoManager.scrollToLine(editorId, ranges[0].start);
-      }, 200);
+      highlightRanges.push(...ranges);
     }
+
+    monacoManager.addEditor(editorId, editor, {
+      highlight: { ranges: highlightRanges, className },
+      revealLine: highlightRanges[0]?.start,
+    });
   };
 
   if (isLoading || !highlightLines) {

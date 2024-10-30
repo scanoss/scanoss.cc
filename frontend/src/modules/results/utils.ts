@@ -1,9 +1,6 @@
-interface HighlightLineRange {
-  start: number;
-  end: number;
-}
+import { HighlightRange } from '@/lib/editor';
 
-export const getHighlightLineRanges = (lines: string): HighlightLineRange[] => {
+export const getHighlightLineRanges = (lines: string): HighlightRange[] => {
   const ranges = lines.split(',').map((range) => range.split('-'));
 
   return ranges.map((range) => ({

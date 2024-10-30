@@ -19,7 +19,7 @@ var (
 const (
 	DEFAULT_API_URL         = "https://api.osskb.org"
 	GLOBAL_CONFIG_FILE_NAME = "scanoss-lui-settings.json"
-	GLOBAL_CONFIG_FOLDER    = "scanoss"
+	GLOBAL_CONFIG_FOLDER    = ".scanoss"
 	ROOT_FOLDER             = "."
 	SCNOSS_PREMIUM_API_URL  = "https://api.scanoss.com"
 )

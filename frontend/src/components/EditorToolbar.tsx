@@ -1,16 +1,16 @@
 import clsx from 'clsx';
-import { MousePointer, MoveVertical } from 'lucide-react';
+import { MoveVertical } from 'lucide-react';
 import { useState } from 'react';
 
 import { MonacoManager } from '@/lib/editor';
 
 export default function EditorToolbar() {
   const monacoManager = MonacoManager.getInstance();
-  const [scrollEnabled, setScrollEnabled] = useState(monacoManager.getScrollEnabled());
+  const [scrollEnabled, setScrollEnabled] = useState(monacoManager.getScrollSyncEnabled());
 
   const handleToggleSyncScroll = () => {
     monacoManager.toggleSyncScroll();
-    setScrollEnabled(monacoManager.getScrollEnabled());
+    setScrollEnabled(monacoManager.getScrollSyncEnabled());
   };
 
   return (

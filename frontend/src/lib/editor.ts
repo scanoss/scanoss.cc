@@ -6,7 +6,7 @@ export interface EditorManager {
   highlightLines(id: string, ranges: { start: number; end: number }[], className: string): void;
   syncCursor(id: string): void;
   syncScroll(id: string): void;
-  getScrollEnabled(): boolean;
+  getScrollSyncEnabled(): boolean;
 }
 
 interface AddEditorOptions {
@@ -27,7 +27,7 @@ export class MonacoManager implements EditorManager {
   private editors: { id: string; editor: monaco.editor.IStandaloneCodeEditor }[] = [];
   private cursorSyncListeners: { [id: string]: monaco.IDisposable } = {};
   private scrollSyncListeners: { [id: string]: monaco.IDisposable } = {};
-  private scrollEnabled = true;
+  private scrollSyncEnabled = false;
 
   private constructor() {}
 
@@ -55,13 +55,15 @@ export class MonacoManager implements EditorManager {
         this.scrollToLineIfNotVisible(id, options.revealLine);
       }
 
-      this.syncCursor(id);
-      this.syncScroll(id);
+      if (this.scrollSyncEnabled) {
+        this.syncCursor(id);
+        this.syncScroll(id);
+      }
     }, 200);
   }
 
-  public getScrollEnabled(): boolean {
-    return this.scrollEnabled;
+  public getScrollSyncEnabled(): boolean {
+    return this.scrollSyncEnabled;
   }
 
   public getEditor(id: string): monaco.editor.IStandaloneCodeEditor | null {
@@ -91,12 +93,17 @@ export class MonacoManager implements EditorManager {
     const editor = this.getEditor(id);
     if (!editor) return;
 
-    console.log('syncScroll', id);
-
     this.scrollSyncListeners[id] = editor.onDidScrollChange(() => {
       const scrollTop = editor.getScrollTop();
+      const scrollLeft = editor.getScrollLeft();
+
       this.editors.forEach(({ id: otherId, editor: otherEditor }) => {
-        if (otherId !== id) otherEditor.setScrollTop(scrollTop);
+        if (otherId !== id) {
+          otherEditor.setScrollPosition({
+            scrollTop,
+            scrollLeft,
+          });
+        }
       });
     });
   }
@@ -116,7 +123,7 @@ export class MonacoManager implements EditorManager {
   }
 
   public toggleSyncScroll() {
-    this.scrollEnabled = !this.scrollEnabled;
+    this.scrollSyncEnabled = !this.scrollSyncEnabled;
 
     if (!Object.keys(this.scrollSyncListeners).length) {
       return this.editors.forEach(({ id }) => this.syncScroll(id));

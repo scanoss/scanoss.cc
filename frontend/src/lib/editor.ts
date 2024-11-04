@@ -28,6 +28,7 @@ export class MonacoManager implements EditorManager {
   private cursorSyncListeners: { [id: string]: monaco.IDisposable } = {};
   private scrollSyncListeners: { [id: string]: monaco.IDisposable } = {};
   private scrollSyncEnabled = true;
+  private isScrolling = false;
 
   private constructor() {}
 
@@ -94,17 +95,34 @@ export class MonacoManager implements EditorManager {
     if (!editor) return;
 
     this.scrollSyncListeners[id] = editor.onDidScrollChange(() => {
-      const scrollTop = editor.getScrollTop();
-      const scrollLeft = editor.getScrollLeft();
+      if (this.isScrolling) return;
+      this.isScrolling = true;
 
-      this.editors.forEach(({ id: otherId, editor: otherEditor }) => {
-        if (otherId !== id) {
-          otherEditor.setScrollPosition({
-            scrollTop,
-            scrollLeft,
-          });
-        }
-      });
+      try {
+        const sourceEditor = editor;
+
+        const sourceHeight = sourceEditor.getScrollHeight() - sourceEditor.getLayoutInfo().height;
+        const sourceWidth = sourceEditor.getScrollWidth() - sourceEditor.getLayoutInfo().width;
+
+        const verticalPercent = sourceEditor.getScrollTop() / sourceHeight;
+        const horizontalPercent = sourceEditor.getScrollLeft() / sourceWidth;
+
+        this.editors.forEach(({ id: otherId, editor: otherEditor }) => {
+          if (otherId !== id) {
+            const targetHeight = otherEditor.getScrollHeight() - otherEditor.getLayoutInfo().height;
+            const targetWidth = otherEditor.getScrollWidth() - otherEditor.getLayoutInfo().width;
+
+            otherEditor.setScrollPosition({
+              scrollTop: verticalPercent * targetHeight,
+              scrollLeft: horizontalPercent * targetWidth,
+            });
+          }
+        });
+      } finally {
+        requestAnimationFrame(() => {
+          this.isScrolling = false;
+        });
+      }
     });
   }
 

@@ -21,6 +21,7 @@ export namespace entities {
 	    ReplaceFileWithComments = "replaceFileWithComments",
 	    ReplaceComponentWithoutComments = "replaceComponentWithoutComments",
 	    ReplaceComponentWithComments = "replaceComponentWithComments",
+	    ToggleSyncScrollPosition = "toggleSyncScrollPosition",
 	}
 	export class ComponentFilter {
 	    path?: string;

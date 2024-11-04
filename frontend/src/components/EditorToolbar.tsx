@@ -2,7 +2,11 @@ import clsx from 'clsx';
 import { MoveVertical } from 'lucide-react';
 import { useState } from 'react';
 
+import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { MonacoManager } from '@/lib/editor';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
+
+import { EventsEmit } from '../../wailsjs/runtime/runtime';
 
 export default function EditorToolbar() {
   const monacoManager = MonacoManager.getInstance();
@@ -11,7 +15,10 @@ export default function EditorToolbar() {
   const handleToggleSyncScroll = () => {
     monacoManager.toggleSyncScroll();
     setScrollEnabled(monacoManager.getScrollSyncEnabled());
+    EventsEmit('editor:syncScrollPosition', monacoManager.getScrollSyncEnabled());
   };
+
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.toggleSyncScrollPosition.keys, handleToggleSyncScroll);
 
   return (
     <div className="flex p-2">

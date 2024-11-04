@@ -7,11 +7,11 @@ import { entities } from 'wailsjs/go/models';
 import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import useLocalFilePath from '@/hooks/useLocalFilePath';
 import useQueryState from '@/hooks/useQueryState';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
-import useLocalFilePath from '@/hooks/useLocalFilePath';
 import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
@@ -105,7 +105,7 @@ export default function Sidebar() {
         <ResultSearchBar />
       </div>
 
-      <ScrollArea>
+      <ScrollArea className="flex-1">
         <div className="flex flex-1 flex-col gap-2">
           <ResultSection title="Pending files" results={pendingResults} onSelect={handleSelectFiles} selectionType="pending" />
           <ResultSection title="Completed files" results={completedResults} onSelect={handleSelectFiles} selectionType="completed" />

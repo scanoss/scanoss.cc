@@ -27,7 +27,7 @@ export class MonacoManager implements EditorManager {
   private editors: { id: string; editor: monaco.editor.IStandaloneCodeEditor }[] = [];
   private cursorSyncListeners: { [id: string]: monaco.IDisposable } = {};
   private scrollSyncListeners: { [id: string]: monaco.IDisposable } = {};
-  private scrollSyncEnabled = false;
+  private scrollSyncEnabled = true;
 
   private constructor() {}
 

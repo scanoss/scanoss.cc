@@ -114,6 +114,13 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     description: 'Replace the component with comments',
     keys: 'shift+e, shift+mod+f3',
   },
+
+  // View
+  [entities.Action.ToggleSyncScrollPosition]: {
+    name: 'Toggle Sync Scroll Position',
+    description: 'Sync the scroll position of the editors',
+    keys: 'shift+mod+e',
+  },
 };
 
 export const getShortcutDisplay = (keys: string): string[] => {

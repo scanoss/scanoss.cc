@@ -94,27 +94,35 @@ export class MonacoManager implements EditorManager {
     const editor = this.getEditor(id);
     if (!editor) return;
 
+    let lastScrollTop = editor.getScrollTop();
+
     this.scrollSyncListeners[id] = editor.onDidScrollChange(() => {
       if (this.isScrolling) return;
       this.isScrolling = true;
 
       try {
         const sourceEditor = editor;
+        const currentScrollTop = sourceEditor.getScrollTop();
+        const deltaY = currentScrollTop - lastScrollTop;
+        lastScrollTop = currentScrollTop;
 
-        const sourceHeight = sourceEditor.getScrollHeight() - sourceEditor.getLayoutInfo().height;
-        const sourceWidth = sourceEditor.getScrollWidth() - sourceEditor.getLayoutInfo().width;
+        const sourceLineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
 
-        const verticalPercent = sourceEditor.getScrollTop() / sourceHeight;
-        const horizontalPercent = sourceEditor.getScrollLeft() / sourceWidth;
+        // This is the number of lines scrolled
+        const linesScrolled = deltaY / sourceLineHeight;
 
         this.editors.forEach(({ id: otherId, editor: otherEditor }) => {
           if (otherId !== id) {
-            const targetHeight = otherEditor.getScrollHeight() - otherEditor.getLayoutInfo().height;
-            const targetWidth = otherEditor.getScrollWidth() - otherEditor.getLayoutInfo().width;
+            const targetLineHeight = otherEditor.getOption(monaco.editor.EditorOption.lineHeight);
+            const currentOtherScrollTop = otherEditor.getScrollTop();
+            const maxScrollTop = otherEditor.getScrollHeight() - otherEditor.getLayoutInfo().height;
+
+            const targetDeltaY = linesScrolled * targetLineHeight;
+            const newScrollTop = Math.max(0, Math.min(currentOtherScrollTop + targetDeltaY, maxScrollTop));
 
             otherEditor.setScrollPosition({
-              scrollTop: verticalPercent * targetHeight,
-              scrollLeft: horizontalPercent * targetWidth,
+              scrollTop: newScrollTop,
+              scrollLeft: sourceEditor.getScrollLeft(),
             });
           }
         });

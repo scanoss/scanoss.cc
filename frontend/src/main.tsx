@@ -9,7 +9,6 @@ import { Toaster } from './components/ui/toaster';
 import { TooltipProvider } from './components/ui/tooltip';
 import { DialogProvider } from './providers/DialogProvider';
 import Index from './routes';
-import FileComparison from './routes/files/match';
 import Root from './routes/root';
 
 const queryClient = new QueryClient();
@@ -22,7 +21,7 @@ const router = createHashRouter([
       { index: true, element: <Index /> },
       {
         path: 'files/:filePath',
-        element: <FileComparison />,
+        element: <MatchComparison />,
       },
     ],
   },

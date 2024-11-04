@@ -2,12 +2,14 @@ import { Editor } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
 import { useRef } from 'react';
 
+import { HighlightRange, MonacoManager } from '@/lib/editor';
 import { getHighlightLineRanges } from '@/modules/results/utils';
 
 import { Skeleton } from './ui/skeleton';
 
 interface CodeViewerProps {
   content: string | undefined;
+  editorId: string;
   editorType: 'local' | 'remote';
   height?: string;
   highlightLines?: string;
@@ -18,6 +20,7 @@ interface CodeViewerProps {
 }
 
 export default function CodeViewer({
+  editorId,
   content,
   editorType,
   height = '100%',
@@ -29,57 +32,30 @@ export default function CodeViewer({
 }: CodeViewerProps) {
   const highlightAll = highlightLines === 'all';
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const monacoManager = MonacoManager.getInstance();
 
-  const handleEditorMount = async (
-    editor: monaco.editor.IStandaloneCodeEditor
-  ) => {
+  const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
+
+    const className = editorType === 'local' ? 'bg-highlight-local-line' : 'bg-highlight-remote-line';
+    const highlightRanges: HighlightRange[] = [];
 
     if (highlightAll) {
       const totalLines = editor.getModel()?.getLineCount();
-
-      if (!totalLines) return;
-
-      const decorations: monaco.editor.IModelDeltaDecoration[] = [
-        {
-          range: new monaco.Range(1, 1, totalLines, 1),
-          options: {
-            isWholeLine: true,
-            className:
-              editorType === 'local'
-                ? 'bg-highlight-local-line'
-                : 'bg-highlight-remote-line',
-          },
-        },
-      ];
-
-      editorRef.current?.createDecorationsCollection(decorations);
-
-      return;
+      if (totalLines) {
+        highlightRanges.push({ start: 1, end: totalLines });
+      }
     }
 
-    if (!highlightLines) return;
+    if (highlightLines) {
+      const ranges = getHighlightLineRanges(highlightLines);
+      highlightRanges.push(...ranges);
+    }
 
-    const ranges = getHighlightLineRanges(highlightLines);
-
-    const decorations: monaco.editor.IModelDeltaDecoration[] = ranges.map(
-      ({ start, end }) => ({
-        range: new monaco.Range(start, 1, end, 1),
-        options: {
-          isWholeLine: true,
-          className:
-            editorType === 'local'
-              ? 'bg-highlight-local-line'
-              : 'bg-highlight-remote-line',
-          inlineClassName:
-            editorType === 'local'
-              ? 'bg-highlight-local-inline'
-              : 'bg-highlight-remote-inline',
-        },
-      })
-    );
-
-    editorRef.current?.createDecorationsCollection(decorations);
+    monacoManager.addEditor(editorId, editor, {
+      highlight: { ranges: highlightRanges, className },
+      revealLine: highlightRanges[0]?.start,
+    });
   };
 
   if (isLoading || !highlightLines) {
@@ -107,7 +83,6 @@ export default function CodeViewer({
         minimap: { enabled: false },
         readOnly: true,
         wordWrap: 'on',
-        smoothScrolling: true,
       }}
     />
   );

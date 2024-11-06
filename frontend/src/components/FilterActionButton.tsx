@@ -17,6 +17,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useSelectedResult from '@/hooks/useSelectedResult';
 import { getShortcutDisplay } from '@/lib/shortcuts';
@@ -53,6 +54,7 @@ export default function FilterActionButton({
   const selectedResult = useSelectedResult();
   const isCompletedResult = selectedResult?.workflow_state === 'completed';
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { modifierKey } = useEnvironment();
 
   const isReplaceAction = action === FilterAction.Replace;
 
@@ -233,11 +235,11 @@ export default function FilterActionButton({
               <DropdownMenuSubContent className="min-w-[420px]">
                 <DropdownMenuItem onClick={handleFilterByFileWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithoutComments)[0]}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithoutComments, modifierKey.label)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleFilterByFileWithComments}>
                   <span className="first-letter:uppercase">{`${action} with comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithComments)[0]}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithComments, modifierKey.label)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 {!isReplaceAction && (
                   <DropdownMenuItem onClick={handleFilterByFileAndDifferentLicense}>
@@ -255,11 +257,11 @@ export default function FilterActionButton({
               <DropdownMenuSubContent className="min-w-[420px]">
                 <DropdownMenuItem onClick={handleFilterByPurlWithoutComments}>
                   <span className="first-letter:uppercase">{`${action} without comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByComponentWithoutComments)[0]}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByComponentWithoutComments, modifierKey.label)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleFilterByPurlWithComments}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByComponentWithComments)[0]}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByComponentWithComments, modifierKey.label)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 {!isReplaceAction && (
                   <DropdownMenuItem onClick={handleFilterByPurlAndDifferentLicense}>

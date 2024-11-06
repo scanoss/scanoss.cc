@@ -123,13 +123,13 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
   },
 };
 
-export const getShortcutDisplay = (keys: string): string[] => {
+export const getShortcutDisplay = (keys: string, modifierKey: string): string[] => {
   return keys.split(',').map((keyCombo) => {
     const parts = keyCombo.trim().split('+');
 
     return parts
       .map((p) => {
-        if (p.toLowerCase() === 'mod') return '⌘';
+        if (p.toLowerCase() === 'mod') return modifierKey;
         if (p.toLowerCase() === 'up') return '↑';
         if (p.toLowerCase() === 'down') return '↓';
 

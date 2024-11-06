@@ -8,7 +8,6 @@ import (
 	"github.com/go-playground/validator"
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
-	"github.com/wailsapp/wails/v2/pkg/options/windows"
 
 	"github.com/scanoss/scanoss.lui/backend/main/cmd"
 	"github.com/scanoss/scanoss.lui/backend/main/entities"
@@ -87,18 +86,11 @@ func main() {
 		EnumBind: []interface{}{
 			entities.AllShortcutActions,
 		},
-		Windows: &windows.Options{
-			WebviewIsTransparent: true,
-			WindowIsTranslucent:  true,
-		},
 		Linux: &linux.Options{
-			WindowIsTranslucent: true,
-			Icon:                icon,
-			ProgramName:         "Scanoss Lui",
+			Icon:        icon,
+			ProgramName: "Scanoss Lui",
 		},
 		Mac: &mac.Options{
-			WebviewIsTransparent: true,
-			WindowIsTranslucent:  true,
 			About: &mac.AboutInfo{
 				Title:   "Scanoss Lightweight User Interface",
 				Message: "Version: " + entities.AppVersion,

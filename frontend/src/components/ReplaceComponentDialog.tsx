@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { Check, ChevronsUpDown, CircleAlert, Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -44,6 +44,7 @@ interface ReplaceComponentDialogProps {
 
 export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponent, withComment, filterBy }: ReplaceComponentDialogProps) {
   const { toast } = useToast();
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
@@ -104,7 +105,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     }
   }, [data]);
 
-  const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => form.handleSubmit(onSubmit), {
+  const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => submitButtonRef.current?.click(), {
     enableOnFormTags: true,
   });
 
@@ -228,7 +229,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 <Button variant="ghost" onClick={onOpenChange}>
                   Cancel
                 </Button>
-                <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
+                <Button ref={submitButtonRef} type="submit" onClick={form.handleSubmit(onSubmit)}>
                   Confirm <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
                 </Button>
               </DialogFooter>

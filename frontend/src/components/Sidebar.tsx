@@ -68,6 +68,11 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
+    // Selects the first result when first loading the app
+    if (!currentPath && pendingResults.length) {
+      navigate(`/files/${encodeFilePath(pendingResults[0].path)}`);
+    }
+
     if (currentPath) {
       const index = results.findIndex((r) => r.path === currentPath);
 
@@ -77,7 +82,7 @@ export default function Sidebar() {
         setSelectedResults([results[index]]);
       }
     }
-  }, [currentPath, results]);
+  }, [currentPath, results, pendingResults]);
 
   useEffect(() => {
     fetchResults(filterByMatchType === 'all' ? undefined : filterByMatchType, debouncedQuery);

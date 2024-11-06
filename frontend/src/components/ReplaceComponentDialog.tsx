@@ -190,7 +190,9 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
               </div>
 
               <FormItem className="flex flex-col">
-                <Label>License</Label>
+                <Label>
+                  License <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                </Label>
                 <SelectLicenseList key={licenseKey} onSelect={(value) => form.setValue('license', value)} />
               </FormItem>
 
@@ -200,7 +202,9 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                   name="comment"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Comment</FormLabel>
+                      <FormLabel>
+                        Comment <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                      </FormLabel>
                       <FormControl>
                         <Textarea {...field} />
                       </FormControl>

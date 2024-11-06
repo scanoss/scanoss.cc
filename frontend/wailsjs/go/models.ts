@@ -29,7 +29,6 @@ export namespace entities {
 	    usage?: string;
 	    comment?: string;
 	    replace_with?: string;
-	    component_name?: string;
 	    license?: string;
 	
 	    static createFrom(source: any = {}) {
@@ -43,7 +42,6 @@ export namespace entities {
 	        this.usage = source["usage"];
 	        this.comment = source["comment"];
 	        this.replace_with = source["replace_with"];
-	        this.component_name = source["component_name"];
 	        this.license = source["license"];
 	    }
 	}
@@ -160,8 +158,7 @@ export namespace entities {
 	    usage?: string;
 	    action: string;
 	    comment?: string;
-	    replace_with_purl?: string;
-	    replace_with_name?: string;
+	    replace_with?: string;
 	    license?: string;
 	
 	    static createFrom(source: any = {}) {
@@ -175,8 +172,7 @@ export namespace entities {
 	        this.usage = source["usage"];
 	        this.action = source["action"];
 	        this.comment = source["comment"];
-	        this.replace_with_purl = source["replace_with_purl"];
-	        this.replace_with_name = source["replace_with_name"];
+	        this.replace_with = source["replace_with"];
 	        this.license = source["license"];
 	    }
 	}

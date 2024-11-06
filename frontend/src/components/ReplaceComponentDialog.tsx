@@ -18,15 +18,7 @@ import NewComponentDialog from './NewComponentDialog';
 import SelectLicenseList from './SelectLicenseList';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from './ui/command';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from './ui/command';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { Input } from './ui/input';
@@ -50,12 +42,7 @@ interface ReplaceComponentDialogProps {
   filterBy: 'by_file' | 'by_purl';
 }
 
-export default function ReplaceComponentDialog({
-  onOpenChange,
-  onReplaceComponent,
-  withComment,
-  filterBy,
-}: ReplaceComponentDialogProps) {
+export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponent, withComment, filterBy }: ReplaceComponentDialogProps) {
   const { toast } = useToast();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
@@ -79,17 +66,14 @@ export default function ReplaceComponentDialog({
   });
 
   const onSubmit = (values: z.infer<typeof ReplaceComponentFormSchema>) => {
-    const { comment, name, purl, license } = values;
+    const { comment, purl, license } = values;
 
     onReplaceComponent({
       filterBy,
       comment,
       license,
       action: FilterAction.Replace,
-      replaceWith: {
-        name,
-        purl,
-      },
+      replaceWith: purl,
     });
   };
 
@@ -137,14 +121,8 @@ export default function ReplaceComponentDialog({
                     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn('justify-between', !field.value && 'text-muted-foreground')}
-                          >
-                            {field.value
-                              ? declaredComponents?.find((component) => component.purl === field.value)?.name
-                              : 'Select component'}
+                          <Button variant="outline" role="combobox" className={cn('justify-between', !field.value && 'text-muted-foreground')}>
+                            {field.value ? declaredComponents?.find((component) => component.purl === field.value)?.name : 'Select component'}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -180,12 +158,7 @@ export default function ReplaceComponentDialog({
                                       setPopoverOpen(false);
                                     }}
                                   >
-                                    <Check
-                                      className={cn(
-                                        'mr-2 h-4 w-4',
-                                        component.purl === field.value ? 'opacity-100' : 'opacity-0'
-                                      )}
-                                    />
+                                    <Check className={cn('mr-2 h-4 w-4', component.purl === field.value ? 'opacity-100' : 'opacity-0')} />
                                     <div>
                                       <p>{component.name}</p>
                                       <p className="text-xs text-muted-foreground">{component.purl}</p>
@@ -252,10 +225,7 @@ export default function ReplaceComponentDialog({
         </Dialog>
       </Form>
       {newComponentDialogOpen && (
-        <NewComponentDialog
-          onOpenChange={() => setNewComponentDialogOpen((prev) => !prev)}
-          onCreated={onComponentCreated}
-        />
+        <NewComponentDialog onOpenChange={() => setNewComponentDialogOpen((prev) => !prev)} onCreated={onComponentCreated} />
       )}
     </>
   );

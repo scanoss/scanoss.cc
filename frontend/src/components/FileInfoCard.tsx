@@ -19,15 +19,14 @@ export default function FileInfoCard({ title, subtitle, fileType }: FileInfoCard
   const presentation = stateInfoPresentation[filterConfig?.action as FilterAction];
 
   const shouldShowStateInfo =
-    (fileType === 'local' && filterConfig?.type === 'by_file') ||
-    (fileType === 'remote' && filterConfig?.type === 'by_purl');
+    (fileType === 'local' && filterConfig?.type === 'by_file') || (fileType === 'remote' && filterConfig?.type === 'by_purl');
 
   return (
     <div
       className={clsx(
-        'flex justify-between border border-l-0 border-t-0 p-3 text-sm',
-        shouldShowStateInfo && presentation?.stateInfoContainerStyles,
-        fileType === 'remote' && 'border-r-0'
+        'flex justify-between border p-3 text-sm',
+        shouldShowStateInfo ? presentation?.stateInfoContainerStyles : 'border-l-0 border-t-0',
+        fileType === 'remote' && !shouldShowStateInfo && 'border-r-0'
       )}
     >
       <div>

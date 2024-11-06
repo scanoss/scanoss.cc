@@ -162,15 +162,16 @@ func TestGetDeclaredComponents(t *testing.T) {
 		assert.Len(t, declaredComponents, 3)
 		assert.Equal(t, declaredComponents, []entities.DeclaredComponent{
 			{
+				Purl: "pkg:github/purl3",
+				Name: "",
+			},
+			{
 				Purl: "pkg:npm/purl1",
 				Name: "component1",
 			},
 			{
 				Purl: "pkg:github/purl2",
 				Name: "component2",
-			}, {
-				Purl: "pkg:github/purl3",
-				Name: "",
 			}})
 
 		resultRepo.AssertExpectations(t)

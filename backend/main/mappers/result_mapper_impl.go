@@ -1,6 +1,8 @@
 package mappers
 
 import (
+	"strings"
+
 	"github.com/labstack/gommon/log"
 	purlutils "github.com/scanoss/go-purl-helper/pkg"
 	"github.com/scanoss/scanoss.lui/backend/main/entities"
@@ -77,5 +79,18 @@ func (m *ResultMapperImpl) mapConcludedPurlUrl(result entities.Result) string {
 	return purlUrl
 }
 func (m ResultMapperImpl) mapConcludedName(result entities.Result) string {
-	return m.scanossSettings.SettingsFile.GetBomEntryFromResult(result).ComponentName
+	replacedPurl := m.scanossSettings.SettingsFile.GetBomEntryFromResult(result).ReplaceWith
+	if replacedPurl == "" {
+		return ""
+	}
+
+	purlName, err := purlutils.PurlNameFromString(replacedPurl)
+	if err != nil {
+		log.Errorf("Error getting component name from purl: %v", err)
+		return ""
+	}
+
+	componentName := strings.Split(purlName, "/")[1]
+
+	return componentName
 }

@@ -18,10 +18,7 @@ export interface OnFilterComponentArgs {
   withComment?: boolean;
   comment?: string;
   license?: string;
-  replaceWith?: {
-    purl: string;
-    name: string;
-  };
+  replaceWith?: string;
 }
 
 interface ComponentFilterActions {
@@ -54,8 +51,7 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
         purl: result.detected_purl ?? '',
         ...(filterBy === 'by_file' && { path: result.path }),
         ...(replaceWith && {
-          replace_with_purl: replaceWith.purl,
-          replace_with_name: replaceWith.name,
+          replace_with: replaceWith,
         }),
       }));
 

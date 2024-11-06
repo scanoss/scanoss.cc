@@ -1,6 +1,8 @@
 package service
 
 import (
+	"sort"
+
 	"github.com/scanoss/scanoss.lui/backend/main/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/repository"
 )
@@ -16,5 +18,14 @@ func NewLicenseServiceImpl(repo repository.LicenseRepository) LicenseService {
 }
 
 func (s *LicenseServiceImpl) GetAll() ([]entities.License, error) {
-	return s.repo.GetAll()
+	licenses, err := s.repo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(licenses, func(i, j int) bool {
+		return licenses[i].LicenseId < licenses[j].LicenseId
+	})
+
+	return licenses, nil
 }

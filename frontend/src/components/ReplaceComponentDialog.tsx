@@ -47,6 +47,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
+  const [licenseKey, setLicenseKey] = useState(0);
 
   const form = useForm<z.infer<typeof ReplaceComponentFormSchema>>({
     resolver: zodResolver(ReplaceComponentFormSchema),
@@ -64,6 +65,11 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     queryKey: ['declaredComponents'],
     queryFn: GetDeclaredComponents,
   });
+
+  const resetLicense = () => {
+    form.setValue('license', '');
+    setLicenseKey((prevKey) => prevKey + 1); // This is a hack to reset the SelectLicenseList component
+  };
 
   const onSubmit = (values: z.infer<typeof ReplaceComponentFormSchema>) => {
     const { comment, purl, license } = values;
@@ -88,6 +94,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     setDeclaredComponents((prevState) => [...prevState, component]);
     form.setValue('purl', component.purl);
     form.setValue('name', component.name);
+    resetLicense();
     setNewComponentDialogOpen(false);
   };
 
@@ -155,6 +162,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                                     onSelect={() => {
                                       form.setValue('purl', component.purl);
                                       form.setValue('name', component.name);
+                                      resetLicense();
                                       setPopoverOpen(false);
                                     }}
                                   >
@@ -183,7 +191,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
 
               <FormItem className="flex flex-col">
                 <Label>License</Label>
-                <SelectLicenseList onSelect={(value) => form.setValue('license', value)} />
+                <SelectLicenseList key={licenseKey} onSelect={(value) => form.setValue('license', value)} />
               </FormItem>
 
               {withComment && (

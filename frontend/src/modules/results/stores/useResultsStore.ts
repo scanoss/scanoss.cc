@@ -57,8 +57,14 @@ const useResultsStore = create<ResultsStore>()(
 
         set({ pendingResults, completedResults });
 
+        // When the app first loads or if changing the query, select the first result
         if (!selectedResults.length) {
-          set({ selectedResults: [results[0]], lastSelectionType: results[0].workflow_state as 'pending' | 'completed', lastSelectedIndex: 0 });
+          const hasPendingResults = pendingResults.length > 0;
+          const hasCompletedResults = completedResults.length > 0;
+          const firstSelectedResult = hasPendingResults ? pendingResults[0] : hasCompletedResults ? completedResults[0] : null;
+          const selectedResults = firstSelectedResult ? [firstSelectedResult] : [];
+
+          set({ selectedResults, lastSelectionType: firstSelectedResult?.workflow_state as 'pending' | 'completed', lastSelectedIndex: 0 });
         }
       } catch (error) {
         set({

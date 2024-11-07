@@ -55,11 +55,12 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
         }),
       }));
 
+      useResultsStore.getState().moveToNextResult();
+
       await FilterComponents(dto);
 
       await get().updateUndoRedoState();
       await useResultsStore.getState().fetchResults();
-      useResultsStore.getState().moveToNextResult();
     },
 
     undo: async () => {

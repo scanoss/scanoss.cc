@@ -4,9 +4,11 @@ import { Input } from '@/components/ui/input';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useQueryState from '@/hooks/useQueryState';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
+import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 export default function ResultSearchBar({ searchInputRef }: { searchInputRef: React.RefObject<HTMLInputElement> }) {
   const [query, setQuery] = useQueryState<string>('q', '');
+  const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
 
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.focusSearch.keys, () => searchInputRef.current?.focus());
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.selectAll.keys, () => searchInputRef.current?.select());
@@ -20,6 +22,7 @@ export default function ResultSearchBar({ searchInputRef }: { searchInputRef: Re
         name="q"
         onChange={(e) => {
           e.preventDefault();
+          setSelectedResults([]);
           setQuery(e.target.value);
         }}
         placeholder="Search"

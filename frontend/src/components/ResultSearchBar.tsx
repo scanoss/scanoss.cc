@@ -2,12 +2,12 @@ import { Search } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
-import useQueryState from '@/hooks/useQueryState';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 export default function ResultSearchBar({ searchInputRef }: { searchInputRef: React.RefObject<HTMLInputElement> }) {
-  const [query, setQuery] = useQueryState<string>('q', '');
+  const query = useResultsStore((state) => state.query);
+  const setQuery = useResultsStore((state) => state.setQuery);
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
 
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.focusSearch.keys, () => searchInputRef.current?.focus());

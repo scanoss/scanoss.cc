@@ -6,7 +6,6 @@ import { entities } from 'wailsjs/go/models';
 import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
-import useQueryState from '@/hooks/useQueryState';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
@@ -34,8 +33,8 @@ export default function Sidebar() {
   const moveToNextResult = useResultsStore((state) => state.moveToNextResult);
   const moveToPreviousResult = useResultsStore((state) => state.moveToPreviousResult);
 
-  const [filterByMatchType] = useQueryState('matchType', 'all');
-  const [query] = useQueryState('q', '');
+  const filterByMatchType = useResultsStore((state) => state.filterByMatchType);
+  const query = useResultsStore((state) => state.query);
   const debouncedQuery: string = useDebounce(query, DEBOUNCE_QUERY_MS);
 
   const handleSelectFiles = (e: React.MouseEvent, result: entities.ResultDTO, selectionType: 'pending' | 'completed') => {
@@ -67,7 +66,7 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
-    fetchResults(filterByMatchType === 'all' ? undefined : filterByMatchType, debouncedQuery);
+    fetchResults();
   }, [filterByMatchType, debouncedQuery]);
 
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveUp.keys, moveToPreviousResult, {

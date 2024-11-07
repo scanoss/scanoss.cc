@@ -13,10 +13,12 @@ interface ResultsState {
   lastSelectionType: 'pending' | 'completed' | null;
   pendingResults: entities.ResultDTO[];
   selectedResults: entities.ResultDTO[];
+  query: string;
+  filterByMatchType: MatchType | 'all';
 }
 
 interface ResultsActions {
-  fetchResults: (matchType?: MatchType, query?: string) => Promise<void>;
+  fetchResults: () => Promise<void>;
   moveToNextResult: () => void;
   moveToPreviousResult: () => void;
   selectResultRange: (endResult: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
@@ -24,6 +26,8 @@ interface ResultsActions {
   setLastSelectionType: (type: 'pending' | 'completed') => void;
   setSelectedResults: (selectedResults: entities.ResultDTO[]) => void;
   toggleResultSelection: (result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
+  setQuery: (query: string) => void;
+  setFilterByMatchType: (matchType: MatchType | 'all') => void;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -37,6 +41,8 @@ const useResultsStore = create<ResultsStore>()(
     lastSelectedIndex: -1,
     selectedResults: [],
     lastSelectionType: null,
+    query: '',
+    filterByMatchType: 'all',
 
     setSelectedResults: (selectedResults) => set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
@@ -44,12 +50,12 @@ const useResultsStore = create<ResultsStore>()(
 
     setLastSelectionType: (type: 'pending' | 'completed') => set({ lastSelectionType: type }, false, 'SET_LAST_SELECTION_TYPE'),
 
-    fetchResults: async (matchType, query) => {
-      const { selectedResults } = get();
+    fetchResults: async () => {
+      const { selectedResults, filterByMatchType, query } = get();
       set({ isLoading: true, error: null }, false, 'FETCH_RESULTS');
       try {
         const results = await GetAll({
-          match_type: matchType,
+          match_type: filterByMatchType === 'all' ? undefined : filterByMatchType,
           query,
         });
         const pendingResults = results.filter((r) => r.workflow_state === 'pending');
@@ -190,6 +196,8 @@ const useResultsStore = create<ResultsStore>()(
         lastSelectionType: newSelectionType,
       });
     },
+    setQuery: (query) => set({ query }, false, 'SET_QUERY'),
+    setFilterByMatchType: (matchType) => set({ filterByMatchType: matchType }, false, 'SET_FILTER_BY_MATCH_TYPE'),
   }))
 );
 

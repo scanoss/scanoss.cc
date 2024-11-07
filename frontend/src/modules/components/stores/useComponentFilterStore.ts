@@ -22,7 +22,7 @@ export interface OnFilterComponentArgs {
 }
 
 interface ComponentFilterActions {
-  onFilterComponent: (args: OnFilterComponentArgs) => Promise<entities.ResultDTO | null>;
+  onFilterComponent: (args: OnFilterComponentArgs) => Promise<void>;
   redo: () => Promise<void>;
   undo: () => Promise<void>;
   updateUndoRedoState: () => Promise<void>;
@@ -55,16 +55,12 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
         }),
       }));
 
-      const nextResult = useResultsStore.getState().getNextResult();
+      useResultsStore.getState().moveToNextResult();
 
       await FilterComponents(dto);
 
       await get().updateUndoRedoState();
       await useResultsStore.getState().fetchResults();
-
-      useResultsStore.setState({ selectedResults: [] }, false, 'CLEAR_SELECTED_RESULTS');
-
-      return nextResult;
     },
 
     undo: async () => {

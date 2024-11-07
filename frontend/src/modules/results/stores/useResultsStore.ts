@@ -13,17 +13,21 @@ interface ResultsState {
   lastSelectionType: 'pending' | 'completed' | null;
   pendingResults: entities.ResultDTO[];
   selectedResults: entities.ResultDTO[];
+  query: string;
+  filterByMatchType: MatchType | 'all';
 }
 
 interface ResultsActions {
-  fetchResults: (matchType?: MatchType, query?: string) => Promise<void>;
-  getNextResult: () => entities.ResultDTO;
-  getPreviousResult: () => entities.ResultDTO;
+  fetchResults: () => Promise<void>;
+  moveToNextResult: () => void;
+  moveToPreviousResult: () => void;
   selectResultRange: (endResult: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   setLastSelectedIndex: (index: number) => void;
   setLastSelectionType: (type: 'pending' | 'completed') => void;
   setSelectedResults: (selectedResults: entities.ResultDTO[]) => void;
   toggleResultSelection: (result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
+  setQuery: (query: string) => void;
+  setFilterByMatchType: (matchType: MatchType | 'all') => void;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -37,24 +41,37 @@ const useResultsStore = create<ResultsStore>()(
     lastSelectedIndex: -1,
     selectedResults: [],
     lastSelectionType: null,
+    query: '',
+    filterByMatchType: 'all',
 
     setSelectedResults: (selectedResults) => set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
     setLastSelectedIndex: (index) => set({ lastSelectedIndex: index }, false, 'SET_LAST_SELECTED_INDEX'),
 
-    setLastSelectionType: (type: 'pending' | 'completed') =>
-      set({ lastSelectionType: type }, false, 'SET_LAST_SELECTION_TYPE'),
+    setLastSelectionType: (type: 'pending' | 'completed') => set({ lastSelectionType: type }, false, 'SET_LAST_SELECTION_TYPE'),
 
-    fetchResults: async (matchType, query) => {
+    fetchResults: async () => {
+      const { selectedResults, filterByMatchType, query } = get();
       set({ isLoading: true, error: null }, false, 'FETCH_RESULTS');
       try {
         const results = await GetAll({
-          match_type: matchType,
+          match_type: filterByMatchType === 'all' ? undefined : filterByMatchType,
           query,
         });
         const pendingResults = results.filter((r) => r.workflow_state === 'pending');
         const completedResults = results.filter((r) => r.workflow_state === 'completed');
+
         set({ pendingResults, completedResults });
+
+        // When the app first loads or if changing the query, select the first result
+        if (!selectedResults.length) {
+          const hasPendingResults = pendingResults.length > 0;
+          const hasCompletedResults = completedResults.length > 0;
+          const firstSelectedResult = hasPendingResults ? pendingResults[0] : hasCompletedResults ? completedResults[0] : null;
+          const selectedResults = firstSelectedResult ? [firstSelectedResult] : [];
+
+          set({ selectedResults, lastSelectionType: firstSelectedResult?.workflow_state as 'pending' | 'completed', lastSelectedIndex: 0 });
+        }
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'An error occurred while fetching results',
@@ -101,19 +118,14 @@ const useResultsStore = create<ResultsStore>()(
 
         const resultsOfType = lastSelectionType === 'pending' ? pendingResults : completedResults;
 
-        const startIndex =
-          lastSelectedIndex !== -1
-            ? lastSelectedIndex
-            : resultsOfType.findIndex((r) => r.path === selectedResults[0]?.path);
+        const startIndex = lastSelectedIndex !== -1 ? lastSelectedIndex : resultsOfType.findIndex((r) => r.path === selectedResults[0]?.path);
         const endIndex = resultsOfType.findIndex((r) => r.path === endResult.path);
 
         if (startIndex === -1 || endIndex === -1) return state;
 
         const [start, end] = startIndex < endIndex ? [startIndex, endIndex] : [endIndex, startIndex];
 
-        const newSelectedResults = resultsOfType
-          .slice(start, end + 1)
-          .filter((r) => r.workflow_state === selectionType);
+        const newSelectedResults = resultsOfType.slice(start, end + 1).filter((r) => r.workflow_state === selectionType);
 
         return {
           selectedResults: newSelectedResults,
@@ -122,43 +134,70 @@ const useResultsStore = create<ResultsStore>()(
         };
       }),
 
-    getNextResult: () => {
+    moveToNextResult: () => {
       const { pendingResults, completedResults, lastSelectionType, selectedResults } = get();
 
       const resultsOfType = lastSelectionType === 'pending' ? pendingResults : completedResults;
       const lastResultInSelection = selectedResults[selectedResults.length - 1]; // To handle multi select as well
-      const newResultIndex = resultsOfType.findIndex((r) => r.path === lastResultInSelection.path) + 1;
-      let nextResult: entities.ResultDTO;
+      const currentResultIndex = resultsOfType.findIndex((r) => r.path === lastResultInSelection.path);
+      let nextResult: entities.ResultDTO = lastResultInSelection;
+      let nextSelectionType = lastSelectionType;
+      let newResultIndex = currentResultIndex + 1;
 
-      if (newResultIndex >= resultsOfType.length) {
+      // If we are at the end of the results, go to the opposite type
+      if (currentResultIndex === resultsOfType.length - 1) {
         const oppositeResults = lastSelectionType === 'pending' ? completedResults : pendingResults;
         nextResult = oppositeResults[0];
+        nextSelectionType = lastSelectionType === 'pending' ? 'completed' : 'pending';
+        newResultIndex = 0;
 
-        return nextResult;
+        // If there are no opposite results, do nothing, just keep the current selection
+        if (oppositeResults.length === 0) return;
+      } else {
+        nextResult = resultsOfType[newResultIndex];
       }
 
-      nextResult = resultsOfType[newResultIndex];
-
-      return nextResult;
+      set({
+        selectedResults: [nextResult],
+        lastSelectedIndex: newResultIndex,
+        lastSelectionType: nextSelectionType,
+      });
     },
-    getPreviousResult: () => {
+
+    moveToPreviousResult: () => {
       const { pendingResults, completedResults, lastSelectionType, selectedResults } = get();
 
       const resultsOfType = lastSelectionType === 'pending' ? pendingResults : completedResults;
-      const newResultIndex = resultsOfType.findIndex((r) => r.path === selectedResults[0]?.path) - 1;
-      let previousResult: entities.ResultDTO;
+      const lastResultInSelection = selectedResults[selectedResults.length - 1]; // To handle multi select as well
+      const currentResultIndex = resultsOfType.findIndex((r) => r.path === lastResultInSelection.path);
+      let newSelectedResult: entities.ResultDTO = lastResultInSelection;
+      let newSelectionType = lastSelectionType;
+      let newResultIndex;
 
-      if (newResultIndex === -1) {
+      // If we are at the beginning of the results
+      if (currentResultIndex === 0) {
         const oppositeResults = lastSelectionType === 'pending' ? completedResults : pendingResults;
-        previousResult = oppositeResults[oppositeResults.length - 1];
 
-        return previousResult;
+        if (!oppositeResults.length) return;
+
+        const lastPosition = oppositeResults.length - 1;
+        const lastResultFromOpposite = oppositeResults[lastPosition];
+        newSelectedResult = lastResultFromOpposite;
+        newSelectionType = lastSelectionType === 'pending' ? 'completed' : 'pending';
+        newResultIndex = lastPosition;
+      } else {
+        newSelectedResult = resultsOfType[currentResultIndex - 1];
+        newResultIndex = currentResultIndex - 1;
       }
 
-      previousResult = resultsOfType[newResultIndex];
-
-      return previousResult;
+      set({
+        selectedResults: [newSelectedResult],
+        lastSelectedIndex: newResultIndex,
+        lastSelectionType: newSelectionType,
+      });
     },
+    setQuery: (query) => set({ query }, false, 'SET_QUERY'),
+    setFilterByMatchType: (matchType) => set({ filterByMatchType: matchType }, false, 'SET_FILTER_BY_MATCH_TYPE'),
   }))
 );
 

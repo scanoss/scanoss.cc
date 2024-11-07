@@ -2,13 +2,9 @@ import { ReloadIcon } from '@radix-ui/react-icons';
 import { useMutation } from '@tanstack/react-query';
 import { RotateCcw, RotateCw, Save } from 'lucide-react';
 
-import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
-import useQueryState from '@/hooks/useQueryState';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
-import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
-import { MatchType } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import { Save as SaveBomChanges } from '../../wailsjs/go/service/ScanossSettingsServiceImp';
@@ -27,10 +23,6 @@ export default function ActionToolbar() {
 
   const fetchResults = useResultsStore((state) => state.fetchResults);
 
-  const [filterByMatchType] = useQueryState<MatchType | 'all'>('matchType', 'all');
-  const [query] = useQueryState<string>('q', '');
-  const debouncedQuery = useDebounce<string>(query, DEBOUNCE_QUERY_MS);
-
   const { mutate: saveChanges, isPending } = useMutation({
     mutationFn: SaveBomChanges,
     onSuccess: async () => {
@@ -38,7 +30,7 @@ export default function ActionToolbar() {
         title: 'Success',
         description: `Your changes have been successfully saved.`,
       });
-      await fetchResults(filterByMatchType === 'all' ? undefined : filterByMatchType, debouncedQuery);
+      await fetchResults();
     },
     onError: (e) => {
       toast({

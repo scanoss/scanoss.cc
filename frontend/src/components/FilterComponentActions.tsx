@@ -1,10 +1,8 @@
 import { Check, PackageMinus, Replace } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { withErrorHandling } from '@/lib/errors';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
-import { encodeFilePath } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
@@ -14,7 +12,6 @@ import { useToast } from './ui/use-toast';
 
 export default function FilterComponentActions() {
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const [showReplaceComponentDialog, setShowReplaceComponentDialog] = useState(false);
   const [withComment, setWithComment] = useState(false);
@@ -24,13 +21,7 @@ export default function FilterComponentActions() {
 
   const handleFilterComponent = withErrorHandling({
     asyncFn: async (args: OnFilterComponentArgs) => {
-      const nextResult = await onFilterComponent(args);
-
-      if (nextResult) {
-        navigate({
-          pathname: `/files/${encodeFilePath(nextResult.path)}`,
-        });
-      }
+      await onFilterComponent(args);
     },
     onError: (error) => {
       console.error(error);

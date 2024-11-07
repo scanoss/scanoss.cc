@@ -7,7 +7,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import useSelectedResult from '@/hooks/useSelectedResult';
 import { FilterAction } from '@/modules/components/domain';
-import useLocalFilePath from '@/hooks/useLocalFilePath';
 import { MatchType, matchTypePresentation, resultStatusPresentation, stateInfoPresentation } from '@/modules/results/domain';
 
 import { GetComponentByPath } from '../../wailsjs/go/service/ComponentServiceImpl';
@@ -15,11 +14,12 @@ import ComponentDetailTooltip from './ComponentDetailTooltip';
 
 export default function MatchInfoCard() {
   const result = useSelectedResult();
-  const localFilePath = useLocalFilePath();
+  const selectedResult = useSelectedResult();
 
   const { data: component } = useQuery({
-    queryKey: ['component', localFilePath],
-    queryFn: () => GetComponentByPath(localFilePath),
+    queryKey: ['component', selectedResult?.path],
+    queryFn: () => GetComponentByPath(selectedResult?.path as string),
+    enabled: !!selectedResult?.path,
   });
 
   if (!component) {

@@ -103,6 +103,10 @@ func (a *App) initializeMenu() {
 		ActionsMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {})
 	}
 
+	// View menu
+	ViewMenu := AppMenu.AddSubmenu("View")
+	ViewMenu.AddText("Sync Scroll Position", keys.Combo("e", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {})
+
 	// Help menu
 	HelpMenu := AppMenu.AddSubmenu("Help")
 	HelpMenu.AddText("Report Issue", nil, func(cd *menu.CallbackData) {

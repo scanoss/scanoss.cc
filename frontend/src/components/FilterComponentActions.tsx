@@ -1,10 +1,8 @@
 import { Check, PackageMinus, Replace } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { withErrorHandling } from '@/lib/errors';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
-import { encodeFilePath } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
@@ -14,21 +12,16 @@ import { useToast } from './ui/use-toast';
 
 export default function FilterComponentActions() {
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const [showReplaceComponentDialog, setShowReplaceComponentDialog] = useState(false);
+  const [withComment, setWithComment] = useState(false);
+  const [filterBy, setFilterBy] = useState<'by_file' | 'by_purl'>();
 
   const onFilterComponent = useComponentFilterStore((state) => state.onFilterComponent);
 
   const handleFilterComponent = withErrorHandling({
-    asyncFn: async (args?: OnFilterComponentArgs) => {
-      const nextResult = await onFilterComponent(args);
-
-      if (nextResult) {
-        navigate({
-          pathname: `/files/${encodeFilePath(nextResult.path)}`,
-        });
-      }
+    asyncFn: async (args: OnFilterComponentArgs) => {
+      await onFilterComponent(args);
     },
     onError: (error) => {
       console.error(error);
@@ -82,17 +75,23 @@ export default function FilterComponentActions() {
           action={FilterAction.Replace}
           description="Replace detected components with another one."
           icon={<Replace className="h-5 w-5 stroke-yellow-500" />}
-          onAdd={() => setShowReplaceComponentDialog(true)}
+          onAdd={(args) => {
+            setShowReplaceComponentDialog(true);
+            setFilterBy(args.filterBy);
+            setWithComment(args.withComment ?? false);
+          }}
           shortcutKeysByFileWithComments={KEYBOARD_SHORTCUTS.replaceFileWithComments.keys}
           shortcutKeysByFileWithoutComments={KEYBOARD_SHORTCUTS.replaceFileWithoutComments.keys}
           shortcutKeysByComponentWithComments={KEYBOARD_SHORTCUTS.replaceComponentWithComments.keys}
           shortcutKeysByComponentWithoutComments={KEYBOARD_SHORTCUTS.replaceComponentWithoutComments.keys}
         />
       </div>
-      {showReplaceComponentDialog && (
+      {showReplaceComponentDialog && filterBy && (
         <ReplaceComponentDialog
           onOpenChange={() => setShowReplaceComponentDialog((prev) => !prev)}
           onReplaceComponent={handleReplaceComponent}
+          withComment={withComment}
+          filterBy={filterBy}
         />
       )}
     </>

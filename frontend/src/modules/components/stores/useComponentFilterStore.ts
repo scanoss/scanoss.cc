@@ -8,28 +8,22 @@ import { CanRedo, CanUndo, FilterComponents, Redo, Undo } from '../../../../wail
 import { FilterAction } from '../domain';
 
 interface ComponentFilterState {
-  action: FilterAction | undefined;
   canRedo: boolean;
   canUndo: boolean;
-  comment: string | undefined;
-  filterBy: 'by_file' | 'by_purl' | undefined;
-  withComment: boolean;
 }
 
 export interface OnFilterComponentArgs {
-  replaceWith?: {
-    purl: string;
-    name: string;
-  };
+  action: FilterAction;
+  filterBy: 'by_file' | 'by_purl';
+  withComment?: boolean;
+  comment?: string;
+  license?: string;
+  replaceWith?: string;
 }
 
 interface ComponentFilterActions {
-  onFilterComponent: (args?: OnFilterComponentArgs) => Promise<entities.ResultDTO | null>;
+  onFilterComponent: (args: OnFilterComponentArgs) => Promise<void>;
   redo: () => Promise<void>;
-  setAction: (action: FilterAction) => void;
-  setFilterBy: (filterBy: 'by_file' | 'by_purl') => void;
-  setComment: (comment: string | undefined) => void;
-  setWithComment: (withComment: boolean) => void;
   undo: () => Promise<void>;
   updateUndoRedoState: () => Promise<void>;
 }
@@ -40,23 +34,9 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
   devtools((set, get) => ({
     canUndo: false,
     canRedo: false,
-    action: undefined,
-    filterBy: undefined,
-    comment: undefined,
-    withComment: false,
 
-    setAction: (action) => set({ action }),
-    setFilterBy: (filterBy) => set({ filterBy }),
-    setComment: (comment) => set({ comment }),
-    setWithComment: (withComment) => set({ withComment }),
-
-    onFilterComponent: async (args?: OnFilterComponentArgs) => {
-      const { replaceWith } = args || {};
-      const { filterBy, action, comment } = get();
-
-      if (!action || !filterBy) {
-        throw new Error('There was an error filtering the component. Please try again.');
-      }
+    onFilterComponent: async (args: OnFilterComponentArgs) => {
+      const { replaceWith, filterBy, action, comment, license } = args;
 
       if (action === FilterAction.Replace && !replaceWith) {
         throw new Error('There was an error replacing the component. Please try again.');
@@ -64,27 +44,23 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
 
       const selectedResults = useResultsStore.getState().selectedResults;
 
-      const finalDto = selectedResults.map((result) => ({
+      const dto: entities.ComponentFilterDTO[] = selectedResults.map((result) => ({
         action,
         comment,
+        license,
         purl: result.detected_purl ?? '',
         ...(filterBy === 'by_file' && { path: result.path }),
         ...(replaceWith && {
-          replace_with_purl: replaceWith.purl,
-          replace_with_name: replaceWith.name,
+          replace_with: replaceWith,
         }),
       }));
 
-      const nextResult = useResultsStore.getState().getNextResult();
+      useResultsStore.getState().moveToNextResult();
 
-      await FilterComponents(finalDto);
+      await FilterComponents(dto);
 
       await get().updateUndoRedoState();
       await useResultsStore.getState().fetchResults();
-
-      useResultsStore.setState({ selectedResults: [] }, false, 'CLEAR_SELECTED_RESULTS');
-
-      return nextResult;
     },
 
     undo: async () => {

@@ -1,17 +1,14 @@
 import clsx from 'clsx';
 import { Braces, ChevronRight, File } from 'lucide-react';
-import { ReactNode, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { ReactNode, useEffect, useRef } from 'react';
 import { entities } from 'wailsjs/go/models';
 
 import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
-import useQueryState from '@/hooks/useQueryState';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
-import { encodeFilePath, getDirectory, getFileName } from '@/lib/utils';
+import { getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
-import useLocalFilePath from '@/modules/files/hooks/useLocalFilePath';
 import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
@@ -22,8 +19,8 @@ import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function Sidebar() {
-  const currentPath = useLocalFilePath();
-  const navigate = useNavigate();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const resultsListRef = useRef<HTMLDivElement>(null);
 
   const fetchResults = useResultsStore((state) => state.fetchResults);
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
@@ -33,20 +30,14 @@ export default function Sidebar() {
   const completedResults = useResultsStore((state) => state.completedResults);
   const setLastSelectedIndex = useResultsStore((state) => state.setLastSelectedIndex);
   const setLastSelectionType = useResultsStore((state) => state.setLastSelectionType);
-  const getNextResult = useResultsStore((state) => state.getNextResult);
-  const getPreviousResult = useResultsStore((state) => state.getPreviousResult);
+  const moveToNextResult = useResultsStore((state) => state.moveToNextResult);
+  const moveToPreviousResult = useResultsStore((state) => state.moveToPreviousResult);
 
-  const results = useMemo(() => [...pendingResults, ...completedResults], [pendingResults, completedResults]);
-
-  const [filterByMatchType] = useQueryState('matchType', 'all');
-  const [query] = useQueryState('q', '');
+  const filterByMatchType = useResultsStore((state) => state.filterByMatchType);
+  const query = useResultsStore((state) => state.query);
   const debouncedQuery: string = useDebounce(query, DEBOUNCE_QUERY_MS);
 
-  const handleSelectFiles = (
-    e: React.MouseEvent,
-    result: entities.ResultDTO,
-    selectionType: 'pending' | 'completed'
-  ) => {
+  const handleSelectFiles = (e: React.MouseEvent, result: entities.ResultDTO, selectionType: 'pending' | 'completed') => {
     e.preventDefault();
 
     if (e.shiftKey) {
@@ -54,49 +45,38 @@ export default function Sidebar() {
     } else if (e.metaKey || e.ctrlKey) {
       toggleResultSelection(result, selectionType);
     } else {
-      const resultsOfType = selectionType === 'pending' ? pendingResults : completedResults;
-      const lastSelectedIndex = resultsOfType.findIndex((r) => r.path === result.path);
-
-      setLastSelectionType(result.workflow_state as 'pending' | 'completed');
-      setLastSelectedIndex(lastSelectedIndex);
-      setSelectedResults([result]);
-      handleNavigateToResult(result);
+      handleSingleSelection(result, selectionType);
     }
   };
 
-  const handleNavigateToResult = (result: entities.ResultDTO) => {
-    navigate({
-      pathname: `/files/${encodeFilePath(result.path)}`,
-      search: `?matchType=${filterByMatchType}&q=${query}`,
-    });
+  const handleSingleSelection = (result: entities.ResultDTO, selectionType: 'pending' | 'completed') => {
+    const resultsOfType = selectionType === 'pending' ? pendingResults : completedResults;
+    const lastSelectedIndex = resultsOfType.findIndex((r) => r.path === result.path);
+
+    setLastSelectionType(result.workflow_state as 'pending' | 'completed');
+    setLastSelectedIndex(lastSelectedIndex);
+    setSelectedResults([result]);
+  };
+
+  const moveFocusToResults = () => {
+    if (resultsListRef.current) {
+      resultsListRef.current.setAttribute('tabindex', '-1');
+      resultsListRef.current.focus();
+    }
   };
 
   useEffect(() => {
-    // Selects the first result when first loading the app
-    if (!currentPath && pendingResults.length) {
-      navigate(`/files/${encodeFilePath(pendingResults[0].path)}`);
-    }
-
-    if (currentPath) {
-      const index = results.findIndex((r) => r.path === currentPath);
-
-      if (index !== -1) {
-        setLastSelectionType(results[index].workflow_state as 'pending' | 'completed');
-        setLastSelectedIndex(index);
-        setSelectedResults([results[index]]);
-      }
-    }
-  }, [currentPath, results, pendingResults]);
-
-  useEffect(() => {
-    fetchResults(filterByMatchType === 'all' ? undefined : filterByMatchType, debouncedQuery);
+    fetchResults();
   }, [filterByMatchType, debouncedQuery]);
 
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveUp.keys, () => handleNavigateToResult(getPreviousResult()), {
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveUp.keys, moveToPreviousResult, {
     enableOnFormTags: false,
   });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveDown.keys, () => handleNavigateToResult(getNextResult()), {
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveDown.keys, moveToNextResult, {
     enableOnFormTags: false,
+  });
+  useKeyboardShortcut('enter', moveFocusToResults, {
+    enableOnFormTags: true,
   });
 
   return (
@@ -111,23 +91,13 @@ export default function Sidebar() {
 
       <div className="flex flex-col gap-4 px-4 py-6">
         <MatchTypeSelector />
-        <ResultSearchBar />
+        <ResultSearchBar searchInputRef={searchInputRef} />
       </div>
 
-      <ScrollArea>
-        <div className="flex flex-1 flex-col gap-2">
-          <ResultSection
-            title="Pending files"
-            results={pendingResults}
-            onSelect={handleSelectFiles}
-            selectionType="pending"
-          />
-          <ResultSection
-            title="Completed files"
-            results={completedResults}
-            onSelect={handleSelectFiles}
-            selectionType="completed"
-          />
+      <ScrollArea className="flex-1">
+        <div className="flex flex-1 flex-col gap-2 outline-none" tabIndex={-1} ref={resultsListRef}>
+          <ResultSection title="Pending files" results={pendingResults} onSelect={handleSelectFiles} selectionType="pending" />
+          <ResultSection title="Completed files" results={completedResults} onSelect={handleSelectFiles} selectionType="completed" />
         </div>
       </ScrollArea>
     </aside>
@@ -194,17 +164,12 @@ function SidebarItem({ result, onSelect, selectionType }: SidebarItemProps) {
           <span className="relative">
             {matchTypeIconMap[result.match_type as MatchType]}
             <span
-              className={clsx(
-                'absolute bottom-0 right-0 h-1 w-1 rounded-full',
-                presentation?.stateInfoSidebarIndicatorStyles ?? 'bg-transparent'
-              )}
+              className={clsx('absolute bottom-0 right-0 h-1 w-1 rounded-full', presentation?.stateInfoSidebarIndicatorStyles ?? 'bg-transparent')}
             ></span>
           </span>
           <div className="flex min-w-0 items-center">
             {directory && <span className="truncate">{directory}</span>}
-            <span className={clsx('whitespace-nowrap', !isSelected && 'text-foreground')}>
-              {directory ? `/${fileName}` : fileName}
-            </span>
+            <span className={clsx('whitespace-nowrap', !isSelected && 'text-foreground')}>{directory ? `/${fileName}` : fileName}</span>
           </div>
         </div>
       </TooltipTrigger>

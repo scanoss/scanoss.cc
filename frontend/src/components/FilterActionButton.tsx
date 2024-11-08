@@ -17,21 +17,23 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useConfirm } from '@/hooks/useConfirm';
-import { useInputPrompt } from '@/hooks/useInputPrompt';
+import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import useSelectedResult from '@/hooks/useSelectedResult';
 import { getShortcutDisplay } from '@/lib/shortcuts';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
-import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
+import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
+import { useDialog } from '@/providers/DialogProvider';
 
+import AddCommentTextarea from './AddCommentTextarea';
 import FilterByPurlList from './FilterByPurlList';
+import SelectLicenseList from './SelectLicenseList';
 
 interface FilterActionProps {
   action: FilterAction;
   description: string;
   icon: React.ReactNode;
-  onAdd: () => Promise<void> | void;
+  onAdd: (args: OnFilterComponentArgs) => Promise<void> | void;
   shortcutKeysByFileWithComments: string;
   shortcutKeysByFileWithoutComments: string;
   shortcutKeysByComponentWithComments: string;
@@ -48,76 +50,138 @@ export default function FilterActionButton({
   shortcutKeysByComponentWithComments,
   shortcutKeysByComponentWithoutComments,
 }: FilterActionProps) {
+  const { showDialog } = useDialog();
   const selectedResult = useSelectedResult();
   const isCompletedResult = selectedResult?.workflow_state === 'completed';
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { modifierKey } = useEnvironment();
 
-  const { ask } = useConfirm();
-  const { prompt } = useInputPrompt();
+  const isReplaceAction = action === FilterAction.Replace;
 
-  const setAction = useComponentFilterStore((state) => state.setAction);
-  const setComment = useComponentFilterStore((state) => state.setComment);
-  const setFilterBy = useComponentFilterStore((state) => state.setFilterBy);
-  const setWithComment = useComponentFilterStore((state) => state.setWithComment);
-
-  const actionsThatShouldPromptForCommentOrConfirmation = [FilterAction.Include, FilterAction.Remove];
-
-  const maybePromptForCommentOrConfirmation = async (
-    filterBy: 'by_file' | 'by_purl',
-    withComment: boolean
-  ): Promise<boolean> => {
+  const handleFilterByFileWithComments = async () => {
     let comment: string | undefined;
 
-    if (withComment) {
-      comment = await handleGetComment();
+    if (!isReplaceAction) {
+      const confirm = await showDialog({
+        title: 'Add comments',
+        content: <AddCommentTextarea onChange={(value) => (comment = value)} />,
+      });
 
-      if (!comment) return false;
+      if (!confirm) return;
     }
 
-    if (filterBy === 'by_purl') {
-      const confirm = await handleConfirmByPurl();
-
-      if (!confirm) return false;
-    }
-
-    setComment(comment);
-
-    return true;
-  };
-
-  const handleConfirmByPurl = async (): Promise<boolean> => ask(<FilterByPurlList action={action} />);
-
-  const handleGetComment = async (): Promise<string | undefined> => {
-    return prompt({
-      title: 'Add comments',
-      input: {
-        defaultValue: '',
-        type: 'textarea',
-      },
+    return onAdd({
+      action,
+      comment,
+      withComment: true,
+      filterBy: 'by_file',
     });
   };
 
-  const onSelectOption = async (action: FilterAction, filterBy: 'by_file' | 'by_purl', withComment: boolean) => {
-    // TODO: Show modal here
-    if (isCompletedResult) return;
+  const handleFilterByPurlWithComments = async () => {
+    let comment: string | undefined;
 
-    setAction(action);
-    setFilterBy(filterBy);
-    setWithComment(withComment);
+    if (!isReplaceAction) {
+      const confirm = await showDialog({
+        title: 'Add comments',
+        content: (
+          <div className="flex flex-col gap-4">
+            <AddCommentTextarea onChange={(value) => (comment = value)} />
+            <FilterByPurlList action={action} />
+          </div>
+        ),
+      });
 
-    if (actionsThatShouldPromptForCommentOrConfirmation.includes(action)) {
-      const shouldContinue = await maybePromptForCommentOrConfirmation(filterBy, withComment);
-
-      if (!shouldContinue) return;
+      if (!confirm) return;
     }
 
-    onAdd();
+    return onAdd({
+      action,
+      comment,
+      withComment: true,
+      filterBy: 'by_purl',
+    });
   };
 
-  const handleFilterByFileWithComments = () => onSelectOption(action, 'by_file', true);
-  const handleFilterByPurlWithComments = () => onSelectOption(action, 'by_purl', true);
-  const handleFilterByFileWithoutComments = () => onSelectOption(action, 'by_file', false);
-  const handleFilterByPurlWithoutComments = () => onSelectOption(action, 'by_purl', false);
+  const handleFilterByFileWithoutComments = async () => {
+    return onAdd({
+      action,
+      filterBy: 'by_file',
+    });
+  };
+
+  const handleFilterByPurlWithoutComments = async () => {
+    if (!isReplaceAction) {
+      const confirmed = await showDialog({
+        title: 'Are you sure?',
+        content: <FilterByPurlList action={action} />,
+      });
+
+      if (!confirmed) return;
+    }
+
+    return onAdd({
+      action,
+      filterBy: 'by_purl',
+    });
+  };
+
+  const handleFilterByFileAndDifferentLicense = async () => {
+    let license: string | undefined;
+    let comment: string | undefined;
+
+    if (!isReplaceAction) {
+      const confirmed = await showDialog({
+        title: 'Select License',
+        description: 'Select the license you want to apply to the selected files. You can also add a comment.',
+        content: (
+          <div className="flex flex-col gap-4">
+            <SelectLicenseList onSelect={(selectedLicense) => (license = selectedLicense)} />
+            <AddCommentTextarea onChange={(value) => (comment = value)} />
+          </div>
+        ),
+      });
+
+      if (!confirmed) return;
+    }
+
+    return onAdd({
+      action,
+      comment,
+      license,
+      withComment: !!comment,
+      filterBy: 'by_file',
+    });
+  };
+
+  const handleFilterByPurlAndDifferentLicense = async () => {
+    let license: string | undefined;
+    let comment: string | undefined;
+
+    if (!isReplaceAction) {
+      const confirmed = await showDialog({
+        title: 'Select License',
+        description: 'Select the license you want to apply to the selected files. You can also add a comment.',
+        content: (
+          <div className="flex flex-col gap-4">
+            <SelectLicenseList onSelect={(selectedLicense) => (license = selectedLicense)} />
+            <AddCommentTextarea onChange={(value) => (comment = value)} />
+            <FilterByPurlList action={action} />
+          </div>
+        ),
+      });
+
+      if (!confirmed) return;
+    }
+
+    return onAdd({
+      action,
+      comment,
+      license,
+      withComment: !!comment,
+      filterBy: 'by_purl',
+    });
+  };
 
   useKeyboardShortcut(shortcutKeysByFileWithoutComments, handleFilterByFileWithoutComments, {
     enabled: !isCompletedResult,
@@ -149,10 +213,7 @@ export default function FilterActionButton({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuTrigger asChild disabled={isCompletedResult}>
-          <button
-            className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent"
-            disabled={isCompletedResult}
-          >
+          <button className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent" disabled={isCompletedResult}>
             <ChevronDown
               className={clsx(
                 'h-4 w-4 stroke-muted-foreground transition-transform enabled:hover:stroke-accent-foreground',
@@ -171,17 +232,20 @@ export default function FilterActionButton({
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>File</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent className="min-w-[300px]">
+              <DropdownMenuSubContent className="min-w-[420px]">
                 <DropdownMenuItem onClick={handleFilterByFileWithoutComments}>
-                  <span className="first-letter:uppercase">{`${action} without Comments`}</span>
-                  <DropdownMenuShortcut>
-                    {getShortcutDisplay(shortcutKeysByFileWithoutComments)[0]}
-                  </DropdownMenuShortcut>
+                  <span className="first-letter:uppercase">{`${action} without comments`}</span>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithoutComments, modifierKey.label)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleFilterByFileWithComments}>
-                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithComments)[0]}</DropdownMenuShortcut>
+                  <span className="first-letter:uppercase">{`${action} with comments`}</span>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithComments, modifierKey.label)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
+                {!isReplaceAction && (
+                  <DropdownMenuItem onClick={handleFilterByFileAndDifferentLicense}>
+                    <span className="first-letter:uppercase">{`${action} with a different license`}</span>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
@@ -190,19 +254,20 @@ export default function FilterActionButton({
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Component</DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent className="min-w-[300px]">
+              <DropdownMenuSubContent className="min-w-[420px]">
                 <DropdownMenuItem onClick={handleFilterByPurlWithoutComments}>
-                  <span className="first-letter:uppercase">{`${action} without Comments`}</span>
-                  <DropdownMenuShortcut>
-                    {getShortcutDisplay(shortcutKeysByComponentWithoutComments)[0]}
-                  </DropdownMenuShortcut>
+                  <span className="first-letter:uppercase">{`${action} without comments`}</span>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByComponentWithoutComments, modifierKey.label)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleFilterByPurlWithComments}>
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
-                  <DropdownMenuShortcut>
-                    {getShortcutDisplay(shortcutKeysByComponentWithComments)[0]}
-                  </DropdownMenuShortcut>
+                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByComponentWithComments, modifierKey.label)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
+                {!isReplaceAction && (
+                  <DropdownMenuItem onClick={handleFilterByPurlAndDifferentLicense}>
+                    <span className="first-letter:uppercase">{`${action} with a different license`}</span>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>

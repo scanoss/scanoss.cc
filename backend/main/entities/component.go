@@ -1,6 +1,6 @@
 package entities
 
-type License interface {
+type ComponentLicense interface {
 }
 
 type LicenseDTO struct {
@@ -28,26 +28,26 @@ func NewLicenseDTO(name string, patentHints string, copyleft string, checklistUR
 }
 
 type ComponentDTO struct {
-	ID          string    `json:"id"`
-	Lines       string    `json:"lines,omitempty"`
-	OssLines    string    `json:"oss_lines,omitempty"`
-	Matched     string    `json:"matched,omitempty"`
-	FileHash    string    `json:"file_hash,omitempty"`
-	SourceHash  string    `json:"source_hash,omitempty"`
-	FileURL     string    `json:"file_url,omitempty"`
-	Purl        []string  `json:"purl"`
-	Vendor      string    `json:"vendor,omitempty"`
-	Component   string    `json:"component,omitempty"`
-	Version     string    `json:"version,omitempty"`
-	Latest      string    `json:"latest,omitempty"`
-	URL         string    `json:"url,omitempty"`
-	Status      string    `json:"status,omitempty"`
-	ReleaseDate string    `json:"release_date,omitempty"`
-	File        string    `json:"file,omitempty"`
-	URLHash     string    `json:"url_hash,omitempty"`
-	URLStats    struct{}  `json:"url_stats,omitempty"`
-	Provenance  string    `json:"provenance,omitempty"`
-	Licenses    []License `json:"licenses,omitempty"`
+	ID          string             `json:"id"`
+	Lines       string             `json:"lines,omitempty"`
+	OssLines    string             `json:"oss_lines,omitempty"`
+	Matched     string             `json:"matched,omitempty"`
+	FileHash    string             `json:"file_hash,omitempty"`
+	SourceHash  string             `json:"source_hash,omitempty"`
+	FileURL     string             `json:"file_url,omitempty"`
+	Purl        []string           `json:"purl"`
+	Vendor      string             `json:"vendor,omitempty"`
+	Component   string             `json:"component,omitempty"`
+	Version     string             `json:"version,omitempty"`
+	Latest      string             `json:"latest,omitempty"`
+	URL         string             `json:"url,omitempty"`
+	Status      string             `json:"status,omitempty"`
+	ReleaseDate string             `json:"release_date,omitempty"`
+	File        string             `json:"file,omitempty"`
+	URLHash     string             `json:"url_hash,omitempty"`
+	URLStats    struct{}           `json:"url_stats,omitempty"`
+	Provenance  string             `json:"provenance,omitempty"`
+	Licenses    []ComponentLicense `json:"licenses,omitempty"`
 	Server      struct {
 		Version   string `json:"version,omitempty"`
 		KbVersion struct {
@@ -69,13 +69,13 @@ const (
 )
 
 type ComponentFilterDTO struct {
-	Path            string       `json:"path,omitempty"`
-	Purl            string       `json:"purl" validate:"required"`
-	Usage           string       `json:"usage,omitempty"`
-	Action          FilterAction `json:"action" validate:"required,eq=include|eq=remove|eq=replace"`
-	Comment         string       `json:"comment,omitempty"`
-	ReplaceWithPurl string       `json:"replace_with_purl,omitempty" validate:"omitempty,valid-purl"`
-	ReplaceWithName string       `json:"replace_with_name,omitempty"`
+	Path        string       `json:"path,omitempty"`
+	Purl        string       `json:"purl" validate:"required"`
+	Usage       string       `json:"usage,omitempty"`
+	Action      FilterAction `json:"action" validate:"required,eq=include|eq=remove|eq=replace"`
+	Comment     string       `json:"comment,omitempty"`
+	ReplaceWith string       `json:"replace_with,omitempty" validate:"omitempty,valid-purl"`
+	License     string       `json:"license,omitempty"`
 }
 
 type Component struct {

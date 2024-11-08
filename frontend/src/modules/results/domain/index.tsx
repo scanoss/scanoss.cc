@@ -39,14 +39,14 @@ interface MatchTypePresentation {
 
 export const matchTypePresentation: Record<MatchType, MatchTypePresentation> = {
   [MatchType.File]: {
-    background: 'bg-file border border-file-border',
+    background: 'bg-file',
     foreground: 'text-file-foreground',
     accent: 'text-file-accent',
     muted: 'text-muted-foreground',
     label: 'File',
   },
   [MatchType.Snippet]: {
-    background: 'bg-snippet border border-snippet-border',
+    background: 'bg-snippet',
     foreground: 'text-snippet-foreground',
     accent: 'text-snippet-accent',
     muted: 'text-muted-foreground',

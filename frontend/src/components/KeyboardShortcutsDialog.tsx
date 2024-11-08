@@ -1,19 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 
+import useEnvironment from '@/hooks/useEnvironment';
 import { getShortcutDisplay } from '@/lib/shortcuts';
 
 import { GetGroupedShortcuts } from '../../wailsjs/go/service/KeyboardServiceInMemoryImpl';
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandShortcut,
-} from './ui/command';
+import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandShortcut } from './ui/command';
 
 export default function KeyboardShortcutsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: () => void }) {
+  const { modifierKey } = useEnvironment();
   const { data } = useQuery({
     queryKey: ['shortcuts'],
     queryFn: GetGroupedShortcuts,
@@ -38,16 +32,16 @@ export default function KeyboardShortcutsDialog({ open, onOpenChange }: { open: 
                   <span>{shortcut.name}</span>
                   <CommandShortcut className="flex items-center gap-1">
                     {/* @ts-expect-error wails type issue */}
-                    {getShortcutDisplay(shortcut.keys).map((keyCombo, index) => (
+                    {getShortcutDisplay(shortcut.keys, modifierKey.label).map((keyCombo, index) => (
                       <>
                         <span
                           key={index}
-                          className="mr-1 rounded-sm bg-muted p-0.5 text-xs capitalize leading-tight text-gray-800"
+                          className="mr-1 flex min-w-5 items-center justify-center rounded-sm bg-muted p-0.5 text-xs capitalize leading-tight text-muted-foreground"
                         >
                           {keyCombo}
                         </span>
                         {/* @ts-expect-error wails type issue */}
-                        {index < getShortcutDisplay(shortcut.keys).length - 1 ? 'or' : null}
+                        {index < getShortcutDisplay(shortcut.keys, modifierKey.label).length - 1 ? 'or' : null}
                       </>
                     ))}
                   </CommandShortcut>

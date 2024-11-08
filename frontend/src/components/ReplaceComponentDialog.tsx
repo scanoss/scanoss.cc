@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { Check, ChevronsUpDown, CircleAlert, Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -9,23 +9,16 @@ import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { cn } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
-import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
+import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
 import { entities } from '../../wailsjs/go/models';
 import { GetDeclaredComponents } from '../../wailsjs/go/service/ComponentServiceImpl';
 import FilterByPurlList from './FilterByPurlList';
 import NewComponentDialog from './NewComponentDialog';
+import SelectLicenseList from './SelectLicenseList';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from './ui/command';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from './ui/command';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { Input } from './ui/input';
@@ -39,22 +32,23 @@ const ReplaceComponentFormSchema = z.object({
   name: z.string().min(1, 'You must select a component.'),
   purl: z.string().min(1, 'You must select a component.'),
   comment: z.string().optional(),
+  license: z.string().optional(),
 });
 
 interface ReplaceComponentDialogProps {
   onOpenChange: () => void;
   onReplaceComponent: (args: OnFilterComponentArgs) => void;
+  withComment: boolean;
+  filterBy: 'by_file' | 'by_purl';
 }
 
-export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponent }: ReplaceComponentDialogProps) {
+export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponent, withComment, filterBy }: ReplaceComponentDialogProps) {
   const { toast } = useToast();
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
-
-  const withComment = useComponentFilterStore((state) => state.withComment);
-  const filterBy = useComponentFilterStore((state) => state.filterBy);
-  const setComment = useComponentFilterStore((state) => state.setComment);
+  const [licenseKey, setLicenseKey] = useState(0);
 
   const form = useForm<z.infer<typeof ReplaceComponentFormSchema>>({
     resolver: zodResolver(ReplaceComponentFormSchema),
@@ -62,6 +56,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
       name: '',
       purl: '',
       comment: '',
+      license: '',
     },
   });
 
@@ -72,12 +67,20 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     queryFn: GetDeclaredComponents,
   });
 
+  const resetLicense = () => {
+    form.setValue('license', '');
+    setLicenseKey((prevKey) => prevKey + 1); // This is a hack to reset the SelectLicenseList component
+  };
+
   const onSubmit = (values: z.infer<typeof ReplaceComponentFormSchema>) => {
+    const { comment, purl, license } = values;
+
     onReplaceComponent({
-      replaceWith: {
-        name: values.name,
-        purl: values.purl,
-      },
+      filterBy,
+      comment,
+      license,
+      action: FilterAction.Replace,
+      replaceWith: purl,
     });
   };
 
@@ -92,6 +95,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     setDeclaredComponents((prevState) => [...prevState, component]);
     form.setValue('purl', component.purl);
     form.setValue('name', component.name);
+    resetLicense();
     setNewComponentDialogOpen(false);
   };
 
@@ -101,7 +105,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     }
   }, [data]);
 
-  const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => form.handleSubmit(onSubmit), {
+  const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => submitButtonRef.current?.click(), {
     enableOnFormTags: true,
   });
 
@@ -109,13 +113,13 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     <>
       <Form {...form}>
         <Dialog open onOpenChange={onOpenChange}>
-          <DialogContent ref={ref} tabIndex={-1}>
-            <DialogHeader>
-              <DialogTitle>Replace</DialogTitle>
-              <DialogDescription>You can search for an existing component or manually enter a PURL</DialogDescription>
-            </DialogHeader>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <DialogContent ref={ref} tabIndex={-1}>
+              <DialogHeader>
+                <DialogTitle>Replace</DialogTitle>
+                <DialogDescription>You can search for an existing component or manually enter a PURL</DialogDescription>
+              </DialogHeader>
 
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="purl"
@@ -125,14 +129,8 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn('justify-between', !field.value && 'text-muted-foreground')}
-                          >
-                            {field.value
-                              ? declaredComponents?.find((component) => component.purl === field.value)?.name
-                              : 'Select component'}
+                          <Button variant="outline" role="combobox" className={cn('justify-between', !field.value && 'text-muted-foreground')}>
+                            {field.value ? declaredComponents?.find((component) => component.purl === field.value)?.name : 'Select component'}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -165,15 +163,11 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                                     onSelect={() => {
                                       form.setValue('purl', component.purl);
                                       form.setValue('name', component.name);
+                                      resetLicense();
                                       setPopoverOpen(false);
                                     }}
                                   >
-                                    <Check
-                                      className={cn(
-                                        'mr-2 h-4 w-4',
-                                        component.purl === field.value ? 'opacity-100' : 'opacity-0'
-                                      )}
-                                    />
+                                    <Check className={cn('mr-2 h-4 w-4', component.purl === field.value ? 'opacity-100' : 'opacity-0')} />
                                     <div>
                                       <p>{component.name}</p>
                                       <p className="text-xs text-muted-foreground">{component.purl}</p>
@@ -196,21 +190,24 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 <Input value={selectedPurl} disabled className="disabled:cursor-default" />
               </div>
 
+              <FormItem className="flex flex-col">
+                <Label>
+                  License <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                </Label>
+                <SelectLicenseList key={licenseKey} onSelect={(value) => form.setValue('license', value)} />
+              </FormItem>
+
               {withComment && (
                 <FormField
                   control={form.control}
                   name="comment"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Comment</FormLabel>
+                      <FormLabel>
+                        Comment <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                      </FormLabel>
                       <FormControl>
-                        <Textarea
-                          {...field}
-                          onChange={(e) => {
-                            field.onChange(e);
-                            setComment(e.target.value);
-                          }}
-                        />
+                        <Textarea {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -232,19 +229,16 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 <Button variant="ghost" onClick={onOpenChange}>
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button ref={submitButtonRef} type="submit" onClick={form.handleSubmit(onSubmit)}>
                   Confirm <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
                 </Button>
               </DialogFooter>
-            </form>
-          </DialogContent>
+            </DialogContent>
+          </form>
         </Dialog>
       </Form>
       {newComponentDialogOpen && (
-        <NewComponentDialog
-          onOpenChange={() => setNewComponentDialogOpen((prev) => !prev)}
-          onCreated={onComponentCreated}
-        />
+        <NewComponentDialog onOpenChange={() => setNewComponentDialogOpen((prev) => !prev)} onCreated={onComponentCreated} />
       )}
     </>
   );

@@ -26,6 +26,9 @@ const (
 	ActionReplaceFileWithComments         Action = "replaceFileWithComments"
 	ActionReplaceComponentWithoutComments Action = "replaceComponentWithoutComments"
 	ActionReplaceComponentWithComments    Action = "replaceComponentWithComments"
+
+	// View
+	ActionSyncScrollPosition Action = "toggleSyncScrollPosition"
 )
 
 type Shortcut struct {
@@ -44,6 +47,7 @@ const (
 	GroupGlobal     Group = "Global"
 	GroupNavigation Group = "Navigation"
 	GroupActions    Group = "Actions"
+	GroupView       Group = "View"
 )
 
 // This is necessary to bind the enum in main.go
@@ -71,6 +75,7 @@ var AllShortcutActions = []struct {
 	{ActionReplaceFileWithComments, "ReplaceFileWithComments"},
 	{ActionReplaceComponentWithoutComments, "ReplaceComponentWithoutComments"},
 	{ActionReplaceComponentWithComments, "ReplaceComponentWithComments"},
+	{ActionSyncScrollPosition, "ToggleSyncScrollPosition"},
 }
 
 var DefaultShortcuts = []Shortcut{
@@ -252,5 +257,14 @@ var DefaultShortcuts = []Shortcut{
 		Keys:                   "shift+e, shift+mod+f3",
 		Group:                  GroupActions,
 		Action:                 ActionReplaceComponentWithComments,
+	},
+
+	{
+		Name:        "Sync Scroll Position",
+		Description: "Sync the scroll position of the editors",
+		Accelerator: keys.Combo("e", keys.ShiftKey, keys.CmdOrCtrlKey),
+		Keys:        "shift+mod+e",
+		Group:       GroupActions,
+		Action:      ActionReplaceComponentWithComments,
 	},
 }

@@ -2,6 +2,8 @@ package service
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 
 	"github.com/labstack/gommon/log"
@@ -117,12 +119,12 @@ func (s *ComponentServiceImpl) applyFilters(dto []entities.ComponentFilterDTO) e
 		go func(item entities.ComponentFilterDTO) {
 			defer wg.Done()
 			newFilter := entities.ComponentFilter{
-				Path:          item.Path,
-				Purl:          item.Purl,
-				Usage:         entities.ComponentFilterUsage(item.Usage),
-				Comment:       item.Comment,
-				ReplaceWith:   item.ReplaceWithPurl,
-				ComponentName: item.ReplaceWithName,
+				Path:        item.Path,
+				Purl:        item.Purl,
+				Usage:       entities.ComponentFilterUsage(item.Usage),
+				Comment:     item.Comment,
+				ReplaceWith: item.ReplaceWith,
+				License:     item.License,
 			}
 			if err := s.scanossSettingsRepo.AddBomEntry(newFilter, string(item.Action)); err != nil {
 				fmt.Printf("error adding bom entry: %s", err)
@@ -186,6 +188,10 @@ func (s *ComponentServiceImpl) GetDeclaredComponents() ([]entities.DeclaredCompo
 			addedPurls[purl] = struct{}{}
 		}
 	}
+
+	sort.Slice(declaredComponents, func(i, j int) bool {
+		return strings.ToLower(declaredComponents[i].Name) < strings.ToLower(declaredComponents[j].Name)
+	})
 
 	return declaredComponents, nil
 }

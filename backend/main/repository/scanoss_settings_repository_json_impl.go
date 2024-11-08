@@ -84,6 +84,9 @@ func (r *ScanossSettingsJsonRepository) HasUnsavedChanges() (bool, error) {
 }
 
 func (r *ScanossSettingsJsonRepository) AddBomEntry(newEntry entities.ComponentFilter, filterAction string) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
 	sf := r.GetSettings()
 	var targetList *[]entities.ComponentFilter
 
@@ -127,7 +130,7 @@ func isDuplicate(entry, newEntry entities.ComponentFilter) bool {
 	if newEntry.Path == "" {
 		return entry.Purl == newEntry.Purl
 	}
-	return entry.Purl == newEntry.Purl && entry.Path == newEntry.Path
+	return entry.Purl == newEntry.Purl && entry.Path == newEntry.Path && entry.ReplaceWith == newEntry.ReplaceWith && entry.License == newEntry.License
 }
 
 func (r *ScanossSettingsJsonRepository) ClearAllFilters() error {

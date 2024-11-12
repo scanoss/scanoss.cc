@@ -1,24 +1,27 @@
 import clsx from 'clsx';
-import { Braces, ChevronRight, File } from 'lucide-react';
-import { ReactNode, useEffect, useRef } from 'react';
-import { entities } from 'wailsjs/go/models';
+import { Braces, ChevronRight, File, Folder, FolderOpen } from 'lucide-react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import TreeView, { flattenTree, INode } from 'react-accessible-treeview';
+import { IFlatMetadata } from 'react-accessible-treeview/dist/TreeView/utils';
 
 import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
-import { getDirectory, getFileName } from '@/lib/utils';
+import { getDirectory, getExtension, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
+import { entities } from '../../wailsjs/go/models';
 import MatchTypeSelector from './MatchTypeSelector';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function Sidebar() {
+  const [viewType, setViewType] = useState<'flat' | 'tree'>('flat');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsListRef = useRef<HTMLDivElement>(null);
 
@@ -32,6 +35,9 @@ export default function Sidebar() {
   const setLastSelectionType = useResultsStore((state) => state.setLastSelectionType);
   const moveToNextResult = useResultsStore((state) => state.moveToNextResult);
   const moveToPreviousResult = useResultsStore((state) => state.moveToPreviousResult);
+
+  const resultsTree = useResultsStore((state) => state.resultsTree);
+  const fetchResultsTree = useResultsStore((state) => state.fetchResultsTree);
 
   const filterByMatchType = useResultsStore((state) => state.filterByMatchType);
   const query = useResultsStore((state) => state.query);
@@ -66,8 +72,13 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
-    fetchResults();
-  }, [filterByMatchType, debouncedQuery]);
+    if (viewType === 'flat') {
+      fetchResults();
+    }
+    if (viewType === 'tree') {
+      fetchResultsTree();
+    }
+  }, [filterByMatchType, debouncedQuery, viewType]);
 
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveUp.keys, moveToPreviousResult, {
     enableOnFormTags: false,
@@ -87,6 +98,7 @@ export default function Sidebar() {
             ? `${pendingResults.length} decision${pendingResults.length > 1 ? 's' : ''} to make in working directory`
             : 'You have no decisions to make in working directory'}
         </h2>
+        <button onClick={() => setViewType(viewType === 'flat' ? 'tree' : 'flat')}>Toggle View</button>
       </div>
 
       <div className="flex flex-col gap-4 px-4 py-6">
@@ -95,10 +107,14 @@ export default function Sidebar() {
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="flex flex-1 flex-col gap-2 outline-none" tabIndex={-1} ref={resultsListRef}>
-          <ResultSection title="Pending files" results={pendingResults} onSelect={handleSelectFiles} selectionType="pending" />
-          <ResultSection title="Completed files" results={completedResults} onSelect={handleSelectFiles} selectionType="completed" />
-        </div>
+        {viewType === 'flat' ? (
+          <div className="flex flex-1 flex-col gap-2 outline-none" tabIndex={-1} ref={resultsListRef}>
+            <ResultSection title="Pending files" results={pendingResults} onSelect={handleSelectFiles} selectionType="pending" />
+            <ResultSection title="Completed files" results={completedResults} onSelect={handleSelectFiles} selectionType="completed" />
+          </div>
+        ) : (
+          <ResultTree tree={resultsTree} />
+        )}
       </ScrollArea>
     </aside>
   );
@@ -180,7 +196,108 @@ function SidebarItem({ result, onSelect, selectionType }: SidebarItemProps) {
   );
 }
 
-export const matchTypeIconMap: Record<MatchType, ReactNode> = {
-  [MatchType.File]: <File className="h-3 w-3 flex-shrink-0" />,
-  [MatchType.Snippet]: <Braces className="h-3 w-3 flex-shrink-0" />,
+function ResultTree({ tree }: { tree: entities.ResultTreeDTO[] }) {
+  if (!tree) {
+    return null;
+  }
+
+  return (
+    <div>
+      {tree ? (
+        <TreeView
+          data={flattenTree(convertTreeStructure({ tree }))}
+          aria-label="directory tree"
+          togglableSelect
+          clickAction="EXCLUSIVE_SELECT"
+          multiSelect
+          onSelect={(selectedNodes) => {
+            console.log(selectedNodes);
+          }}
+          nodeRenderer={({ element, isBranch, getNodeProps, level, isExpanded, isSelected }) => {
+            console.log(element);
+            return (
+              <div {...getNodeProps()} style={{ paddingLeft: 20 * (level - 1) }}>
+                <div
+                  className={clsx(
+                    'flex cursor-pointer items-center gap-2 text-sm text-muted-foreground',
+                    isSelected
+                      ? 'border-r-2 border-primary-foreground bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
+                      : 'hover:bg-primary/30'
+                  )}
+                >
+                  {isBranch ? <FolderIcon isOpen={isExpanded} /> : <FileIcon element={element} />}
+                  <div className="flex min-w-0 items-center">
+                    <span className="truncate">{element.name}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+const FolderIcon = ({ isOpen }: { isOpen: boolean }) => (isOpen ? <FolderOpen className="h-4 w-4" /> : <Folder className="h-4 w-4" />);
+const FileIcon = ({ element }: { element: INode<IFlatMetadata> }) => {
+  const presentation = stateInfoPresentation[element.metadata?.filter_config?.action as FilterAction];
+
+  return (
+    <span className="relative">
+      {matchTypeIconMap[element.metadata?.match_type as MatchType]}
+      <span
+        className={clsx('absolute bottom-0 right-0 h-1 w-1 rounded-full', presentation?.stateInfoSidebarIndicatorStyles ?? 'bg-transparent')}
+      ></span>
+    </span>
+  );
 };
+
+export const matchTypeIconMap: Record<MatchType, ReactNode> = {
+  [MatchType.File]: <File className="h-3.5 w-3.5 flex-shrink-0" />,
+  [MatchType.Snippet]: <Braces className="h-3.5 w-3.5 flex-shrink-0" />,
+};
+
+function convertTreeStructure(inputData: { tree: entities.ResultTreeDTO[] }): OutputNode {
+  function convertNode(node: entities.ResultTreeDTO): OutputNode {
+    const result: OutputNode = {
+      id: node.id,
+      name: node.name,
+      children: [],
+      parent: node.parent ?? null,
+      metadata: node.result ?? null,
+    };
+
+    if (node.children) {
+      result.children = Object.values(node.children).map((child) => convertNode(child));
+
+      if (result.children.length > 0) {
+        result.children.sort((a, b) => a.name.localeCompare(b.name));
+      }
+    }
+
+    return result;
+  }
+
+  const root: OutputNode = {
+    id: '',
+    name: '',
+    children: inputData.tree.map((node) => convertNode(node)),
+    parent: null,
+    metadata: null,
+  };
+
+  if (root.children) {
+    root.children.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  return root;
+}
+
+interface OutputNode {
+  id: string;
+  name: string;
+  children: OutputNode[];
+  parent: string | null;
+  metadata: entities.ResultDTO | null;
+}

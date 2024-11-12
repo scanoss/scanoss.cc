@@ -62,12 +62,14 @@ func (r *ResultRepositoryJsonImpl) parseScanResults(resultByte []byte) ([]entiti
 
 	for key, matches := range intermediateMap {
 		for _, match := range matches {
-			scanResult := entities.Result{}
-			scanResult.Path = key
-			scanResult.MatchType = match.ID
-			scanResult.Purl = &match.Purl
-			scanResult.ComponentName = match.ComponentName
-			scanResults = append(scanResults, scanResult)
+			if match.ID != "dependency" {
+				scanResult := entities.Result{}
+				scanResult.Path = key
+				scanResult.MatchType = match.ID
+				scanResult.Purl = &match.Purl
+				scanResult.ComponentName = match.ComponentName
+				scanResults = append(scanResults, scanResult)
+			}
 		}
 	}
 

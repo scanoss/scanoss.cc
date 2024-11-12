@@ -1,8 +1,8 @@
-import { entities } from 'wailsjs/go/models';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { GetAll } from '../../../../wailsjs/go/service/ResultServiceImpl';
+import { entities } from '../../../../wailsjs/go/models';
+import { GetAll, GetAllTree } from '../../../../wailsjs/go/service/ResultServiceImpl';
 import { MatchType } from '../domain';
 
 interface ResultsState {
@@ -15,6 +15,11 @@ interface ResultsState {
   selectedResults: entities.ResultDTO[];
   query: string;
   filterByMatchType: MatchType | 'all';
+  resultsTree: entities.ResultTreeDTO[];
+}
+
+export interface ResultTreeDTO {
+  [key: string]: entities.ResultDTO;
 }
 
 interface ResultsActions {
@@ -28,6 +33,7 @@ interface ResultsActions {
   toggleResultSelection: (result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   setQuery: (query: string) => void;
   setFilterByMatchType: (matchType: MatchType | 'all') => void;
+  fetchResultsTree: () => Promise<void>;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -43,6 +49,7 @@ const useResultsStore = create<ResultsStore>()(
     lastSelectionType: null,
     query: '',
     filterByMatchType: 'all',
+    resultsTree: [],
 
     setSelectedResults: (selectedResults) => set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
@@ -198,6 +205,22 @@ const useResultsStore = create<ResultsStore>()(
     },
     setQuery: (query) => set({ query }, false, 'SET_QUERY'),
     setFilterByMatchType: (matchType) => set({ filterByMatchType: matchType }, false, 'SET_FILTER_BY_MATCH_TYPE'),
+    fetchResultsTree: async () => {
+      const { filterByMatchType, query } = get();
+      set({ isLoading: true });
+
+      try {
+        const resultsTree = await GetAllTree({
+          match_type: filterByMatchType === 'all' ? undefined : filterByMatchType,
+          query,
+        });
+        set({ resultsTree });
+      } catch (error) {
+        set({ error: error instanceof Error ? error.message : 'An error occurred while fetching results' });
+      } finally {
+        set({ isLoading: false });
+      }
+    },
   }))
 );
 

@@ -93,3 +93,11 @@ type RequestResultDTO struct {
 	MatchType MatchType `json:"match_type,omitempty" validate:"omitempty,eq=file|eq=snippet"`
 	Query     string    `json:"query,omitempty"`
 }
+
+type ResultTreeDTO struct {
+	ID       string                    `json:"id"`
+	Name     string                    `json:"name"`
+	Children map[string]*ResultTreeDTO `json:"children,omitempty"`
+	Result   ResultDTO                 `json:"result,omitempty"`
+	Parent   *string                   `json:"parent"`
+}

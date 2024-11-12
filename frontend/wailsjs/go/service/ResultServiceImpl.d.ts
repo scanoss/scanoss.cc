@@ -3,3 +3,5 @@
 import {entities} from '../models';
 
 export function GetAll(arg1:entities.RequestResultDTO):Promise<Array<entities.ResultDTO>>;
+
+export function GetAllTree(arg1:entities.RequestResultDTO):Promise<Array<entities.ResultTreeDTO>>;

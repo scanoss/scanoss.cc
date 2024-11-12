@@ -22,3 +22,8 @@ export function getDirectory(filePath: string) {
   const parts = filePath.split('/');
   return parts.slice(0, -1).join('/');
 }
+
+export function getExtension(filePath: string) {
+  const parts = filePath.split('.');
+  return parts.pop() || '';
+}

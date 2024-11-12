@@ -5,3 +5,7 @@
 export function GetAll(arg1) {
   return window['go']['service']['ResultServiceImpl']['GetAll'](arg1);
 }
+
+export function GetAllTree(arg1) {
+  return window['go']['service']['ResultServiceImpl']['GetAllTree'](arg1);
+}

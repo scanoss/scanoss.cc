@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/labstack/gommon/log"
+	purlutils "github.com/scanoss/go-purl-helper/pkg"
 	"github.com/scanoss/scanoss.lui/backend/main/entities"
 	"github.com/scanoss/scanoss.lui/backend/main/mappers"
 	"github.com/scanoss/scanoss.lui/backend/main/repository"
@@ -155,7 +156,6 @@ func (s *ComponentServiceImpl) GetDeclaredComponents() ([]entities.DeclaredCompo
 
 	scanossSettingsDeclaredPurls := s.scanossSettingsRepo.GetDeclaredPurls()
 
-	purlToComponent := make(map[string]string)
 	declaredComponents := make([]entities.DeclaredComponent, 0)
 	addedPurls := make(map[string]struct{})
 
@@ -175,17 +175,20 @@ func (s *ComponentServiceImpl) GetDeclaredComponents() ([]entities.DeclaredCompo
 
 	for _, purl := range scanossSettingsDeclaredPurls {
 		if _, found := addedPurls[purl]; !found {
-			if component, found := purlToComponent[purl]; found {
-				declaredComponents = append(declaredComponents, entities.DeclaredComponent{
-					Purl: purl,
-					Name: component,
-				})
-			} else {
-				declaredComponents = append(declaredComponents, entities.DeclaredComponent{
-					Purl: purl,
-				})
+			purlName, err := purlutils.PurlNameFromString(purl)
+			if err != nil {
+				log.Errorf("Error getting component name from purl: %v", err)
+				continue
 			}
-			addedPurls[purl] = struct{}{}
+			nameParts := strings.Split(purlName, "/")
+			name := nameParts[0]
+			if len(nameParts) > 1 {
+				name = nameParts[1]
+			}
+			declaredComponents = append(declaredComponents, entities.DeclaredComponent{
+				Purl: purl,
+				Name: name,
+			})
 		}
 	}
 

@@ -90,7 +90,11 @@ func (m ResultMapperImpl) mapConcludedName(result entities.Result) string {
 		return ""
 	}
 
-	componentName := strings.Split(purlName, "/")[1]
+	nameParts := strings.Split(purlName, "/")
+	componentName := nameParts[0]
+	if len(nameParts) > 1 {
+		componentName = nameParts[1]
+	}
 
 	return componentName
 }

@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { Braces, ChevronRight, File, Folder, FolderOpen } from 'lucide-react';
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import TreeView, { flattenTree, INode } from 'react-accessible-treeview';
 import { IFlatMetadata } from 'react-accessible-treeview/dist/TreeView/utils';
 
@@ -8,7 +8,7 @@ import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
-import { getDirectory, getExtension, getFileName } from '@/lib/utils';
+import { getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
@@ -19,9 +19,9 @@ import MatchTypeSelector from './MatchTypeSelector';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import ViewTypeSelector from './ViewTypeSelector';
 
 export default function Sidebar() {
-  const [viewType, setViewType] = useState<'flat' | 'tree'>('flat');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsListRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +38,8 @@ export default function Sidebar() {
 
   const resultsTree = useResultsStore((state) => state.resultsTree);
   const fetchResultsTree = useResultsStore((state) => state.fetchResultsTree);
+
+  const viewType = useResultsStore((state) => state.viewType);
 
   const filterByMatchType = useResultsStore((state) => state.filterByMatchType);
   const query = useResultsStore((state) => state.query);
@@ -82,31 +84,34 @@ export default function Sidebar() {
 
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveUp.keys, moveToPreviousResult, {
     enableOnFormTags: false,
+    enabled: viewType === 'flat',
   });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveDown.keys, moveToNextResult, {
     enableOnFormTags: false,
+    enabled: viewType === 'flat',
   });
   useKeyboardShortcut('enter', moveFocusToResults, {
     enableOnFormTags: true,
+    enabled: viewType === 'flat',
   });
 
   return (
     <aside className="flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-md">
-      <div className="flex h-[65px] items-center border-b border-b-border px-4">
+      <div className="flex h-16 items-center border-b border-b-border px-4">
         <h2 className="text-sm font-semibold">
           {pendingResults?.length
             ? `${pendingResults.length} decision${pendingResults.length > 1 ? 's' : ''} to make in working directory`
             : 'You have no decisions to make in working directory'}
         </h2>
-        <button onClick={() => setViewType(viewType === 'flat' ? 'tree' : 'flat')}>Toggle View</button>
       </div>
 
-      <div className="flex flex-col gap-4 px-4 py-6">
+      <div className="flex flex-col gap-4 p-4">
         <MatchTypeSelector />
         <ResultSearchBar searchInputRef={searchInputRef} />
+        <ViewTypeSelector />
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea>
         {viewType === 'flat' ? (
           <div className="flex flex-1 flex-col gap-2 outline-none" tabIndex={-1} ref={resultsListRef}>
             <ResultSection title="Pending files" results={pendingResults} onSelect={handleSelectFiles} selectionType="pending" />
@@ -202,31 +207,29 @@ function ResultTree({ tree }: { tree: entities.ResultTreeDTO[] }) {
   }
 
   return (
-    <div>
+    <div className="pb-6">
       {tree ? (
         <TreeView
+          // @ts-expect-error TODO: fix this
           data={flattenTree(convertTreeStructure({ tree }))}
           aria-label="directory tree"
           togglableSelect
           clickAction="EXCLUSIVE_SELECT"
           multiSelect
-          onSelect={(selectedNodes) => {
-            console.log(selectedNodes);
-          }}
           nodeRenderer={({ element, isBranch, getNodeProps, level, isExpanded, isSelected }) => {
-            console.log(element);
             return (
-              <div {...getNodeProps()} style={{ paddingLeft: 20 * (level - 1) }}>
+              <div {...getNodeProps()}>
                 <div
                   className={clsx(
-                    'flex cursor-pointer items-center gap-2 text-sm text-muted-foreground',
-                    isSelected
-                      ? 'border-r-2 border-primary-foreground bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
-                      : 'hover:bg-primary/30'
+                    'flex cursor-pointer items-center gap-2 py-1 text-sm text-muted-foreground',
+                    isSelected ? 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground' : 'hover:bg-primary/30',
+                    `pl-${4 * (level - 1)}`
                   )}
                 >
-                  {isBranch ? <FolderIcon isOpen={isExpanded} /> : <FileIcon element={element} />}
-                  <div className="flex min-w-0 items-center">
+                  <div className={clsx('flex', level === 1 && 'pl-1.5')}>
+                    {isBranch ? <FolderIcon isOpen={isExpanded} /> : <FileIcon element={element} />}
+                  </div>
+                  <div className="flex min-w-0">
                     <span className="truncate">{element.name}</span>
                   </div>
                 </div>
@@ -239,8 +242,9 @@ function ResultTree({ tree }: { tree: entities.ResultTreeDTO[] }) {
   );
 }
 
-const FolderIcon = ({ isOpen }: { isOpen: boolean }) => (isOpen ? <FolderOpen className="h-4 w-4" /> : <Folder className="h-4 w-4" />);
+const FolderIcon = ({ isOpen }: { isOpen: boolean }) => (isOpen ? <FolderOpen className="h-3.5 w-3.5" /> : <Folder className="h-3.5 w-3.5" />);
 const FileIcon = ({ element }: { element: INode<IFlatMetadata> }) => {
+  // @ts-expect-error TODO: fix this
   const presentation = stateInfoPresentation[element.metadata?.filter_config?.action as FilterAction];
 
   return (
@@ -265,7 +269,7 @@ function convertTreeStructure(inputData: { tree: entities.ResultTreeDTO[] }): Ou
       name: node.name,
       children: [],
       parent: node.parent ?? null,
-      metadata: node.result ?? null,
+      metadata: node.result,
     };
 
     if (node.children) {
@@ -284,7 +288,7 @@ function convertTreeStructure(inputData: { tree: entities.ResultTreeDTO[] }): Ou
     name: '',
     children: inputData.tree.map((node) => convertNode(node)),
     parent: null,
-    metadata: null,
+    metadata: undefined,
   };
 
   if (root.children) {
@@ -299,5 +303,5 @@ interface OutputNode {
   name: string;
   children: OutputNode[];
   parent: string | null;
-  metadata: entities.ResultDTO | null;
+  metadata: entities.ResultDTO | undefined;
 }

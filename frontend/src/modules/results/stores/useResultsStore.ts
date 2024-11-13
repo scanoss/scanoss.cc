@@ -16,6 +16,7 @@ interface ResultsState {
   query: string;
   filterByMatchType: MatchType | 'all';
   resultsTree: entities.ResultTreeDTO[];
+  viewType: 'flat' | 'tree';
 }
 
 export interface ResultTreeDTO {
@@ -34,6 +35,7 @@ interface ResultsActions {
   setQuery: (query: string) => void;
   setFilterByMatchType: (matchType: MatchType | 'all') => void;
   fetchResultsTree: () => Promise<void>;
+  setViewType: (viewType: 'flat' | 'tree') => void;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -50,6 +52,7 @@ const useResultsStore = create<ResultsStore>()(
     query: '',
     filterByMatchType: 'all',
     resultsTree: [],
+    viewType: 'flat',
 
     setSelectedResults: (selectedResults) => set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
@@ -85,6 +88,23 @@ const useResultsStore = create<ResultsStore>()(
         });
       } finally {
         set({ isLoading: false }, false, 'FETCH_RESULTS');
+      }
+    },
+
+    fetchResultsTree: async () => {
+      const { filterByMatchType, query } = get();
+      set({ isLoading: true });
+
+      try {
+        const resultsTree = await GetAllTree({
+          match_type: filterByMatchType === 'all' ? undefined : filterByMatchType,
+          query,
+        });
+        set({ resultsTree });
+      } catch (error) {
+        set({ error: error instanceof Error ? error.message : 'An error occurred while fetching results' });
+      } finally {
+        set({ isLoading: false });
       }
     },
 
@@ -205,22 +225,7 @@ const useResultsStore = create<ResultsStore>()(
     },
     setQuery: (query) => set({ query }, false, 'SET_QUERY'),
     setFilterByMatchType: (matchType) => set({ filterByMatchType: matchType }, false, 'SET_FILTER_BY_MATCH_TYPE'),
-    fetchResultsTree: async () => {
-      const { filterByMatchType, query } = get();
-      set({ isLoading: true });
-
-      try {
-        const resultsTree = await GetAllTree({
-          match_type: filterByMatchType === 'all' ? undefined : filterByMatchType,
-          query,
-        });
-        set({ resultsTree });
-      } catch (error) {
-        set({ error: error instanceof Error ? error.message : 'An error occurred while fetching results' });
-      } finally {
-        set({ isLoading: false });
-      }
-    },
+    setViewType: (viewType) => set({ viewType }, false, 'SET_VIEW_TYPE'),
   }))
 );
 

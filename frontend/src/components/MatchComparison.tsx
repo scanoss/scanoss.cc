@@ -47,7 +47,7 @@ export default function MatchComparison() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="h-[65px] border-b border-b-border px-6">
+      <header className="h-16 border-b border-b-border px-6">
         <Header />
       </header>
       <main className="flex-1">

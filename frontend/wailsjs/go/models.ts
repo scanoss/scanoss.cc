@@ -332,8 +332,85 @@ export namespace entities {
 		    return a;
 		}
 	}
+	export class Sizes {
+	    min?: number;
+	    max?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Sizes(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.min = source["min"];
+	        this.max = source["max"];
+	    }
+	}
+	export class SkipSettings {
+	    patterns?: string[];
+	    sizes?: Sizes;
+	
+	    static createFrom(source: any = {}) {
+	        return new SkipSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.patterns = source["patterns"];
+	        this.sizes = this.convertValues(source["sizes"], Sizes);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ScanossSettingsSchema {
+	    skip?: SkipSettings;
+	
+	    static createFrom(source: any = {}) {
+	        return new ScanossSettingsSchema(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.skip = this.convertValues(source["skip"], SkipSettings);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class SettingsFile {
-	    bom: Bom;
+	    settings?: ScanossSettingsSchema;
+	    bom?: Bom;
 	
 	    static createFrom(source: any = {}) {
 	        return new SettingsFile(source);
@@ -341,6 +418,7 @@ export namespace entities {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.settings = this.convertValues(source["settings"], ScanossSettingsSchema);
 	        this.bom = this.convertValues(source["bom"], Bom);
 	    }
 	
@@ -404,6 +482,7 @@ export namespace entities {
 		    return a;
 		}
 	}
+	
 
 }
 

@@ -17,7 +17,22 @@ type ScanossSettings struct {
 }
 
 type SettingsFile struct {
-	Bom Bom `json:"bom"`
+	Settings ScanossSettingsSchema `json:"settings,omitempty"`
+	Bom      Bom                   `json:"bom,omitempty"`
+}
+
+type ScanossSettingsSchema struct {
+	Skip SkipSettings `json:"skip,omitempty"`
+}
+
+type SkipSettings struct {
+	Patterns []string `json:"patterns,omitempty"`
+	Sizes    Sizes    `json:"sizes,omitempty"`
+}
+
+type Sizes struct {
+	Min int `json:"min,omitempty"`
+	Max int `json:"max,omitempty"`
 }
 
 type Bom struct {

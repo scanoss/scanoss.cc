@@ -24,11 +24,11 @@ const (
 )
 
 type Config struct {
-	ApiToken             string `json:"apiToken"`
-	ApiUrl               string `json:"apiUrl"`
-	ResultFilePath       string `json:"resultFilePath,omitempty"`
-	ScanRoot             string `json:"scanRoot,omitempty"`
-	ScanSettingsFilePath string `json:"scanSettingsFilePath,omitempty"`
+	ApiToken             string `json:"apitoken"`
+	ApiUrl               string `json:"apiurl"`
+	ResultFilePath       string `json:"resultfilepath,omitempty"`
+	ScanRoot             string `json:"scanroot,omitempty"`
+	ScanSettingsFilePath string `json:"scansettingsfilepath,omitempty"`
 }
 
 var instance *Config
@@ -36,9 +36,7 @@ var once sync.Once
 
 func GetInstance() *Config {
 	once.Do(func() {
-		instance = &Config{
-			ApiUrl: DEFAULT_API_URL,
-		}
+		instance = &Config{}
 	})
 	return instance
 }

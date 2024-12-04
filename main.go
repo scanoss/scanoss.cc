@@ -9,12 +9,12 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 
-	"github.com/scanoss/scanoss.lui/backend/main/cmd"
-	"github.com/scanoss/scanoss.lui/backend/main/entities"
-	"github.com/scanoss/scanoss.lui/backend/main/mappers"
-	"github.com/scanoss/scanoss.lui/backend/main/repository"
-	"github.com/scanoss/scanoss.lui/backend/main/service"
-	"github.com/scanoss/scanoss.lui/backend/main/utils"
+	"github.com/scanoss/scanoss.lui/backend/entities"
+	"github.com/scanoss/scanoss.lui/backend/mappers"
+	"github.com/scanoss/scanoss.lui/backend/repository"
+	"github.com/scanoss/scanoss.lui/backend/service"
+	"github.com/scanoss/scanoss.lui/cmd"
+	"github.com/scanoss/scanoss.lui/internal/utils"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -28,12 +28,11 @@ var assets embed.FS
 var icon []byte
 
 func main() {
-
 	validate := validator.New()
 	validate.RegisterValidation("valid-purl", utils.ValidatePurl)
 	utils.SetValidator(validate)
 
-	cmd.Init()
+	cmd.Execute()
 
 	fmt.Println("App Version: ", entities.AppVersion)
 

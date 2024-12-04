@@ -11,10 +11,10 @@ to this in your browser, and you can call your Go code from devtools.
 ## Local Development environment with parameters
 | Parameter      | Description                                                                 |
 |----------------|-----------------------------------------------------------------------------|
-| **scan-root**  | Scanned folder (optional - default root folder).                            |
-| **input**      | Path to results.json file of the scanned project (optional - default ./scanoss/results.json). |
-| **configuration** | Path to configuration file (optional).                                   |
-| **apiUrl**     | SCANOSS API URL (optional - default: https://api.osskb.org/scan/direct).    |
+| **scan-root**  | Scanned folder (optional - default $WORKDIR).                               |
+| **input**      | Path to results.json file of the scanned project (optional - default $WORKDIR/.scanoss/results.json). |
+| **config**     | Path to configuration file (optional - default $HOME/.scanoss/scanoss-lui-settings.json). |
+| **apiUrl**     | SCANOSS API URL (optional - default: https://api.osskb.org).                |
 | **key**        | SCANOSS API Key token (optional - not required for default OSSKB URL).      |
 
 To start the application with specific arguments, use the following command:
@@ -26,8 +26,10 @@ wails dev -appargs "--input <resultPath>"
 
 Or you can also run the application using make command:
 ```shell
-make run ARGS="--scan-root <scanRootPath> --input <resultPath>"
+make run APPARGS="--scan-root <scanRootPath> --input <resultPath>"
 ```
+
+All the parameters are optional and have default values. If you change the default values, they will be saved in the configuration file.
 
 ## Building
 

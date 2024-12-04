@@ -17,7 +17,8 @@ const (
 	DEFAULT_API_URL               = "https://api.osskb.org"
 	DEFAULT_RESULTS_FILE          = "results.json"
 	DEFAULT_SCANOSS_SETTINGS_FILE = "scanoss.json"
-	GLOBAL_CONFIG_FILE_NAME       = "scanoss-lui-settings.json"
+	DEFAULT_CONFIG_FILE_NAME      = "scanoss-lui-settings"
+	DEFAULT_CONFIG_FILE_TYPE      = "json"
 	ROOT_FOLDER                   = "."
 	SCANOSS_HIDDEN_FOLDER         = ".scanoss"
 	SCANOSS_PREMIUM_API_URL       = "https://api.scanoss.com"
@@ -55,12 +56,12 @@ func GetDefaultScanSettingsFilePath() string {
 	return filepath.Join(workingDir, DEFAULT_SCANOSS_SETTINGS_FILE)
 }
 
-func GetDefaultConfigLocation() string {
+func GetDefaultConfigFolder() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		fmt.Printf("Error getting user home directory: %v\n", err)
-		return GLOBAL_CONFIG_FILE_NAME
+		return ""
 	}
 
-	return filepath.Join(homeDir, ROOT_FOLDER, SCANOSS_HIDDEN_FOLDER, GLOBAL_CONFIG_FILE_NAME)
+	return filepath.Join(homeDir, ROOT_FOLDER, SCANOSS_HIDDEN_FOLDER)
 }

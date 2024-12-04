@@ -46,7 +46,9 @@ func initConfig() {
 			os.Exit(1)
 		}
 	} else {
-		viper.SetConfigFile(config.GetDefaultConfigLocation())
+		viper.SetConfigName(config.DEFAULT_CONFIG_FILE_NAME)
+		viper.SetConfigType(config.DEFAULT_CONFIG_FILE_TYPE)
+		viper.AddConfigPath(config.GetDefaultConfigFolder())
 
 		// Default values
 		viper.SetDefault("apiUrl", config.DEFAULT_API_URL)
@@ -61,10 +63,10 @@ func initConfig() {
 				// Create default config
 				fmt.Println("Config file not found, creating default...")
 
-				configDir := filepath.Dir(config.GetDefaultConfigLocation())
+				defaultConfigDir := config.GetDefaultConfigFolder()
 
-				if _, err := os.Stat(configDir); os.IsNotExist(err) {
-					if err := os.MkdirAll(configDir, 0755); err != nil {
+				if _, err := os.Stat(defaultConfigDir); os.IsNotExist(err) {
+					if err := os.MkdirAll(defaultConfigDir, 0755); err != nil {
 						fmt.Println("Error creating config directory:", err)
 						os.Exit(1)
 					}
@@ -80,6 +82,7 @@ func initConfig() {
 				os.Exit(1)
 			}
 		}
+
 	}
 
 	// Override with command line flags

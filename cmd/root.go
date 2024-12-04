@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/scanoss/scanoss.lui/internal/config"
 	"github.com/spf13/cobra"
@@ -37,34 +36,49 @@ func init() {
 
 func initConfig() {
 	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	} else {
-		configDir := filepath.Dir(config.GetDefaultConfigLocation())
-		configName := strings.TrimSuffix(filepath.Base(config.GLOBAL_CONFIG_FILE_NAME), ".json")
+		absCfgFile, _ := filepath.Abs(cfgFile)
 
-		viper.AddConfigPath(configDir)
-		viper.SetConfigName(configName)
-		viper.SetConfigType("json")
-	}
+		fmt.Println("Using config file:", absCfgFile)
 
-	// Default values
-	viper.SetDefault("apiUrl", config.DEFAULT_API_URL)
-	viper.SetDefault("apiToken", "")
-	viper.SetDefault("resultFilePath", config.GetDefaultResultFilePath())
-	viper.SetDefault("scanRoot", "")
-	viper.SetDefault("scanSettingsFilePath", config.GetDefaultScanSettingsFilePath())
-
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Create default config
-			if err := viper.SafeWriteConfig(); err != nil {
-				fmt.Println("Error creating config file:", err)
-				os.Exit(1)
-			}
-			fmt.Println("Created config file:", viper.ConfigFileUsed())
-		} else {
+		viper.SetConfigFile(absCfgFile)
+		if err := viper.ReadInConfig(); err != nil {
 			fmt.Println("Error reading config file:", err)
 			os.Exit(1)
+		}
+	} else {
+		viper.SetConfigFile(config.GetDefaultConfigLocation())
+
+		// Default values
+		viper.SetDefault("apiUrl", config.DEFAULT_API_URL)
+		viper.SetDefault("apiToken", "")
+		viper.SetDefault("resultFilePath", config.GetDefaultResultFilePath())
+		viper.SetDefault("scanRoot", "")
+		viper.SetDefault("scanSettingsFilePath", config.GetDefaultScanSettingsFilePath())
+
+		// Try to read default config file
+		if err := viper.ReadInConfig(); err != nil {
+			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+				// Create default config
+				fmt.Println("Config file not found, creating default...")
+
+				configDir := filepath.Dir(config.GetDefaultConfigLocation())
+
+				if _, err := os.Stat(configDir); os.IsNotExist(err) {
+					if err := os.MkdirAll(configDir, 0755); err != nil {
+						fmt.Println("Error creating config directory:", err)
+						os.Exit(1)
+					}
+				}
+
+				if err := viper.SafeWriteConfig(); err != nil {
+					fmt.Println("Error creating config file:", err)
+					os.Exit(1)
+				}
+				fmt.Println("Created default config file:", viper.ConfigFileUsed())
+			} else {
+				fmt.Println("Error reading config file:", err)
+				os.Exit(1)
+			}
 		}
 	}
 

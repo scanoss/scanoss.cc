@@ -1,4 +1,5 @@
 {
-  "apiToken": "",
-  "apiUrl": "https://api.scanoss.com"
+  "apitoken": "your-api-token",
+  "apiurl": "https://api.scanoss.com"
 }
+

@@ -55,7 +55,7 @@ jobs:
         run: |
           mkdir build
           cp -r assets build/assets
-          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal" --nopackage -webview2 download -o scanoss-lui-macos
+          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal" --nopackage -webview2 download -o scanoss-lui-macos
         shell: bash
 
       # Set execution permissions
@@ -149,7 +149,7 @@ jobs:
         run: |
           mkdir build
           cp -r assets build/assets
-          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "linux/amd64" -webview2 download -o scanoss-lui-linux
+          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "linux/amd64" -webview2 download -o scanoss-lui-linux
         shell: bash
 
       - name: Add Linux perms
@@ -202,7 +202,7 @@ jobs:
         run: |
           mkdir build
           cp -r assets build/assets
-          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/main/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o ${{env.ARTIFACT_NAME_PREFIX}}-windows.exe
+          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o ${{env.ARTIFACT_NAME_PREFIX}}-windows.exe
         shell: bash
 
       - uses: actions/upload-artifact@v4

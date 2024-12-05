@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"os"
 
 	"github.com/go-playground/validator"
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
@@ -28,11 +29,21 @@ var assets embed.FS
 var icon []byte
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	validate := validator.New()
 	validate.RegisterValidation("valid-purl", utils.ValidatePurl)
 	utils.SetValidator(validate)
 
-	cmd.Execute()
+	err := cmd.Execute()
+	if err != nil {
+		return fmt.Errorf("error: %v", err)
+	}
 
 	fmt.Println("App Version: ", entities.AppVersion)
 
@@ -61,7 +72,7 @@ func main() {
 	licenseService := service.NewLicenseServiceImpl(licenseRepository)
 
 	//Create application with options
-	err := wails.Run(&options.App{
+	err = wails.Run(&options.App{
 		Title: "Scanoss Lui",
 		AssetServer: &assetserver.Options{
 			Assets: assets,
@@ -99,6 +110,8 @@ func main() {
 	})
 
 	if err != nil {
-		println("Error:", err.Error())
+		return fmt.Errorf("error: %v", err)
 	}
+
+	return nil
 }

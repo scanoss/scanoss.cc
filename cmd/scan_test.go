@@ -21,6 +21,7 @@ func TestScanCommand(t *testing.T) {
 		mockService.EXPECT().Scan(mock.MatchedBy(func(args []string) bool {
 			expectedArgs := []string{
 				"/test/path",
+				"--quiet",
 				"--output", "results.json",
 				"--no-wfp-output",
 				"--threads", "10",

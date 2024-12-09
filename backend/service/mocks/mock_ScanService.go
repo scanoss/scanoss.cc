@@ -62,17 +62,17 @@ func (_c *MockScanService_CheckDependencies_Call) RunAndReturn(run func() error)
 	return _c
 }
 
-// Scan provides a mock function with given fields: dirPath, args
-func (_m *MockScanService) Scan(dirPath string, args []string) error {
-	ret := _m.Called(dirPath, args)
+// Scan provides a mock function with given fields: args
+func (_m *MockScanService) Scan(args []string) error {
+	ret := _m.Called(args)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Scan")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
-		r0 = rf(dirPath, args)
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(args)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -86,15 +86,14 @@ type MockScanService_Scan_Call struct {
 }
 
 // Scan is a helper method to define mock.On call
-//   - dirPath string
 //   - args []string
-func (_e *MockScanService_Expecter) Scan(dirPath interface{}, args interface{}) *MockScanService_Scan_Call {
-	return &MockScanService_Scan_Call{Call: _e.mock.On("Scan", dirPath, args)}
+func (_e *MockScanService_Expecter) Scan(args interface{}) *MockScanService_Scan_Call {
+	return &MockScanService_Scan_Call{Call: _e.mock.On("Scan", args)}
 }
 
-func (_c *MockScanService_Scan_Call) Run(run func(dirPath string, args []string)) *MockScanService_Scan_Call {
+func (_c *MockScanService_Scan_Call) Run(run func(args []string)) *MockScanService_Scan_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].([]string))
+		run(args[0].([]string))
 	})
 	return _c
 }
@@ -104,7 +103,7 @@ func (_c *MockScanService_Scan_Call) Return(_a0 error) *MockScanService_Scan_Cal
 	return _c
 }
 
-func (_c *MockScanService_Scan_Call) RunAndReturn(run func(string, []string) error) *MockScanService_Scan_Call {
+func (_c *MockScanService_Scan_Call) RunAndReturn(run func([]string) error) *MockScanService_Scan_Call {
 	_c.Call.Return(run)
 	return _c
 }

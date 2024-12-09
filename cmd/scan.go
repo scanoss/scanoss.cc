@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/scanoss/scanoss.lui/backend/service"
 	"github.com/spf13/cobra"
@@ -52,7 +53,9 @@ func NewScanCmd(scanService service.ScanService) *cobra.Command {
 		Use:   "scan [scanDirPath]",
 		Short: "Run a scan on the specified folder",
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
+			filesFlag := cmd.Flag("files")
+			// If no files are specified and no folder is specified, return an error
+			if filesFlag == nil || !filesFlag.Changed && len(args) == 0 {
 				return fmt.Errorf("you must specify a folder to scan")
 			}
 			return nil
@@ -63,6 +66,16 @@ func NewScanCmd(scanService service.ScanService) *cobra.Command {
 			}
 
 			scanOptions := make([]string, 0)
+			scanOptions = append(scanOptions, "--quiet")
+
+			var scanDirPath string
+
+			// Check if the folder path is specified as an argument
+			// Could be that the user specifies only --files flag (e.g scan --files file1.go file2.go)
+			if len(args) == 1 && args[0] != "" {
+				scanDirPath = args[0]
+				scanOptions = append(scanOptions, scanDirPath)
+			}
 
 			for _, arg := range scanArgs {
 				flag := cmd.Flag(arg.Name)
@@ -74,7 +87,12 @@ func NewScanCmd(scanService service.ScanService) *cobra.Command {
 				case "string":
 					scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name), flag.Value.String())
 				case "stringSlice":
-					scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name), flag.Value.String())
+					values, err := cmd.Flags().GetStringSlice(arg.Name)
+					if err != nil {
+						return fmt.Errorf("an error occurred with argument %s: %w", arg.Name, err)
+					}
+					commaSeparatedValues := strings.Join(values, ",")
+					scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name), commaSeparatedValues)
 				case "int":
 					scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name), flag.Value.String())
 				case "bool":
@@ -84,7 +102,7 @@ func NewScanCmd(scanService service.ScanService) *cobra.Command {
 				}
 			}
 
-			return scanService.Scan(args[0], scanOptions)
+			return scanService.Scan(scanOptions)
 		},
 	}
 

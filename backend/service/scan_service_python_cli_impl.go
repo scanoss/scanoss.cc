@@ -44,8 +44,8 @@ func (s *ScanServicePythonImpl) checkScanossPyInstalled() error {
 	return nil
 }
 
-func (s *ScanServicePythonImpl) Scan(dirPath string, args []string) error {
-	cmdArgs := append([]string{"scan", dirPath}, args...)
+func (s *ScanServicePythonImpl) Scan(args []string) error {
+	cmdArgs := append([]string{"scan"}, args...)
 
 	cmd := exec.Command(s.cmd, cmdArgs...)
 	cmd.Stdout = os.Stdout

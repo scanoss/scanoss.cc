@@ -90,4 +90,17 @@ var scanCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(scanCmd)
+
+	for _, arg := range scanArgs {
+		switch arg.Type {
+		case "string":
+			scanCmd.Flags().StringP(arg.Name, arg.Shorthand, arg.Default.(string), arg.Usage)
+		case "stringSlice":
+			scanCmd.Flags().StringSliceP(arg.Name, arg.Shorthand, arg.Default.([]string), arg.Usage)
+		case "int":
+			scanCmd.Flags().IntP(arg.Name, arg.Shorthand, arg.Default.(int), arg.Usage)
+		case "bool":
+			scanCmd.Flags().BoolP(arg.Name, arg.Shorthand, arg.Default.(bool), arg.Usage)
+		}
+	}
 }

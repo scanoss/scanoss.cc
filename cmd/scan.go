@@ -47,60 +47,73 @@ var (
 	}
 )
 
-var scanCmd = &cobra.Command{
-	Use:   "scan [scanDirPath]",
-	Short: "Run a scan on the specified folder",
-	Args: func(cmd *cobra.Command, args []string) error {
-		if len(args) != 1 {
-			return fmt.Errorf("you must specify a folder to scan")
-		}
-		return nil
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		scanOptions := make([]string, 0)
-
-		for _, arg := range scanArgs {
-			flag := cmd.Flag(arg.Name)
-			if flag == nil || !flag.Changed {
-				continue
+func NewScanCmd(scanService service.ScanService) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "scan [scanDirPath]",
+		Short: "Run a scan on the specified folder",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("you must specify a folder to scan")
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := scanService.CheckDependencies(); err != nil {
+				return fmt.Errorf("dependency check failed: %w", err)
 			}
 
-			switch arg.Type {
-			case "string":
-				scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name), flag.Value.String())
-			case "stringSlice":
-				scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name), flag.Value.String())
-			case "int":
-				scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name), flag.Value.String())
-			case "bool":
-				if flag.Value.String() == "true" {
-					scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name))
+			scanOptions := make([]string, 0)
+
+			for _, arg := range scanArgs {
+				flag := cmd.Flag(arg.Name)
+				if flag == nil || !flag.Changed {
+					continue
+				}
+
+				switch arg.Type {
+				case "string":
+					scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name), flag.Value.String())
+				case "stringSlice":
+					scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name), flag.Value.String())
+				case "int":
+					scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name), flag.Value.String())
+				case "bool":
+					if flag.Value.String() == "true" {
+						scanOptions = append(scanOptions, fmt.Sprintf("--%s", arg.Name))
+					}
 				}
 			}
-		}
 
-		service := service.NewScanServicePythonImpl()
-
-		return service.Scan(args[0], scanOptions)
-	},
-	PostRun: func(cmd *cobra.Command, args []string) {
-		os.Exit(0)
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(scanCmd)
+			return scanService.Scan(args[0], scanOptions)
+		},
+	}
 
 	for _, arg := range scanArgs {
 		switch arg.Type {
 		case "string":
-			scanCmd.Flags().StringP(arg.Name, arg.Shorthand, arg.Default.(string), arg.Usage)
+			cmd.Flags().StringP(arg.Name, arg.Shorthand, arg.Default.(string), arg.Usage)
 		case "stringSlice":
-			scanCmd.Flags().StringSliceP(arg.Name, arg.Shorthand, arg.Default.([]string), arg.Usage)
+			cmd.Flags().StringSliceP(arg.Name, arg.Shorthand, arg.Default.([]string), arg.Usage)
 		case "int":
-			scanCmd.Flags().IntP(arg.Name, arg.Shorthand, arg.Default.(int), arg.Usage)
+			cmd.Flags().IntP(arg.Name, arg.Shorthand, arg.Default.(int), arg.Usage)
 		case "bool":
-			scanCmd.Flags().BoolP(arg.Name, arg.Shorthand, arg.Default.(bool), arg.Usage)
+			cmd.Flags().BoolP(arg.Name, arg.Shorthand, arg.Default.(bool), arg.Usage)
 		}
 	}
+
+	return cmd
+}
+
+func init() {
+	service := service.NewScanServicePythonImpl()
+	scanCmd := NewScanCmd(service)
+
+	// This is a workaround to prevent the scan command opening the lui when running tests
+	if os.Getenv("GO_TEST") != "true" {
+		scanCmd.PostRun = func(cmd *cobra.Command, args []string) {
+			os.Exit(0)
+		}
+	}
+
+	rootCmd.AddCommand(scanCmd)
 }

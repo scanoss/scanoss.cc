@@ -26,13 +26,24 @@ type ScanossSettingsSchema struct {
 }
 
 type SkipSettings struct {
-	Patterns []string `json:"patterns,omitempty"`
-	Sizes    Sizes    `json:"sizes,omitempty"`
+	Patterns SkipPatterns `json:"patterns,omitempty"`
+	Sizes    Sizes        `json:"sizes,omitempty"`
+}
+
+type SkipPatterns struct {
+	Scanning       []string `json:"scanning,omitempty"`
+	Fingerprinting []string `json:"fingerprinting,omitempty"`
 }
 
 type Sizes struct {
-	Min int `json:"min,omitempty"`
-	Max int `json:"max,omitempty"`
+	Scanning       []SizesSkipSettings `json:"scanning,omitempty"`
+	Fingerprinting []SizesSkipSettings `json:"fingerprinting,omitempty"`
+}
+
+type SizesSkipSettings struct {
+	Patterns []string `json:"patterns,omitempty"`
+	Min      int      `json:"min,omitempty"`
+	Max      int      `json:"max,omitempty"`
 }
 
 type Bom struct {

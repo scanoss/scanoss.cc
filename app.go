@@ -90,6 +90,7 @@ func (a *App) initializeMenu() {
 	groupedShortcuts := a.keyboardService.GetGroupedShortcuts()
 	actionShortcuts := groupedShortcuts[entities.GroupActions]
 	globalShortcuts := groupedShortcuts[entities.GroupGlobal]
+	scanShortcuts := groupedShortcuts[entities.GroupScan]
 
 	// Global edit menu
 	EditMenu := AppMenu.AddSubmenu("Edit")
@@ -107,14 +108,31 @@ func (a *App) initializeMenu() {
 	ViewMenu := AppMenu.AddSubmenu("View")
 	ViewMenu.AddText("Sync Scroll Position", keys.Combo("e", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {})
 
+	// Scan menu
+	ScanMenu := AppMenu.AddSubmenu("Scan")
+	for _, shortcut := range scanShortcuts {
+		ScanMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {
+			fmt.Println("Emitting --> ", string(shortcut.Action))
+			runtime.EventsEmit(a.ctx, string(shortcut.Action))
+		})
+	}
+
 	// Help menu
 	HelpMenu := AppMenu.AddSubmenu("Help")
 	HelpMenu.AddText("Report Issue", nil, func(cd *menu.CallbackData) {
 		utils.OpenMailClient(utils.SCANOSS_SUPPORT_MAILBOX, "Report an issue", utils.GetIssueReportBody(a.ctx))
 	})
 	HelpMenu.AddText("Keyboard Shortcuts", keys.Combo("k", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {
-		runtime.EventsEmit(a.ctx, "showKeyboardShortcuts")
+		runtime.EventsEmit(a.ctx, string(entities.ActionShowKeyboardShortcutsModal))
 	})
 
 	runtime.MenuSetApplicationMenu(a.ctx, AppMenu)
+}
+
+func (a *App) SelectDirectory() (string, error) {
+	directory, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{})
+	if err != nil {
+		return "", fmt.Errorf("error selecting directory: %v", err)
+	}
+	return directory, nil
 }

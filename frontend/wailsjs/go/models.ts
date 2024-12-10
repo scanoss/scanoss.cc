@@ -22,6 +22,9 @@ export namespace entities {
 	    ReplaceComponentWithoutComments = "replaceComponentWithoutComments",
 	    ReplaceComponentWithComments = "replaceComponentWithComments",
 	    ToggleSyncScrollPosition = "toggleSyncScrollPosition",
+	    ShowKeyboardShortcutsModal = "showKeyboardShortcutsModal",
+	    ScanCurrentDirectory = "scanCurrentDirectory",
+	    ScanWithOptions = "scanWithOptions",
 	}
 	export class ComponentFilter {
 	    path?: string;
@@ -332,9 +335,25 @@ export namespace entities {
 		    return a;
 		}
 	}
-	export class Sizes {
+	export class SizesSkipSettings {
+	    patterns?: string[];
 	    min?: number;
 	    max?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new SizesSkipSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.patterns = source["patterns"];
+	        this.min = source["min"];
+	        this.max = source["max"];
+	    }
+	}
+	export class Sizes {
+	    scanning?: SizesSkipSettings[];
+	    fingerprinting?: SizesSkipSettings[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Sizes(source);
@@ -342,12 +361,44 @@ export namespace entities {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.min = source["min"];
-	        this.max = source["max"];
+	        this.scanning = this.convertValues(source["scanning"], SizesSkipSettings);
+	        this.fingerprinting = this.convertValues(source["fingerprinting"], SizesSkipSettings);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class SkipPatterns {
+	    scanning?: string[];
+	    fingerprinting?: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new SkipPatterns(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.scanning = source["scanning"];
+	        this.fingerprinting = source["fingerprinting"];
 	    }
 	}
 	export class SkipSettings {
-	    patterns?: string[];
+	    patterns?: SkipPatterns;
 	    sizes?: Sizes;
 	
 	    static createFrom(source: any = {}) {
@@ -356,7 +407,7 @@ export namespace entities {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.patterns = source["patterns"];
+	        this.patterns = this.convertValues(source["patterns"], SkipPatterns);
 	        this.sizes = this.convertValues(source["sizes"], Sizes);
 	    }
 	
@@ -482,6 +533,8 @@ export namespace entities {
 		    return a;
 		}
 	}
+	
+	
 	
 
 }

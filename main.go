@@ -70,6 +70,7 @@ func run() error {
 	resultService := service.NewResultServiceImpl(resultRepository, resultMapper)
 	scanossSettingsService := service.NewScanossSettingsServiceImpl(scanossSettingsRepository)
 	licenseService := service.NewLicenseServiceImpl(licenseRepository)
+	scanService := service.NewScanServicePythonImpl()
 
 	//Create application with options
 	err = wails.Run(&options.App{
@@ -92,6 +93,7 @@ func run() error {
 			resultService,
 			scanossSettingsService,
 			licenseService,
+			scanService,
 		},
 		EnumBind: []interface{}{
 			entities.AllShortcutActions,

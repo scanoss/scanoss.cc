@@ -6,3 +6,5 @@ import {service} from '../models';
 export function BeforeClose(arg1:context.Context):Promise<boolean>;
 
 export function Init(arg1:context.Context,arg2:service.ScanossSettingsService,arg3:service.KeyboardService):Promise<void>;
+
+export function SelectDirectory():Promise<string>;

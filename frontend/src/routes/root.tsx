@@ -2,17 +2,24 @@ import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
 import KeyboardShortcutsDialog from '@/components/KeyboardShortcutsDialog';
+import ScanDialog from '@/components/ScanDialog';
 import Sidebar from '@/components/Sidebar';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 
+import { entities } from '../../wailsjs/go/models';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
 
 export default function Root() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showScanModal, setShowScanModal] = useState(false);
 
   useEffect(() => {
-    EventsOn('showKeyboardShortcuts', () => {
+    // Register event listeners for shortcuts
+    EventsOn(entities.Action.ShowKeyboardShortcutsModal, () => {
       setShowKeyboardShortcuts(true);
+    });
+    EventsOn(entities.Action.ScanWithOptions, () => {
+      setShowScanModal(true);
     });
   }, []);
 
@@ -28,6 +35,7 @@ export default function Root() {
         </ResizablePanel>
       </ResizablePanelGroup>
       <KeyboardShortcutsDialog open={showKeyboardShortcuts} onOpenChange={() => setShowKeyboardShortcuts(false)} />
+      <ScanDialog open={showScanModal} onOpenChange={() => setShowScanModal(false)} />
     </div>
   );
 }

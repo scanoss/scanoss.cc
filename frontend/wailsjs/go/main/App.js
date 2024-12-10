@@ -9,3 +9,7 @@ export function BeforeClose(arg1) {
 export function Init(arg1, arg2, arg3) {
   return window['go']['main']['App']['Init'](arg1, arg2, arg3);
 }
+
+export function SelectDirectory() {
+  return window['go']['main']['App']['SelectDirectory']();
+}

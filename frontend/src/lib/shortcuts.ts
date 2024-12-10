@@ -121,6 +121,23 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     description: 'Sync the scroll position of the editors',
     keys: 'shift+mod+e',
   },
+  [entities.Action.ShowKeyboardShortcutsModal]: {
+    name: 'Show Keyboard Shortcuts',
+    description: 'Show the keyboard shortcuts modal',
+    keys: 'mod+shift+k',
+  },
+
+  // Scan
+  [entities.Action.ScanWithOptions]: {
+    name: 'Scan With Options',
+    description: 'Scan with options',
+    keys: 'mod+shift+b',
+  },
+  [entities.Action.ScanCurrentDirectory]: {
+    name: 'Scan Current Directory',
+    description: 'Scan the current directory',
+    keys: 'mod+shift+c',
+  },
 };
 
 export const getShortcutDisplay = (keys: string, modifierKey: string): string[] => {

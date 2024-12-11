@@ -11,7 +11,24 @@ import { EventsOn } from '../../wailsjs/runtime/runtime';
 
 export default function Root() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
-  const [showScanModal, setShowScanModal] = useState(false);
+  const [scanModal, setScanModal] = useState({
+    open: false,
+    withOptions: false,
+  });
+
+  const handleCloseScanModal = () => {
+    setScanModal({
+      open: false,
+      withOptions: false,
+    });
+  };
+
+  const handleShowScanModal = ({ withOptions }: { withOptions: boolean }) => {
+    setScanModal({
+      open: true,
+      withOptions,
+    });
+  };
 
   useEffect(() => {
     // Register event listeners for shortcuts
@@ -19,7 +36,12 @@ export default function Root() {
       setShowKeyboardShortcuts(true);
     });
     EventsOn(entities.Action.ScanWithOptions, () => {
-      setShowScanModal(true);
+      console.log('triggered scan with options');
+      handleShowScanModal({ withOptions: true });
+    });
+    EventsOn(entities.Action.ScanCurrentDirectory, () => {
+      console.log('triggered scan without options');
+      handleShowScanModal({ withOptions: false });
     });
   }, []);
 
@@ -35,7 +57,7 @@ export default function Root() {
         </ResizablePanel>
       </ResizablePanelGroup>
       <KeyboardShortcutsDialog open={showKeyboardShortcuts} onOpenChange={() => setShowKeyboardShortcuts(false)} />
-      <ScanDialog open={showScanModal} onOpenChange={() => setShowScanModal(false)} />
+      {scanModal.open && <ScanDialog onOpenChange={handleCloseScanModal} withOptions={scanModal.withOptions} />}
     </div>
   );
 }

@@ -83,8 +83,11 @@ func (s *ScanServicePythonImpl) executeScanWithPipes(args []string) (*exec.Cmd, 
 
 	cmdArgs := []string{"scan"}
 
+	defaultArgs, sensitiveArgs := s.GetDefaultScanArgs(), s.GetSensitiveDefaultScanArgs()
+
+	cmdArgs = append(cmdArgs, sensitiveArgs...)
+
 	if len(args) == 0 {
-		defaultArgs := s.GetDefaultScanArgs()
 		cmdArgs = append(cmdArgs, defaultArgs...)
 	} else {
 		cmdArgs = append(cmdArgs, args...)
@@ -138,23 +141,15 @@ func (s *ScanServicePythonImpl) checkScanossPyInstalled() error {
 }
 
 func (s *ScanServicePythonImpl) GetDefaultScanArgs() []string {
-	defaultArgs := []string{}
+	args := []string{}
 	cfg := config.GetInstance()
-
-	if cfg.ApiToken != "" {
-		defaultArgs = append(defaultArgs, "--key", cfg.ApiToken)
-	}
-
-	if cfg.ApiUrl != "" {
-		defaultArgs = append(defaultArgs, "--apiurl", fmt.Sprintf("%s/scan/direct", cfg.ApiUrl))
-	}
 
 	if cfg.ResultFilePath != "" {
 		relativePath, err := utils.GetRelativePath(cfg.ResultFilePath)
 		if err != nil {
 			return nil
 		}
-		defaultArgs = append(defaultArgs, "--output", relativePath)
+		args = append(args, "--output", relativePath)
 	}
 
 	if cfg.ScanSettingsFilePath != "" {
@@ -162,8 +157,23 @@ func (s *ScanServicePythonImpl) GetDefaultScanArgs() []string {
 		if err != nil {
 			return nil
 		}
-		defaultArgs = append(defaultArgs, "--settings", relativePath)
+		args = append(args, "--settings", relativePath)
 	}
 
-	return defaultArgs
+	return args
+}
+
+func (s *ScanServicePythonImpl) GetSensitiveDefaultScanArgs() []string {
+	args := s.GetDefaultScanArgs()
+	cfg := config.GetInstance()
+
+	if cfg.ApiToken != "" {
+		args = append(args, "--key", cfg.ApiToken)
+	}
+
+	if cfg.ApiUrl != "" {
+		args = append(args, "--apiurl", fmt.Sprintf("%s/scan/direct", cfg.ApiUrl))
+	}
+
+	return args
 }

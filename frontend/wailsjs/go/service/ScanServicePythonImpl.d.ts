@@ -6,6 +6,8 @@ export function CheckDependencies():Promise<void>;
 
 export function GetDefaultScanArgs():Promise<Array<string>>;
 
+export function GetSensitiveDefaultScanArgs():Promise<Array<string>>;
+
 export function Scan(arg1:Array<string>):Promise<void>;
 
 export function ScanStream(arg1:Array<string>):Promise<void>;

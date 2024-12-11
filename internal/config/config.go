@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
+
+	"github.com/spf13/viper"
 )
 
 var (
@@ -43,8 +44,34 @@ func GetInstance() *Config {
 	return instance
 }
 
-func Get() *Config {
-	return GetInstance()
+func (c *Config) SetApiToken(token string) error {
+	c.ApiToken = token
+	viper.Set("apitoken", token)
+	return viper.WriteConfig()
+}
+
+func (c *Config) SetApiUrl(url string) error {
+	c.ApiUrl = url
+	viper.Set("apiurl", url)
+	return viper.WriteConfig()
+}
+
+func (c *Config) SetResultFilePath(path string) error {
+	c.ResultFilePath = path
+	viper.Set("resultfilepath", path)
+	return viper.WriteConfig()
+}
+
+func (c *Config) SetScanRoot(path string) error {
+	c.ScanRoot = path
+	viper.Set("scanroot", path)
+	return viper.WriteConfig()
+}
+
+func (c *Config) SetScanSettingsFilePath(path string) error {
+	c.ScanSettingsFilePath = path
+	viper.Set("scansettingsfilepath", path)
+	return viper.WriteConfig()
 }
 
 func GetDefaultResultFilePath() string {
@@ -67,13 +94,83 @@ func GetDefaultConfigFolder() string {
 	return filepath.Join(homeDir, ROOT_FOLDER, SCANOSS_HIDDEN_FOLDER)
 }
 
-func MaskApiToken(apiToken string) string {
-	if len(apiToken) < 4 {
-		return strings.Repeat("*", len(apiToken))
+func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile string) error {
+	if cfgFile != "" {
+		absCfgFile, _ := filepath.Abs(cfgFile)
+		fmt.Println("Using config file:", absCfgFile)
+
+		viper.SetConfigFile(absCfgFile)
+		if err := viper.ReadInConfig(); err != nil {
+			return fmt.Errorf("error reading config file: %w", err)
+		}
+	} else {
+		viper.SetConfigName(DEFAULT_CONFIG_FILE_NAME)
+		viper.SetConfigType(DEFAULT_CONFIG_FILE_TYPE)
+		viper.AddConfigPath(GetDefaultConfigFolder())
+
+		// Default values
+		viper.SetDefault("apiUrl", DEFAULT_API_URL)
+		viper.SetDefault("apiToken", "")
+		viper.SetDefault("resultFilePath", GetDefaultResultFilePath())
+		viper.SetDefault("scanRoot", "")
+		viper.SetDefault("scanSettingsFilePath", GetDefaultScanSettingsFilePath())
+
+		if err := viper.ReadInConfig(); err != nil {
+			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+				defaultConfigDir := GetDefaultConfigFolder()
+				if err := os.MkdirAll(defaultConfigDir, 0755); err != nil {
+					return fmt.Errorf("error creating config directory: %w", err)
+				}
+				if err := viper.SafeWriteConfig(); err != nil {
+					return fmt.Errorf("error creating config file: %w", err)
+				}
+				fmt.Println("Created default config file:", viper.ConfigFileUsed())
+			} else {
+				return fmt.Errorf("error reading config file: %w", err)
+			}
+		}
 	}
 
-	charactersToMask := len(apiToken) - 4
-	maxCharactersToMask := 5
+	cfg := GetInstance()
 
-	return apiToken[:2] + strings.Repeat("*", min(charactersToMask, maxCharactersToMask)) + apiToken[len(apiToken)-2:]
+	// Override with command line flags
+	if scanRoot != "" {
+		if err := cfg.SetScanRoot(scanRoot); err != nil {
+			return fmt.Errorf("error saving scan root: %w", err)
+		}
+	}
+	if apiKey != "" {
+		if err := cfg.SetApiToken(apiKey); err != nil {
+			return fmt.Errorf("error saving API token: %w", err)
+		}
+	}
+	if apiUrl != "" {
+		if err := cfg.SetApiUrl(apiUrl); err != nil {
+			return fmt.Errorf("error saving API URL: %w", err)
+		}
+	}
+	if inputFile != "" {
+		if err := cfg.SetResultFilePath(inputFile); err != nil {
+			return fmt.Errorf("error saving result file path: %w", err)
+		}
+	}
+
+	// Load config values from viper if not set by flags
+	if cfg.ApiToken == "" {
+		cfg.ApiToken = viper.GetString("apiToken")
+	}
+	if cfg.ApiUrl == "" {
+		cfg.ApiUrl = viper.GetString("apiUrl")
+	}
+	if cfg.ResultFilePath == "" {
+		cfg.ResultFilePath = viper.GetString("resultFilePath")
+	}
+	if cfg.ScanRoot == "" {
+		cfg.ScanRoot = viper.GetString("scanRoot")
+	}
+	if cfg.ScanSettingsFilePath == "" {
+		cfg.ScanSettingsFilePath = viper.GetString("scanSettingsFilePath")
+	}
+
+	return nil
 }

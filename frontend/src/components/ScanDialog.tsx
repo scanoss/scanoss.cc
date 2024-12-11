@@ -1,13 +1,13 @@
-'use client';
-
 import { ExternalLink, Folder, Loader2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { withErrorHandling } from '@/lib/errors';
+import useResultsStore from '@/modules/results/stores/useResultsStore';
 
-import { GetWorkingDir, SelectDirectory } from '../../wailsjs/go/main/App';
+import { GetWorkingDir, SelectDirectory, SetScanRoot } from '../../wailsjs/go/main/App';
 import { GetDefaultScanArgs, ScanStream } from '../../wailsjs/go/service/ScanServicePythonImpl';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
 import Link from './Link';
@@ -23,46 +23,58 @@ interface OutputLine {
 
 type ScanStatus = 'idle' | 'scanning' | 'completed' | 'failed';
 
-export default function ScanModal({ open, onOpenChange }: { open: boolean; onOpenChange: () => void }) {
-  const { toast } = useToast();
+interface ScanDialogProps {
+  onOpenChange: () => void;
+  withOptions: boolean;
+}
 
-  const outputRef = useRef<HTMLDivElement>(null);
+export default function ScanDialog({ onOpenChange, withOptions }: ScanDialogProps) {
+  const { toast } = useToast();
 
   const [directory, setDirectory] = useState('');
   const [args, setArgs] = useState<string>('');
   const [output, setOutput] = useState<OutputLine[]>([]);
   const [scanStatus, setScanStatus] = useState<ScanStatus>('idle');
 
-  const handleSelectDirectory = async () => {
-    try {
+  const fetchResults = useResultsStore((state) => state.fetchResults);
+
+  const handleSelectDirectory = withErrorHandling({
+    asyncFn: async () => {
       const selectedDir = await SelectDirectory();
-      setDirectory(selectedDir);
-    } catch (error) {
+      if (selectedDir) {
+        setDirectory(selectedDir);
+      }
+    },
+    onError: (error) => {
       console.error('Error selecting directory:', error);
       toast({
         title: 'Error',
         description: 'An error occurred while selecting the directory. Please try again.',
         variant: 'destructive',
       });
-    }
-  };
+    },
+  });
 
-  const handleScan = async () => {
-    setScanStatus('scanning');
-    setOutput([]);
-    try {
+  const handleScan = withErrorHandling({
+    asyncFn: async () => {
+      setScanStatus('scanning');
+      setOutput([]);
       await ScanStream([directory, ...args.split(' ')]);
-    } catch (error) {
+      await SetScanRoot(directory);
+      await fetchResults();
+    },
+    onError: (error) => {
       console.error('Error scanning:', error);
       toast({
         title: 'Error',
         description: 'An error occurred while scanning. Please try again.',
         variant: 'destructive',
       });
-    } finally {
+    },
+    onFinish: () => {
       setScanStatus('idle');
-    }
-  };
+    },
+  });
 
   useEffect(() => {
     async function fetchDefaultDirectory() {
@@ -73,15 +85,11 @@ export default function ScanModal({ open, onOpenChange }: { open: boolean; onOpe
       const defaultArgs = await GetDefaultScanArgs();
       setArgs(defaultArgs.join(' '));
     }
-    fetchDefaultDirectory();
+    if (!withOptions) {
+      fetchDefaultDirectory();
+    }
     fetchDefaultScanArgs();
   }, []);
-
-  useEffect(() => {
-    if (output && outputRef.current) {
-      outputRef.current.scrollTo({ behavior: 'smooth', top: outputRef.current.scrollHeight });
-    }
-  }, [output]);
 
   useEffect(() => {
     const subs = [
@@ -104,12 +112,17 @@ export default function ScanModal({ open, onOpenChange }: { open: boolean; onOpe
   }, []);
 
   const isScanning = scanStatus === 'scanning';
+  const dialogTitle = withOptions ? 'Scan With Options' : 'Scan Current Directory';
+  const dialogDescription = withOptions
+    ? 'Run a scan on the selected directory with the provided arguments.'
+    : 'Run a scan on the current directory with default arguments.';
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Scan With Options</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription>{dialogDescription}</DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[600px]">
           <div className="flex flex-col gap-4 py-4">
@@ -123,28 +136,35 @@ export default function ScanModal({ open, onOpenChange }: { open: boolean; onOpe
                   placeholder="Select a directory"
                   className="text-left font-mono text-sm [direction:rtl]"
                 />
-                <Button type="button" onClick={handleSelectDirectory} className="ml-2 px-3" variant="secondary">
-                  <Folder className="h-4 w-4" />
-                </Button>
+                {withOptions && (
+                  <Button type="button" onClick={handleSelectDirectory} className="ml-2 px-3" variant="secondary">
+                    <Folder className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="scan-arguments">Arguments:</Label>
-              <Input
-                id="scan-arguments"
-                value={args}
-                onChange={(e) => setArgs(e.target.value)}
-                className="font-mono text-sm"
-                placeholder="Enter scan arguments..."
-              />
-              <p className="text-sm text-gray-500">
-                Need help with arguments?{' '}
-                <Link to="https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/#commands-and-arguments" className="inline-flex items-center">
-                  View documentation
-                  <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </p>
-            </div>
+            {withOptions && (
+              <div className="space-y-2">
+                <Label htmlFor="scan-arguments">Arguments:</Label>
+                <Input
+                  id="scan-arguments"
+                  value={args}
+                  onChange={(e) => setArgs(e.target.value)}
+                  className="font-mono text-sm"
+                  placeholder="Enter scan arguments..."
+                />
+                <p className="text-sm text-gray-500">
+                  Need help with arguments?{' '}
+                  <Link
+                    to="https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/#commands-and-arguments"
+                    className="inline-flex items-center"
+                  >
+                    View documentation
+                    <ExternalLink className="ml-1 h-3 w-3" />
+                  </Link>
+                </p>
+              </div>
+            )}
           </div>
         </ScrollArea>
         <DialogFooter>

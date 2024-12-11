@@ -35,9 +35,9 @@ func (a *App) Init(ctx context.Context, scanossSettingsService service.ScanossSe
 func (a *App) startup() {
 	a.maybeSetWindowTitle()
 	a.initializeMenu()
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Config file path: %s", config.Get().ScanSettingsFilePath))
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Results file path: %s", config.Get().ResultFilePath))
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Scan Root file path: %s", config.Get().ScanRoot))
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Scan Settings file path: %s", config.GetInstance().ScanSettingsFilePath))
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Results file path: %s", config.GetInstance().ResultFilePath))
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Scan Root file path: %s", config.GetInstance().ScanRoot))
 }
 
 func (a *App) maybeSetWindowTitle() {
@@ -91,7 +91,6 @@ func (a *App) initializeMenu() {
 	groupedShortcuts := a.keyboardService.GetGroupedShortcuts()
 	actionShortcuts := groupedShortcuts[entities.GroupActions]
 	globalShortcuts := groupedShortcuts[entities.GroupGlobal]
-	scanShortcuts := groupedShortcuts[entities.GroupScan]
 
 	// Global edit menu
 	EditMenu := AppMenu.AddSubmenu("Edit")
@@ -111,11 +110,12 @@ func (a *App) initializeMenu() {
 
 	// Scan menu
 	ScanMenu := AppMenu.AddSubmenu("Scan")
-	for _, shortcut := range scanShortcuts {
-		ScanMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {
-			runtime.EventsEmit(a.ctx, string(shortcut.Action))
-		})
-	}
+	ScanMenu.AddText("Scan Current Directory", keys.Combo("b", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, "scanCurrentDirectory")
+	})
+	ScanMenu.AddText("Scan With Options", keys.Combo("c", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, "scanWithOptions")
+	})
 
 	// Help menu
 	HelpMenu := AppMenu.AddSubmenu("Help")
@@ -134,6 +134,11 @@ func (a *App) SelectDirectory() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error selecting directory: %v", err)
 	}
+
+	if directory == "" {
+		return "", nil
+	}
+
 	relativePath, err := utils.GetRelativePath(directory)
 	if err != nil {
 		return "", fmt.Errorf("error selecting directory: %v", err)
@@ -144,4 +149,8 @@ func (a *App) SelectDirectory() (string, error) {
 func (a *App) GetWorkingDir() string {
 	workingDir, _ := os.Getwd()
 	return workingDir
+}
+
+func (a *App) SetScanRoot(path string) {
+	config.GetInstance().ScanRoot = path
 }

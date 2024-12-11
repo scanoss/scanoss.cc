@@ -17,3 +17,7 @@ export function Init(arg1, arg2, arg3) {
 export function SelectDirectory() {
   return window['go']['main']['App']['SelectDirectory']();
 }
+
+export function SetScanRoot(arg1) {
+  return window['go']['main']['App']['SetScanRoot'](arg1);
+}

@@ -10,6 +10,10 @@ export function GetDefaultScanArgs() {
   return window['go']['service']['ScanServicePythonImpl']['GetDefaultScanArgs']();
 }
 
+export function GetSensitiveDefaultScanArgs() {
+  return window['go']['service']['ScanServicePythonImpl']['GetSensitiveDefaultScanArgs']();
+}
+
 export function Scan(arg1) {
   return window['go']['service']['ScanServicePythonImpl']['Scan'](arg1);
 }

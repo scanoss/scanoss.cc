@@ -3,11 +3,9 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/scanoss/scanoss.lui/internal/config"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var inputFile string
@@ -35,83 +33,10 @@ func init() {
 }
 
 func initConfig() {
-	if cfgFile != "" {
-		absCfgFile, _ := filepath.Abs(cfgFile)
-
-		fmt.Println("Using config file:", absCfgFile)
-
-		viper.SetConfigFile(absCfgFile)
-		if err := viper.ReadInConfig(); err != nil {
-			fmt.Println("Error reading config file:", err)
-			os.Exit(1)
-		}
-	} else {
-		viper.SetConfigName(config.DEFAULT_CONFIG_FILE_NAME)
-		viper.SetConfigType(config.DEFAULT_CONFIG_FILE_TYPE)
-		viper.AddConfigPath(config.GetDefaultConfigFolder())
-
-		// Default values
-		viper.SetDefault("apiUrl", config.DEFAULT_API_URL)
-		viper.SetDefault("apiToken", "")
-		viper.SetDefault("resultFilePath", config.GetDefaultResultFilePath())
-		viper.SetDefault("scanRoot", "")
-		viper.SetDefault("scanSettingsFilePath", config.GetDefaultScanSettingsFilePath())
-
-		// Try to read default config file
-		if err := viper.ReadInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				// Create default config
-				fmt.Println("Config file not found, creating default...")
-
-				defaultConfigDir := config.GetDefaultConfigFolder()
-
-				if _, err := os.Stat(defaultConfigDir); os.IsNotExist(err) {
-					if err := os.MkdirAll(defaultConfigDir, 0755); err != nil {
-						fmt.Println("Error creating config directory:", err)
-						os.Exit(1)
-					}
-				}
-
-				if err := viper.SafeWriteConfig(); err != nil {
-					fmt.Println("Error creating config file:", err)
-					os.Exit(1)
-				}
-				fmt.Println("Created default config file:", viper.ConfigFileUsed())
-			} else {
-				fmt.Println("Error reading config file:", err)
-				os.Exit(1)
-			}
-		}
-
+	if err := config.InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
-
-	// Override with command line flags
-	if scanRoot != "" {
-		viper.Set("scanRoot", scanRoot)
-	}
-	if apiKey != "" {
-		viper.Set("apiToken", apiKey)
-	}
-	if apiUrl != "" {
-		viper.Set("apiUrl", apiUrl)
-	}
-	if inputFile != "" {
-		viper.Set("resultFilePath", inputFile)
-	}
-
-	if scanRoot != "" || apiKey != "" || apiUrl != "" || inputFile != "" {
-		if err := viper.WriteConfig(); err != nil {
-			fmt.Println("Error saving config:", err)
-			os.Exit(1)
-		}
-	}
-
-	cfg := config.Get()
-	cfg.ApiToken = viper.GetString("apiToken")
-	cfg.ApiUrl = viper.GetString("apiUrl")
-	cfg.ResultFilePath = viper.GetString("resultFilePath")
-	cfg.ScanRoot = viper.GetString("scanRoot")
-	cfg.ScanSettingsFilePath = viper.GetString("scanSettingsFilePath")
 }
 
 func Execute() error {

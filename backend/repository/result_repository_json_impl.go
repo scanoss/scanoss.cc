@@ -21,7 +21,7 @@ func NewResultRepositoryJsonImpl(fr utils.FileReader) *ResultRepositoryJsonImpl 
 
 func (r *ResultRepositoryJsonImpl) GetResults(filter entities.ResultFilter) ([]entities.Result, error) {
 	// Path to your JSON file
-	resultFilePath := config.Get().ResultFilePath
+	resultFilePath := config.GetInstance().ResultFilePath
 	resultByte, err := r.fr.ReadFile(resultFilePath)
 	if err != nil {
 		fmt.Println(err)

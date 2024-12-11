@@ -10,3 +10,5 @@ export function GetWorkingDir():Promise<string>;
 export function Init(arg1:context.Context,arg2:service.ScanossSettingsService,arg3:service.KeyboardService):Promise<void>;
 
 export function SelectDirectory():Promise<string>;
+
+export function SetScanRoot(arg1:string):Promise<void>;

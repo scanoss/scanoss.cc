@@ -18,7 +18,7 @@ func TestGetResults(t *testing.T) {
 	defer cleanup()
 
 	mu := internal_test.NewMockUtils()
-	mu.On("ReadFile", config.Get().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
+	mu.On("ReadFile", config.GetInstance().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
 	mockRepo := repoMocks.NewMockResultRepository(t)
 	resultMapper := mapperMocks.NewMockResultMapper(t)

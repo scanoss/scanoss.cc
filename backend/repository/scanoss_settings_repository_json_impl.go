@@ -42,17 +42,17 @@ func (r *ScanossSettingsJsonRepository) Init() error {
 
 func (r *ScanossSettingsJsonRepository) Save() error {
 	sf := r.GetSettings()
-	if err := utils.WriteJsonFile(config.Get().ScanSettingsFilePath, sf); err != nil {
+	if err := utils.WriteJsonFile(config.GetInstance().ScanSettingsFilePath, sf); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *ScanossSettingsJsonRepository) Read() (entities.SettingsFile, error) {
-	if config.Get() == nil {
+	if config.GetInstance() == nil {
 		return entities.SettingsFile{}, fmt.Errorf("config is not initialized")
 	}
-	scanSettingsFileBytes, err := r.fr.ReadFile(config.Get().ScanSettingsFilePath)
+	scanSettingsFileBytes, err := r.fr.ReadFile(config.GetInstance().ScanSettingsFilePath)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return entities.SettingsFile{}, nil

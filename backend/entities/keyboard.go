@@ -1,9 +1,6 @@
 package entities
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/wailsapp/wails/v2/pkg/menu/keys"
 )
 
@@ -91,8 +88,6 @@ var AllShortcutActions = []struct {
 	{ActionScanCwd, "ScanCurrentDirectory"},
 	{ActionScanWithOptions, "ScanWithOptions"},
 }
-
-var workingDir, _ = os.Getwd()
 
 var DefaultShortcuts = []Shortcut{
 	// Global
@@ -286,7 +281,7 @@ var DefaultShortcuts = []Shortcut{
 
 	// Scan
 	{
-		Name:        fmt.Sprintf("Scan %s", workingDir),
+		Name:        "Scan Current Directory",
 		Description: "Scan the current directory",
 		Accelerator: keys.Combo("b", keys.ShiftKey, keys.CmdOrCtrlKey),
 		Keys:        "shift+mod+b",

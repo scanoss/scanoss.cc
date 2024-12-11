@@ -31,16 +31,14 @@ export default function Root() {
   };
 
   useEffect(() => {
-    // Register event listeners for shortcuts
+    // Register event listeners
     EventsOn(entities.Action.ShowKeyboardShortcutsModal, () => {
       setShowKeyboardShortcuts(true);
     });
     EventsOn(entities.Action.ScanWithOptions, () => {
-      console.log('triggered scan with options');
       handleShowScanModal({ withOptions: true });
     });
     EventsOn(entities.Action.ScanCurrentDirectory, () => {
-      console.log('triggered scan without options');
       handleShowScanModal({ withOptions: false });
     });
   }, []);

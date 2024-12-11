@@ -62,6 +62,53 @@ func (_c *MockScanService_CheckDependencies_Call) RunAndReturn(run func() error)
 	return _c
 }
 
+// GetDefaultScanArgs provides a mock function with given fields:
+func (_m *MockScanService) GetDefaultScanArgs() []string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDefaultScanArgs")
+	}
+
+	var r0 []string
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	return r0
+}
+
+// MockScanService_GetDefaultScanArgs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDefaultScanArgs'
+type MockScanService_GetDefaultScanArgs_Call struct {
+	*mock.Call
+}
+
+// GetDefaultScanArgs is a helper method to define mock.On call
+func (_e *MockScanService_Expecter) GetDefaultScanArgs() *MockScanService_GetDefaultScanArgs_Call {
+	return &MockScanService_GetDefaultScanArgs_Call{Call: _e.mock.On("GetDefaultScanArgs")}
+}
+
+func (_c *MockScanService_GetDefaultScanArgs_Call) Run(run func()) *MockScanService_GetDefaultScanArgs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockScanService_GetDefaultScanArgs_Call) Return(_a0 []string) *MockScanService_GetDefaultScanArgs_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockScanService_GetDefaultScanArgs_Call) RunAndReturn(run func() []string) *MockScanService_GetDefaultScanArgs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Scan provides a mock function with given fields: args
 func (_m *MockScanService) Scan(args []string) error {
 	ret := _m.Called(args)
@@ -104,6 +151,52 @@ func (_c *MockScanService_Scan_Call) Return(_a0 error) *MockScanService_Scan_Cal
 }
 
 func (_c *MockScanService_Scan_Call) RunAndReturn(run func([]string) error) *MockScanService_Scan_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ScanStream provides a mock function with given fields: args
+func (_m *MockScanService) ScanStream(args []string) error {
+	ret := _m.Called(args)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ScanStream")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func([]string) error); ok {
+		r0 = rf(args)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockScanService_ScanStream_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ScanStream'
+type MockScanService_ScanStream_Call struct {
+	*mock.Call
+}
+
+// ScanStream is a helper method to define mock.On call
+//   - args []string
+func (_e *MockScanService_Expecter) ScanStream(args interface{}) *MockScanService_ScanStream_Call {
+	return &MockScanService_ScanStream_Call{Call: _e.mock.On("ScanStream", args)}
+}
+
+func (_c *MockScanService_ScanStream_Call) Run(run func(args []string)) *MockScanService_ScanStream_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].([]string))
+	})
+	return _c
+}
+
+func (_c *MockScanService_ScanStream_Call) Return(_a0 error) *MockScanService_ScanStream_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockScanService_ScanStream_Call) RunAndReturn(run func([]string) error) *MockScanService_ScanStream_Call {
 	_c.Call.Return(run)
 	return _c
 }

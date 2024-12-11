@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -64,4 +65,15 @@ func GetDefaultConfigFolder() string {
 	}
 
 	return filepath.Join(homeDir, ROOT_FOLDER, SCANOSS_HIDDEN_FOLDER)
+}
+
+func MaskApiToken(apiToken string) string {
+	if len(apiToken) < 4 {
+		return strings.Repeat("*", len(apiToken))
+	}
+
+	charactersToMask := len(apiToken) - 4
+	maxCharactersToMask := 5
+
+	return apiToken[:2] + strings.Repeat("*", min(charactersToMask, maxCharactersToMask)) + apiToken[len(apiToken)-2:]
 }

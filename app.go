@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"slices"
 
 	"github.com/scanoss/scanoss.lui/backend/entities"
@@ -112,7 +113,6 @@ func (a *App) initializeMenu() {
 	ScanMenu := AppMenu.AddSubmenu("Scan")
 	for _, shortcut := range scanShortcuts {
 		ScanMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {
-			fmt.Println("Emitting --> ", string(shortcut.Action))
 			runtime.EventsEmit(a.ctx, string(shortcut.Action))
 		})
 	}
@@ -134,5 +134,14 @@ func (a *App) SelectDirectory() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error selecting directory: %v", err)
 	}
-	return directory, nil
+	relativePath, err := utils.GetRelativePath(directory)
+	if err != nil {
+		return "", fmt.Errorf("error selecting directory: %v", err)
+	}
+	return relativePath, nil
+}
+
+func (a *App) GetWorkingDir() string {
+	workingDir, _ := os.Getwd()
+	return workingDir
 }

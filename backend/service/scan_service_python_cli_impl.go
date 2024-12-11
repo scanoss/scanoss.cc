@@ -1,13 +1,21 @@
 package service
 
 import (
+	"bufio"
+	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+
+	"github.com/scanoss/scanoss.lui/internal/config"
+	"github.com/scanoss/scanoss.lui/internal/utils"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type ScanServicePythonImpl struct {
 	cmd string
+	ctx context.Context
 }
 
 func NewScanServicePythonImpl() *ScanServicePythonImpl {
@@ -16,8 +24,12 @@ func NewScanServicePythonImpl() *ScanServicePythonImpl {
 	}
 }
 
+func (s *ScanServicePythonImpl) SetContext(ctx context.Context) {
+	s.ctx = ctx
+}
+
 func (s *ScanServicePythonImpl) Scan(args []string) error {
-	if err := s.checkDependencies(); err != nil {
+	if err := s.CheckDependencies(); err != nil {
 		return fmt.Errorf("dependency check failed: %w", err)
 	}
 
@@ -30,7 +42,74 @@ func (s *ScanServicePythonImpl) Scan(args []string) error {
 	return cmd.Run()
 }
 
-func (s *ScanServicePythonImpl) checkDependencies() error {
+func (s *ScanServicePythonImpl) ScanStream(args []string) error {
+	cmd, stdout, stderr, err := s.executeScanWithPipes(args)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			runtime.EventsEmit(s.ctx, "commandOutput", scanner.Text())
+		}
+	}()
+
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			runtime.EventsEmit(s.ctx, "commandError", scanner.Text())
+		}
+	}()
+
+	if err := cmd.Wait(); err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			runtime.EventsEmit(s.ctx, "scanFailed", exitErr.Error())
+			return exitErr
+		}
+		return err
+	}
+
+	runtime.EventsEmit(s.ctx, "scanComplete", nil)
+	runtime.EventsEmit(s.ctx, "commandOutput", "Scan completed succesfully!")
+	return nil
+}
+
+func (s *ScanServicePythonImpl) executeScanWithPipes(args []string) (*exec.Cmd, io.ReadCloser, io.ReadCloser, error) {
+	if err := s.CheckDependencies(); err != nil {
+		runtime.EventsEmit(s.ctx, "scanFailed", err.Error())
+		return nil, nil, nil, fmt.Errorf("dependency check failed: %w", err)
+	}
+
+	cmdArgs := []string{"scan"}
+
+	if len(args) == 0 {
+		defaultArgs := s.GetDefaultScanArgs()
+		cmdArgs = append(cmdArgs, defaultArgs...)
+	} else {
+		cmdArgs = append(cmdArgs, args...)
+	}
+
+	cmd := exec.Command(s.cmd, cmdArgs...)
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, nil, nil, err
+	}
+
+	return cmd, stdout, stderr, nil
+}
+
+func (s *ScanServicePythonImpl) CheckDependencies() error {
 	if err := s.checkPythonInstalled(); err != nil {
 		return err
 	}
@@ -56,4 +135,35 @@ func (s *ScanServicePythonImpl) checkScanossPyInstalled() error {
 		return fmt.Errorf("scanoss-py is not installed or not in PATH: %w", err)
 	}
 	return nil
+}
+
+func (s *ScanServicePythonImpl) GetDefaultScanArgs() []string {
+	defaultArgs := []string{}
+	cfg := config.GetInstance()
+
+	if cfg.ApiToken != "" {
+		defaultArgs = append(defaultArgs, "--key", cfg.ApiToken)
+	}
+
+	if cfg.ApiUrl != "" {
+		defaultArgs = append(defaultArgs, "--apiurl", fmt.Sprintf("%s/scan/direct", cfg.ApiUrl))
+	}
+
+	if cfg.ResultFilePath != "" {
+		relativePath, err := utils.GetRelativePath(cfg.ResultFilePath)
+		if err != nil {
+			return nil
+		}
+		defaultArgs = append(defaultArgs, "--output", relativePath)
+	}
+
+	if cfg.ScanSettingsFilePath != "" {
+		relativePath, err := utils.GetRelativePath(cfg.ScanSettingsFilePath)
+		if err != nil {
+			return nil
+		}
+		defaultArgs = append(defaultArgs, "--settings", relativePath)
+	}
+
+	return defaultArgs
 }

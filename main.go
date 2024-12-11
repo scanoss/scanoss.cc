@@ -81,6 +81,7 @@ func run() error {
 		WindowStartState: options.Maximised,
 		OnStartup: func(ctx context.Context) {
 			app.Init(ctx, scanossSettingsService, keyboardService)
+			scanService.SetContext(ctx)
 		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
 			return app.BeforeClose(ctx)

@@ -113,3 +113,17 @@ func ExpandPath(path string) string {
 
 	return path
 }
+
+func GetRelativePath(absolutePath string) (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("failed to get working directory: %w", err)
+	}
+
+	relPath, err := filepath.Rel(cwd, absolutePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to get relative path: %w", err)
+	}
+
+	return relPath, nil
+}

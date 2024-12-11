@@ -7,6 +7,7 @@ toolchain go1.22.5
 // replace github.com/wailsapp/wails/v2 v2.9.1 => /home/ubuntu/go/pkg/mod
 
 require (
+	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/labstack/gommon v0.4.0
 	github.com/scanoss/go-purl-helper v0.2.1
@@ -19,7 +20,6 @@ require (
 require (
 	github.com/bep/debounce v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect

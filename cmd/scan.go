@@ -61,6 +61,10 @@ func NewScanCmd(scanService service.ScanService) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := scanService.CheckDependencies(); err != nil {
+				return err
+			}
+
 			scanOptions := make([]string, 0)
 			scanOptions = append(scanOptions, "--quiet")
 

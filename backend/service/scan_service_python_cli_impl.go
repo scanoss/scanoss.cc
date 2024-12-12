@@ -29,10 +29,6 @@ func (s *ScanServicePythonImpl) SetContext(ctx context.Context) {
 }
 
 func (s *ScanServicePythonImpl) Scan(args []string) error {
-	if err := s.CheckDependencies(); err != nil {
-		return fmt.Errorf("dependency check failed: %w", err)
-	}
-
 	cmdArgs := append([]string{"scan"}, args...)
 
 	cmd := exec.Command(s.cmd, cmdArgs...)

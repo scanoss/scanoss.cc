@@ -137,6 +137,7 @@ func TestScanCommand(t *testing.T) {
 		mockService.EXPECT().CheckDependencies().Return(
 			errors.New("dependency check failed"),
 		)
+		mockService.EXPECT().Scan(mock.Anything).Maybe()
 
 		cmd := cmd.NewScanCmd(mockService)
 		cmd.SetArgs([]string{

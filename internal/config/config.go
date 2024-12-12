@@ -6,7 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
@@ -96,7 +98,37 @@ func GetDefaultConfigFolder() string {
 	return filepath.Join(homeDir, ROOT_FOLDER, SCANOSS_HIDDEN_FOLDER)
 }
 
+func setupLogger(debug bool) error {
+	logsDir := filepath.Join(GetDefaultConfigFolder(), "logs")
+	if err := os.MkdirAll(logsDir, 0755); err != nil {
+		return fmt.Errorf("error creating logs directory: %w", err)
+	}
+
+	logFileName := fmt.Sprintf("scanoss-lui-%s.log", time.Now().Format(time.DateOnly))
+	logFile, err := os.OpenFile(filepath.Join(logsDir, logFileName), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("error creating log file: %w", err)
+	}
+
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339, NoColor: false}
+	multi := zerolog.MultiLevelWriter(consoleWriter, logFile)
+
+	log.Logger = zerolog.New(multi).With().Timestamp().Logger()
+
+	if debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else {
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	}
+
+	return nil
+}
+
 func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile string, debug bool) error {
+	if err := setupLogger(debug); err != nil {
+		return fmt.Errorf("error setting up logger: %w", err)
+	}
+
 	if cfgFile != "" {
 		absCfgFile, _ := filepath.Abs(cfgFile)
 		log.Debug().Msgf("Using config file: %s", absCfgFile)

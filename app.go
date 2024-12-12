@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"time"
 
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.lui/backend/entities"
 	"github.com/scanoss/scanoss.lui/backend/service"
@@ -32,9 +30,6 @@ func (a *App) Init(ctx context.Context, scanossSettingsService service.ScanossSe
 	a.ctx = ctx
 	a.scanossSettingsService = scanossSettingsService
 	a.keyboardService = keyboardService
-
-	setupLogger(ctx)
-
 	a.startup()
 }
 
@@ -160,25 +155,4 @@ func (a *App) GetWorkingDir() string {
 
 func (a *App) SetScanRoot(path string) {
 	config.GetInstance().ScanRoot = path
-}
-
-func setupLogger(ctx context.Context) {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	debug := config.GetInstance().Debug
-	envInfo := runtime.Environment(ctx)
-	isProduction := envInfo.BuildType == "production"
-
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	if debug {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	}
-
-	// Use prettified output in development mode
-	if !isProduction {
-		log.Logger = log.Output(zerolog.ConsoleWriter{
-			Out:        os.Stdout,
-			NoColor:    false,
-			TimeFormat: time.TimeOnly,
-		})
-	}
 }

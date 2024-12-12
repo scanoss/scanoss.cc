@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.lui/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -13,6 +14,7 @@ var cfgFile string
 var scanRoot string
 var apiKey string
 var apiUrl string
+var debug bool
 
 var rootCmd = &cobra.Command{
 	Use:   "scanoss-lui",
@@ -28,14 +30,14 @@ func init() {
 	rootCmd.Flags().StringVarP(&scanRoot, "scan-root", "s", "", "Scanned folder root path (optional - default: $WORKDIR)")
 	rootCmd.Flags().StringVarP(&apiKey, "key", "k", "", "SCANOSS API Key token (optional)")
 	rootCmd.Flags().StringVarP(&apiUrl, "apiUrl", "u", "", fmt.Sprintf("SCANOSS API URL (optional - default: %s)", config.DEFAULT_API_URL))
+	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable debug mode")
 
 	rootCmd.Root().CompletionOptions.HiddenDefaultCmd = true
 }
 
 func initConfig() {
-	if err := config.InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	if err := config.InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, debug); err != nil {
+		log.Fatal().Err(err).Msg("Error initializing config")
 	}
 }
 

@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/labstack/gommon/log"
+	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.lui/backend/entities"
 	"github.com/scanoss/scanoss.lui/backend/mappers"
 	"github.com/scanoss/scanoss.lui/backend/repository"
@@ -24,7 +24,7 @@ type ResultServiceImpl struct {
 func NewResultServiceImpl(repo repository.ResultRepository, mapper mappers.ResultMapper) ResultService {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Errorf("Error creating watcher: %v", err)
+		log.Error().Err(err).Msg("Error creating watcher: %v")
 	}
 
 	return &ResultServiceImpl{
@@ -37,7 +37,7 @@ func NewResultServiceImpl(repo repository.ResultRepository, mapper mappers.Resul
 func (s *ResultServiceImpl) GetAll(dto *entities.RequestResultDTO) ([]entities.ResultDTO, error) {
 	err := utils.GetValidator().Struct(dto)
 	if err != nil {
-		log.Errorf("Validation error: %v", err)
+		log.Error().Err(err).Msg("Validation error: %v")
 		return []entities.ResultDTO{}, err
 	}
 
@@ -65,11 +65,11 @@ func (s *ResultServiceImpl) WatchResults() {
 
 	err := s.watcher.Add(config.GetInstance().ResultFilePath)
 	if err != nil {
-		log.Errorf("Error watching results.json: %v", err)
+		log.Error().Err(err).Msg("Error watching results file")
 		return
 	}
 
-	log.Infof("Watching %s for changes...", config.GetInstance().ResultFilePath)
+	log.Debug().Msgf("Watching %s for changes...", config.GetInstance().ResultFilePath)
 
 	go func() {
 		for {
@@ -89,7 +89,7 @@ func (s *ResultServiceImpl) WatchResults() {
 				if !ok {
 					return
 				}
-				log.Errorf("Watcher error: %v", err)
+				log.Error().Err(err).Msg("Error watching results file")
 			case <-s.ctx.Done():
 				s.watcher.Close()
 				return

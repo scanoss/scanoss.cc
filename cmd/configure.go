@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
+	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.lui/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -24,21 +24,21 @@ var configureCmd = &cobra.Command{
 
 		if apiKey != "" {
 			if err := cfg.SetApiToken(apiKey); err != nil {
-				fmt.Println("Error saving API token:", err)
+				log.Error().Err(err).Msg("Error saving API token")
 				os.Exit(1)
 			}
 		}
 
 		if apiUrl != "" {
 			if err := cfg.SetApiUrl(apiUrl); err != nil {
-				fmt.Println("Error saving API URL:", err)
+				log.Error().Err(err).Msg("Error saving API URL")
 				os.Exit(1)
 			}
 		}
 
-		fmt.Println("API URL: ", cfg.ApiUrl)
-		fmt.Println("KEY: ", strings.Repeat("*", len(cfg.ApiToken)))
-		fmt.Println("Configuration saved successfully!")
+		log.Info().Msgf("API URL: %s", cfg.ApiUrl)
+		log.Info().Msgf("KEY: %s", strings.Repeat("*", len(cfg.ApiToken)))
+		log.Info().Msg("Configuration saved successfully!")
 	},
 }
 

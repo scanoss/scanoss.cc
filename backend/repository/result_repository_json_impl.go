@@ -2,8 +2,8 @@ package repository
 
 import (
 	"encoding/json"
-	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.lui/backend/entities"
 	"github.com/scanoss/scanoss.lui/internal/config"
 	"github.com/scanoss/scanoss.lui/internal/utils"
@@ -24,7 +24,7 @@ func (r *ResultRepositoryJsonImpl) GetResults(filter entities.ResultFilter) ([]e
 	resultFilePath := config.GetInstance().ResultFilePath
 	resultByte, err := r.fr.ReadFile(resultFilePath)
 	if err != nil {
-		fmt.Println(err)
+		log.Error().Err(err).Msg("Error reading result file")
 		return []entities.Result{}, entities.ErrReadingResultFile
 	}
 
@@ -54,7 +54,7 @@ func (r *ResultRepositoryJsonImpl) GetResults(filter entities.ResultFilter) ([]e
 func (r *ResultRepositoryJsonImpl) parseScanResults(resultByte []byte) ([]entities.Result, error) {
 	var intermediateMap map[string][]entities.Match
 	if err := json.Unmarshal(resultByte, &intermediateMap); err != nil {
-		fmt.Println("Error unmarshalling JSON:", err)
+		log.Error().Err(err).Msg("Error parsing scan results")
 		return []entities.Result{}, err
 	}
 

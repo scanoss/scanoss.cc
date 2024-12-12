@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"time"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.lui/backend/entities"
 	"github.com/scanoss/scanoss.lui/backend/service"
 	"github.com/scanoss/scanoss.lui/internal/config"
@@ -29,15 +32,19 @@ func (a *App) Init(ctx context.Context, scanossSettingsService service.ScanossSe
 	a.ctx = ctx
 	a.scanossSettingsService = scanossSettingsService
 	a.keyboardService = keyboardService
+
+	setupLogger(ctx)
+
 	a.startup()
 }
 
 func (a *App) startup() {
 	a.maybeSetWindowTitle()
 	a.initializeMenu()
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Scan Settings file path: %s", config.GetInstance().ScanSettingsFilePath))
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Results file path: %s", config.GetInstance().ResultFilePath))
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Scan Root file path: %s", config.GetInstance().ScanRoot))
+	log.Debug().Msgf("Scan Settings file path: %s", config.GetInstance().ScanSettingsFilePath)
+	log.Debug().Msgf("Results file path: %s", config.GetInstance().ResultFilePath)
+	log.Debug().Msgf("Scan Root file path: %s", config.GetInstance().ScanRoot)
+	log.Info().Msgf("App Version: %s", entities.AppVersion)
 }
 
 func (a *App) maybeSetWindowTitle() {
@@ -50,7 +57,7 @@ func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 	hasUnsavedChanges, err := a.scanossSettingsService.HasUnsavedChanges()
 
 	if err != nil {
-		runtime.LogError(ctx, "Error checking for unsaved changes: "+err.Error())
+		log.Error().Msg("Error checking for unsaved changes: " + err.Error())
 		return false
 	}
 	if !hasUnsavedChanges {
@@ -66,7 +73,7 @@ func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 		DefaultButton: "Yes",
 	})
 	if err != nil {
-		runtime.LogError(ctx, "Error showing dialog: "+err.Error())
+		log.Error().Msg("Error showing dialog: " + err.Error())
 	}
 
 	confirmOptions := []string{"Yes", "Ok"}
@@ -74,7 +81,7 @@ func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 	if slices.Contains(confirmOptions, result) {
 		err := a.scanossSettingsService.Save()
 		if err != nil {
-			runtime.LogError(ctx, "Error saving scanoss bom file: "+err.Error())
+			log.Error().Msg("Error saving scanoss bom file: " + err.Error())
 		}
 	}
 
@@ -153,4 +160,25 @@ func (a *App) GetWorkingDir() string {
 
 func (a *App) SetScanRoot(path string) {
 	config.GetInstance().ScanRoot = path
+}
+
+func setupLogger(ctx context.Context) {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	debug := config.GetInstance().Debug
+	envInfo := runtime.Environment(ctx)
+	isProduction := envInfo.BuildType == "production"
+
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+
+	// Use prettified output in development mode
+	if !isProduction {
+		log.Logger = log.Output(zerolog.ConsoleWriter{
+			Out:        os.Stdout,
+			NoColor:    false,
+			TimeFormat: time.TimeOnly,
+		})
+	}
 }

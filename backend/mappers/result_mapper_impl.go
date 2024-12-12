@@ -3,7 +3,7 @@ package mappers
 import (
 	"strings"
 
-	"github.com/labstack/gommon/log"
+	"github.com/rs/zerolog/log"
 	purlutils "github.com/scanoss/go-purl-helper/pkg"
 	"github.com/scanoss/scanoss.lui/backend/entities"
 )
@@ -66,13 +66,13 @@ func (m *ResultMapperImpl) mapConcludedPurlUrl(result entities.Result) string {
 
 	purlObject, err := purlutils.PurlFromString(concludedPurl)
 	if err != nil {
-		log.Errorf("Error parsing concluded purl: %v", err)
+		log.Error().Err(err).Msg("Error parsing concluded purl")
 		return ""
 	}
 
 	purlUrl, err := purlutils.ProjectUrl(purlObject.Name, purlObject.Type)
 	if err != nil {
-		log.Errorf("Error getting project url: %v", err)
+		log.Error().Err(err).Msg("Error getting project url")
 		return ""
 	}
 
@@ -86,7 +86,7 @@ func (m ResultMapperImpl) mapConcludedName(result entities.Result) string {
 
 	purlName, err := purlutils.PurlNameFromString(replacedPurl)
 	if err != nil {
-		log.Errorf("Error getting component name from purl: %v", err)
+		log.Error().Err(err).Msg("Error getting component name from purl")
 		return ""
 	}
 

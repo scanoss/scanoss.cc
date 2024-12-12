@@ -40,6 +40,14 @@ jobs:
           wails build
         shell: bash
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            frontend/dist
+            build/assets
+
   unit_tests:
     needs: build
     runs-on: ubuntu-latest
@@ -50,6 +58,12 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+          path: .
 
       - name: Run unit tests
         run: go test -v ./... -tags=unit
@@ -65,6 +79,12 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+          path: .
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -79,4 +99,3 @@ jobs:
         env:
           SCANOSS_API_KEY: ${{ secrets.SCANOSS_API_KEY }}
         run: go test -v ./... -tags=integration
-

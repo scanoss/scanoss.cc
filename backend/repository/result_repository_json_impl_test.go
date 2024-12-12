@@ -1,3 +1,5 @@
+//go:build unit
+
 package repository_test
 
 import (

@@ -3,10 +3,10 @@ package repository
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"sync"
 
+	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.lui/backend/entities"
 	"github.com/scanoss/scanoss.lui/internal/config"
 	"github.com/scanoss/scanoss.lui/internal/utils"
@@ -29,7 +29,7 @@ func (r *ScanossSettingsJsonRepository) Init() error {
 
 	sf, err := r.Read()
 	if err != nil {
-		log.Panicf("Error reading settings file: %s", err)
+		log.Fatal().Err(err).Msgf("Error reading settings file: %v", config.GetInstance().ScanSettingsFilePath)
 		return err
 	}
 

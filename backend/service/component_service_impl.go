@@ -1,12 +1,11 @@
 package service
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 	"sync"
 
-	"github.com/labstack/gommon/log"
+	"github.com/rs/zerolog/log"
 	purlutils "github.com/scanoss/go-purl-helper/pkg"
 	"github.com/scanoss/scanoss.lui/backend/entities"
 	"github.com/scanoss/scanoss.lui/backend/mappers"
@@ -98,7 +97,7 @@ func (s *ComponentServiceImpl) FilterComponents(dto []entities.ComponentFilterDT
 	for _, filter := range dto {
 		err := utils.GetValidator().Struct(filter)
 		if err != nil {
-			log.Errorf("Validation error: %v", err)
+			log.Error().Err(err).Msg("Validation error")
 			return err
 		}
 	}
@@ -128,7 +127,7 @@ func (s *ComponentServiceImpl) applyFilters(dto []entities.ComponentFilterDTO) e
 				License:     item.License,
 			}
 			if err := s.scanossSettingsRepo.AddBomEntry(newFilter, string(item.Action)); err != nil {
-				fmt.Printf("error adding bom entry: %s", err)
+				log.Error().Err(err).Msg("Error adding bom entry")
 				errChan <- err
 			}
 		}(item)
@@ -177,7 +176,7 @@ func (s *ComponentServiceImpl) GetDeclaredComponents() ([]entities.DeclaredCompo
 		if _, found := addedPurls[purl]; !found {
 			purlName, err := purlutils.PurlNameFromString(purl)
 			if err != nil {
-				log.Errorf("Error getting component name from purl: %v", err)
+				log.Error().Err(err).Msg("Error getting component name from purl")
 				continue
 			}
 			nameParts := strings.Split(purlName, "/")

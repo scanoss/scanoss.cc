@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 )
 
 type DefaultFileReader struct{}
@@ -36,7 +38,7 @@ func JSONParse[T any](file []byte) (T, error) {
 	var intermediateMap T
 
 	if err := json.Unmarshal(file, &intermediateMap); err != nil {
-		fmt.Println("Error unmarshalling JSON:", err)
+		log.Error().Err(err).Msg("Error unmarshalling JSON")
 		return intermediateMap, err
 	}
 

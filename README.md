@@ -16,6 +16,7 @@ to this in your browser, and you can call your Go code from devtools.
 | **config**     | Path to configuration file (optional - default $HOME/.scanoss/scanoss-lui-settings.json). |
 | **apiUrl**     | SCANOSS API URL (optional - default: https://api.osskb.org).                |
 | **key**        | SCANOSS API Key token (optional - not required for default OSSKB URL).      |
+| **debug**      | Enable debug mode.                                                          |
 
 To start the application with specific arguments, use the following command:
 

@@ -1,0 +1,82 @@
+name: Test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GOLANG_VERSION: "1.21"
+  NODE_VERSION: "16.x"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        shell: bash
+
+      - name: Install Linux Wails deps
+        run: sudo apt-get update && sudo apt-get install libgtk-3-0 libwebkit2gtk-4.0-dev gcc-aarch64-linux-gnu
+        shell: bash
+
+      - name: Build
+        run: |
+          mkdir build
+          cp -r assets build/assets
+          wails build
+        shell: bash
+
+  unit_tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run unit tests
+        run: go test -v ./... -tags=unit
+
+  integration-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install scanoss
+        run: |
+          python -m pip install --upgrade pip
+          pip install scanoss
+
+      - name: Run integration tests
+        env:
+          SCANOSS_API_KEY: ${{ secrets.SCANOSS_API_KEY }}
+        run: go test -v ./... -tags=integration
+

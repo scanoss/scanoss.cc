@@ -47,33 +47,33 @@ func (s *ScanServicePythonImpl) ScanStream(args []string) error {
 	go func() {
 		scanner := bufio.NewScanner(stdout)
 		for scanner.Scan() {
-			runtime.EventsEmit(s.ctx, "commandOutput", scanner.Text())
+			s.emitEvent("commandOutput", scanner.Text())
 		}
 	}()
 
 	go func() {
 		scanner := bufio.NewScanner(stderr)
 		for scanner.Scan() {
-			runtime.EventsEmit(s.ctx, "commandError", scanner.Text())
+			s.emitEvent("commandError", scanner.Text())
 		}
 	}()
 
 	if err := cmd.Wait(); err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
-			runtime.EventsEmit(s.ctx, "scanFailed", exitErr.Error())
+			s.emitEvent("scanFailed", exitErr.Error())
 			return exitErr
 		}
 		return err
 	}
 
-	runtime.EventsEmit(s.ctx, "scanComplete", nil)
-	runtime.EventsEmit(s.ctx, "commandOutput", "Scan completed succesfully!")
+	s.emitEvent("scanComplete", nil)
+	s.emitEvent("commandOutput", "Scan completed succesfully!")
 	return nil
 }
 
 func (s *ScanServicePythonImpl) executeScanWithPipes(args []string) (*exec.Cmd, io.ReadCloser, io.ReadCloser, error) {
 	if err := s.CheckDependencies(); err != nil {
-		runtime.EventsEmit(s.ctx, "scanFailed", err.Error())
+		s.emitEvent("scanFailed", err.Error())
 		return nil, nil, nil, fmt.Errorf("dependency check failed: %w", err)
 	}
 
@@ -172,4 +172,10 @@ func (s *ScanServicePythonImpl) GetSensitiveDefaultScanArgs() []string {
 	}
 
 	return args
+}
+
+func (s *ScanServicePythonImpl) emitEvent(eventName string, data ...interface{}) {
+	if s.ctx != nil {
+		runtime.EventsEmit(s.ctx, eventName, data...)
+	}
 }

@@ -25,13 +25,17 @@ clean_testcache:  ## Expire all Go test caches
 
 unit_test:  ## Run all unit tests in the backend folder
 	@echo "Running unit test framework..."
-	go test -v ./backend/...
+	go test -v ./... -tags=unit
+
+integration_test:  ## Run all integration tests
+	@echo "Running integration tests..."
+	SCANOSS_API_KEY=$(SC_API_KEY) go test -v ./... -tags=integration
 
 go_lint_local: ## Run local instance of Go linting across the code base
-	golangci-lint run ./backend/...
+	golangci-lint run ./...
 
 go_lint_local_fix: ## Run local instance of Go linting across the code base including auto-fixing
-	golangci-lint run --fix ./backend/...
+	golangci-lint run --fix ./...
 
 go_lint_docker: ## Run docker instance of Go linting across the code base
 	docker run --rm -v $(pwd):/app -v ~/.cache/golangci-lint/v1.50.1:/root/.cache -w /app golangci/golangci-lint:v1.50.1 golangci-lint run ./backend/...

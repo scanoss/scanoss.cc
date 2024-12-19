@@ -51,7 +51,7 @@ npm: ## Install NPM dependencies for the frontend
 cp_assets: ## Copy the necessary assets to the build folder
 	@echo "Copying assets to build..."
 	@mkdir -p build
-	@cp assets/appicon.png build
+	@cp assets/appicon.png build/appicon.png
 	@cp -r assets build/assets
 
 build: cp_assets  ## Build the application image

@@ -54,7 +54,7 @@ jobs:
       - name: Build App
         run: |
           mkdir build
-          cp assets/appicon.png build
+          cp assets/appicon.png build 
           cp -r assets build/assets
           wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal" --nopackage -webview2 download -o scanoss-lui-macos
         shell: bash

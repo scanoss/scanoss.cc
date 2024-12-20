@@ -45,71 +45,96 @@ jobs:
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
         shell: bash
 
-      #TODO: Check if is used
-      - name: Install macOS Wails deps
-        run: brew install mitchellh/gon/gon
-        shell: bash
-
       # Build
       - name: Build App
         run: |
           mkdir build
-          cp assets/appicon.png build 
           cp -r assets build/assets
-          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal" --nopackage -webview2 download -o scanoss-lui-macos
+          cp assets/appicon.png build
+          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal"
         shell: bash
 
-      # Set execution permissions
-      - name: Add macOS perms
-        run: chmod +x ./build/bin/scanoss-lui-macos
-        shell: bash
+      # Make sure the .app exists
+      - name: Check .app
+        run: ls -l build/bin/*.app || (echo ".app not found!" && exit 1)
 
       # macOS Signing
       - name: Import Code-Signing Certificates for macOS
-        if: startsWith(github.ref, 'refs/tags/')
         uses: Apple-Actions/import-codesign-certs@v3
         with:
           keychain-password: ${{ secrets.APPLE_PASSWORD }}
           p12-file-base64: ${{ secrets.MACOS_DEVELOPER_CERT }}
           p12-password: ${{ secrets.MACOS_DEVELOPER_CERT_PASSWORD }}
 
-      - name: Sign and Notarize
+      - name: Sign .app Bundle
         env:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_ID: apple@scanoss.com
           APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
           APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
         run: |
-          echo "Signing Package with App Certificate"
-          codesign --timestamp --deep --options runtime -s "$APP_CERTIFICATE"  --verbose ./build/bin/scanoss-lui-macos
+          APP_PATH="build/bin/scanoss-lui.app"
+
+          codesign --remove-signature "$APP_PATH"
+          codesign --remove-signature "$APP_PATH/Contents/MacOS/scanoss-lui"
+
+          echo "Signing .app with App Certificate: $APP_CERTIFICATE"
+
+          # Sign the main executable
+          codesign --timestamp --options runtime -s "$APP_CERTIFICATE" --verbose "$APP_PATH/Contents/MacOS/scanoss-lui"
+
+          # Sign the .app bundle
+          codesign --timestamp --deep --options runtime -s "$APP_CERTIFICATE" --force --verbose "$APP_PATH"
 
           echo "Verifying Code Signature"
-          codesign --verify --verbose=4 ./build/bin/scanoss-lui-macos
+          codesign --verify --verbose=4 "$APP_PATH"
 
-          echo "Detailed Signature Information"
-          codesign -dvv ./build/bin/scanoss-lui-macos
+      # Package the .app into a .pkg
+      - name: Create .pkg with postinstall
+        run: |
+          mkdir -p package_root dist
 
-          echo "Checking Gatekeeper Acceptance (Before Notarization)"
-          spctl -a -vv ./build/bin/scanoss-lui-macos || echo "Gatekeeper rejection expected before notarization"
+          cp -R build/bin/scanoss-lui.app package_root/
 
-          echo "Creating zip archive"
-          ditto -c -k --sequesterRsrc --keepParent ./build/bin/scanoss-lui-macos ./build/bin/scanoss-lui-macos.zip
+          chmod +x scripts/postinstall
 
-          echo "Submitting for Notarization"
-          xcrun notarytool submit ./build/bin/scanoss-lui-macos.zip --apple-id "$APPLE_ID" --team-id "$APPLE_DEVELOPER_ID" --password "$APPLE_PASSWORD" --wait
+          pkgbuild \
+            --root package_root \
+            --scripts scripts \
+            --identifier "com.scanoss.scanosslui" \
+            --install-location "/Applications" \
+            dist/scanoss-lui-macos.pkg
 
-          echo "Checking Notarization Status"
-          xcrun notarytool history --apple-id "$APPLE_ID" --team-id "$APPLE_DEVELOPER_ID" --password "$APPLE_PASSWORD"
+      - name: Sign and Notarize Package
+        env:
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_ID: apple@scanoss.com
+          APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
+          APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
+        run: |
+          PKG_PATH="dist/scanoss-lui-macos.pkg"
 
-          chmod +x ./build/bin/scanoss-lui-macos
+          echo "Signing .pkg with Certificate"
+          productsign --sign "$APP_CERTIFICATE" "$PKG_PATH" "$PKG_PATH.signed"
+          mv "$PKG_PATH.signed" "$PKG_PATH"
 
-          echo "Signing and Notarization Complete"
+          echo "Creating zip archive for notarization"
+          ditto -c -k --sequesterRsrc --keepParent "$PKG_PATH" dist/scanoss-lui-macos.pkg.zip
+
+          echo "Submitting package for Notarization"
+          xcrun notarytool submit dist/scanoss-lui-macos.pkg.zip --apple-id "$APPLE_ID" --team-id "$APPLE_DEVELOPER_ID" --password "$APPLE_PASSWORD" --wait
+
+          echo "Stapling Notarization Ticket to .pkg"
+          xcrun stapler staple "$PKG_PATH"
+
+          echo "Verifying package signature"
+          pkgutil --check-signature "$PKG_PATH"
 
       - name: Upload build assets
         uses: actions/upload-artifact@v4
         with:
           name: artifact_m
-          path: ./build/bin/*.zip
+          path: dist/*.pkg
 
   build_linux:
     name: Build for Linux
@@ -150,6 +175,7 @@ jobs:
         run: |
           mkdir build
           cp -r assets build/assets
+          cp assets/appicon.png build
           wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "linux/amd64" -webview2 download -o scanoss-lui-linux
         shell: bash
 
@@ -203,6 +229,7 @@ jobs:
         run: |
           mkdir build
           cp -r assets build/assets
+          cp assets/appicon.png build
           wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o ${{env.ARTIFACT_NAME_PREFIX}}-windows.exe
         shell: bash
 

@@ -1,4 +1,13 @@
 VERSION=$(shell git tag --sort=-version:refname | head -n 1)
+APP_NAME = scanoss-lui
+BUILD_DIR = build
+DIST_DIR = dist
+SCRIPTS_DIR = scripts
+FRONTEND_DIR = frontend
+PACKAGE_ROOT = package_root
+APP_BUNDLE = $(BUILD_DIR)/bin/$(APP_NAME).app
+PKG_NAME = $(APP_NAME)-macos-$(VERSION).pkg
+
 
 # HELP
 # This will output the help for each task
@@ -13,11 +22,11 @@ help: ## Show available commands
 
 clean:  ## Clean all build data
 	@echo "Removing build data..."
-	@rm -rf build frontend/dist
+	@rm -rf $(FRONTEND_DIR)/dist $(BUILD_DIR) $(DIST_DIR)
 
 clean_all: clean  ## Clean all build data including Node
 	@echo "Removing build & NPM data..."
-	@rm -rf frontend/node_modules
+	@rm -rf $(FRONTEND_DIR)/node_modules
 
 clean_testcache:  ## Expire all Go test caches
 	@echo "Cleaning test caches..."
@@ -61,3 +70,32 @@ build: cp_assets  ## Build the application image
 binary: cp_assets  ## Build application binary only (no package)
 	@echo "Build application binary only..."
 	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(VERSION)" --nopackage
+
+build_macos: clean cp_assets  ## Build the application image for macOS
+	@echo "Building application image for macOS..."
+	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(VERSION)" -platform darwin/universal
+	@echo "Build completed. Result: $(APP_BUNDLE)"
+
+package_macos: build_macos ## Package the built macOS app into a pkg
+	@echo "Packaging for macOS with .pkg..."
+
+	@mkdir -p $(DIST_DIR)
+
+	# Prepare a clean staging directory with only the .app
+	@rm -rf $(PACKAGE_ROOT)
+	@mkdir -p $(PACKAGE_ROOT)
+	@cp -R $(APP_BUNDLE) $(PACKAGE_ROOT)/
+
+	@chmod +x $(SCRIPTS_DIR)/macos_postinstall
+
+	@pkgbuild \
+		--root $(PACKAGE_ROOT) \
+		--scripts $(SCRIPTS_DIR) \
+		--identifier "com.scanoss.$(APP_NAME)" \
+		--version "$(VERSION)" \
+		--install-location "/Applications" \
+		$(DIST_DIR)/$(PKG_NAME)
+
+	@rm -rf $(PACKAGE_ROOT)
+
+	@echo "$(DIST_DIR)/$(PKG_NAME) created. Run it to install."

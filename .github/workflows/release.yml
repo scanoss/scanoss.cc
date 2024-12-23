@@ -58,10 +58,10 @@ jobs:
       - name: Check .app
         run: ls -l build/bin/*.app || (echo ".app not found!" && exit 1)
 
-      # macOS Signing
       - name: Import Code-Signing Certificates for macOS
         uses: Apple-Actions/import-codesign-certs@v3
         with:
+          keychain: signing_app
           keychain-password: ${{ secrets.APPLE_PASSWORD }}
           p12-file-base64: ${{ secrets.MACOS_DEVELOPER_CERT }}
           p12-password: ${{ secrets.MACOS_DEVELOPER_CERT_PASSWORD }}
@@ -73,6 +73,7 @@ jobs:
           APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
           APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
         run: |
+          security default-keychain -s signing_app.keychain
           APP_PATH="build/bin/scanoss-lui.app"
 
           codesign --remove-signature "$APP_PATH"
@@ -105,30 +106,34 @@ jobs:
             --install-location "/Applications" \
             dist/scanoss-lui-macos.pkg
 
+      - name: Import Installer Certificate for macOS
+        uses: Apple-Actions/import-codesign-certs@v3
+        with:
+          keychain: signing_pkg
+          keychain-password: ${{ secrets.APPLE_PASSWORD }}
+          p12-file-base64: ${{ secrets.MACOS_INSTALLER_CERT }}
+          p12-password: ${{ secrets.MACOS_INSTALLER_CERT_PASSWORD }}
+
       - name: Sign and Notarize Package
         env:
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_ID: apple@scanoss.com
           APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
           APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
+          INSTALLER_CERTIFICATE: ${{ secrets.MACOS_INSTALLER_CERT_ID }}
         run: |
+          security default-keychain -s signing_pkg.keychain
           PKG_PATH="dist/scanoss-lui-macos.pkg"
 
+          echo "Available signing identities:"
+          security find-identity -v -p codesigning
+
+          echo "Available installer identities:"
+          /usr/bin/security find-identity -v -p basic
+
           echo "Signing .pkg with Certificate"
-          productsign --sign "$APP_CERTIFICATE" "$PKG_PATH" "$PKG_PATH.signed"
+          productsign --sign "$INSTALLER_CERTIFICATE" "$PKG_PATH" "$PKG_PATH.signed"
           mv "$PKG_PATH.signed" "$PKG_PATH"
-
-          echo "Creating zip archive for notarization"
-          ditto -c -k --sequesterRsrc --keepParent "$PKG_PATH" dist/scanoss-lui-macos.pkg.zip
-
-          echo "Submitting package for Notarization"
-          xcrun notarytool submit dist/scanoss-lui-macos.pkg.zip --apple-id "$APPLE_ID" --team-id "$APPLE_DEVELOPER_ID" --password "$APPLE_PASSWORD" --wait
-
-          echo "Stapling Notarization Ticket to .pkg"
-          xcrun stapler staple "$PKG_PATH"
-
-          echo "Verifying package signature"
-          pkgutil --check-signature "$PKG_PATH"
 
       - name: Upload build assets
         uses: actions/upload-artifact@v4

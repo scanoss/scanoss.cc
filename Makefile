@@ -86,7 +86,7 @@ package_macos: build_macos ## Package the built macOS app into a pkg
 	@mkdir -p $(PACKAGE_ROOT)
 	@cp -R $(APP_BUNDLE) $(PACKAGE_ROOT)/
 
-	@chmod +x $(SCRIPTS_DIR)/macos_postinstall
+	@chmod +x $(SCRIPTS_DIR)/postinstall
 
 	@pkgbuild \
 		--root $(PACKAGE_ROOT) \

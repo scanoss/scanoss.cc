@@ -137,7 +137,7 @@ export default function ScanDialog({ onOpenChange, withOptions }: ScanDialogProp
                   className="text-left font-mono text-sm [direction:rtl]"
                 />
                 {withOptions && (
-                  <Button type="button" onClick={handleSelectDirectory} className="ml-2 px-3" variant="secondary">
+                  <Button type="button" onClick={handleSelectDirectory} className="ml-2 px-3" variant="secondary" aria-label="Select directory">
                     <Folder className="h-4 w-4" />
                   </Button>
                 )}

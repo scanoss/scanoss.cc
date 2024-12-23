@@ -135,6 +135,19 @@ jobs:
           productsign --sign "$INSTALLER_CERTIFICATE" "$PKG_PATH" "$PKG_PATH.signed"
           mv "$PKG_PATH.signed" "$PKG_PATH"
 
+          echo "Submitting package for notarization"
+          xcrun notarytool submit "$PKG_PATH" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_DEVELOPER_ID" \
+            --wait
+
+          echo "Stapling notarization ticket"
+          xcrun stapler staple "$PKG_PATH"
+
+          echo "Verifying staple"
+          stapler validate "$PKG_PATH"
+
       - name: Upload build assets
         uses: actions/upload-artifact@v4
         with:

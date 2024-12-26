@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom';
 import KeyboardShortcutsDialog from '@/components/KeyboardShortcutsDialog';
 import ScanDialog from '@/components/ScanDialog';
 import Sidebar from '@/components/Sidebar';
+import StatusBar from '@/components/StatusBar';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 
 import { entities } from '../../wailsjs/go/models';
@@ -44,16 +45,25 @@ export default function Root() {
   }, []);
 
   return (
-    <div className="h-screen w-full bg-background backdrop-blur-lg">
-      <ResizablePanelGroup direction="horizontal" autoSaveId="panels-layout">
-        <ResizablePanel defaultSize={30}>
-          <Sidebar />
-        </ResizablePanel>
-        <ResizableHandle />
-        <ResizablePanel>
-          <Outlet />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+    <div className="flex h-screen w-full flex-col bg-background backdrop-blur-lg">
+      <div className="flex-1 min-h-0">
+        <ResizablePanelGroup direction="horizontal" className="h-full" autoSaveId="panels-layout">
+          <ResizablePanel defaultSize={30}>
+            <div className="h-full overflow-auto">
+              <Sidebar />
+            </div>
+          </ResizablePanel>
+          <ResizableHandle />
+          <ResizablePanel>
+            <div className="h-full overflow-auto">
+              <Outlet />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+      <div className="border-t">
+        <StatusBar />
+      </div>
       <KeyboardShortcutsDialog open={showKeyboardShortcuts} onOpenChange={() => setShowKeyboardShortcuts(false)} />
       {scanModal.open && <ScanDialog onOpenChange={handleCloseScanModal} withOptions={scanModal.withOptions} />}
     </div>

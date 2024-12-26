@@ -1,3 +1,5 @@
+//go:build unit
+
 package repository
 
 import (
@@ -24,7 +26,7 @@ func TestFileRepositoryImpl(t *testing.T) {
 		err := os.WriteFile(absolutePath, testContent, 0644)
 		assert.NoError(t, err)
 
-		config.Get().ScanRoot = currentPath
+		config.GetInstance().ScanRoot = currentPath
 
 		repo := NewFileRepositoryImpl()
 

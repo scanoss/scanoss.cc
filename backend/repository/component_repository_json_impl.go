@@ -34,7 +34,7 @@ func NewJSONComponentRepository(fr utils.FileReader) *JSONComponentRepository {
 }
 
 func (r *JSONComponentRepository) FindByFilePath(path string) (entities.Component, error) {
-	resultFilePath := config.Get().ResultFilePath
+	resultFilePath := config.GetInstance().ResultFilePath
 
 	resultFileBytes, err := r.fr.ReadFile(resultFilePath)
 	if err != nil {

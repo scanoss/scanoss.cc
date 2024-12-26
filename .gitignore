@@ -1,4 +1,6 @@
 build
+dist
+package_root
 node_modules
 frontend/dist
 .idea
@@ -8,3 +10,5 @@ frontend/dist
 scanoss.json
 results.json
 *.wfp
+*.actrc
+.env

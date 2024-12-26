@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"os"
 
 	"github.com/go-playground/validator"
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
@@ -24,15 +25,25 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
-//go:embed build/assets/icon.gif
+//go:embed build/assets/appicon.png
 var icon []byte
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	validate := validator.New()
 	validate.RegisterValidation("valid-purl", utils.ValidatePurl)
 	utils.SetValidator(validate)
 
-	cmd.Execute()
+	err := cmd.Execute()
+	if err != nil {
+		return fmt.Errorf("error: %v", err)
+	}
 
 	fmt.Println("App Version: ", entities.AppVersion)
 
@@ -59,9 +70,10 @@ func main() {
 	resultService := service.NewResultServiceImpl(resultRepository, resultMapper)
 	scanossSettingsService := service.NewScanossSettingsServiceImpl(scanossSettingsRepository)
 	licenseService := service.NewLicenseServiceImpl(licenseRepository)
+	scanService := service.NewScanServicePythonImpl()
 
 	//Create application with options
-	err := wails.Run(&options.App{
+	err = wails.Run(&options.App{
 		Title: "Scanoss Lui",
 		AssetServer: &assetserver.Options{
 			Assets: assets,
@@ -69,6 +81,7 @@ func main() {
 		WindowStartState: options.Maximised,
 		OnStartup: func(ctx context.Context) {
 			app.Init(ctx, scanossSettingsService, keyboardService)
+			scanService.SetContext(ctx)
 		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
 			return app.BeforeClose(ctx)
@@ -81,6 +94,7 @@ func main() {
 			resultService,
 			scanossSettingsService,
 			licenseService,
+			scanService,
 		},
 		EnumBind: []interface{}{
 			entities.AllShortcutActions,
@@ -99,6 +113,8 @@ func main() {
 	})
 
 	if err != nil {
-		println("Error:", err.Error())
+		return fmt.Errorf("error: %v", err)
 	}
+
+	return nil
 }

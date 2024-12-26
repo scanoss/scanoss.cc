@@ -1,4 +1,10 @@
 VERSION=$(shell git tag --sort=-version:refname | head -n 1)
+APP_NAME = scanoss-lui
+BUILD_DIR = build
+DIST_DIR = dist
+SCRIPTS_DIR = scripts
+FRONTEND_DIR = frontend
+APP_BUNDLE = $(BUILD_DIR)/bin/$(APP_NAME).app
 
 # HELP
 # This will output the help for each task
@@ -13,11 +19,11 @@ help: ## Show available commands
 
 clean:  ## Clean all build data
 	@echo "Removing build data..."
-	@rm -rf build frontend/dist
+	@rm -rf $(FRONTEND_DIR)/dist $(BUILD_DIR) $(DIST_DIR)
 
 clean_all: clean  ## Clean all build data including Node
 	@echo "Removing build & NPM data..."
-	@rm -rf frontend/node_modules
+	@rm -rf $(FRONTEND_DIR)/node_modules
 
 clean_testcache:  ## Expire all Go test caches
 	@echo "Cleaning test caches..."
@@ -25,13 +31,17 @@ clean_testcache:  ## Expire all Go test caches
 
 unit_test:  ## Run all unit tests in the backend folder
 	@echo "Running unit test framework..."
-	go test -v ./backend/...
+	go test -v ./... -tags=unit
+
+integration_test:  ## Run all integration tests
+	@echo "Running integration tests..."
+	SCANOSS_API_KEY=$(SC_API_KEY) go test -v ./... -tags=integration
 
 go_lint_local: ## Run local instance of Go linting across the code base
-	golangci-lint run ./backend/...
+	golangci-lint run ./...
 
 go_lint_local_fix: ## Run local instance of Go linting across the code base including auto-fixing
-	golangci-lint run --fix ./backend/...
+	golangci-lint run --fix ./...
 
 go_lint_docker: ## Run docker instance of Go linting across the code base
 	docker run --rm -v $(pwd):/app -v ~/.cache/golangci-lint/v1.50.1:/root/.cache -w /app golangci/golangci-lint:v1.50.1 golangci-lint run ./backend/...
@@ -47,6 +57,7 @@ npm: ## Install NPM dependencies for the frontend
 cp_assets: ## Copy the necessary assets to the build folder
 	@echo "Copying assets to build..."
 	@mkdir -p build
+	@cp assets/appicon.png build/appicon.png
 	@cp -r assets build/assets
 
 build: cp_assets  ## Build the application image
@@ -56,3 +67,26 @@ build: cp_assets  ## Build the application image
 binary: cp_assets  ## Build application binary only (no package)
 	@echo "Build application binary only..."
 	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(VERSION)" --nopackage
+
+build_macos: clean cp_assets  ## Build the application image for macOS
+	@echo "Building application image for macOS..."
+	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(VERSION)" -platform darwin/universal
+	@echo "Build completed. Result: $(APP_BUNDLE)"
+
+package_macos: build_macos ## Package the built macOS app into a dmg
+	@echo "Packaging for macOS with .dmg..."
+	@mkdir -p $(DIST_DIR) dmg_contents
+	@rm -f $(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg
+	@cp -R $(APP_BUNDLE) dmg_contents/
+	@cp INSTALL_MACOS.md "dmg_contents/Installation Guide.md"
+
+	create-dmg \
+		--volname "$(APP_NAME) Installer" \
+		--window-size 600 400 \
+		--app-drop-link 450 200 \
+		--icon "$(APP_NAME).app" 150 200 \
+		--icon "Installation Guide.md" 300 200 \
+		$(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg \
+		dmg_contents/
+
+	@rm -rf dmg_contents

@@ -72,7 +72,7 @@ function DetectedPurlTooltip({ component, replaced }: { component: entities.Comp
           {component.url && (
             <div>
               <p className="font-medium">URL</p>
-              <Link to={component.url as string} />
+              <Link to={component.url as string}>{component.url}</Link>
             </div>
           )}
         </div>
@@ -89,9 +89,7 @@ function ConcludedPurlTooltip({ component }: { component: entities.ComponentDTO 
     <Tooltip>
       <TooltipTrigger asChild>
         <div className="cursor-pointer">
-          <div className={clsx('text-lg font-bold leading-tight', matchPresentation.accent)}>
-            {result?.concluded_name || component.component}
-          </div>
+          <div className={clsx('text-lg font-bold leading-tight', matchPresentation.accent)}>{result?.concluded_name || component.component}</div>
           <div>{result?.concluded_purl}</div>
         </div>
       </TooltipTrigger>
@@ -104,7 +102,7 @@ function ConcludedPurlTooltip({ component }: { component: entities.ComponentDTO 
           {result?.concluded_purl_url && (
             <div>
               <p className="font-medium">URL</p>
-              <Link to={result?.concluded_purl_url as string} />
+              <Link to={result?.concluded_purl_url as string}>{result?.concluded_purl_url}</Link>
             </div>
           )}
         </div>

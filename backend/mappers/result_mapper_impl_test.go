@@ -1,9 +1,12 @@
-package mappers
+//go:build unit
+
+package mappers_test
 
 import (
 	"testing"
 
 	"github.com/scanoss/scanoss.lui/backend/entities"
+	mappers "github.com/scanoss/scanoss.lui/backend/mappers"
 	internal_test "github.com/scanoss/scanoss.lui/internal"
 	"github.com/stretchr/testify/assert"
 )
@@ -79,7 +82,7 @@ func TestMapToResultDTO(t *testing.T) {
 		},
 	}
 
-	mapper := NewResultMapper(settings)
+	mapper := mappers.NewResultMapper(settings)
 
 	for _, tc := range testCases {
 		dto := mapper.MapToResultDTO(tc.result)

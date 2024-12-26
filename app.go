@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"slices"
 
 	"github.com/scanoss/scanoss.lui/backend/entities"
@@ -34,9 +35,9 @@ func (a *App) Init(ctx context.Context, scanossSettingsService service.ScanossSe
 func (a *App) startup() {
 	a.maybeSetWindowTitle()
 	a.initializeMenu()
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Config file path: %s", config.Get().ScanSettingsFilePath))
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Results file path: %s", config.Get().ResultFilePath))
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Scan Root file path: %s", config.Get().ScanRoot))
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Scan Settings file path: %s", config.GetInstance().ScanSettingsFilePath))
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Results file path: %s", config.GetInstance().ResultFilePath))
+	runtime.LogInfo(a.ctx, fmt.Sprintf("Scan Root file path: %s", config.GetInstance().ScanRoot))
 }
 
 func (a *App) maybeSetWindowTitle() {
@@ -107,14 +108,49 @@ func (a *App) initializeMenu() {
 	ViewMenu := AppMenu.AddSubmenu("View")
 	ViewMenu.AddText("Sync Scroll Position", keys.Combo("e", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {})
 
+	// Scan menu
+	ScanMenu := AppMenu.AddSubmenu("Scan")
+	ScanMenu.AddText("Scan Current Directory", keys.Combo("b", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, "scanCurrentDirectory")
+	})
+	ScanMenu.AddText("Scan With Options", keys.Combo("c", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, "scanWithOptions")
+	})
+
 	// Help menu
 	HelpMenu := AppMenu.AddSubmenu("Help")
 	HelpMenu.AddText("Report Issue", nil, func(cd *menu.CallbackData) {
 		utils.OpenMailClient(utils.SCANOSS_SUPPORT_MAILBOX, "Report an issue", utils.GetIssueReportBody(a.ctx))
 	})
 	HelpMenu.AddText("Keyboard Shortcuts", keys.Combo("k", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {
-		runtime.EventsEmit(a.ctx, "showKeyboardShortcuts")
+		runtime.EventsEmit(a.ctx, string(entities.ActionShowKeyboardShortcutsModal))
 	})
 
 	runtime.MenuSetApplicationMenu(a.ctx, AppMenu)
+}
+
+func (a *App) SelectDirectory() (string, error) {
+	directory, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{})
+	if err != nil {
+		return "", fmt.Errorf("error selecting directory: %v", err)
+	}
+
+	if directory == "" {
+		return "", nil
+	}
+
+	relativePath, err := utils.GetRelativePath(directory)
+	if err != nil {
+		return "", fmt.Errorf("error selecting directory: %v", err)
+	}
+	return relativePath, nil
+}
+
+func (a *App) GetWorkingDir() string {
+	workingDir, _ := os.Getwd()
+	return workingDir
+}
+
+func (a *App) SetScanRoot(path string) {
+	config.GetInstance().ScanRoot = path
 }

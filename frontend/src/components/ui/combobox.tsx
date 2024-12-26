@@ -1,5 +1,3 @@
-'use client';
-
 import clsx from 'clsx';
 import { Check, ChevronsUpDown, Loader } from 'lucide-react';
 import { useState } from 'react';

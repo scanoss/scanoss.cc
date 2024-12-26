@@ -1,6 +1,8 @@
 package entities
 
-import "github.com/wailsapp/wails/v2/pkg/menu/keys"
+import (
+	"github.com/wailsapp/wails/v2/pkg/menu/keys"
+)
 
 // Action defines the type for keyboard actions
 type Action string
@@ -28,7 +30,12 @@ const (
 	ActionReplaceComponentWithComments    Action = "replaceComponentWithComments"
 
 	// View
-	ActionSyncScrollPosition Action = "toggleSyncScrollPosition"
+	ActionSyncScrollPosition         Action = "toggleSyncScrollPosition"
+	ActionShowKeyboardShortcutsModal Action = "showKeyboardShortcutsModal"
+
+	// Scan
+	ActionScanCwd         Action = "scanCurrentDirectory"
+	ActionScanWithOptions Action = "scanWithOptions"
 )
 
 type Shortcut struct {
@@ -48,6 +55,7 @@ const (
 	GroupNavigation Group = "Navigation"
 	GroupActions    Group = "Actions"
 	GroupView       Group = "View"
+	GroupScan       Group = "Scan"
 )
 
 // This is necessary to bind the enum in main.go
@@ -76,6 +84,9 @@ var AllShortcutActions = []struct {
 	{ActionReplaceComponentWithoutComments, "ReplaceComponentWithoutComments"},
 	{ActionReplaceComponentWithComments, "ReplaceComponentWithComments"},
 	{ActionSyncScrollPosition, "ToggleSyncScrollPosition"},
+	{ActionShowKeyboardShortcutsModal, "ShowKeyboardShortcutsModal"},
+	{ActionScanCwd, "ScanCurrentDirectory"},
+	{ActionScanWithOptions, "ScanWithOptions"},
 }
 
 var DefaultShortcuts = []Shortcut{
@@ -129,7 +140,7 @@ var DefaultShortcuts = []Shortcut{
 		Action:      ActionSelectAll,
 	},
 
-	// Navegation
+	// Navigation
 	{
 		Name:                   "Move Up",
 		Description:            "Move the selection up",
@@ -266,5 +277,23 @@ var DefaultShortcuts = []Shortcut{
 		Keys:        "shift+mod+e",
 		Group:       GroupActions,
 		Action:      ActionReplaceComponentWithComments,
+	},
+
+	// Scan
+	{
+		Name:        "Scan Current Directory",
+		Description: "Scan the current directory",
+		Accelerator: keys.Combo("b", keys.ShiftKey, keys.CmdOrCtrlKey),
+		Keys:        "shift+mod+b",
+		Group:       GroupScan,
+		Action:      ActionScanCwd,
+	},
+	{
+		Name:        "Scan With Options",
+		Description: "Run a scan with options",
+		Accelerator: keys.Combo("c", keys.ShiftKey, keys.CmdOrCtrlKey),
+		Keys:        "shift+mod+c",
+		Group:       GroupScan,
+		Action:      ActionScanWithOptions,
 	},
 }

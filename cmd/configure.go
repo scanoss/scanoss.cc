@@ -7,7 +7,6 @@ import (
 
 	"github.com/scanoss/scanoss.lui/internal/config"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var configureCmd = &cobra.Command{
@@ -21,23 +20,24 @@ var configureCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
+		cfg := config.GetInstance()
+
 		if apiKey != "" {
-			viper.Set("apiToken", apiKey)
-			config.Get().ApiToken = apiKey
+			if err := cfg.SetApiToken(apiKey); err != nil {
+				fmt.Println("Error saving API token:", err)
+				os.Exit(1)
+			}
 		}
 
 		if apiUrl != "" {
-			viper.Set("apiUrl", apiUrl)
-			config.Get().ApiUrl = apiUrl
+			if err := cfg.SetApiUrl(apiUrl); err != nil {
+				fmt.Println("Error saving API URL:", err)
+				os.Exit(1)
+			}
 		}
 
-		if err := viper.WriteConfig(); err != nil {
-			fmt.Println("Error saving configuration:", err)
-			os.Exit(1)
-		}
-
-		fmt.Println("API URL: ", viper.GetString("apiUrl"))
-		fmt.Println("KEY: ", strings.Repeat("*", len(viper.GetString("apiToken"))))
+		fmt.Println("API URL: ", cfg.ApiUrl)
+		fmt.Println("KEY: ", strings.Repeat("*", len(cfg.ApiToken)))
 		fmt.Println("Configuration saved successfully!")
 	},
 }

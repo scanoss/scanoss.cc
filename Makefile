@@ -4,10 +4,7 @@ BUILD_DIR = build
 DIST_DIR = dist
 SCRIPTS_DIR = scripts
 FRONTEND_DIR = frontend
-PACKAGE_ROOT = package_root
 APP_BUNDLE = $(BUILD_DIR)/bin/$(APP_NAME).app
-PKG_NAME = $(APP_NAME)-macos-$(VERSION).pkg
-
 
 # HELP
 # This will output the help for each task
@@ -76,26 +73,20 @@ build_macos: clean cp_assets  ## Build the application image for macOS
 	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(VERSION)" -platform darwin/universal
 	@echo "Build completed. Result: $(APP_BUNDLE)"
 
-package_macos: build_macos ## Package the built macOS app into a pkg
-	@echo "Packaging for macOS with .pkg..."
+package_macos: build_macos ## Package the built macOS app into a dmg
+	@echo "Packaging for macOS with .dmg..."
+	@mkdir -p $(DIST_DIR) dmg_contents
+	@rm -f $(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg
+	@cp -R $(APP_BUNDLE) dmg_contents/
+	@cp INSTALL_MACOS.md "dmg_contents/Installation Guide.md"
 
-	@mkdir -p $(DIST_DIR)
+	create-dmg \
+		--volname "$(APP_NAME) Installer" \
+		--window-size 600 400 \
+		--app-drop-link 450 200 \
+		--icon "$(APP_NAME).app" 150 200 \
+		--icon "Installation Guide.md" 300 200 \
+		$(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg \
+		dmg_contents/
 
-	# Prepare a clean staging directory with only the .app
-	@rm -rf $(PACKAGE_ROOT)
-	@mkdir -p $(PACKAGE_ROOT)
-	@cp -R $(APP_BUNDLE) $(PACKAGE_ROOT)/
-
-	@chmod +x $(SCRIPTS_DIR)/postinstall
-
-	@pkgbuild \
-		--root $(PACKAGE_ROOT) \
-		--scripts $(SCRIPTS_DIR) \
-		--identifier "com.scanoss.$(APP_NAME)" \
-		--version "$(VERSION)" \
-		--install-location "/Applications" \
-		$(DIST_DIR)/$(PKG_NAME)
-
-	@rm -rf $(PACKAGE_ROOT)
-
-	@echo "$(DIST_DIR)/$(PKG_NAME) created. Run it to install."
+	@rm -rf dmg_contents

@@ -15,7 +15,7 @@ You have two options to make the CLI accessible from your terminal:
 #### Option A: Create a Symlink (Recommended)
 Run the following command in your terminal:
 ```bash
-ln -s /Applications/scanoss-lui.app/Contents/MacOS/scanoss-lui /usr/local/bin/scanoss-lui
+sudo ln -s /Applications/scanoss-lui.app/Contents/MacOS/scanoss-lui /usr/local/bin/scanoss-lui
 ```
 
 #### Option B: Add to PATH
@@ -44,7 +44,7 @@ To remove the CLI tool:
 
 ### If you used Option A (Symlink):
 ```bash
-rm /usr/local/bin/scanoss-lui
+sudo rm /usr/local/bin/scanoss-lui
 ```
 
 ### If you used Option B (PATH):

@@ -85,9 +85,7 @@ export default function ScanDialog({ onOpenChange, withOptions }: ScanDialogProp
       const defaultArgs = await GetDefaultScanArgs();
       setArgs(defaultArgs.join(' '));
     }
-    if (!withOptions) {
-      fetchDefaultDirectory();
-    }
+    fetchDefaultDirectory();
     fetchDefaultScanArgs();
   }, []);
 

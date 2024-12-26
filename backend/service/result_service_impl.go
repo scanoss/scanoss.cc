@@ -1,24 +1,36 @@
 package service
 
 import (
+	"context"
 	"sort"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/labstack/gommon/log"
 	"github.com/scanoss/scanoss.lui/backend/entities"
 	"github.com/scanoss/scanoss.lui/backend/mappers"
 	"github.com/scanoss/scanoss.lui/backend/repository"
+	"github.com/scanoss/scanoss.lui/internal/config"
 	"github.com/scanoss/scanoss.lui/internal/utils"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type ResultServiceImpl struct {
-	repo   repository.ResultRepository
-	mapper mappers.ResultMapper
+	ctx     context.Context
+	watcher *fsnotify.Watcher
+	repo    repository.ResultRepository
+	mapper  mappers.ResultMapper
 }
 
 func NewResultServiceImpl(repo repository.ResultRepository, mapper mappers.ResultMapper) ResultService {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Errorf("Error creating watcher: %v", err)
+	}
+
 	return &ResultServiceImpl{
-		repo:   repo,
-		mapper: mapper,
+		repo:    repo,
+		mapper:  mapper,
+		watcher: watcher,
 	}
 }
 
@@ -40,4 +52,48 @@ func (s *ResultServiceImpl) GetAll(dto *entities.RequestResultDTO) ([]entities.R
 	})
 
 	return s.mapper.MapToResultDTOList(results), nil
+}
+
+func (s *ResultServiceImpl) SetContext(ctx context.Context) {
+	s.ctx = ctx
+}
+
+func (s *ResultServiceImpl) WatchResults() {
+	if s.watcher == nil {
+		return
+	}
+
+	err := s.watcher.Add(config.GetInstance().ResultFilePath)
+	if err != nil {
+		log.Errorf("Error watching results.json: %v", err)
+		return
+	}
+
+	log.Infof("Watching %s for changes...", config.GetInstance().ResultFilePath)
+
+	go func() {
+		for {
+			select {
+			case event, ok := <-s.watcher.Events:
+				if !ok {
+					return
+				}
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					runtime.WindowReloadApp(s.ctx)
+				}
+				if event.Op&fsnotify.Remove == fsnotify.Remove {
+					runtime.WindowReloadApp(s.ctx)
+				}
+
+			case err, ok := <-s.watcher.Errors:
+				if !ok {
+					return
+				}
+				log.Errorf("Watcher error: %v", err)
+			case <-s.ctx.Done():
+				s.watcher.Close()
+				return
+			}
+		}
+	}()
 }

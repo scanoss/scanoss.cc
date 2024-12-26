@@ -45,8 +45,6 @@ func run() error {
 		return fmt.Errorf("error: %v", err)
 	}
 
-	fmt.Println("App Version: ", entities.AppVersion)
-
 	app := NewApp()
 
 	fr := utils.NewDefaultFileReader()

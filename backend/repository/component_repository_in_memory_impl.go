@@ -2,8 +2,8 @@ package repository
 
 import (
 	"encoding/json"
-	"fmt"
 
+	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.lui/backend/entities"
 )
 
@@ -30,7 +30,7 @@ func (r *InMemoryComponentRepository) parseScanResults(resultByte []byte) (map[s
 	var intermediateMap map[string][]entities.Component
 
 	if err := json.Unmarshal(resultByte, &intermediateMap); err != nil {
-		fmt.Println("Error unmarshalling JSON:", err)
+		log.Error().Err(err).Msg("Error parsing scan results")
 		return intermediateMap, err
 	}
 

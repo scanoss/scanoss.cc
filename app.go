@@ -6,6 +6,7 @@ import (
 	"os"
 	"slices"
 
+	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.lui/backend/entities"
 	"github.com/scanoss/scanoss.lui/backend/service"
 	"github.com/scanoss/scanoss.lui/internal/config"
@@ -35,9 +36,10 @@ func (a *App) Init(ctx context.Context, scanossSettingsService service.ScanossSe
 func (a *App) startup() {
 	a.maybeSetWindowTitle()
 	a.initializeMenu()
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Scan Settings file path: %s", config.GetInstance().ScanSettingsFilePath))
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Results file path: %s", config.GetInstance().ResultFilePath))
-	runtime.LogInfo(a.ctx, fmt.Sprintf("Scan Root file path: %s", config.GetInstance().ScanRoot))
+	log.Debug().Msgf("Scan Settings file path: %s", config.GetInstance().ScanSettingsFilePath)
+	log.Debug().Msgf("Results file path: %s", config.GetInstance().ResultFilePath)
+	log.Debug().Msgf("Scan Root file path: %s", config.GetInstance().ScanRoot)
+	log.Info().Msgf("App Version: %s", entities.AppVersion)
 }
 
 func (a *App) maybeSetWindowTitle() {
@@ -50,7 +52,7 @@ func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 	hasUnsavedChanges, err := a.scanossSettingsService.HasUnsavedChanges()
 
 	if err != nil {
-		runtime.LogError(ctx, "Error checking for unsaved changes: "+err.Error())
+		log.Error().Msg("Error checking for unsaved changes: " + err.Error())
 		return false
 	}
 	if !hasUnsavedChanges {
@@ -66,7 +68,7 @@ func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 		DefaultButton: "Yes",
 	})
 	if err != nil {
-		runtime.LogError(ctx, "Error showing dialog: "+err.Error())
+		log.Error().Msg("Error showing dialog: " + err.Error())
 	}
 
 	confirmOptions := []string{"Yes", "Ok"}
@@ -74,7 +76,7 @@ func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 	if slices.Contains(confirmOptions, result) {
 		err := a.scanossSettingsService.Save()
 		if err != nil {
-			runtime.LogError(ctx, "Error saving scanoss bom file: "+err.Error())
+			log.Error().Msg("Error saving scanoss bom file: " + err.Error())
 		}
 	}
 

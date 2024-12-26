@@ -6,7 +6,10 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
@@ -32,6 +35,7 @@ type Config struct {
 	ResultFilePath       string `json:"resultfilepath,omitempty"`
 	ScanRoot             string `json:"scanroot,omitempty"`
 	ScanSettingsFilePath string `json:"scansettingsfilepath,omitempty"`
+	Debug                bool   `json:"debug,omitempty"`
 }
 
 var instance *Config
@@ -87,21 +91,51 @@ func GetDefaultScanSettingsFilePath() string {
 func GetDefaultConfigFolder() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Printf("Error getting user home directory: %v\n", err)
+		log.Error().Err(err).Msg("Error getting user home directory")
 		return ""
 	}
 
 	return filepath.Join(homeDir, ROOT_FOLDER, SCANOSS_HIDDEN_FOLDER)
 }
 
-func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile string) error {
+func setupLogger(debug bool) error {
+	logsDir := filepath.Join(GetDefaultConfigFolder(), "logs")
+	if err := os.MkdirAll(logsDir, 0755); err != nil {
+		return fmt.Errorf("error creating logs directory: %w", err)
+	}
+
+	logFileName := fmt.Sprintf("scanoss-lui-%s.log", time.Now().Format(time.DateOnly))
+	logFile, err := os.OpenFile(filepath.Join(logsDir, logFileName), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("error creating log file: %w", err)
+	}
+
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339, NoColor: false}
+	multi := zerolog.MultiLevelWriter(consoleWriter, logFile)
+
+	log.Logger = zerolog.New(multi).With().Timestamp().Logger()
+
+	if debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else {
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	}
+
+	return nil
+}
+
+func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile string, debug bool) error {
+	if err := setupLogger(debug); err != nil {
+		return fmt.Errorf("error setting up logger: %w", err)
+	}
+
 	if cfgFile != "" {
 		absCfgFile, _ := filepath.Abs(cfgFile)
-		fmt.Println("Using config file:", absCfgFile)
+		log.Debug().Msgf("Using config file: %s", absCfgFile)
 
 		viper.SetConfigFile(absCfgFile)
 		if err := viper.ReadInConfig(); err != nil {
-			return fmt.Errorf("error reading config file: %w", err)
+			log.Fatal().Err(err).Msg("Error reading config file")
 		}
 	} else {
 		viper.SetConfigName(DEFAULT_CONFIG_FILE_NAME)
@@ -124,52 +158,61 @@ func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile string) error
 				if err := viper.SafeWriteConfig(); err != nil {
 					return fmt.Errorf("error creating config file: %w", err)
 				}
-				fmt.Println("Created default config file:", viper.ConfigFileUsed())
+				log.Debug().Msgf("Created default config file: %s", viper.ConfigFileUsed())
 			} else {
 				return fmt.Errorf("error reading config file: %w", err)
 			}
 		}
 	}
 
-	cfg := GetInstance()
+	once.Do(func() {
+		instance = &Config{
+			ApiToken:             apiKey,
+			ApiUrl:               apiUrl,
+			ResultFilePath:       inputFile,
+			ScanRoot:             scanRoot,
+			ScanSettingsFilePath: GetDefaultScanSettingsFilePath(),
+			Debug:                debug,
+		}
+	})
 
 	// Override with command line flags
 	if scanRoot != "" {
-		if err := cfg.SetScanRoot(scanRoot); err != nil {
+		if err := instance.SetScanRoot(scanRoot); err != nil {
 			return fmt.Errorf("error saving scan root: %w", err)
 		}
 	}
 	if apiKey != "" {
-		if err := cfg.SetApiToken(apiKey); err != nil {
+		if err := instance.SetApiToken(apiKey); err != nil {
 			return fmt.Errorf("error saving API token: %w", err)
 		}
 	}
 	if apiUrl != "" {
-		if err := cfg.SetApiUrl(apiUrl); err != nil {
+		if err := instance.SetApiUrl(apiUrl); err != nil {
 			return fmt.Errorf("error saving API URL: %w", err)
 		}
 	}
 	if inputFile != "" {
-		if err := cfg.SetResultFilePath(inputFile); err != nil {
+		if err := instance.SetResultFilePath(inputFile); err != nil {
 			return fmt.Errorf("error saving result file path: %w", err)
 		}
 	}
 
 	// Load config values from viper if not set by flags
-	if cfg.ApiToken == "" {
-		cfg.ApiToken = viper.GetString("apiToken")
+	if instance.ApiToken == "" {
+		instance.ApiToken = viper.GetString("apiToken")
 	}
-	if cfg.ApiUrl == "" {
-		cfg.ApiUrl = viper.GetString("apiUrl")
+	if instance.ApiUrl == "" {
+		instance.ApiUrl = viper.GetString("apiUrl")
 	}
-	if cfg.ResultFilePath == "" {
-		cfg.ResultFilePath = viper.GetString("resultFilePath")
+	if instance.ResultFilePath == "" {
+		instance.ResultFilePath = viper.GetString("resultFilePath")
 	}
-	if cfg.ScanRoot == "" {
-		cfg.ScanRoot = viper.GetString("scanRoot")
+	if instance.ScanRoot == "" {
+		instance.ScanRoot = viper.GetString("scanRoot")
 	}
-	if cfg.ScanSettingsFilePath == "" {
-		cfg.ScanSettingsFilePath = viper.GetString("scanSettingsFilePath")
+	if instance.ScanSettingsFilePath == "" {
+		instance.ScanSettingsFilePath = viper.GetString("scanSettingsFilePath")
 	}
 
 	return nil

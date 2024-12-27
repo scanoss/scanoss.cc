@@ -40,6 +40,7 @@ export default function ScanDialog({ onOpenChange, withOptions }: ScanDialogProp
   const [scanStatus, setScanStatus] = useState<ScanStatus>('idle');
 
   const fetchResults = useResultsStore((state) => state.fetchResults);
+  const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
 
   const handleSelectDirectory = withErrorHandling({
     asyncFn: async () => {
@@ -63,6 +64,7 @@ export default function ScanDialog({ onOpenChange, withOptions }: ScanDialogProp
       setOutput([]);
       await ScanStream([directory, ...args.split(' ')]);
       await setScanRoot(directory);
+      setSelectedResults([]);
       await fetchResults();
     },
     onError: () => {

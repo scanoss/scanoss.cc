@@ -5,12 +5,14 @@ import { useRef } from 'react';
 import { HighlightRange, MonacoManager } from '@/lib/editor';
 import { getHighlightLineRanges } from '@/modules/results/utils';
 
+import Loading from './Loading';
 import { Skeleton } from './ui/skeleton';
 
 interface CodeViewerProps {
   content: string | undefined;
   editorId: string;
   editorType: 'local' | 'remote';
+  error: Error | null;
   height?: string;
   highlightLines?: string;
   isError: boolean;
@@ -20,9 +22,10 @@ interface CodeViewerProps {
 }
 
 export default function CodeViewer({
-  editorId,
   content,
+  editorId,
   editorType,
+  error,
   height = '100%',
   highlightLines,
   isError,
@@ -59,13 +62,17 @@ export default function CodeViewer({
   };
 
   if (isLoading || !highlightLines) {
-    return <Skeleton className="h-full w-full" />;
+    return (
+      <div className="flex flex-1 items-center justify-center text-muted-foreground">
+        <Loading text={`Loading ${editorType} file...`} />
+      </div>
+    );
   }
 
   if (isError) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
-        <p className="text-red-500">Error loading file</p>
+      <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+        <span className="mx-auto max-w-[50%] text-center">{error instanceof Error ? error.message : error}</span>
       </div>
     );
   }

@@ -23,8 +23,7 @@ export default function FilterComponentActions() {
     asyncFn: async (args: OnFilterComponentArgs) => {
       await onFilterComponent(args);
     },
-    onError: (error) => {
-      console.error(error);
+    onError: () => {
       toast({
         title: 'Error',
         description: 'An error occurred while filtering the component. Please try again.',
@@ -38,8 +37,7 @@ export default function FilterComponentActions() {
       await handleFilterComponent(args);
       setShowReplaceComponentDialog(false);
     },
-    onError: (error) => {
-      console.error(error);
+    onError: () => {
       toast({
         title: 'Error',
         description: 'An error occurred while replacing the component. Please try again.',

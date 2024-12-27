@@ -76,6 +76,7 @@ const useResultsStore = create<ResultsStore>()(
         set({
           error: error instanceof Error ? error.message : 'An error occurred while fetching results',
         });
+        throw error;
       } finally {
         set({ isLoading: false }, false, 'FETCH_RESULTS');
       }

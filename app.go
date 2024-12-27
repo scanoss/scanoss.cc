@@ -210,15 +210,12 @@ func (a *App) GetScanSettingsFilePath() (string, error) {
 
 func (a *App) SetScanRoot(path string) {
 	config.GetInstance().SetScanRoot(path)
-	runtime.WindowReloadApp(a.ctx)
 }
 
 func (a *App) SetResultFilePath(path string) {
 	config.GetInstance().SetResultFilePath(path)
-	runtime.WindowReloadApp(a.ctx)
 }
 
 func (a *App) SetScanSettingsFilePath(path string) {
 	config.GetInstance().SetScanSettingsFilePath(path)
-	runtime.WindowReloadApp(a.ctx)
 }

@@ -1,34 +1,42 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { File, FolderOpen } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
+import useSelectedResult from '@/hooks/useSelectedResult';
 import { withErrorHandling } from '@/lib/errors';
+import useResultsStore from '@/modules/results/stores/useResultsStore';
+import useConfigStore from '@/stores/useConfigStore';
 
-import {
-  GetResultFilePath,
-  GetScanRoot,
-  GetScanSettingsFilePath,
-  SelectDirectory,
-  SelectFile,
-  SetResultFilePath,
-  SetScanRoot,
-  SetScanSettingsFilePath,
-} from '../../wailsjs/go/main/App';
+import { SelectDirectory, SelectFile } from '../../wailsjs/go/main/App';
 import { toast } from './ui/use-toast';
 
 export default function StatusBar() {
-  const [scanRoot, setScanRoot] = useState<string>('');
-  const [resultsFile, setResultsFile] = useState<string>('');
-  const [settingsFile, setSettingsFile] = useState<string>('');
+  const queryClient = useQueryClient();
+  const selectedResult = useSelectedResult();
+
+  const fetchResults = useResultsStore((state) => state.fetchResults);
+
+  const scanRoot = useConfigStore((state) => state.scanRoot);
+  const resultsFile = useConfigStore((state) => state.resultsFile);
+  const settingsFile = useConfigStore((state) => state.settingsFile);
+
+  const setScanRoot = useConfigStore((state) => state.setScanRoot);
+  const setResultsFile = useConfigStore((state) => state.setResultsFile);
+  const setSettingsFile = useConfigStore((state) => state.setSettingsFile);
+
+  const getInitialConfig = useConfigStore((state) => state.getInitialConfig);
 
   const handleSelectScanRoot = withErrorHandling({
     asyncFn: async () => {
       const selectedDir = await SelectDirectory(scanRoot ?? '.');
       if (selectedDir) {
-        await SetScanRoot(selectedDir);
+        await setScanRoot(selectedDir);
+        await queryClient.invalidateQueries({
+          queryKey: ['localFileContent', selectedResult?.path],
+        });
       }
     },
-    onError: (error) => {
-      console.error('Error selecting scan root:', error);
+    onError: () => {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -41,11 +49,11 @@ export default function StatusBar() {
     asyncFn: async () => {
       const file = await SelectFile(scanRoot ?? '.');
       if (file) {
-        await SetResultFilePath(file);
+        await setResultsFile(file);
+        await fetchResults();
       }
     },
-    onError: (error) => {
-      console.error('Error selecting results file:', error);
+    onError: () => {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -58,11 +66,11 @@ export default function StatusBar() {
     asyncFn: async () => {
       const file = await SelectFile(scanRoot ?? '.');
       if (file) {
-        await SetScanSettingsFilePath(file);
+        await setSettingsFile(file);
+        await fetchResults();
       }
     },
-    onError: (error) => {
-      console.error('Error selecting settings file:', error);
+    onError: () => {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -72,11 +80,7 @@ export default function StatusBar() {
   });
 
   useEffect(() => {
-    GetScanRoot().then(setScanRoot);
-
-    GetResultFilePath().then(setResultsFile);
-
-    GetScanSettingsFilePath().then(setSettingsFile);
+    getInitialConfig();
   }, []);
 
   return (

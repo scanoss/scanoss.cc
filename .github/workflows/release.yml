@@ -132,11 +132,16 @@ jobs:
           echo "Verifying staple"
           stapler validate "$DMG_PATH"
 
-      - name: Upload build assets
-        uses: actions/upload-artifact@v4
+      - name: Build Mac zip file
+        shell: bash
+        run: |
+          cd dist && zip scanoss-lui-mac.zip *.dmg
+
+      - uses: actions/upload-artifact@v4
         with:
           name: artifact_m
-          path: dist/*.dmg
+          path: |
+            dist/*.zip
 
   build_linux:
     name: Build for Linux
@@ -185,17 +190,15 @@ jobs:
         run: chmod +x ./build/bin/scanoss-lui-linux
         shell: bash
 
-      - name: Build Linux zip file
+      - name: Create ZIP file
+        run: cd ./build/bin && zip -r artifact_l.zip scanoss-lui-linux
         shell: bash
-        run: |
-          cd ./build/bin/ && zip scanoss-lui-linux.zip scanoss-lui-linux
 
-      # Upload build assets
-      - uses: actions/upload-artifact@v4
+      - name: Upload build assets
+        uses: actions/upload-artifact@v4
         with:
           name: artifact_l
-          path: |
-            ./build/bin/*.zip
+          path: ./build/bin/artifact_l.zip
 
   build_w:
     name: Build for Windows
@@ -317,4 +320,3 @@ jobs:
                             --generate-notes \
                             --draft \
                             $(ls *.zip)
-

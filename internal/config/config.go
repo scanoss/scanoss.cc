@@ -60,22 +60,16 @@ func (c *Config) SetApiUrl(url string) error {
 	return viper.WriteConfig()
 }
 
-func (c *Config) SetResultFilePath(path string) error {
+func (c *Config) SetResultFilePath(path string) {
 	c.ResultFilePath = path
-	viper.Set("resultfilepath", path)
-	return viper.WriteConfig()
 }
 
-func (c *Config) SetScanRoot(path string) error {
+func (c *Config) SetScanRoot(path string) {
 	c.ScanRoot = path
-	viper.Set("scanroot", path)
-	return viper.WriteConfig()
 }
 
-func (c *Config) SetScanSettingsFilePath(path string) error {
+func (c *Config) SetScanSettingsFilePath(path string) {
 	c.ScanSettingsFilePath = path
-	viper.Set("scansettingsfilepath", path)
-	return viper.WriteConfig()
 }
 
 func GetDefaultResultFilePath() string {
@@ -124,7 +118,7 @@ func setupLogger(debug bool) error {
 	return nil
 }
 
-func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile string, debug bool) error {
+func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath string, debug bool) error {
 	if err := setupLogger(debug); err != nil {
 		return fmt.Errorf("error setting up logger: %w", err)
 	}
@@ -135,7 +129,7 @@ func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile string, debug
 
 		viper.SetConfigFile(absCfgFile)
 		if err := viper.ReadInConfig(); err != nil {
-			log.Fatal().Err(err).Msg("Error reading config file")
+			log.Fatal().Err(err).Msgf("Error reading config file %v", err.Error())
 		}
 	} else {
 		viper.SetConfigName(DEFAULT_CONFIG_FILE_NAME)
@@ -145,9 +139,6 @@ func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile string, debug
 		// Default values
 		viper.SetDefault("apiUrl", DEFAULT_API_URL)
 		viper.SetDefault("apiToken", "")
-		viper.SetDefault("resultFilePath", GetDefaultResultFilePath())
-		viper.SetDefault("scanRoot", "")
-		viper.SetDefault("scanSettingsFilePath", GetDefaultScanSettingsFilePath())
 
 		if err := viper.ReadInConfig(); err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
@@ -167,21 +158,13 @@ func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile string, debug
 
 	once.Do(func() {
 		instance = &Config{
-			ApiToken:             apiKey,
-			ApiUrl:               apiUrl,
-			ResultFilePath:       inputFile,
-			ScanRoot:             scanRoot,
-			ScanSettingsFilePath: GetDefaultScanSettingsFilePath(),
-			Debug:                debug,
+			ApiToken: viper.GetString("apiToken"),
+			ApiUrl:   viper.GetString("apiUrl"),
+			Debug:    debug,
 		}
 	})
 
 	// Override with command line flags
-	if scanRoot != "" {
-		if err := instance.SetScanRoot(scanRoot); err != nil {
-			return fmt.Errorf("error saving scan root: %w", err)
-		}
-	}
 	if apiKey != "" {
 		if err := instance.SetApiToken(apiKey); err != nil {
 			return fmt.Errorf("error saving API token: %w", err)
@@ -192,27 +175,29 @@ func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile string, debug
 			return fmt.Errorf("error saving API URL: %w", err)
 		}
 	}
+	if scanRoot != "" {
+		instance.SetScanRoot(scanRoot)
+	}
 	if inputFile != "" {
-		if err := instance.SetResultFilePath(inputFile); err != nil {
-			return fmt.Errorf("error saving result file path: %w", err)
-		}
+		instance.SetResultFilePath(inputFile)
+	}
+	if scanossSettingsFilePath != "" {
+		instance.SetScanSettingsFilePath(scanossSettingsFilePath)
 	}
 
-	// Load config values from viper if not set by flags
-	if instance.ApiToken == "" {
-		instance.ApiToken = viper.GetString("apiToken")
-	}
-	if instance.ApiUrl == "" {
-		instance.ApiUrl = viper.GetString("apiUrl")
+	// Set default values if not set via config file or command line args
+	if instance.ScanRoot == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("error getting working directory: %w", err)
+		}
+		instance.ScanRoot = wd
 	}
 	if instance.ResultFilePath == "" {
-		instance.ResultFilePath = viper.GetString("resultFilePath")
-	}
-	if instance.ScanRoot == "" {
-		instance.ScanRoot = viper.GetString("scanRoot")
+		instance.ResultFilePath = GetDefaultResultFilePath()
 	}
 	if instance.ScanSettingsFilePath == "" {
-		instance.ScanSettingsFilePath = viper.GetString("scanSettingsFilePath")
+		instance.ScanSettingsFilePath = GetDefaultScanSettingsFilePath()
 	}
 
 	return nil

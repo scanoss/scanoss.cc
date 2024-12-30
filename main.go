@@ -81,9 +81,6 @@ func run() error {
 			app.Init(ctx, scanossSettingsService, keyboardService)
 			scanService.SetContext(ctx)
 			resultService.SetContext(ctx)
-
-			// Add watchers
-			go resultService.WatchResults()
 		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
 			return app.BeforeClose(ctx)

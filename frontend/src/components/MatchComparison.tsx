@@ -19,6 +19,7 @@ export default function MatchComparison() {
     data: localFileContent,
     isFetching: isLoadingLocalFileContent,
     isError: isErrorLocalFileContent,
+    error: errorLocalFileContent,
   } = useQuery({
     queryKey: ['localFileContent', selectedResult?.path],
     queryFn: () => GetLocalFile(selectedResult?.path as string),
@@ -29,6 +30,7 @@ export default function MatchComparison() {
     data: remoteFileContent,
     isFetching: isLoadingRemoteFileContent,
     isError: isErrorRemoteFileContent,
+    error: errorRemoteFileContent,
   } = useQuery({
     queryKey: ['remoteFileContent', selectedResult?.path],
     queryFn: () => GetRemoteFile(selectedResult?.path as string),
@@ -63,6 +65,7 @@ export default function MatchComparison() {
           <CodeViewer
             content={localFileContent?.content}
             isError={isErrorLocalFileContent}
+            error={errorLocalFileContent}
             isLoading={isLoadingLocalFileContent}
             language={localFileContent?.language}
             highlightLines={component?.lines}
@@ -72,6 +75,7 @@ export default function MatchComparison() {
           <CodeViewer
             content={remoteFileContent?.content}
             isError={isErrorRemoteFileContent}
+            error={errorRemoteFileContent}
             isLoading={isLoadingRemoteFileContent}
             language={remoteFileContent?.language}
             highlightLines={component?.oss_lines}

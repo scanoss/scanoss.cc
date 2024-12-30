@@ -5,10 +5,22 @@ import {service} from '../models';
 
 export function BeforeClose(arg1:context.Context):Promise<boolean>;
 
+export function GetResultFilePath():Promise<string>;
+
+export function GetScanRoot():Promise<string>;
+
+export function GetScanSettingsFilePath():Promise<string>;
+
 export function GetWorkingDir():Promise<string>;
 
 export function Init(arg1:context.Context,arg2:service.ScanossSettingsService,arg3:service.KeyboardService):Promise<void>;
 
-export function SelectDirectory():Promise<string>;
+export function SelectDirectory(arg1:string):Promise<string>;
+
+export function SelectFile(arg1:string):Promise<string>;
+
+export function SetResultFilePath(arg1:string):Promise<void>;
 
 export function SetScanRoot(arg1:string):Promise<void>;
+
+export function SetScanSettingsFilePath(arg1:string):Promise<void>;

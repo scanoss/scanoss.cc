@@ -9,12 +9,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var inputFile string
-var cfgFile string
-var scanRoot string
 var apiKey string
 var apiUrl string
+var cfgFile string
 var debug bool
+var inputFile string
+var scanossSettingsFilePath string
+var scanRoot string
 
 var rootCmd = &cobra.Command{
 	Use:   "scanoss-lui",
@@ -28,6 +29,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "Config file (optional - default: $HOME/.scanoss/scanoss-lui-settings.json)")
 	rootCmd.Flags().StringVarP(&inputFile, "input", "i", "", "Path to scan result file (optional - default: $WORKDIR/.scanoss/results.json)")
 	rootCmd.Flags().StringVarP(&scanRoot, "scan-root", "s", "", "Scanned folder root path (optional - default: $WORKDIR)")
+	rootCmd.Flags().StringVar(&scanossSettingsFilePath, "settings", "", "Path to scanoss settings file (optional - default: $WORKDIR/scanoss.json)")
 	rootCmd.Flags().StringVarP(&apiKey, "key", "k", "", "SCANOSS API Key token (optional)")
 	rootCmd.Flags().StringVarP(&apiUrl, "apiUrl", "u", "", fmt.Sprintf("SCANOSS API URL (optional - default: %s)", config.DEFAULT_API_URL))
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable debug mode")
@@ -36,7 +38,7 @@ func init() {
 }
 
 func initConfig() {
-	if err := config.InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, debug); err != nil {
+	if err := config.InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath, debug); err != nil {
 		log.Fatal().Err(err).Msg("Error initializing config")
 	}
 }

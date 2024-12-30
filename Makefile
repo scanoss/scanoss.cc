@@ -46,7 +46,7 @@ go_lint_local_fix: ## Run local instance of Go linting across the code base incl
 go_lint_docker: ## Run docker instance of Go linting across the code base
 	docker run --rm -v $(pwd):/app -v ~/.cache/golangci-lint/v1.50.1:/root/.cache -w /app golangci/golangci-lint:v1.50.1 golangci-lint run ./backend/...
 
-run: ## Runs the application in development mode
+run: cp_assets ## Runs the application in development mode
 	$(eval APPARGS := $(ARGS))
 	@wails dev -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "$(APPARGS)")
 

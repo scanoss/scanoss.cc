@@ -117,6 +117,10 @@ func ExpandPath(path string) string {
 }
 
 func GetRelativePath(absolutePath string) (string, error) {
+	if !filepath.IsAbs(absolutePath) {
+		return absolutePath, nil
+	}
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return "", fmt.Errorf("failed to get working directory: %w", err)

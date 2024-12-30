@@ -6,8 +6,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { withErrorHandling } from '@/lib/errors';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
+import useConfigStore from '@/stores/useConfigStore';
 
-import { GetWorkingDir, SelectDirectory, SetScanRoot } from '../../wailsjs/go/main/App';
+import { GetWorkingDir, SelectDirectory } from '../../wailsjs/go/main/App';
 import { GetDefaultScanArgs, ScanStream } from '../../wailsjs/go/service/ScanServicePythonImpl';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
 import Link from './Link';
@@ -31,22 +32,24 @@ interface ScanDialogProps {
 export default function ScanDialog({ onOpenChange, withOptions }: ScanDialogProps) {
   const { toast } = useToast();
 
+  const setScanRoot = useConfigStore((state) => state.setScanRoot);
+
   const [directory, setDirectory] = useState('');
   const [args, setArgs] = useState<string>('');
   const [output, setOutput] = useState<OutputLine[]>([]);
   const [scanStatus, setScanStatus] = useState<ScanStatus>('idle');
 
   const fetchResults = useResultsStore((state) => state.fetchResults);
+  const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
 
   const handleSelectDirectory = withErrorHandling({
     asyncFn: async () => {
-      const selectedDir = await SelectDirectory();
+      const selectedDir = await SelectDirectory(directory ?? '.');
       if (selectedDir) {
         setDirectory(selectedDir);
       }
     },
-    onError: (error) => {
-      console.error('Error selecting directory:', error);
+    onError: () => {
       toast({
         title: 'Error',
         description: 'An error occurred while selecting the directory. Please try again.',
@@ -60,11 +63,11 @@ export default function ScanDialog({ onOpenChange, withOptions }: ScanDialogProp
       setScanStatus('scanning');
       setOutput([]);
       await ScanStream([directory, ...args.split(' ')]);
-      await SetScanRoot(directory);
+      await setScanRoot(directory);
+      setSelectedResults([]);
       await fetchResults();
     },
-    onError: (error) => {
-      console.error('Error scanning:', error);
+    onError: () => {
       toast({
         title: 'Error',
         description: 'An error occurred while scanning. Please try again.',

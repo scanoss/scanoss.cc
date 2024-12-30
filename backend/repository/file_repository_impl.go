@@ -24,7 +24,7 @@ func (r *FileRepositoryImpl) ReadLocalFile(path string) (entities.File, error) {
 
 	content, err := os.ReadFile(absolutePath)
 	if err != nil {
-		return entities.File{}, entities.ErrReadingFile
+		return entities.File{}, fmt.Errorf("%s does not exist. Try changing the scan root from the status bar", path)
 	}
 
 	return *entities.NewFile(scanRootPath, path, content), nil

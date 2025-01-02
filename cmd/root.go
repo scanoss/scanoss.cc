@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/rs/zerolog/log"
-	"github.com/scanoss/scanoss.lui/internal/config"
+	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +18,7 @@ var scanossSettingsFilePath string
 var scanRoot string
 
 var rootCmd = &cobra.Command{
-	Use:   "scanoss-lui",
+	Use:   "scanoss-cc",
 	Short: "Lightweight UI, that presents the findings from the latest scan and prompt the user to review pending identifications.",
 	Run:   func(cmd *cobra.Command, args []string) {},
 }
@@ -26,7 +26,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "Config file (optional - default: $HOME/.scanoss/scanoss-lui-settings.json)")
+	rootCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "Config file (optional - default: $HOME/.scanoss/scanoss-cc-settings.json)")
 	rootCmd.Flags().StringVarP(&inputFile, "input", "i", "", "Path to scan result file (optional - default: $WORKDIR/.scanoss/results.json)")
 	rootCmd.Flags().StringVarP(&scanRoot, "scan-root", "s", "", "Scanned folder root path (optional - default: $WORKDIR)")
 	rootCmd.Flags().StringVar(&scanossSettingsFilePath, "settings", "", "Path to scanoss settings file (optional - default: $WORKDIR/scanoss.json)")

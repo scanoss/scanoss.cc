@@ -3,8 +3,8 @@ package repository
 import (
 	_ "embed"
 
-	"github.com/scanoss/scanoss.lui/backend/entities"
-	"github.com/scanoss/scanoss.lui/internal/utils"
+	"github.com/scanoss/scanoss.cc/backend/entities"
+	"github.com/scanoss/scanoss.cc/internal/utils"
 )
 
 const LICENSES_FILE_PATH = "backend/data/spdx-licenses.json"

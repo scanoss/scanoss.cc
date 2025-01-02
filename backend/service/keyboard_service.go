@@ -1,6 +1,6 @@
 package service
 
-import "github.com/scanoss/scanoss.lui/backend/entities"
+import "github.com/scanoss/scanoss.cc/backend/entities"
 
 type KeyboardService interface {
 	GetShortcuts() []entities.Shortcut

@@ -1,13 +1,14 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "scanoss-lui",
-  "outputfilename": "scanoss-lui",
+  "name": "scanoss-cc",
+  "outputfilename": "scanoss-cc",
   "frontend:install": "npm install",
   "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "scanoss-lui",
+    "name": "scanoss-cc",
     "email": "support@scanoss.com"
   }
 }
+

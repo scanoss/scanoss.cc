@@ -10,7 +10,7 @@ on:
 env:
   # Necessary for most environments as build failure can occur due to OOM issues
   NODE_OPTIONS: "--max-old-space-size=4096"
-  ARTIFACT_NAME_PREFIX: "scanoss-lui"
+  ARTIFACT_NAME_PREFIX: "scanoss-cc"
   GOLANG_VERSION: "1.21"
   NODE_VERSION: "16.x"
 
@@ -51,7 +51,7 @@ jobs:
           mkdir build
           cp -r assets build/assets
           cp assets/appicon.png build
-          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal"
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal"
         shell: bash
 
       # Make sure the .app exists
@@ -74,15 +74,15 @@ jobs:
           APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
         run: |
           security default-keychain -s signing_app.keychain
-          APP_PATH="build/bin/scanoss-lui.app"
+          APP_PATH="build/bin/${{ env.ARTIFACT_NAME_PREFIX }}.app"
 
           codesign --remove-signature "$APP_PATH"
-          codesign --remove-signature "$APP_PATH/Contents/MacOS/scanoss-lui"
+          codesign --remove-signature "$APP_PATH/Contents/MacOS/${{env.ARTIFACT_NAME_PREFIX}}"
 
           echo "Signing .app with App Certificate: $APP_CERTIFICATE"
 
           # Sign the main executable
-          codesign --timestamp --options runtime -s "$APP_CERTIFICATE" --verbose "$APP_PATH/Contents/MacOS/scanoss-lui"
+          codesign --timestamp --options runtime -s "$APP_CERTIFICATE" --verbose "$APP_PATH/Contents/MacOS/${{env.ARTIFACT_NAME_PREFIX}}"
 
           # Sign the .app bundle
           codesign --timestamp --deep --options runtime -s "$APP_CERTIFICATE" --force --verbose "$APP_PATH"
@@ -96,15 +96,15 @@ jobs:
       - name: Create .dmg package
         run: |
           mkdir -p dist dmg_contents
-          cp -R build/bin/scanoss-lui.app dmg_contents/
+          cp -R build/bin/${{env.ARTIFACT_NAME_PREFIX}}.app dmg_contents/
           cp INSTALL_MACOS.md "dmg_contents/Installation Guide.md"
           create-dmg \
-            --volname "SCANOSS LUI Installer" \
+            --volname "SCANOSS Code Compare Installer" \
             --window-size 600 400 \
             --app-drop-link 450 200 \
-            --icon "scanoss-lui.app" 150 200 \
+            --icon "${{env.ARTIFACT_NAME_PREFIX}}.app" 150 200 \
             --icon "Installation Guide.md" 300 200 \
-            dist/scanoss-lui-macos.dmg \
+            dist/${{env.ARTIFACT_NAME_PREFIX}}-macos.dmg \
             dmg_contents/
 
       - name: Sign and Notarize DMG
@@ -114,7 +114,7 @@ jobs:
           APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
           APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
         run: |
-          DMG_PATH="dist/scanoss-lui-macos.dmg"
+          DMG_PATH="dist/${{env.ARTIFACT_NAME_PREFIX}}-macos.dmg"
 
           echo "Signing .dmg with Certificate"
           codesign --timestamp --deep --options runtime -s "$APP_CERTIFICATE" --force --verbose "$DMG_PATH"
@@ -135,7 +135,7 @@ jobs:
       - name: Build Mac zip file
         shell: bash
         run: |
-          cd dist && zip scanoss-lui-mac.zip *.dmg
+          cd dist && zip ${{env.ARTIFACT_NAME_PREFIX}}-mac.zip *.dmg
 
       - uses: actions/upload-artifact@v4
         with:
@@ -183,15 +183,15 @@ jobs:
           mkdir build
           cp -r assets build/assets
           cp assets/appicon.png build
-          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "linux/amd64" -webview2 download -o scanoss-lui-linux
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "linux/amd64" -webview2 download -o ${{env.ARTIFACT_NAME_PREFIX}}-linux
         shell: bash
 
       - name: Add Linux perms
-        run: chmod +x ./build/bin/scanoss-lui-linux
+        run: chmod +x ./build/bin/${{env.ARTIFACT_NAME_PREFIX}}-linux
         shell: bash
 
       - name: Create ZIP file
-        run: cd ./build/bin && zip -r artifact_l.zip scanoss-lui-linux
+        run: cd ./build/bin && zip -r artifact_l.zip ${{env.ARTIFACT_NAME_PREFIX}}-linux
         shell: bash
 
       - name: Upload build assets
@@ -235,7 +235,7 @@ jobs:
           mkdir build
           cp -r assets build/assets
           cp assets/appicon.png build
-          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o ${{env.ARTIFACT_NAME_PREFIX}}-windows.exe
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o ${{env.ARTIFACT_NAME_PREFIX}}-windows.exe
         shell: bash
 
       - uses: actions/upload-artifact@v4
@@ -282,7 +282,7 @@ jobs:
         run: |
           mkdir -p build/bin
           export WIN_BINARY_FILEPATH=$(ls ${{ env.ARTIFACT_NAME_PREFIX }}*.exe)
-          zip ./build/bin/scanoss-lui-win.zip $WIN_BINARY_FILEPATH
+          zip ./build/bin/${{env.ARTIFACT_NAME_PREFIX}}-win.zip $WIN_BINARY_FILEPATH
 
       - uses: actions/upload-artifact@v4
         with:
@@ -320,3 +320,4 @@ jobs:
                             --generate-notes \
                             --draft \
                             $(ls *.zip)
+

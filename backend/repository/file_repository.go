@@ -1,6 +1,6 @@
 package repository
 
-import "github.com/scanoss/scanoss.lui/backend/entities"
+import "github.com/scanoss/scanoss.cc/backend/entities"
 
 type FileRepository interface {
 	ReadLocalFile(filePath string) (entities.File, error)

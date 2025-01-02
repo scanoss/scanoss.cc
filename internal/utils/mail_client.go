@@ -7,7 +7,7 @@ import (
 
 	goRuntime "runtime"
 
-	"github.com/scanoss/scanoss.lui/backend/entities"
+	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 

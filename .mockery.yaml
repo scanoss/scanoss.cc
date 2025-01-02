@@ -4,6 +4,7 @@ outpkg: "mocks"
 with-expecter: True
 all: True
 packages:
-  github.com/scanoss/scanoss.lui:
+  github.com/scanoss/scanoss.cc:
     config:
       recursive: True
+

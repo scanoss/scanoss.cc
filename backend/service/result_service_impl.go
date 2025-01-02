@@ -6,10 +6,10 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/rs/zerolog/log"
-	"github.com/scanoss/scanoss.lui/backend/entities"
-	"github.com/scanoss/scanoss.lui/backend/mappers"
-	"github.com/scanoss/scanoss.lui/backend/repository"
-	"github.com/scanoss/scanoss.lui/internal/utils"
+	"github.com/scanoss/scanoss.cc/backend/entities"
+	"github.com/scanoss/scanoss.cc/backend/mappers"
+	"github.com/scanoss/scanoss.cc/backend/repository"
+	"github.com/scanoss/scanoss.cc/internal/utils"
 )
 
 type ResultServiceImpl struct {

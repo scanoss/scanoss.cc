@@ -13,7 +13,7 @@ to this in your browser, and you can call your Go code from devtools.
 |----------------|-----------------------------------------------------------------------------|
 | **scan-root**  | Scanned folder (optional - default $WORKDIR).                               |
 | **input**      | Path to results.json file of the scanned project (optional - default $WORKDIR/.scanoss/results.json). |
-| **config**     | Path to configuration file (optional - default $HOME/.scanoss/scanoss-lui-settings.json). |
+| **config**     | Path to configuration file (optional - default $HOME/.scanoss/scanoss-cc-settings.json). |
 | **apiUrl**     | SCANOSS API URL (optional - default: https://api.osskb.org).                |
 | **key**        | SCANOSS API Key token (optional - not required for default OSSKB URL).      |
 | **debug**      | Enable debug mode.                                                          |

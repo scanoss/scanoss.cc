@@ -6,9 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/scanoss/scanoss.lui/backend/entities"
-	"github.com/scanoss/scanoss.lui/backend/repository/mocks"
-	"github.com/scanoss/scanoss.lui/backend/service"
+	"github.com/scanoss/scanoss.cc/backend/entities"
+	"github.com/scanoss/scanoss.cc/backend/repository/mocks"
+	"github.com/scanoss/scanoss.cc/backend/service"
 	"github.com/stretchr/testify/assert"
 )
 

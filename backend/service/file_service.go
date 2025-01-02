@@ -1,6 +1,6 @@
 package service
 
-import "github.com/scanoss/scanoss.lui/backend/entities"
+import "github.com/scanoss/scanoss.cc/backend/entities"
 
 type FileService interface {
 	GetRemoteFile(path string) (entities.FileDTO, error)

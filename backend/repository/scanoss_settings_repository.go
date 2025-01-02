@@ -1,6 +1,6 @@
 package repository
 
-import "github.com/scanoss/scanoss.lui/backend/entities"
+import "github.com/scanoss/scanoss.cc/backend/entities"
 
 type ScanossSettingsRepository interface {
 	Init() error

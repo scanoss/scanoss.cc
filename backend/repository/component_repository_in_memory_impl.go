@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/rs/zerolog/log"
-	"github.com/scanoss/scanoss.lui/backend/entities"
+	"github.com/scanoss/scanoss.cc/backend/entities"
 )
 
 type InMemoryComponentRepository struct {

@@ -8,8 +8,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/scanoss/scanoss.lui/internal/config"
-	"github.com/scanoss/scanoss.lui/internal/utils"
+	"github.com/scanoss/scanoss.cc/internal/config"
+	"github.com/scanoss/scanoss.cc/internal/utils"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 

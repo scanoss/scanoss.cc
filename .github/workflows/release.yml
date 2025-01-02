@@ -236,14 +236,14 @@ jobs:
       - name: Create ZIP file
         run: |
           cd ./build/bin
-          zip -r artifact_l.zip "${{ env.ARTIFACT_NAME_PREFIX }}-linux"
+          zip -r "${{ env.ARTIFACT_NAME_PREFIX }}-linux.zip" "${{ env.ARTIFACT_NAME_PREFIX }}-linux"
         shell: bash
 
       - name: Upload build assets
         uses: actions/upload-artifact@v4
         with:
           name: artifact_l
-          path: ./build/bin/artifact_l.zip
+          path: ./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-linux.zip
 
   build_w:
     name: Build for Windows

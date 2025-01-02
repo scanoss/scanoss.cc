@@ -1,5 +1,5 @@
 VERSION=$(shell git tag --sort=-version:refname | head -n 1)
-APP_NAME = scanoss-cc
+APP_NAME = ScanossCodeCompare
 BUILD_DIR = build
 DIST_DIR = dist
 SCRIPTS_DIR = scripts
@@ -60,7 +60,7 @@ cp_assets: ## Copy the necessary assets to the build folder
 	@cp assets/appicon.png build/appicon.png
 	@cp -r assets build/assets
 
-build: cp_assets  ## Build the application image
+build: clean cp_assets  ## Build the application image for the current platform
 	@echo "Building application image..."
 	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)"
 

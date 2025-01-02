@@ -6,7 +6,7 @@
 
 ### Step 1: Install the Application
 1. Open the `.dmg` file
-2. Drag and drop `scanoss-cc` into the `/Applications` folder
+2. Drag and drop `ScanossCodeCompare` into the `/Applications` folder
 
 ### Step 2: Add the CLI to Your PATH
 
@@ -15,13 +15,14 @@ You have two options to make the CLI accessible from your terminal:
 #### Option A: Create a Symlink (Recommended)
 Run the following command in your terminal:
 ```bash
-sudo ln -s /Applications/scanoss-cc.app/Contents/MacOS/scanoss-cc /usr/local/bin/scanoss-cc
+sudo ln -s /Applications/ScanossCodeCompare.app/Contents/MacOS/ScanossCodeCompare /usr/local/bin/scanoss-cc
 ```
 
 #### Option B: Add to PATH
-Add the following line to your shell configuration file (`~/.zshrc`, `~/.bashrc`, or `~/.bash_profile`):
+Add the following lines to your shell configuration file (`~/.zshrc`, `~/.bashrc`, or `~/.bash_profile`):
 ```bash
-export PATH="/Applications/scanoss-cc.app/Contents/MacOS:$PATH"
+export PATH="/Applications/ScanossCodeCompare.app/Contents/MacOS:$PATH"
+alias scanoss-cc=ScanossCodeCompare
 ```
 
 Then reload your shell configuration:
@@ -48,4 +49,4 @@ sudo rm /usr/local/bin/scanoss-cc
 ```
 
 ### If you used Option B (PATH):
-Remove the export PATH line from your shell configuration file (`~/.zshrc`, `~/.bashrc`, or `~/.bash_profile`).
+Remove the export PATH line and the alias line from your shell configuration file (`~/.zshrc`, `~/.bashrc`, or `~/.bash_profile`).

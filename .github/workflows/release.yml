@@ -10,7 +10,7 @@ on:
 env:
   # Necessary for most environments as build failure can occur due to OOM issues
   NODE_OPTIONS: "--max-old-space-size=4096"
-  ARTIFACT_NAME_PREFIX: "scanoss-cc"
+  ARTIFACT_NAME_PREFIX: "ScanossCodeCompare"
   GOLANG_VERSION: "1.21"
   NODE_VERSION: "16.x"
 

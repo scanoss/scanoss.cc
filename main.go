@@ -10,12 +10,12 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/linux"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
 
-	"github.com/scanoss/scanoss.lui/backend/entities"
-	"github.com/scanoss/scanoss.lui/backend/mappers"
-	"github.com/scanoss/scanoss.lui/backend/repository"
-	"github.com/scanoss/scanoss.lui/backend/service"
-	"github.com/scanoss/scanoss.lui/cmd"
-	"github.com/scanoss/scanoss.lui/internal/utils"
+	"github.com/scanoss/scanoss.cc/backend/entities"
+	"github.com/scanoss/scanoss.cc/backend/mappers"
+	"github.com/scanoss/scanoss.cc/backend/repository"
+	"github.com/scanoss/scanoss.cc/backend/service"
+	"github.com/scanoss/scanoss.cc/cmd"
+	"github.com/scanoss/scanoss.cc/internal/utils"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -72,7 +72,7 @@ func run() error {
 
 	//Create application with options
 	err = wails.Run(&options.App{
-		Title: "Scanoss Lui",
+		Title: "Scanoss Code Compare",
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
@@ -100,11 +100,11 @@ func run() error {
 		},
 		Linux: &linux.Options{
 			Icon:        icon,
-			ProgramName: "Scanoss Lui",
+			ProgramName: "Scanoss Code Compare",
 		},
 		Mac: &mac.Options{
 			About: &mac.AboutInfo{
-				Title:   "Scanoss Lightweight User Interface",
+				Title:   "Scanoss Code Compare",
 				Message: "Version: " + entities.AppVersion,
 				Icon:    icon,
 			},

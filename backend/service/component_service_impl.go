@@ -7,10 +7,10 @@ import (
 
 	"github.com/rs/zerolog/log"
 	purlutils "github.com/scanoss/go-purl-helper/pkg"
-	"github.com/scanoss/scanoss.lui/backend/entities"
-	"github.com/scanoss/scanoss.lui/backend/mappers"
-	"github.com/scanoss/scanoss.lui/backend/repository"
-	"github.com/scanoss/scanoss.lui/internal/utils"
+	"github.com/scanoss/scanoss.cc/backend/entities"
+	"github.com/scanoss/scanoss.cc/backend/mappers"
+	"github.com/scanoss/scanoss.cc/backend/repository"
+	"github.com/scanoss/scanoss.cc/internal/utils"
 )
 
 type ComponentServiceImpl struct {

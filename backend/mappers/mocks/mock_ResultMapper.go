@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	entities "github.com/scanoss/scanoss.lui/backend/entities"
+	entities "github.com/scanoss/scanoss.cc/backend/entities"
 
 	mock "github.com/stretchr/testify/mock"
 )

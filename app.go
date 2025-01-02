@@ -7,10 +7,10 @@ import (
 	"slices"
 
 	"github.com/rs/zerolog/log"
-	"github.com/scanoss/scanoss.lui/backend/entities"
-	"github.com/scanoss/scanoss.lui/backend/service"
-	"github.com/scanoss/scanoss.lui/internal/config"
-	"github.com/scanoss/scanoss.lui/internal/utils"
+	"github.com/scanoss/scanoss.cc/backend/entities"
+	"github.com/scanoss/scanoss.cc/backend/service"
+	"github.com/scanoss/scanoss.cc/internal/config"
+	"github.com/scanoss/scanoss.cc/internal/utils"
 	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/menu/keys"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -44,7 +44,7 @@ func (a *App) startup() {
 
 func (a *App) maybeSetWindowTitle() {
 	if env := runtime.Environment(a.ctx); env.Platform != "darwin" {
-		runtime.WindowSetTitle(a.ctx, fmt.Sprintf("Scanoss Lui %s", entities.AppVersion))
+		runtime.WindowSetTitle(a.ctx, fmt.Sprintf("Scanoss Code Compare %s", entities.AppVersion))
 	}
 }
 

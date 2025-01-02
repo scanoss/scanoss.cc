@@ -5,7 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	purlutils "github.com/scanoss/go-purl-helper/pkg"
-	"github.com/scanoss/scanoss.lui/backend/entities"
+	"github.com/scanoss/scanoss.cc/backend/entities"
 )
 
 type ResultMapperImpl struct {

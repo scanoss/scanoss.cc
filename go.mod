@@ -1,4 +1,4 @@
-module github.com/scanoss/scanoss.lui
+module github.com/scanoss/scanoss.cc
 
 go 1.21
 

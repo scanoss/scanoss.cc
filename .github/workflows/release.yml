@@ -10,7 +10,7 @@ on:
 env:
   # Necessary for most environments as build failure can occur due to OOM issues
   NODE_OPTIONS: "--max-old-space-size=4096"
-  ARTIFACT_NAME_PREFIX: "scanoss-lui"
+  ARTIFACT_NAME_PREFIX: "SCANOSS Code Compare"
   GOLANG_VERSION: "1.21"
   NODE_VERSION: "16.x"
 
@@ -48,15 +48,15 @@ jobs:
       # Build
       - name: Build App
         run: |
-          mkdir build
+          mkdir -p build
           cp -r assets build/assets
           cp assets/appicon.png build
-          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal"
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal" -o "${{ env.ARTIFACT_NAME_PREFIX }}"
         shell: bash
 
       # Make sure the .app exists
       - name: Check .app
-        run: ls -l build/bin/*.app || (echo ".app not found!" && exit 1)
+        run: ls -l "build/bin/${{ env.ARTIFACT_NAME_PREFIX }}.app" || (echo ".app not found!" && exit 1)
 
       - name: Import Code-Signing Certificates for macOS
         uses: Apple-Actions/import-codesign-certs@v3
@@ -74,15 +74,15 @@ jobs:
           APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
         run: |
           security default-keychain -s signing_app.keychain
-          APP_PATH="build/bin/scanoss-lui.app"
+          APP_PATH="build/bin/${{ env.ARTIFACT_NAME_PREFIX }}.app"
 
           codesign --remove-signature "$APP_PATH"
-          codesign --remove-signature "$APP_PATH/Contents/MacOS/scanoss-lui"
+          codesign --remove-signature "$APP_PATH/Contents/MacOS/${{ env.ARTIFACT_NAME_PREFIX }}"
 
           echo "Signing .app with App Certificate: $APP_CERTIFICATE"
 
           # Sign the main executable
-          codesign --timestamp --options runtime -s "$APP_CERTIFICATE" --verbose "$APP_PATH/Contents/MacOS/scanoss-lui"
+          codesign --timestamp --options runtime -s "$APP_CERTIFICATE" --verbose "$APP_PATH/Contents/MacOS/${{ env.ARTIFACT_NAME_PREFIX }}"
 
           # Sign the .app bundle
           codesign --timestamp --deep --options runtime -s "$APP_CERTIFICATE" --force --verbose "$APP_PATH"
@@ -96,16 +96,17 @@ jobs:
       - name: Create .dmg package
         run: |
           mkdir -p dist dmg_contents
-          cp -R build/bin/scanoss-lui.app dmg_contents/
+          cp -R "build/bin/${{ env.ARTIFACT_NAME_PREFIX }}.app" dmg_contents/
           cp INSTALL_MACOS.md "dmg_contents/Installation Guide.md"
           create-dmg \
-            --volname "SCANOSS LUI Installer" \
+            --volname "${{ env.ARTIFACT_NAME_PREFIX }} Installer" \
             --window-size 600 400 \
             --app-drop-link 450 200 \
-            --icon "scanoss-lui.app" 150 200 \
+            --icon "${{ env.ARTIFACT_NAME_PREFIX }}.app" 150 200 \
             --icon "Installation Guide.md" 300 200 \
-            dist/scanoss-lui-macos.dmg \
+            "dist/${{ env.ARTIFACT_NAME_PREFIX }}-$(git tag --sort=-version:refname | head -n 1).dmg" \
             dmg_contents/
+          rm -rf dmg_contents
 
       - name: Sign and Notarize DMG
         env:
@@ -114,7 +115,7 @@ jobs:
           APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
           APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
         run: |
-          DMG_PATH="dist/scanoss-lui-macos.dmg"
+          DMG_PATH="dist/${{ env.ARTIFACT_NAME_PREFIX }}-$(git tag --sort=-version:refname | head -n 1).dmg"
 
           echo "Signing .dmg with Certificate"
           codesign --timestamp --deep --options runtime -s "$APP_CERTIFICATE" --force --verbose "$DMG_PATH"
@@ -135,7 +136,7 @@ jobs:
       - name: Build Mac zip file
         shell: bash
         run: |
-          cd dist && zip scanoss-lui-mac.zip *.dmg
+          cd dist && zip ${{env.ARTIFACT_NAME_PREFIX}}-mac.zip *.dmg
 
       - uses: actions/upload-artifact@v4
         with:
@@ -178,20 +179,29 @@ jobs:
         shell: bash
 
       # Build
-      - name: Build Linux App
+      - name: Build App
         run: |
-          mkdir build
+          mkdir -p build/bin
           cp -r assets build/assets
           cp assets/appicon.png build
-          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "linux/amd64" -webview2 download -o scanoss-lui-linux
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform linux/amd64 -o "${{ env.ARTIFACT_NAME_PREFIX }}-linux"
         shell: bash
 
-      - name: Add Linux perms
-        run: chmod +x ./build/bin/scanoss-lui-linux
+      - name: Make binary executable
+        run: chmod +x "./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-linux"
         shell: bash
+
+      - name: Create AppImage
+        run: |
+          mkdir -p AppDir/usr/bin
+          cp "./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-linux" "AppDir/usr/bin/${{ env.ARTIFACT_NAME_PREFIX }}"
+          cp build/appicon.png AppDir/
+          cp -r build/assets AppDir/
 
       - name: Create ZIP file
-        run: cd ./build/bin && zip -r artifact_l.zip scanoss-lui-linux
+        run: |
+          cd ./build/bin
+          zip -r artifact_l.zip "${{ env.ARTIFACT_NAME_PREFIX }}-linux"
         shell: bash
 
       - name: Upload build assets
@@ -203,6 +213,7 @@ jobs:
   build_w:
     name: Build for Windows
     runs-on: windows-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -230,12 +241,12 @@ jobs:
         shell: bash
 
       # Build
-      - name: Build Windows App
+      - name: Build App
         run: |
-          mkdir build
+          mkdir -p build/bin
           cp -r assets build/assets
           cp assets/appicon.png build
-          wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o ${{env.ARTIFACT_NAME_PREFIX}}-windows.exe
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX }}-windows.exe"
         shell: bash
 
       - uses: actions/upload-artifact@v4
@@ -259,10 +270,12 @@ jobs:
       - name: Find Windows Artifact Path
         id: win-path-artifact
         run: |
-          export WIN_BINARY_FILEPATH=$(ls ${{ env.ARTIFACT_NAME_PREFIX }}*.exe)
-          mkdir win_unsigned
+          # Use find to locate the exe file
+          WIN_BINARY_FILEPATH=$(find . -name "${{ env.ARTIFACT_NAME_PREFIX }}-windows.exe")
+          mkdir -p win_unsigned
           mv "$WIN_BINARY_FILEPATH" win_unsigned/
-          echo "ARTIFACT_WIN_PATH=win_unsigned/$WIN_BINARY_FILEPATH" >> "$GITHUB_OUTPUT"
+          echo "ARTIFACT_WIN_PATH=win_unsigned/$(basename "$WIN_BINARY_FILEPATH")" >> "$GITHUB_OUTPUT"
+        shell: bash
 
       - name: Sign Windows Artifact with CodeSignTool
         uses: sslcom/esigner-codesign@develop
@@ -281,8 +294,9 @@ jobs:
         shell: bash
         run: |
           mkdir -p build/bin
-          export WIN_BINARY_FILEPATH=$(ls ${{ env.ARTIFACT_NAME_PREFIX }}*.exe)
-          zip ./build/bin/scanoss-lui-win.zip $WIN_BINARY_FILEPATH
+          cd win_unsigned
+          # Create zip from the current directory
+          zip -j "../build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-win.zip" "${{ env.ARTIFACT_NAME_PREFIX }}-windows.exe"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -310,13 +324,21 @@ jobs:
         with:
           name: artifact_l
 
-      - name: Publish release draft
+      - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_PROMPT_DISABLED: "disable"
         run: |
-          gh release create ${{github.ref_name}} \
-                            --repo ${{ github.server_url }}/${{ github.repository }} \
-                            --generate-notes \
-                            --draft \
-                            $(ls *.zip)
+          # Create an array of zip files
+          zip_files=()
+          while IFS= read -r -d '' file; do
+            zip_files+=("$file")
+          done < <(find . -name "*.zip" -print0)
+
+          # Create the release with all zip files
+          gh release create "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            --generate-notes \
+            --draft \
+            "${zip_files[@]}"
+        shell: bash
+

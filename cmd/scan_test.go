@@ -8,8 +8,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/scanoss/scanoss.lui/backend/service/mocks"
-	"github.com/scanoss/scanoss.lui/cmd"
+	"github.com/scanoss/scanoss.cc/backend/service/mocks"
+	"github.com/scanoss/scanoss.cc/cmd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

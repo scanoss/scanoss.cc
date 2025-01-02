@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/go-playground/validator"
-	"github.com/scanoss/scanoss.lui/internal/config"
-	"github.com/scanoss/scanoss.lui/internal/utils"
+	"github.com/scanoss/scanoss.cc/internal/config"
+	"github.com/scanoss/scanoss.cc/internal/utils"
 	"github.com/stretchr/testify/mock"
 )
 

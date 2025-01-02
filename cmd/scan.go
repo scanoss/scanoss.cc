@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/scanoss/scanoss.lui/backend/service"
+	"github.com/scanoss/scanoss.cc/backend/service"
 	"github.com/spf13/cobra"
 )
 
@@ -126,7 +126,7 @@ func init() {
 	service := service.NewScanServicePythonImpl()
 	scanCmd := NewScanCmd(service)
 
-	// This is a workaround to prevent the scan command opening the lui when running tests
+	// This is a workaround to prevent the scan command opening the code compare when running tests
 	if os.Getenv("GO_TEST") != "true" {
 		scanCmd.PostRun = func(cmd *cobra.Command, args []string) {
 			os.Exit(0)

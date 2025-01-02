@@ -22,7 +22,7 @@ const (
 	DEFAULT_API_URL               = "https://api.osskb.org"
 	DEFAULT_RESULTS_FILE          = "results.json"
 	DEFAULT_SCANOSS_SETTINGS_FILE = "scanoss.json"
-	DEFAULT_CONFIG_FILE_NAME      = "scanoss-lui-settings"
+	DEFAULT_CONFIG_FILE_NAME      = "scanoss-cc-settings"
 	DEFAULT_CONFIG_FILE_TYPE      = "json"
 	ROOT_FOLDER                   = "."
 	SCANOSS_HIDDEN_FOLDER         = ".scanoss"
@@ -98,7 +98,7 @@ func setupLogger(debug bool) error {
 		return fmt.Errorf("error creating logs directory: %w", err)
 	}
 
-	logFileName := fmt.Sprintf("scanoss-lui-%s.log", time.Now().Format(time.DateOnly))
+	logFileName := fmt.Sprintf("scanoss-cc-%s.log", time.Now().Format(time.DateOnly))
 	logFile, err := os.OpenFile(filepath.Join(logsDir, logFileName), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return fmt.Errorf("error creating log file: %w", err)

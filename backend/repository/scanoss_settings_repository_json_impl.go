@@ -7,9 +7,9 @@ import (
 	"sync"
 
 	"github.com/rs/zerolog/log"
-	"github.com/scanoss/scanoss.lui/backend/entities"
-	"github.com/scanoss/scanoss.lui/internal/config"
-	"github.com/scanoss/scanoss.lui/internal/utils"
+	"github.com/scanoss/scanoss.cc/backend/entities"
+	"github.com/scanoss/scanoss.cc/internal/config"
+	"github.com/scanoss/scanoss.cc/internal/utils"
 )
 
 type ScanossSettingsJsonRepository struct {

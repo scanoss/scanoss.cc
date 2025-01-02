@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"github.com/rs/zerolog/log"
-	"github.com/scanoss/scanoss.lui/internal/config"
+	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/spf13/cobra"
 )
 
 var configureCmd = &cobra.Command{
 	Use:   "configure",
-	Short: "Configure the SCANOSS LUI application",
+	Short: "Configure the SCANOSS Code Compare application",
 	PostRun: func(cmd *cobra.Command, args []string) {
 		os.Exit(0)
 	},

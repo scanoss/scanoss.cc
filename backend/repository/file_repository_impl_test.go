@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/scanoss/scanoss.lui/backend/entities"
-	"github.com/scanoss/scanoss.lui/backend/repository/mocks"
-	internal_test "github.com/scanoss/scanoss.lui/internal"
-	"github.com/scanoss/scanoss.lui/internal/config"
+	"github.com/scanoss/scanoss.cc/backend/entities"
+	"github.com/scanoss/scanoss.cc/backend/repository/mocks"
+	internal_test "github.com/scanoss/scanoss.cc/internal"
+	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/stretchr/testify/assert"
 )
 

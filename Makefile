@@ -1,10 +1,10 @@
 VERSION=$(shell git tag --sort=-version:refname | head -n 1)
-APP_NAME = scanoss-lui
+APP_NAME = SCANOSS Code Compare
 BUILD_DIR = build
 DIST_DIR = dist
 SCRIPTS_DIR = scripts
 FRONTEND_DIR = frontend
-APP_BUNDLE = $(BUILD_DIR)/bin/$(APP_NAME).app
+APP_BUNDLE = "$(BUILD_DIR)/bin/$(APP_NAME).app"
 
 # HELP
 # This will output the help for each task
@@ -48,7 +48,7 @@ go_lint_docker: ## Run docker instance of Go linting across the code base
 
 run: cp_assets ## Runs the application in development mode
 	$(eval APPARGS := $(ARGS))
-	@wails dev -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "$(APPARGS)")
+	@wails dev -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "$(APPARGS)")
 
 npm: ## Install NPM dependencies for the frontend
 	@echo "Running npm install for frontend..."
@@ -60,23 +60,23 @@ cp_assets: ## Copy the necessary assets to the build folder
 	@cp assets/appicon.png build/appicon.png
 	@cp -r assets build/assets
 
-build: cp_assets  ## Build the application image
+build: clean cp_assets  ## Build the application image for the current platform
 	@echo "Building application image..."
-	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(VERSION)"
+	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)"
 
 binary: cp_assets  ## Build application binary only (no package)
 	@echo "Build application binary only..."
-	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(VERSION)" --nopackage
+	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" --nopackage
 
 build_macos: clean cp_assets  ## Build the application image for macOS
 	@echo "Building application image for macOS..."
-	@wails build -ldflags "-X github.com/scanoss/scanoss.lui/backend/entities.AppVersion=$(VERSION)" -platform darwin/universal
+	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" -platform darwin/universal -o "$(APP_NAME)"
 	@echo "Build completed. Result: $(APP_BUNDLE)"
 
 package_macos: build_macos ## Package the built macOS app into a dmg
 	@echo "Packaging for macOS with .dmg..."
-	@mkdir -p $(DIST_DIR) dmg_contents
-	@rm -f $(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg
+	@mkdir -p "$(DIST_DIR)" dmg_contents
+	@rm -f "$(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg"
 	@cp -R $(APP_BUNDLE) dmg_contents/
 	@cp INSTALL_MACOS.md "dmg_contents/Installation Guide.md"
 
@@ -86,7 +86,7 @@ package_macos: build_macos ## Package the built macOS app into a dmg
 		--app-drop-link 450 200 \
 		--icon "$(APP_NAME).app" 150 200 \
 		--icon "Installation Guide.md" 300 200 \
-		$(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg \
+		"$(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg" \
 		dmg_contents/
 
 	@rm -rf dmg_contents

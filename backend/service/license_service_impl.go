@@ -3,8 +3,8 @@ package service
 import (
 	"sort"
 
-	"github.com/scanoss/scanoss.lui/backend/entities"
-	"github.com/scanoss/scanoss.lui/backend/repository"
+	"github.com/scanoss/scanoss.cc/backend/entities"
+	"github.com/scanoss/scanoss.cc/backend/repository"
 )
 
 type LicenseServiceImpl struct {

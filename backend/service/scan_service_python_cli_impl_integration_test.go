@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/scanoss/scanoss.lui/backend/service"
+	"github.com/scanoss/scanoss.cc/backend/service"
 	"github.com/stretchr/testify/assert"
 )
 

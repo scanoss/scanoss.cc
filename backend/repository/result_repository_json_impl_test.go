@@ -5,11 +5,11 @@ package repository_test
 import (
 	"testing"
 
-	"github.com/scanoss/scanoss.lui/backend/entities"
-	"github.com/scanoss/scanoss.lui/backend/entities/mocks"
-	"github.com/scanoss/scanoss.lui/backend/repository"
-	internal_test "github.com/scanoss/scanoss.lui/internal"
-	"github.com/scanoss/scanoss.lui/internal/config"
+	"github.com/scanoss/scanoss.cc/backend/entities"
+	"github.com/scanoss/scanoss.cc/backend/entities/mocks"
+	"github.com/scanoss/scanoss.cc/backend/repository"
+	internal_test "github.com/scanoss/scanoss.cc/internal"
+	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

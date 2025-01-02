@@ -5,9 +5,9 @@ package mappers_test
 import (
 	"testing"
 
-	"github.com/scanoss/scanoss.lui/backend/entities"
-	mappers "github.com/scanoss/scanoss.lui/backend/mappers"
-	internal_test "github.com/scanoss/scanoss.lui/internal"
+	"github.com/scanoss/scanoss.cc/backend/entities"
+	mappers "github.com/scanoss/scanoss.cc/backend/mappers"
+	internal_test "github.com/scanoss/scanoss.cc/internal"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -136,7 +136,47 @@ jobs:
       - name: Build Mac zip file
         shell: bash
         run: |
-          cd dist && zip ${{env.ARTIFACT_NAME_PREFIX}}-mac.zip *.dmg
+          cd dist && zip "${{env.ARTIFACT_NAME_PREFIX}}-mac.zip" *.dmg
+
+      - name: Calculate ZIP SHA256
+        run: |
+          APP_VERSION=$(git tag --sort=-version:refname | head -n 1)
+          ZIP_PATH="dist/${{ env.ARTIFACT_NAME_PREFIX }}-mac.zip"
+          if [ ! -f "$ZIP_PATH" ]; then
+            echo "Error: ZIP file not found at: $ZIP_PATH"
+            echo "Contents of dist directory:"
+            ls -la dist/
+            exit 1
+          fi
+          SHA256=$(shasum -a 256 "$ZIP_PATH" | awk '{print $1}')
+          echo "ZIP_SHA256=$SHA256" >> $GITHUB_ENV
+          echo "ZIP SHA256: $SHA256"
+
+      - name: Checkout Homebrew Tap
+        uses: actions/checkout@v4
+        with:
+          repository: scanoss/homebrew-dist
+          path: homebrew-dist
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      - name: Update Cask Formula
+        run: |
+          APP_VERSION=$(git tag --sort=-version:refname | head -n 1)
+          APP_VERSION=${APP_VERSION#v}  # Remove 'v' prefix if present
+
+          sed -i '' \
+            -e "s/version \".*\"/version \"${APP_VERSION}\"/" \
+            -e "s/sha256 \".*\"/sha256 \"${ZIP_SHA256}\"/" \
+            homebrew-dist/Casks/scanoss-code-compare.rb
+
+      - name: Commit and Push Formula Update
+        run: |
+          cd homebrew-dist
+          git config user.name "SCANOSS Bot"
+          git config user.email "infra@scanoss.com"
+          git add Casks/scanoss-code-compare.rb
+          git commit -m "Update scanoss-code-compare to ${APP_VERSION}"
+          git push
 
       - uses: actions/upload-artifact@v4
         with:

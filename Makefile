@@ -1,10 +1,10 @@
 VERSION=$(shell git tag --sort=-version:refname | head -n 1)
-APP_NAME = ScanossCodeCompare
+APP_NAME = SCANOSS Code Compare
 BUILD_DIR = build
 DIST_DIR = dist
 SCRIPTS_DIR = scripts
 FRONTEND_DIR = frontend
-APP_BUNDLE = $(BUILD_DIR)/bin/$(APP_NAME).app
+APP_BUNDLE = "$(BUILD_DIR)/bin/$(APP_NAME).app"
 
 # HELP
 # This will output the help for each task
@@ -70,13 +70,13 @@ binary: cp_assets  ## Build application binary only (no package)
 
 build_macos: clean cp_assets  ## Build the application image for macOS
 	@echo "Building application image for macOS..."
-	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" -platform darwin/universal
+	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" -platform darwin/universal -o "$(APP_NAME)"
 	@echo "Build completed. Result: $(APP_BUNDLE)"
 
 package_macos: build_macos ## Package the built macOS app into a dmg
 	@echo "Packaging for macOS with .dmg..."
-	@mkdir -p $(DIST_DIR) dmg_contents
-	@rm -f $(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg
+	@mkdir -p "$(DIST_DIR)" dmg_contents
+	@rm -f "$(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg"
 	@cp -R $(APP_BUNDLE) dmg_contents/
 	@cp INSTALL_MACOS.md "dmg_contents/Installation Guide.md"
 
@@ -86,7 +86,7 @@ package_macos: build_macos ## Package the built macOS app into a dmg
 		--app-drop-link 450 200 \
 		--icon "$(APP_NAME).app" 150 200 \
 		--icon "Installation Guide.md" 300 200 \
-		$(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg \
+		"$(DIST_DIR)/$(APP_NAME)-$(VERSION).dmg" \
 		dmg_contents/
 
 	@rm -rf dmg_contents

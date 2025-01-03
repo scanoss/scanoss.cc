@@ -24,8 +24,8 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/internal/config"
-	"github.com/scanoss/scanoss.cc/internal/utils"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -97,13 +97,20 @@ func (s *ScanServicePythonImpl) executeScanWithPipes(args []string) (*exec.Cmd, 
 
 	defaultArgs, sensitiveArgs := s.GetDefaultScanArgs(), s.GetSensitiveDefaultScanArgs()
 
-	cmdArgs = append(cmdArgs, sensitiveArgs...)
+	log.Debug().Msgf("Scan with args: %v, total args: %v", args, len(args))
 
 	if len(args) == 0 {
+		log.Debug().Msg("No scan arguments provided, scanning current directory")
+		cmdArgs = append(cmdArgs, ".") // scan current directory by default
 		cmdArgs = append(cmdArgs, defaultArgs...)
 	} else {
+		log.Debug().Msg("No scan arguments provided, scanning current directory")
 		cmdArgs = append(cmdArgs, args...)
 	}
+
+	cmdArgs = append(cmdArgs, sensitiveArgs...)
+
+	log.Debug().Msgf("Executing scan with args: %v", cmdArgs)
 
 	cmd := exec.Command(s.cmd, cmdArgs...)
 
@@ -157,19 +164,11 @@ func (s *ScanServicePythonImpl) GetDefaultScanArgs() []string {
 	cfg := config.GetInstance()
 
 	if cfg.ResultFilePath != "" {
-		relativePath, err := utils.GetRelativePath(cfg.ResultFilePath)
-		if err != nil {
-			return nil
-		}
-		args = append(args, "--output", relativePath)
+		args = append(args, "--output", cfg.ResultFilePath)
 	}
 
 	if cfg.ScanSettingsFilePath != "" {
-		relativePath, err := utils.GetRelativePath(cfg.ScanSettingsFilePath)
-		if err != nil {
-			return nil
-		}
-		args = append(args, "--settings", relativePath)
+		args = append(args, "--settings", cfg.ScanSettingsFilePath)
 	}
 
 	return args

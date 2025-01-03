@@ -60,7 +60,7 @@ export default function ScanDialog({ onOpenChange, withOptions }: ScanDialogProp
 
   const handleSelectDirectory = withErrorHandling({
     asyncFn: async () => {
-      const selectedDir = await SelectDirectory(directory ?? '.');
+      const selectedDir = await SelectDirectory();
       if (selectedDir) {
         setDirectory(selectedDir);
       }
@@ -78,6 +78,7 @@ export default function ScanDialog({ onOpenChange, withOptions }: ScanDialogProp
     asyncFn: async () => {
       setScanStatus('scanning');
       setOutput([]);
+      console.log(args);
       await ScanStream([directory, ...args.split(' ')]);
       await setScanRoot(directory);
       setSelectedResults([]);

@@ -23,7 +23,7 @@ import { withErrorHandling } from '@/lib/errors';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 import useConfigStore from '@/stores/useConfigStore';
 
-import { SelectDirectory, SelectFile } from '../../wailsjs/go/main/App';
+import { GetWorkingDir, SelectDirectory, SelectFile } from '../../wailsjs/go/main/App';
 import { toast } from './ui/use-toast';
 
 export default function StatusBar() {
@@ -44,7 +44,7 @@ export default function StatusBar() {
 
   const handleSelectScanRoot = withErrorHandling({
     asyncFn: async () => {
-      const selectedDir = await SelectDirectory(scanRoot ?? '.');
+      const selectedDir = await SelectDirectory();
       if (selectedDir) {
         await setScanRoot(selectedDir);
         await queryClient.invalidateQueries({

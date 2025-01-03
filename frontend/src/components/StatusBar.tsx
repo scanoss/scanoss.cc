@@ -44,7 +44,7 @@ export default function StatusBar() {
 
   const handleSelectScanRoot = withErrorHandling({
     asyncFn: async () => {
-      const selectedDir = await SelectDirectory(scanRoot ?? '.');
+      const selectedDir = await SelectDirectory();
       if (selectedDir) {
         await setScanRoot(selectedDir);
         await queryClient.invalidateQueries({

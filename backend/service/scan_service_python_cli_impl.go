@@ -25,7 +25,6 @@ import (
 	"os/exec"
 
 	"github.com/scanoss/scanoss.cc/internal/config"
-	"github.com/scanoss/scanoss.cc/internal/utils"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -97,13 +96,14 @@ func (s *ScanServicePythonImpl) executeScanWithPipes(args []string) (*exec.Cmd, 
 
 	defaultArgs, sensitiveArgs := s.GetDefaultScanArgs(), s.GetSensitiveDefaultScanArgs()
 
-	cmdArgs = append(cmdArgs, sensitiveArgs...)
-
 	if len(args) == 0 {
+		cmdArgs = append(cmdArgs, ".") // scan current directory by default
 		cmdArgs = append(cmdArgs, defaultArgs...)
 	} else {
 		cmdArgs = append(cmdArgs, args...)
 	}
+
+	cmdArgs = append(cmdArgs, sensitiveArgs...)
 
 	cmd := exec.Command(s.cmd, cmdArgs...)
 
@@ -157,26 +157,18 @@ func (s *ScanServicePythonImpl) GetDefaultScanArgs() []string {
 	cfg := config.GetInstance()
 
 	if cfg.ResultFilePath != "" {
-		relativePath, err := utils.GetRelativePath(cfg.ResultFilePath)
-		if err != nil {
-			return nil
-		}
-		args = append(args, "--output", relativePath)
+		args = append(args, "--output", cfg.ResultFilePath)
 	}
 
 	if cfg.ScanSettingsFilePath != "" {
-		relativePath, err := utils.GetRelativePath(cfg.ScanSettingsFilePath)
-		if err != nil {
-			return nil
-		}
-		args = append(args, "--settings", relativePath)
+		args = append(args, "--settings", cfg.ScanSettingsFilePath)
 	}
 
 	return args
 }
 
 func (s *ScanServicePythonImpl) GetSensitiveDefaultScanArgs() []string {
-	args := s.GetDefaultScanArgs()
+	args := make([]string, 0)
 	cfg := config.GetInstance()
 
 	if cfg.ApiToken != "" {

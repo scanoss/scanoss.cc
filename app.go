@@ -147,29 +147,24 @@ func (a *App) initializeMenu() {
 	runtime.MenuSetApplicationMenu(a.ctx, AppMenu)
 }
 
-func (a *App) SelectDirectory(defaultDir string) (string, error) {
-	directory, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
+func (a *App) SelectDirectory() (string, error) {
+	dirPath, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
 		Title:                "Select Directory",
 		CanCreateDirectories: true,
-		DefaultDirectory:     defaultDir,
 	})
 	if err != nil {
 		return "", err
 	}
 
-	if directory == "" {
+	if dirPath == "" {
 		return "", nil
 	}
 
-	relativePath, err := utils.GetRelativePath(directory)
-	if err != nil {
-		return "", err
-	}
-	return relativePath, nil
+	return dirPath, nil
 }
 
 func (a *App) SelectFile(defaultDir string) (string, error) {
-	file, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+	filePath, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
 		Title:                "Select File",
 		DefaultDirectory:     defaultDir,
 		ShowHiddenFiles:      true,
@@ -180,16 +175,11 @@ func (a *App) SelectFile(defaultDir string) (string, error) {
 		return "", err
 	}
 
-	if file == "" {
+	if filePath == "" {
 		return "", nil
 	}
 
-	relativePath, err := utils.GetRelativePath(file)
-	if err != nil {
-		log.Error().Err(err).Msgf("error selecting file %v", err.Error())
-		return "", err
-	}
-	return relativePath, nil
+	return filePath, nil
 }
 
 func (a *App) GetWorkingDir() string {
@@ -198,30 +188,15 @@ func (a *App) GetWorkingDir() string {
 }
 
 func (a *App) GetScanRoot() (string, error) {
-	relativePath, err := utils.GetRelativePath(config.GetInstance().ScanRoot)
-	if err != nil {
-		log.Error().Err(err).Msgf("error getting relative path %v", err.Error())
-		return "", err
-	}
-	return relativePath, nil
+	return config.GetInstance().ScanRoot, nil
 }
 
 func (a *App) GetResultFilePath() (string, error) {
-	relativePath, err := utils.GetRelativePath(config.GetInstance().ResultFilePath)
-	if err != nil {
-		log.Error().Err(err).Msgf("error getting relative path %v", err.Error())
-		return "", err
-	}
-	return relativePath, nil
+	return config.GetInstance().ResultFilePath, nil
 }
 
 func (a *App) GetScanSettingsFilePath() (string, error) {
-	relativePath, err := utils.GetRelativePath(config.GetInstance().ScanSettingsFilePath)
-	if err != nil {
-		log.Error().Err(err).Msgf("error getting relative path %v", err.Error())
-		return "", err
-	}
-	return relativePath, nil
+	return config.GetInstance().ScanSettingsFilePath, nil
 }
 
 func (a *App) SetScanRoot(path string) {

@@ -1,64 +1,148 @@
-# README
+
+<img src="assets/appicon.png" alt="SCANOSS Code Compare Logo" width="150"/>
+
+# SCANOSS Code Compare
+
+SCANOSS Code Compare is a streamlined desktop application for managing open source findings with a clean, distraction-free interface. It features vim-style navigation (j/k), side-by-side code comparison for both snippet and 100% matches, and robust decision management that persists across scans. Users can quickly filter results, mark components as included/omitted/replaced with single keystrokes, and access their previous decisions in future scans.
 
 
-## Local Development
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+## Features
 
-## Local Development environment with parameters
-| Parameter      | Description                                                                 |
-|----------------|-----------------------------------------------------------------------------|
-| **scan-root**  | Scanned folder (optional - default $WORKDIR).                               |
-| **input**      | Path to results.json file of the scanned project (optional - default $WORKDIR/.scanoss/results.json). |
-| **config**     | Path to configuration file (optional - default $HOME/.scanoss/scanoss-cc-settings.json). |
-| **apiUrl**     | SCANOSS API URL (optional - default: https://api.osskb.org).                |
-| **key**        | SCANOSS API Key token (optional - not required for default OSSKB URL).      |
-| **debug**      | Enable debug mode.                                                          |
+- 🔍 Advanced code scanning and component identification
+- 📊 Detailed dependency analysis and visualization
+- 📝 License compliance checking and management
+- 🔄 Real-time scanning results
+- ⚡ Fast and efficient local processing
+- 🎯 Accurate component matching
+- 🖥️ Cross-platform support
 
-To start the application with specific arguments, use the following command:
+## Prerequisites
 
-### Example
-```shell
-wails dev -appargs "--input <resultPath>" 
+- Go 1.x or higher
+- Node.js and npm
+- Wails CLI (`go install github.com/wailsapp/wails/v2/cmd/wails@latest`)
+
+## Installation
+
+### GUI Application
+
+1. Download the latest release for your platform from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
+2. Follow the platform-specific installation instructions:
+   - [macOS Installation Guide](INSTALL_MACOS.md)
+   - Windows and Linux guides coming soon
+
+### CLI Installation (macOS)
+
+```bash
+# Option 1: Create a symlink (Recommended)
+sudo ln -s "/Applications/SCANOSS Code Compare.app/Contents/MacOS/SCANOSS Code Compare" /usr/local/bin/scanoss-cc
+
+# Option 2: Add to PATH
+echo 'export PATH="/Applications/SCANOSS Code Compare.app/Contents/MacOS:$PATH"' >> ~/.zshrc
+echo 'alias scanoss-cc="\"/Applications/SCANOSS Code Compare.app/Contents/MacOS/SCANOSS Code Compare\""' >> ~/.zshrc
+source ~/.zshrc
 ```
 
-Or you can also run the application using make command:
-```shell
+## Usage
+
+### CLI Parameters
+
+| Parameter      | Description                                                                 | Default Value |
+|----------------|-----------------------------------------------------------------------------|---------------|
+| **scan-root**  | Scanned folder                                                              | $WORKDIR |
+| **input**      | Path to results.json file of the scanned project                            | $WORKDIR/.scanoss/results.json |
+| **config**     | Path to configuration file                                                  | $HOME/.scanoss/scanoss-cc-settings.json |
+| **apiUrl**     | SCANOSS API URL                                                             | https://api.osskb.org |
+| **key**        | SCANOSS API Key token (not required for default OSSKB URL)                  | - |
+| **debug**      | Enable debug mode                                                           | false |
+
+### Example Commands
+
+```bash
+# Open the GUI application
+scanoss-cc
+
+# Open the GUI application with custom parameters (you can also change these from the GUI)
+scanoss-cc --scan-root /path/to/scanned/project --input /path/to/results.json
+
+# Basic scan with default settings
+scanoss-cc scan /path/to/project
+
+# Scan with custom results path
+scanoss-cc scan --input /path/to/results.json
+
+# Scan current directory with multiple parameters
+scanoss-cc scan . --key $SCANOSS_API_KEY --apiurl $SCANOSS_API_URL --debug
+```
+
+## Development
+
+### Setting Up the Development Environment
+
+1. Clone the repository:
+```bash
+git clone https://github.com/scanoss/scanoss.cc.git
+cd scanoss.cc
+```
+
+2. Run in development mode:
+```bash
+make run
+```
+
+### Development with Custom Parameters
+
+```bash
+# Using make command
 make run APPARGS="--scan-root <scanRootPath> --input <resultPath>"
+
+# Using wails command
+wails dev -appargs "--input <resultPath>"
 ```
 
-All the parameters are optional and have default values. If you change the default values, they will be saved in the configuration file.
+### Building
 
-## Building
-
-Run the following command to copy the necessary assets and build the application.
-
-```shell
+```bash
+# Build for the current platform
 make build
 ```
 
+### Known Issues
 
-## Errors on Ubuntu 24.04
-Ubuntu 24.04 includes webkit 4.1 and wails is expecting webkit 4.0
-`Perhaps you should add the directory containing 'webkit2gtk-4.0.pc'`
+#### Ubuntu 24.04 WebKit Issue
 
-### Solution for Production Environments:
-To resolve the issue in a production environment, you can create symbolic links from the WebKit 4.1 libraries to the expected WebKit 4.0 filenames:
+Ubuntu 24.04 includes webkit 4.1 while Wails expects webkit 4.0. To resolve:
+
+For production:
 ```bash
 sudo ln -sf /usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.1.so.0 /usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.0.so.37 &&
 sudo ln -sf /usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.1.so.0 /usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.0.so.18
-````
-### Solution for Development Environments:
-If you are working in a development environment, Wails provides a tag to support WebKit 4.1 directly. You can use the following command:<br>
-`
+```
+
+For development:
+```bash
 wails dev -tags webkit2_41
-`
+```
 
+## Contributing
 
+We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting pull requests.
 
+### Reporting Bugs
 
+When submitting bug reports, please include:
+- SCANOSS Code Compare version
+- Your system information (OS, Go version, etc.)
+- Steps to reproduce the issue
+- Expected vs actual behavior
 
+## License
 
+This project is licensed under the GPL-2.0 License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support, please:
+1. Check our [documentation](https://scanoss.readthedocs.io)
+2. Open an issue in this repository

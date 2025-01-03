@@ -23,7 +23,7 @@ import { withErrorHandling } from '@/lib/errors';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 import useConfigStore from '@/stores/useConfigStore';
 
-import { GetWorkingDir, SelectDirectory, SelectFile } from '../../wailsjs/go/main/App';
+import { SelectDirectory, SelectFile } from '../../wailsjs/go/main/App';
 import { toast } from './ui/use-toast';
 
 export default function StatusBar() {

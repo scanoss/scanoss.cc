@@ -24,7 +24,6 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -97,20 +96,14 @@ func (s *ScanServicePythonImpl) executeScanWithPipes(args []string) (*exec.Cmd, 
 
 	defaultArgs, sensitiveArgs := s.GetDefaultScanArgs(), s.GetSensitiveDefaultScanArgs()
 
-	log.Debug().Msgf("Scan with args: %v, total args: %v", args, len(args))
-
 	if len(args) == 0 {
-		log.Debug().Msg("No scan arguments provided, scanning current directory")
 		cmdArgs = append(cmdArgs, ".") // scan current directory by default
 		cmdArgs = append(cmdArgs, defaultArgs...)
 	} else {
-		log.Debug().Msg("No scan arguments provided, scanning current directory")
 		cmdArgs = append(cmdArgs, args...)
 	}
 
 	cmdArgs = append(cmdArgs, sensitiveArgs...)
-
-	log.Debug().Msgf("Executing scan with args: %v", cmdArgs)
 
 	cmd := exec.Command(s.cmd, cmdArgs...)
 
@@ -175,7 +168,7 @@ func (s *ScanServicePythonImpl) GetDefaultScanArgs() []string {
 }
 
 func (s *ScanServicePythonImpl) GetSensitiveDefaultScanArgs() []string {
-	args := s.GetDefaultScanArgs()
+	args := make([]string, 0)
 	cfg := config.GetInstance()
 
 	if cfg.ApiToken != "" {

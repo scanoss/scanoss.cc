@@ -1,3 +1,19 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+/*
+ * Copyright (C) 2018-2024 SCANOSS.COM
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
@@ -46,7 +62,7 @@ export default function Root() {
 
   return (
     <div className="flex h-screen w-full flex-col bg-background backdrop-blur-lg">
-      <div className="flex-1 min-h-0">
+      <div className="min-h-0 flex-1">
         <ResizablePanelGroup direction="horizontal" className="h-full" autoSaveId="panels-layout">
           <ResizablePanel defaultSize={30}>
             <div className="h-full overflow-auto">

@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/rs/zerolog/log"
+	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -32,6 +33,7 @@ var debug bool
 var inputFile string
 var scanossSettingsFilePath string
 var scanRoot string
+var version bool
 
 var rootCmd = &cobra.Command{
 	Use:   "scanoss-cc",
@@ -42,6 +44,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	cobra.OnInitialize(initConfig)
 
+	rootCmd.Flags().BoolVarP(&version, "version", "v", false, "Show application version")
 	rootCmd.Flags().StringVarP(&cfgFile, "config", "c", "", "Config file (optional - default: $HOME/.scanoss/scanoss-cc-settings.json)")
 	rootCmd.Flags().StringVarP(&inputFile, "input", "i", "", "Path to scan result file (optional - default: $WORKDIR/.scanoss/results.json)")
 	rootCmd.Flags().StringVarP(&scanRoot, "scan-root", "s", "", "Scanned folder root path (optional - default: $WORKDIR)")
@@ -60,6 +63,12 @@ func initConfig() {
 }
 
 func Execute() error {
+	isVersionCmd := len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "-v")
+	if isVersionCmd {
+		fmt.Printf("scanoss-cc %s\n", entities.AppVersion)
+		os.Exit(0)
+	}
+
 	// Workaround to exit process when help command is called
 	isHelpCmd := len(os.Args) > 1 && (os.Args[1] == "--help" || os.Args[1] == "-h")
 	if isHelpCmd {

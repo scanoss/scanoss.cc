@@ -97,9 +97,9 @@ export default function CodeViewer({
       height={height}
       loading={<Skeleton className="h-full w-full" />}
       onMount={handleEditorMount}
-      theme="vs-dark"
       value={content}
       width={width}
+      theme="vs-dark"
       {...(language ? { language } : {})}
       options={{
         minimap: { enabled: false },

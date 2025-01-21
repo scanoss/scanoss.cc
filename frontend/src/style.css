@@ -81,3 +81,8 @@ body {
     --chart-5: 340 75% 55%;
   }
 }
+
+.bg-highlight-line {
+  z-index: -1;
+  filter: saturate(1.5);
+}

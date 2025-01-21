@@ -64,10 +64,7 @@ module.exports = {
   				border: 'hsl(var(--snippet-border))'
   			},
   			highlight: {
-  				'local-line': '#392428',
-  				'local-inline': '#592b2d',
-  				'remote-line': '#26352c',
-  				'remote-inline': '#324f36'
+  				'line': '#26352c'
   			}
   		},
   		borderRadius: {

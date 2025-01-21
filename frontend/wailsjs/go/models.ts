@@ -296,6 +296,7 @@ export namespace entities {
 	    filter_config?: FilterConfig;
 	    comment?: string;
 	    detected_purl?: string;
+	    detected_purl_url?: string;
 	    concluded_purl?: string;
 	    concluded_purl_url?: string;
 	    concluded_name?: string;
@@ -312,6 +313,7 @@ export namespace entities {
 	        this.filter_config = this.convertValues(source["filter_config"], FilterConfig);
 	        this.comment = source["comment"];
 	        this.detected_purl = source["detected_purl"];
+	        this.detected_purl_url = source["detected_purl_url"];
 	        this.concluded_purl = source["concluded_purl"];
 	        this.concluded_purl_url = source["concluded_purl_url"];
 	        this.concluded_name = source["concluded_name"];

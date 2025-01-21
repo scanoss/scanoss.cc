@@ -15,7 +15,7 @@
  */
 
 import clsx from 'clsx';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ExternalLink } from 'lucide-react';
 import { entities } from 'wailsjs/go/models';
 
 import Link from '@/components/Link';
@@ -64,7 +64,10 @@ function DetectedPurlTooltip({ component, replaced }: { component: entities.Comp
           >
             {component.component}
           </div>
-          <div>{result?.detected_purl}</div>
+          <Link className="flex items-center gap-1" to={result?.detected_purl_url as string}>
+            {result?.detected_purl}
+            <ExternalLink className="h-3 w-3" />
+          </Link>
         </div>
       </TooltipTrigger>
       <TooltipContent side="bottom" align="start" className="p-4">

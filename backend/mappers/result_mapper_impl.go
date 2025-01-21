@@ -39,6 +39,7 @@ func (m ResultMapperImpl) MapToResultDTO(result entities.Result) entities.Result
 		MatchType:        entities.MatchType(result.MatchType),
 		Path:             result.Path,
 		DetectedPurl:     (*result.Purl)[0],
+		DetectedPurlUrl:  m.mapDetectedPurlUrl(result),
 		ConcludedPurl:    m.mapConcludedPurl(result),
 		ConcludedPurlUrl: m.mapConcludedPurlUrl(result),
 		ConcludedName:    m.mapConcludedName(result),
@@ -94,6 +95,26 @@ func (m *ResultMapperImpl) mapConcludedPurlUrl(result entities.Result) string {
 
 	return purlUrl
 }
+
+func (m ResultMapperImpl) mapDetectedPurlUrl(result entities.Result) string {
+	detectedPurl := (*result.Purl)[0]
+
+	purlObject, err := purlutils.PurlFromString(detectedPurl)
+
+	if err != nil {
+		log.Error().Err(err).Msg("Error parsing detected purl")
+		return ""
+	}
+
+	purlUrl, err := purlutils.ProjectUrl(purlObject.Name, purlObject.Type)
+	if err != nil {
+		log.Error().Err(err).Msg("Error getting detected purl url")
+		return ""
+	}
+
+	return purlUrl
+}
+
 func (m ResultMapperImpl) mapConcludedName(result entities.Result) string {
 	replacedPurl := m.scanossSettings.SettingsFile.GetBomEntryFromResult(result).ReplaceWith
 	if replacedPurl == "" {

@@ -56,7 +56,6 @@ export default function CodeViewer({
   const handleEditorMount = (editor: monaco.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
 
-    const className = editorType === 'local' ? 'bg-highlight-local-line' : 'bg-highlight-remote-line';
     const highlightRanges: HighlightRange[] = [];
 
     if (highlightAll) {
@@ -72,7 +71,7 @@ export default function CodeViewer({
     }
 
     monacoManager.addEditor(editorId, editor, {
-      highlight: { ranges: highlightRanges, className },
+      highlight: { ranges: highlightRanges },
       revealLine: highlightRanges[0]?.start,
     });
   };
@@ -98,9 +97,9 @@ export default function CodeViewer({
       height={height}
       loading={<Skeleton className="h-full w-full" />}
       onMount={handleEditorMount}
-      theme="vs-dark"
       value={content}
       width={width}
+      theme="vs-dark"
       {...(language ? { language } : {})}
       options={{
         minimap: { enabled: false },

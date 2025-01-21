@@ -100,6 +100,7 @@ type ResultDTO struct {
 	FilterConfig     FilterConfig  `json:"filter_config,omitempty"`
 	Comment          string        `json:"comment,omitempty"`
 	DetectedPurl     string        `json:"detected_purl,omitempty"`
+	DetectedPurlUrl  string        `json:"detected_purl_url,omitempty"`
 	ConcludedPurl    string        `json:"concluded_purl,omitempty"`
 	ConcludedPurlUrl string        `json:"concluded_purl_url,omitempty"`
 	ConcludedName    string        `json:"concluded_name,omitempty"`

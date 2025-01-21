@@ -20,7 +20,6 @@ export interface EditorManager {
   addEditor(id: string, editor: monaco.editor.IStandaloneCodeEditor): void;
   scrollToLineIfNotVisible(id: string, line: number): void;
   highlightLines(id: string, ranges: { start: number; end: number }[], className: string): void;
-  syncCursor(id: string): void;
   syncScroll(id: string): void;
   getScrollSyncEnabled(): boolean;
 }
@@ -29,7 +28,6 @@ interface AddEditorOptions {
   revealLine?: number;
   highlight?: {
     ranges: HighlightRange[];
-    className: string;
   };
 }
 
@@ -41,7 +39,6 @@ export interface HighlightRange {
 export class MonacoManager implements EditorManager {
   private static instance: MonacoManager;
   private editors: { id: string; editor: monaco.editor.IStandaloneCodeEditor }[] = [];
-  private cursorSyncListeners: { [id: string]: monaco.IDisposable } = {};
   private scrollSyncListeners: { [id: string]: monaco.IDisposable } = {};
   private scrollSyncEnabled = true;
   private isScrolling = false;
@@ -64,19 +61,16 @@ export class MonacoManager implements EditorManager {
     }
 
     if (options?.highlight) {
-      this.highlightLines(id, options.highlight.ranges, options.highlight.className);
+      this.highlightLines(id, options.highlight.ranges);
     }
 
-    setTimeout(() => {
-      if (options?.revealLine) {
-        this.scrollToLineIfNotVisible(id, options.revealLine);
-      }
+    if (options?.revealLine) {
+      this.scrollToLineIfNotVisible(id, options.revealLine);
+    }
 
-      if (this.scrollSyncEnabled) {
-        this.syncCursor(id);
-        this.syncScroll(id);
-      }
-    }, 200);
+    if (this.scrollSyncEnabled) {
+      this.syncScroll(id);
+    }
   }
 
   public getScrollSyncEnabled(): boolean {
@@ -94,13 +88,16 @@ export class MonacoManager implements EditorManager {
     editor.revealLineInCenterIfOutsideViewport(line, monaco.editor.ScrollType.Smooth);
   }
 
-  public highlightLines(id: string, ranges: HighlightRange[], className: string): void {
+  public highlightLines(id: string, ranges: HighlightRange[]): void {
     const editor = this.getEditor(id);
     if (!editor) return;
 
     const decorations: monaco.editor.IModelDeltaDecoration[] = ranges.map(({ start, end }) => ({
       range: new monaco.Range(start, 1, end, 1),
-      options: { isWholeLine: true, className },
+      options: {
+        isWholeLine: true,
+        className: 'bg-highlight-line',
+      },
     }));
 
     editor.createDecorationsCollection(decorations);
@@ -147,20 +144,6 @@ export class MonacoManager implements EditorManager {
           this.isScrolling = false;
         });
       }
-    });
-  }
-
-  public syncCursor(id: string) {
-    const editor = this.getEditor(id);
-    if (!editor) return;
-
-    this.cursorSyncListeners[id] = editor.onDidChangeCursorPosition(() => {
-      const position = editor.getPosition();
-      if (!position) return;
-
-      this.editors.forEach(({ id: otherId, editor: otherEditor }) => {
-        if (otherId !== id) otherEditor.setPosition(position);
-      });
     });
   }
 

@@ -70,7 +70,10 @@ const useResultsStore = create<ResultsStore>()(
     filterByMatchType: 'all',
     sortBy: 'match_percentage',
 
-    setSortBy: (sortBy) => set({ sortBy }, false, 'SET_SORT_BY'),
+    setSortBy: (sortBy) => {
+      set({ sortBy }, false, 'SET_SORT_BY');
+      get().fetchResults();
+    },
     setSelectedResults: (selectedResults) => set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
     setLastSelectedIndex: (index) => set({ lastSelectedIndex: index }, false, 'SET_LAST_SELECTED_INDEX'),

@@ -81,8 +81,8 @@ func (s *ResultServiceImpl) sortResults(results []entities.Result, dto *entities
 	sort.Slice(results, func(i, j int) bool {
 		firstResult := results[i]
 		secondResult := results[j]
-		switch dto.SortBy {
-		case entities.SortByMatchPercentage:
+		switch entities.SortOption(dto.SortBy) {
+		case entities.SortByMatchPercentage, "": // Handle empty case as default
 			iPercentage := firstResult.GetMatchPercentage()
 			jPercentage := secondResult.GetMatchPercentage()
 			if iPercentage != jPercentage {

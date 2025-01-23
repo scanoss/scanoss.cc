@@ -21,6 +21,7 @@
  * SOFTWARE.
  */
 
+import clsx from 'clsx';
 import { ArrowDownWideNarrow, FileText, Package, Percent, Scale } from 'lucide-react';
 import { ReactNode } from 'react';
 
@@ -77,9 +78,15 @@ export default function SortSelector() {
           <span>Sort by: {selectedOption.label}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[200px]">
+      <DropdownMenuContent align="start">
         {sortOptions.map((option) => (
-          <DropdownMenuItem key={option.value} onClick={() => setSortBy(option.value)} className="gap-2">
+          <DropdownMenuItem
+            key={option.value}
+            onClick={() => setSortBy(option.value)}
+            className={clsx('gap-2', {
+              'bg-primary text-primary-foreground': sortBy === option.value,
+            })}
+          >
             {option.icon}
             <div className="flex flex-col">
               <span>{option.label}</span>

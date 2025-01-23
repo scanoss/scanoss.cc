@@ -26,16 +26,12 @@ import * as monaco from 'monaco-editor';
 export interface EditorManager {
   addEditor(id: string, editor: monaco.editor.IStandaloneCodeEditor): void;
   scrollToLineIfNotVisible(id: string, line: number): void;
-  highlightLines(id: string, ranges: { start: number; end: number }[], className: string): void;
   syncScroll(id: string): void;
   getScrollSyncEnabled(): boolean;
 }
 
 interface AddEditorOptions {
   revealLine?: number;
-  highlight?: {
-    ranges: HighlightRange[];
-  };
 }
 
 export interface HighlightRange {
@@ -49,8 +45,20 @@ export class MonacoManager implements EditorManager {
   private scrollSyncListeners: { [id: string]: monaco.IDisposable } = {};
   private scrollSyncEnabled = true;
   private isScrolling = false;
+  private scrollThrottleTimeout: number | null = null;
+  private readonly SCROLL_THROTTLE_MS = 16; // ~60fps
 
   private constructor() {}
+
+  private throttle(callback: () => void) {
+    if (this.scrollThrottleTimeout !== null) return;
+
+    callback();
+
+    this.scrollThrottleTimeout = window.setTimeout(() => {
+      this.scrollThrottleTimeout = null;
+    }, this.SCROLL_THROTTLE_MS);
+  }
 
   public static getInstance(): MonacoManager {
     if (!MonacoManager.instance) {
@@ -65,10 +73,6 @@ export class MonacoManager implements EditorManager {
       this.editors[existingEditorIndex] = { id, editor };
     } else {
       this.editors.push({ id, editor });
-    }
-
-    if (options?.highlight) {
-      this.highlightLines(id, options.highlight.ranges);
     }
 
     if (options?.revealLine) {
@@ -95,67 +99,75 @@ export class MonacoManager implements EditorManager {
     editor.revealLineInCenterIfOutsideViewport(line, monaco.editor.ScrollType.Smooth);
   }
 
-  public highlightLines(id: string, ranges: HighlightRange[]): void {
-    const editor = this.getEditor(id);
-    if (!editor) return;
-
-    const decorations: monaco.editor.IModelDeltaDecoration[] = ranges.map(({ start, end }) => ({
-      range: new monaco.Range(start, 1, end, 1),
-      options: {
-        isWholeLine: true,
-        className: 'bg-highlight-line',
-      },
-    }));
-
-    editor.createDecorationsCollection(decorations);
-  }
-
   public syncScroll(id: string) {
     const editor = this.getEditor(id);
     if (!editor) return;
 
     let lastScrollTop = editor.getScrollTop();
+    let lastScrollLeft = editor.getScrollLeft();
 
     this.scrollSyncListeners[id] = editor.onDidScrollChange(() => {
       if (this.isScrolling) return;
-      this.isScrolling = true;
 
-      try {
-        const sourceEditor = editor;
-        const currentScrollTop = sourceEditor.getScrollTop();
-        const deltaY = currentScrollTop - lastScrollTop;
-        lastScrollTop = currentScrollTop;
+      this.throttle(() => {
+        this.isScrolling = true;
 
-        const sourceLineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
+        try {
+          const sourceEditor = editor;
+          const currentScrollTop = sourceEditor.getScrollTop();
+          const currentScrollLeft = sourceEditor.getScrollLeft();
 
-        // This is the number of lines scrolled
-        const linesScrolled = deltaY / sourceLineHeight;
-
-        this.editors.forEach(({ id: otherId, editor: otherEditor }) => {
-          if (otherId !== id) {
-            const targetLineHeight = otherEditor.getOption(monaco.editor.EditorOption.lineHeight);
-            const currentOtherScrollTop = otherEditor.getScrollTop();
-            const maxScrollTop = otherEditor.getScrollHeight() - otherEditor.getLayoutInfo().height;
-
-            const targetDeltaY = linesScrolled * targetLineHeight;
-            const newScrollTop = Math.max(0, Math.min(currentOtherScrollTop + targetDeltaY, maxScrollTop));
-
-            otherEditor.setScrollPosition({
-              scrollTop: newScrollTop,
-              scrollLeft: sourceEditor.getScrollLeft(),
-            });
+          // Only sync if scroll position actually changed
+          if (currentScrollTop === lastScrollTop && currentScrollLeft === lastScrollLeft) {
+            return;
           }
-        });
-      } finally {
-        requestAnimationFrame(() => {
-          this.isScrolling = false;
-        });
-      }
+
+          const deltaY = currentScrollTop - lastScrollTop;
+          lastScrollTop = currentScrollTop;
+          lastScrollLeft = currentScrollLeft;
+
+          const sourceLineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
+          const linesScrolled = deltaY / sourceLineHeight;
+
+          // Pre-calculate scroll values for better performance
+          const scrollUpdates = this.editors
+            .filter(({ id: otherId }) => otherId !== id)
+            .map(({ editor: otherEditor }) => {
+              const targetLineHeight = otherEditor.getOption(monaco.editor.EditorOption.lineHeight);
+              const currentOtherScrollTop = otherEditor.getScrollTop();
+              const maxScrollTop = otherEditor.getScrollHeight() - otherEditor.getLayoutInfo().height;
+              const targetDeltaY = linesScrolled * targetLineHeight;
+
+              return {
+                editor: otherEditor,
+                scrollTop: Math.max(0, Math.min(currentOtherScrollTop + targetDeltaY, maxScrollTop)),
+                scrollLeft: currentScrollLeft,
+              };
+            });
+
+          // Batch scroll updates in next animation frame
+          requestAnimationFrame(() => {
+            scrollUpdates.forEach(({ editor: otherEditor, scrollTop, scrollLeft }) => {
+              otherEditor.setScrollPosition({ scrollTop, scrollLeft });
+            });
+          });
+        } finally {
+          requestAnimationFrame(() => {
+            this.isScrolling = false;
+          });
+        }
+      });
     });
   }
 
   public toggleSyncScroll() {
     this.scrollSyncEnabled = !this.scrollSyncEnabled;
+
+    // Clear any pending throttle timeout
+    if (this.scrollThrottleTimeout !== null) {
+      clearTimeout(this.scrollThrottleTimeout);
+      this.scrollThrottleTimeout = null;
+    }
 
     if (!Object.keys(this.scrollSyncListeners).length) {
       return this.editors.forEach(({ id }) => this.syncScroll(id));
@@ -167,5 +179,15 @@ export class MonacoManager implements EditorManager {
         delete this.scrollSyncListeners[id];
       }
     });
+  }
+
+  public dispose() {
+    if (this.scrollThrottleTimeout !== null) {
+      clearTimeout(this.scrollThrottleTimeout);
+    }
+
+    Object.values(this.scrollSyncListeners).forEach((listener) => listener.dispose());
+    this.scrollSyncListeners = {};
+    this.editors = [];
   }
 }

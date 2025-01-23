@@ -43,6 +43,16 @@ var scanRoot string
 var version bool
 var originalWorkDir string
 
+// This is a workaround to exit the process when the help command is called instead of spinning up the UI
+func setupHelpCommand(cmd *cobra.Command) {
+	originalHelp := cmd.HelpFunc()
+
+	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		originalHelp(cmd, args)
+		os.Exit(0)
+	})
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "scanoss-cc",
 	Short: "Lightweight UI, that presents the findings from the latest scan and prompt the user to review pending identifications.",
@@ -70,6 +80,8 @@ func init() {
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable debug mode")
 
 	rootCmd.Root().CompletionOptions.HiddenDefaultCmd = true
+
+	setupHelpCommand(rootCmd)
 }
 
 func initConfig() {
@@ -82,13 +94,6 @@ func Execute() error {
 	isVersionCmd := len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "-v")
 	if isVersionCmd {
 		fmt.Printf("scanoss-cc %s\n", entities.AppVersion)
-		os.Exit(0)
-	}
-
-	// Workaround to exit process when help command is called
-	isHelpCmd := len(os.Args) > 1 && (os.Args[1] == "--help" || os.Args[1] == "-h")
-	if isHelpCmd {
-		rootCmd.Help()
 		os.Exit(0)
 	}
 

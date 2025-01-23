@@ -22,7 +22,7 @@
  */
 
 import clsx from 'clsx';
-import { ArrowDownWideNarrow, FileText, Package, Percent, Scale } from 'lucide-react';
+import { ArrowDownNarrowWide, ArrowUpNarrowWide, FileText, Package, Percent, Scale } from 'lucide-react';
 import { ReactNode } from 'react';
 
 import useResultsStore from '@/modules/results/stores/useResultsStore';
@@ -65,36 +65,41 @@ const sortOptions: SortOption[] = [
 ];
 
 export default function SortSelector() {
-  const sortBy = useResultsStore((state) => state.sortBy);
-  const setSortBy = useResultsStore((state) => state.setSortBy);
+  const sort = useResultsStore((state) => state.sort);
+  const setSort = useResultsStore((state) => state.setSort);
 
-  const selectedOption = sortOptions.find((option) => option.value === sortBy) || sortOptions[0];
+  const selectedOption = sortOptions.find((option) => option.value === sort.option) || sortOptions[0];
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full justify-start gap-2">
-          <ArrowDownWideNarrow className="h-4 w-4" />
-          <span>Sort by: {selectedOption.label}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        {sortOptions.map((option) => (
-          <DropdownMenuItem
-            key={option.value}
-            onClick={() => setSortBy(option.value)}
-            className={clsx('gap-2', {
-              'bg-primary text-primary-foreground': sortBy === option.value,
-            })}
-          >
-            {option.icon}
-            <div className="flex flex-col">
-              <span>{option.label}</span>
-              <span className="text-xs text-muted-foreground">{option.description}</span>
-            </div>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex flex-wrap items-center gap-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="sm" variant="outline" className="justify-start gap-2 whitespace-normal">
+            {selectedOption.icon}
+            <span className="text-left">Sort by: {selectedOption.label}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          {sortOptions.map((option) => (
+            <DropdownMenuItem
+              key={option.value}
+              onClick={() => setSort(option.value, sort.order)}
+              className={clsx('gap-2', {
+                'bg-primary text-primary-foreground': sort.option === option.value,
+              })}
+            >
+              {option.icon}
+              <div className="flex flex-col">
+                <span>{option.label}</span>
+                <span className="text-xs text-muted-foreground">{option.description}</span>
+              </div>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button size="sm" variant="outline" className="gap-2" onClick={() => setSort(sort.option, sort.order === 'asc' ? 'desc' : 'asc')}>
+        {sort.order === 'asc' ? <ArrowUpNarrowWide className="h-4 w-4" /> : <ArrowDownNarrowWide className="h-4 w-4" />}
+      </Button>
+    </div>
   );
 }

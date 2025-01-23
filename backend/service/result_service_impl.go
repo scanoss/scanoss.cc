@@ -81,21 +81,39 @@ func (s *ResultServiceImpl) sortResults(results []entities.Result, dto *entities
 	sort.Slice(results, func(i, j int) bool {
 		firstResult := results[i]
 		secondResult := results[j]
-		switch entities.SortOption(dto.SortBy) {
-		case entities.SortByMatchPercentage, "": // Handle empty case as default
+
+		// Default values if Sort is not specified
+		sortOption := entities.SortByMatchPercentage
+		sortOrder := entities.SortOrderDesc
+		if dto.Sort.Option != "" {
+			sortOption = dto.Sort.Option
+		}
+		if dto.Sort.Order != "" {
+			sortOrder = dto.Sort.Order
+		}
+
+		switch sortOption {
+		case entities.SortByMatchPercentage:
 			iPercentage := firstResult.GetMatchPercentage()
 			jPercentage := secondResult.GetMatchPercentage()
 			if iPercentage != jPercentage {
-				return iPercentage > jPercentage // Descending order
+				return sortOrder == entities.SortOrderDesc && iPercentage > jPercentage ||
+					sortOrder == entities.SortOrderAsc && iPercentage < jPercentage
 			}
 			return firstResult.Path < secondResult.Path // Secondary sort by path
 		case entities.SortByComponentName:
 			if firstResult.ComponentName != secondResult.ComponentName {
-				return firstResult.ComponentName < secondResult.ComponentName
+				if firstResult.ComponentName == "" {
+					return sortOrder == entities.SortOrderAsc
+				}
+				if secondResult.ComponentName == "" {
+					return sortOrder == entities.SortOrderDesc
+				}
+				return (sortOrder == entities.SortOrderAsc) == (firstResult.ComponentName < secondResult.ComponentName)
 			}
 			return firstResult.Path < secondResult.Path
 		case entities.SortByPath:
-			return firstResult.Path < secondResult.Path
+			return (sortOrder == entities.SortOrderAsc) == (firstResult.Path < secondResult.Path)
 		case entities.SortByLicense:
 			iLicense := ""
 			jLicense := ""
@@ -106,7 +124,13 @@ func (s *ResultServiceImpl) sortResults(results []entities.Result, dto *entities
 				jLicense = secondResult.Matches[0].Licenses[0].Name
 			}
 			if iLicense != jLicense {
-				return iLicense < jLicense
+				if iLicense == "" {
+					return sortOrder == entities.SortOrderAsc
+				}
+				if jLicense == "" {
+					return sortOrder == entities.SortOrderDesc
+				}
+				return (sortOrder == entities.SortOrderAsc) == (iLicense < jLicense)
 			}
 			return firstResult.Path < secondResult.Path
 		default:
@@ -114,7 +138,8 @@ func (s *ResultServiceImpl) sortResults(results []entities.Result, dto *entities
 			iPercentage := firstResult.GetMatchPercentage()
 			jPercentage := secondResult.GetMatchPercentage()
 			if iPercentage != jPercentage {
-				return iPercentage > jPercentage
+				return sortOrder == entities.SortOrderDesc && iPercentage > jPercentage ||
+					sortOrder == entities.SortOrderAsc && iPercentage < jPercentage
 			}
 			return firstResult.Path < secondResult.Path
 		}

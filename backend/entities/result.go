@@ -143,17 +143,8 @@ type ResultDTO struct {
 	ConcludedName    string        `json:"concluded_name,omitempty"`
 }
 
-type SortOption string
-
-const (
-	SortByMatchPercentage SortOption = "match_percentage"
-	SortByPath            SortOption = "path"
-	SortByComponentName   SortOption = "component_name"
-	SortByLicense         SortOption = "license"
-)
-
 type RequestResultDTO struct {
 	MatchType MatchType  `json:"match_type,omitempty" validate:"omitempty,eq=file|eq=snippet"`
 	Query     string     `json:"query,omitempty"`
-	SortBy    SortOption `json:"sort_by,omitempty" validate:"omitempty,eq=match_percentage|eq=path|eq=component_name|eq=license"`
+	Sort      SortConfig `json:"sort,omitempty" validate:"dive"`
 }

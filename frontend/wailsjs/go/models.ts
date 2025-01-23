@@ -278,6 +278,7 @@ export namespace entities {
 	export class RequestResultDTO {
 	    match_type?: string;
 	    query?: string;
+	    sort_by?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new RequestResultDTO(source);
@@ -287,6 +288,7 @@ export namespace entities {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.match_type = source["match_type"];
 	        this.query = source["query"];
+	        this.sort_by = source["sort_by"];
 	    }
 	}
 	export class ResultDTO {

@@ -25,6 +25,7 @@ package entities
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 )
 
@@ -42,6 +43,7 @@ type Result struct {
 	MatchType     string    `json:"match_type"`
 	Purl          *[]string `json:"purl,omitempty"`
 	ComponentName string    `json:"component"`
+	Matches       []Match   `json:"matches,omitempty"`
 }
 
 func NewResult() *Result {
@@ -64,14 +66,42 @@ func (r *Result) GetFileName() string {
 	return fileName
 }
 
+func (r *Result) GetMatchPercentage() float64 {
+	if r.MatchType == string(MatchTypeFile) {
+		return 100.0
+	}
+
+	// For snippet matches, parse the percentage from the matched field
+	// Default to 0 if not found or invalid
+	matches := r.Matches
+	if len(matches) > 0 {
+		matchStr := matches[0].Matched
+		if matchStr != "" {
+			matchStr = strings.TrimSuffix(matchStr, "%")
+			if percentage, err := strconv.ParseFloat(matchStr, 64); err == nil {
+				return percentage
+			}
+		}
+	}
+	return 0.0
+}
+
 type ResultFilter interface {
 	IsValid(result Result) bool
 }
 
+type ResultLicense struct {
+	Name   string `json:"name"`
+	Source string `json:"source,omitempty"`
+	URL    string `json:"url,omitempty"`
+}
+
 type Match struct {
-	ID            string   `json:"id"`
-	Purl          []string `json:"purl,omitempty"`
-	ComponentName string   `json:"component"`
+	ID            string          `json:"id"`
+	Purl          []string        `json:"purl,omitempty"`
+	ComponentName string          `json:"component"`
+	Matched       string          `json:"matched,omitempty"`
+	Licenses      []ResultLicense `json:"licenses,omitempty"`
 }
 
 type MatchType string
@@ -113,7 +143,17 @@ type ResultDTO struct {
 	ConcludedName    string        `json:"concluded_name,omitempty"`
 }
 
+type SortOption string
+
+const (
+	SortByMatchPercentage SortOption = "match_percentage"
+	SortByPath            SortOption = "path"
+	SortByComponentName   SortOption = "component_name"
+	SortByLicense         SortOption = "license"
+)
+
 type RequestResultDTO struct {
-	MatchType MatchType `json:"match_type,omitempty" validate:"omitempty,eq=file|eq=snippet"`
-	Query     string    `json:"query,omitempty"`
+	MatchType MatchType  `json:"match_type,omitempty" validate:"omitempty,eq=file|eq=snippet"`
+	Query     string     `json:"query,omitempty"`
+	SortBy    SortOption `json:"sort_by,omitempty" validate:"omitempty,eq=match_percentage|eq=path|eq=component_name|eq=license"`
 }

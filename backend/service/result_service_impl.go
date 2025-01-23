@@ -68,13 +68,55 @@ func (s *ResultServiceImpl) GetAll(dto *entities.RequestResultDTO) ([]entities.R
 		return []entities.ResultDTO{}, err
 	}
 
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].Path < results[j].Path
-	})
+	s.sortResults(results, dto)
 
 	return s.mapper.MapToResultDTOList(results), nil
 }
 
 func (s *ResultServiceImpl) SetContext(ctx context.Context) {
 	s.ctx = ctx
+}
+
+func (s *ResultServiceImpl) sortResults(results []entities.Result, dto *entities.RequestResultDTO) {
+	sort.Slice(results, func(i, j int) bool {
+		firstResult := results[i]
+		secondResult := results[j]
+		switch dto.SortBy {
+		case entities.SortByMatchPercentage:
+			iPercentage := firstResult.GetMatchPercentage()
+			jPercentage := secondResult.GetMatchPercentage()
+			if iPercentage != jPercentage {
+				return iPercentage > jPercentage // Descending order
+			}
+			return firstResult.Path < secondResult.Path // Secondary sort by path
+		case entities.SortByComponentName:
+			if firstResult.ComponentName != secondResult.ComponentName {
+				return firstResult.ComponentName < secondResult.ComponentName
+			}
+			return firstResult.Path < secondResult.Path
+		case entities.SortByPath:
+			return firstResult.Path < secondResult.Path
+		case entities.SortByLicense:
+			iLicense := ""
+			jLicense := ""
+			if len(firstResult.Matches) > 0 && len(firstResult.Matches[0].Licenses) > 0 {
+				iLicense = firstResult.Matches[0].Licenses[0].Name
+			}
+			if len(secondResult.Matches) > 0 && len(secondResult.Matches[0].Licenses) > 0 {
+				jLicense = secondResult.Matches[0].Licenses[0].Name
+			}
+			if iLicense != jLicense {
+				return iLicense < jLicense
+			}
+			return firstResult.Path < secondResult.Path
+		default:
+			// Default to match percentage sorting
+			iPercentage := firstResult.GetMatchPercentage()
+			jPercentage := secondResult.GetMatchPercentage()
+			if iPercentage != jPercentage {
+				return iPercentage > jPercentage
+			}
+			return firstResult.Path < secondResult.Path
+		}
+	})
 }

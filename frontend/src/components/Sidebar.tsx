@@ -38,6 +38,7 @@ import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import MatchTypeSelector from './MatchTypeSelector';
 import SelectScanRoot from './SelectScanRoot';
+import SortSelector from './SortSelector';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -121,7 +122,10 @@ export default function Sidebar() {
       </div>
 
       <div className="flex flex-col gap-4 px-4 py-6">
-        <MatchTypeSelector />
+        <div className="flex flex-col gap-2">
+          <MatchTypeSelector />
+          <SortSelector />
+        </div>
         <ResultSearchBar searchInputRef={searchInputRef} />
       </div>
 

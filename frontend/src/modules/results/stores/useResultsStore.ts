@@ -38,6 +38,7 @@ interface ResultsState {
   selectedResults: entities.ResultDTO[];
   query: string;
   filterByMatchType: MatchType | 'all';
+  sortBy: string;
 }
 
 interface ResultsActions {
@@ -51,6 +52,7 @@ interface ResultsActions {
   toggleResultSelection: (result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   setQuery: (query: string) => void;
   setFilterByMatchType: (matchType: MatchType | 'all') => void;
+  setSortBy: (sortBy: string) => void;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -66,7 +68,9 @@ const useResultsStore = create<ResultsStore>()(
     lastSelectionType: null,
     query: '',
     filterByMatchType: 'all',
+    sortBy: 'match_percentage',
 
+    setSortBy: (sortBy) => set({ sortBy }, false, 'SET_SORT_BY'),
     setSelectedResults: (selectedResults) => set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
     setLastSelectedIndex: (index) => set({ lastSelectedIndex: index }, false, 'SET_LAST_SELECTED_INDEX'),
@@ -74,12 +78,13 @@ const useResultsStore = create<ResultsStore>()(
     setLastSelectionType: (type: 'pending' | 'completed') => set({ lastSelectionType: type }, false, 'SET_LAST_SELECTION_TYPE'),
 
     fetchResults: async () => {
-      const { selectedResults, filterByMatchType, query } = get();
+      const { selectedResults, filterByMatchType, query, sortBy } = get();
       set({ isLoading: true, error: null }, false, 'FETCH_RESULTS');
       try {
         const results = await GetAll({
           match_type: filterByMatchType === 'all' ? undefined : filterByMatchType,
           query,
+          sort_by: sortBy,
         });
         const pendingResults = results.filter((r) => r.workflow_state === 'pending');
         const completedResults = results.filter((r) => r.workflow_state === 'completed');

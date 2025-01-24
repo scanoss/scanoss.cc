@@ -52,6 +52,8 @@ body {
     --snippet-foreground: 0 0% 100%;
     --snippet-accent: 30 100% 50%;
     --snippet-border: 30 60% 30%;
+
+    --highlight-line: 225 84% 22%;
   }
 
   .dark {
@@ -84,5 +86,10 @@ body {
 
 .bg-highlight-line {
   z-index: -1;
-  filter: saturate(1.5);
+  opacity: 0.2;
+}
+.line-range-decoration {
+  background: rgb(18, 37, 121);
+  width: 3px !important;
+  margin-left: 5px;
 }

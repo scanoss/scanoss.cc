@@ -22,6 +22,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import { memo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import CodeViewer from '@/components/CodeViewer';
@@ -34,6 +35,8 @@ import EditorToolbar from './EditorToolbar';
 import FileInfoCard from './FileInfoCard';
 import Header from './Header';
 import MatchInfoCard from './MatchInfoCard';
+
+const MemoizedCodeViewer = memo(CodeViewer);
 
 export default function MatchComparison() {
   const selectedResult = useSelectedResult();
@@ -85,7 +88,7 @@ export default function MatchComparison() {
           <div className="col-span-2">
             <EditorToolbar />
           </div>
-          <CodeViewer
+          <MemoizedCodeViewer
             content={localFileContent?.content}
             isError={isErrorLocalFileContent}
             error={errorLocalFileContent}
@@ -95,7 +98,7 @@ export default function MatchComparison() {
             editorType="local"
             editorId={uuidv4()}
           />
-          <CodeViewer
+          <MemoizedCodeViewer
             content={remoteFileContent?.content}
             isError={isErrorRemoteFileContent}
             error={errorRemoteFileContent}

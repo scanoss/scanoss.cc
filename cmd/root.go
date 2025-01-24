@@ -41,6 +41,7 @@ var inputFile string
 var scanossSettingsFilePath string
 var scanRoot string
 var version bool
+var originalWorkDir string
 
 var rootCmd = &cobra.Command{
 	Use:   "scanoss-cc",
@@ -49,6 +50,14 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	// We need the original wd to set the default values for the config.
+	// Otherwise, when running from a symlink, the default values will be incorrect.
+	var err error
+	originalWorkDir, err = os.Getwd()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Error getting original working directory")
+	}
+
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.Flags().BoolVarP(&version, "version", "v", false, "Show application version")
@@ -64,7 +73,7 @@ func init() {
 }
 
 func initConfig() {
-	if err := config.InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath, debug); err != nil {
+	if err := config.InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath, originalWorkDir, debug); err != nil {
 		log.Fatal().Err(err).Msg("Error initializing config")
 	}
 }

@@ -144,11 +144,30 @@ func (s *ScanServicePythonImpl) CheckDependencies() error {
 }
 
 func (s *ScanServicePythonImpl) checkPythonInstalled() error {
-	cmd := exec.Command("python", "--version")
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("python is not installed: %w", err)
+	pythonCommands := []string{"python3", "python"}
+
+	for _, cmd := range pythonCommands {
+		if err := exec.Command(cmd, "--version").Run(); err == nil {
+			return nil
+		}
+
+		commonPaths := []string{
+			"/usr/bin/",
+			"/usr/local/bin/",
+			"/opt/homebrew/bin/",
+		}
+
+		for _, path := range commonPaths {
+			fullPath := path + cmd
+			if _, err := os.Stat(fullPath); err == nil {
+				if err := exec.Command(fullPath, "--version").Run(); err == nil {
+					return nil
+				}
+			}
+		}
 	}
-	return nil
+
+	return fmt.Errorf("python is not installed or not found in PATH or common locations")
 }
 
 func (s *ScanServicePythonImpl) checkScanossPyInstalled() error {

@@ -142,6 +142,7 @@ func NewScanCmd(scanService service.ScanService) *cobra.Command {
 		}
 	}
 
+	setupHelpCommand(cmd)
 	return cmd
 }
 

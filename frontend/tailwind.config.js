@@ -64,7 +64,7 @@ module.exports = {
   				border: 'hsl(var(--snippet-border))'
   			},
   			highlight: {
-  				'line': '#26352c'
+  				'line': 'hsl(var(--highlight-line))'
   			}
   		},
   		borderRadius: {

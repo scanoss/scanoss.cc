@@ -21,10 +21,10 @@
  * SOFTWARE.
  */
 
-import { entities } from 'wailsjs/go/models';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import { entities } from '../../../../wailsjs/go/models';
 import { GetAll } from '../../../../wailsjs/go/service/ResultServiceImpl';
 import { MatchType } from '../domain';
 
@@ -38,6 +38,10 @@ interface ResultsState {
   selectedResults: entities.ResultDTO[];
   query: string;
   filterByMatchType: MatchType | 'all';
+  sort: {
+    option: string;
+    order: 'asc' | 'desc';
+  };
 }
 
 interface ResultsActions {
@@ -51,6 +55,7 @@ interface ResultsActions {
   toggleResultSelection: (result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   setQuery: (query: string) => void;
   setFilterByMatchType: (matchType: MatchType | 'all') => void;
+  setSort: (option: string, order: 'asc' | 'desc') => void;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -66,7 +71,15 @@ const useResultsStore = create<ResultsStore>()(
     lastSelectionType: null,
     query: '',
     filterByMatchType: 'all',
+    sort: {
+      option: 'match_percentage',
+      order: 'desc' as const,
+    },
 
+    setSort: (option, order) => {
+      set({ sort: { option, order } }, false, 'SET_SORT');
+      get().fetchResults();
+    },
     setSelectedResults: (selectedResults) => set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
     setLastSelectedIndex: (index) => set({ lastSelectedIndex: index }, false, 'SET_LAST_SELECTED_INDEX'),
@@ -74,13 +87,19 @@ const useResultsStore = create<ResultsStore>()(
     setLastSelectionType: (type: 'pending' | 'completed') => set({ lastSelectionType: type }, false, 'SET_LAST_SELECTION_TYPE'),
 
     fetchResults: async () => {
-      const { selectedResults, filterByMatchType, query } = get();
+      const { selectedResults, filterByMatchType, query, sort } = get();
       set({ isLoading: true, error: null }, false, 'FETCH_RESULTS');
       try {
-        const results = await GetAll({
-          match_type: filterByMatchType === 'all' ? undefined : filterByMatchType,
-          query,
-        });
+        const results = await GetAll(
+          entities.RequestResultDTO.createFrom({
+            match_type: filterByMatchType === 'all' ? undefined : filterByMatchType,
+            query,
+            sort: {
+              option: sort.option,
+              order: sort.order,
+            },
+          })
+        );
         const pendingResults = results.filter((r) => r.workflow_state === 'pending');
         const completedResults = results.filter((r) => r.workflow_state === 'completed');
 

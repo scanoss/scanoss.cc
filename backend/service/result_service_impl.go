@@ -68,13 +68,50 @@ func (s *ResultServiceImpl) GetAll(dto *entities.RequestResultDTO) ([]entities.R
 		return []entities.ResultDTO{}, err
 	}
 
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].Path < results[j].Path
-	})
+	s.sortResults(results, dto)
 
 	return s.mapper.MapToResultDTOList(results), nil
 }
 
 func (s *ResultServiceImpl) SetContext(ctx context.Context) {
 	s.ctx = ctx
+}
+
+func (s *ResultServiceImpl) sortResults(results []entities.Result, dto *entities.RequestResultDTO) {
+	sort.Slice(results, func(i, j int) bool {
+		firstResult := results[i]
+		secondResult := results[j]
+
+		// Default values if Sort is not specified
+		sortOption := entities.SortByMatchPercentage
+		sortOrder := entities.SortOrderDesc
+		if dto.Sort.Option != "" {
+			sortOption = dto.Sort.Option
+		}
+		if dto.Sort.Order != "" {
+			sortOrder = dto.Sort.Order
+		}
+
+		switch sortOption {
+		case entities.SortByMatchPercentage:
+			iPercentage := firstResult.GetMatchPercentage()
+			jPercentage := secondResult.GetMatchPercentage()
+			if iPercentage != jPercentage {
+				return sortOrder == entities.SortOrderDesc && iPercentage > jPercentage ||
+					sortOrder == entities.SortOrderAsc && iPercentage < jPercentage
+			}
+			return firstResult.Path < secondResult.Path // Secondary sort by path
+		case entities.SortByPath:
+			return (sortOrder == entities.SortOrderAsc) == (firstResult.Path < secondResult.Path)
+		default:
+			// Default to match percentage sorting
+			iPercentage := firstResult.GetMatchPercentage()
+			jPercentage := secondResult.GetMatchPercentage()
+			if iPercentage != jPercentage {
+				return sortOrder == entities.SortOrderDesc && iPercentage > jPercentage ||
+					sortOrder == entities.SortOrderAsc && iPercentage < jPercentage
+			}
+			return firstResult.Path < secondResult.Path
+		}
+	})
 }

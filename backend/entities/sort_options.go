@@ -21,22 +21,20 @@
  * SOFTWARE.
  */
 
-import { useCallback, useRef } from 'react';
+package entities
 
-export function useDebounceCallback<Args extends unknown[], R>(callback: (...args: Args) => R, delay: number): (...args: Args) => void {
-  const timeoutRef = useRef<number | null>(null);
+type SortOption string
+type SortOrder string
 
-  return useCallback(
-    (...args: Args) => {
-      if (timeoutRef.current !== null) {
-        window.clearTimeout(timeoutRef.current);
-      }
+const (
+	SortByMatchPercentage SortOption = "match_percentage"
+	SortByPath            SortOption = "path"
 
-      timeoutRef.current = window.setTimeout(() => {
-        callback(...args);
-        timeoutRef.current = null;
-      }, delay);
-    },
-    [callback, delay]
-  );
+	SortOrderAsc  SortOrder = "asc"
+	SortOrderDesc SortOrder = "desc"
+)
+
+type SortConfig struct {
+	Option SortOption `json:"option"`
+	Order  SortOrder  `json:"order"`
 }

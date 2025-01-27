@@ -24,6 +24,7 @@
 package mappers
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -94,7 +95,13 @@ func (m *ResultMapperImpl) mapConcludedPurlUrl(result entities.Result) string {
 		return ""
 	}
 
-	purlUrl, err := purlutils.ProjectUrl(purlObject.Name, purlObject.Type)
+	// Workaround for github purls until purlutils is updated
+	purlName := purlObject.Name
+	if purlObject.Type == "github" && purlObject.Namespace != "" {
+		purlName = fmt.Sprintf("%s/%s", purlObject.Namespace, purlObject.Name)
+	}
+
+	purlUrl, err := purlutils.ProjectUrl(purlName, purlObject.Type)
 	if err != nil {
 		log.Error().Err(err).Msg("Error getting project url")
 		return ""
@@ -113,7 +120,13 @@ func (m ResultMapperImpl) mapDetectedPurlUrl(result entities.Result) string {
 		return ""
 	}
 
-	purlUrl, err := purlutils.ProjectUrl(purlObject.Name, purlObject.Type)
+	// Workaround for github purls until purlutils is updated
+	purlName := purlObject.Name
+	if purlObject.Type == "github" && purlObject.Namespace != "" {
+		purlName = fmt.Sprintf("%s/%s", purlObject.Namespace, purlObject.Name)
+	}
+
+	purlUrl, err := purlutils.ProjectUrl(purlName, purlObject.Type)
 	if err != nil {
 		log.Error().Err(err).Msg("Error getting detected purl url")
 		return ""

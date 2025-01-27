@@ -80,6 +80,7 @@ export default function FilterActionButton({
   const { modifierKey } = useEnvironment();
 
   const isReplaceAction = action === FilterAction.Replace;
+  const isIncludeAction = action === FilterAction.Include;
 
   const handleFilterByFileWithComments = async () => {
     let comment: string | undefined;
@@ -264,7 +265,7 @@ export default function FilterActionButton({
                   <span className="first-letter:uppercase">{`${action} with comments`}</span>
                   <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithComments, modifierKey.label)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
-                {!isReplaceAction && (
+                {isIncludeAction && (
                   <DropdownMenuItem onClick={handleFilterByFileAndDifferentLicense}>
                     <span className="first-letter:uppercase">{`${action} with a different license`}</span>
                   </DropdownMenuItem>
@@ -286,7 +287,7 @@ export default function FilterActionButton({
                   <span className="first-letter:uppercase">{`${action} with Comments`}</span>
                   <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByComponentWithComments, modifierKey.label)[0]}</DropdownMenuShortcut>
                 </DropdownMenuItem>
-                {!isReplaceAction && (
+                {isIncludeAction && (
                   <DropdownMenuItem onClick={handleFilterByPurlAndDifferentLicense}>
                     <span className="first-letter:uppercase">{`${action} with a different license`}</span>
                   </DropdownMenuItem>

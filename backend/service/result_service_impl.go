@@ -103,25 +103,6 @@ func (s *ResultServiceImpl) sortResults(results []entities.Result, dto *entities
 			return firstResult.Path < secondResult.Path // Secondary sort by path
 		case entities.SortByPath:
 			return (sortOrder == entities.SortOrderAsc) == (firstResult.Path < secondResult.Path)
-		case entities.SortByLicense:
-			iLicense := ""
-			jLicense := ""
-			if len(firstResult.Matches) > 0 && len(firstResult.Matches[0].Licenses) > 0 {
-				iLicense = firstResult.Matches[0].Licenses[0].Name
-			}
-			if len(secondResult.Matches) > 0 && len(secondResult.Matches[0].Licenses) > 0 {
-				jLicense = secondResult.Matches[0].Licenses[0].Name
-			}
-			if iLicense != jLicense {
-				if iLicense == "" {
-					return sortOrder == entities.SortOrderAsc
-				}
-				if jLicense == "" {
-					return sortOrder == entities.SortOrderDesc
-				}
-				return (sortOrder == entities.SortOrderAsc) == (iLicense < jLicense)
-			}
-			return firstResult.Path < secondResult.Path
 		default:
 			// Default to match percentage sorting
 			iPercentage := firstResult.GetMatchPercentage()

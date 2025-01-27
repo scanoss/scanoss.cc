@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2018-2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
  */
 
 import clsx from 'clsx';
-import { ArrowDownNarrowWide, ArrowUpNarrowWide, FileText, Percent, Scale } from 'lucide-react';
+import { ArrowDownNarrowWide, ArrowUpNarrowWide, FileText, Percent } from 'lucide-react';
 import { ReactNode } from 'react';
 
 import useResultsStore from '@/modules/results/stores/useResultsStore';
@@ -49,12 +49,6 @@ const sortOptions: SortOption[] = [
     label: 'File Path',
     icon: <FileText className="h-4 w-4" />,
     description: 'Sort alphabetically by file path',
-  },
-  {
-    value: 'license',
-    label: 'License',
-    icon: <Scale className="h-4 w-4" />,
-    description: 'Sort by license type',
   },
 ];
 

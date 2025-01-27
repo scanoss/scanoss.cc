@@ -62,9 +62,6 @@ export default function Root() {
     EventsOn(entities.Action.ScanWithOptions, () => {
       handleShowScanModal({ withOptions: true });
     });
-    EventsOn(entities.Action.ScanCurrentDirectory, () => {
-      handleShowScanModal({ withOptions: false });
-    });
   }, []);
 
   return (

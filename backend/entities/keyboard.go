@@ -57,7 +57,6 @@ const (
 	ActionShowKeyboardShortcutsModal Action = "showKeyboardShortcutsModal"
 
 	// Scan
-	ActionScanCwd         Action = "scanCurrentDirectory"
 	ActionScanWithOptions Action = "scanWithOptions"
 )
 
@@ -108,7 +107,6 @@ var AllShortcutActions = []struct {
 	{ActionReplaceComponentWithComments, "ReplaceComponentWithComments"},
 	{ActionSyncScrollPosition, "ToggleSyncScrollPosition"},
 	{ActionShowKeyboardShortcutsModal, "ShowKeyboardShortcutsModal"},
-	{ActionScanCwd, "ScanCurrentDirectory"},
 	{ActionScanWithOptions, "ScanWithOptions"},
 }
 
@@ -303,14 +301,6 @@ var DefaultShortcuts = []Shortcut{
 	},
 
 	// Scan
-	{
-		Name:        "Scan Current Directory",
-		Description: "Scan the current directory",
-		Accelerator: keys.Combo("b", keys.ShiftKey, keys.CmdOrCtrlKey),
-		Keys:        "shift+mod+b",
-		Group:       GroupScan,
-		Action:      ActionScanCwd,
-	},
 	{
 		Name:        "Scan With Options",
 		Description: "Run a scan with options",

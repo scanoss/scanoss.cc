@@ -37,6 +37,7 @@ import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import MatchTypeSelector from './MatchTypeSelector';
+import SelectScanRoot from './SelectScanRoot';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -104,12 +105,19 @@ export default function Sidebar() {
 
   return (
     <aside className="flex h-full flex-col border-r border-border bg-black/20 backdrop-blur-md">
-      <div className="flex h-[65px] items-center border-b border-b-border px-4">
-        <h2 className="text-sm font-semibold">
-          {pendingResults?.length
-            ? `${pendingResults.length} decision${pendingResults.length > 1 ? 's' : ''} to make in working directory`
-            : 'You have no decisions to make in working directory'}
-        </h2>
+      <div className="flex h-auto min-h-[65px] items-center border-b border-b-border px-4">
+        <div className="break-all text-xs">
+          {pendingResults?.length ? (
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="font-semibold">
+                {pendingResults?.length} decision{pendingResults.length > 1 ? 's' : ''} to make in
+              </span>{' '}
+              <SelectScanRoot />
+            </div>
+          ) : (
+            'You have no decisions to make in working directory'
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 px-4 py-6">

@@ -22,7 +22,7 @@
  */
 
 import clsx from 'clsx';
-import { ArrowDownNarrowWide, ArrowUpNarrowWide, FileText, Package, Percent, Scale } from 'lucide-react';
+import { ArrowDownNarrowWide, ArrowUpNarrowWide, FileText, Percent, Scale } from 'lucide-react';
 import { ReactNode } from 'react';
 
 import useResultsStore from '@/modules/results/stores/useResultsStore';
@@ -49,12 +49,6 @@ const sortOptions: SortOption[] = [
     label: 'File Path',
     icon: <FileText className="h-4 w-4" />,
     description: 'Sort alphabetically by file path',
-  },
-  {
-    value: 'component_name',
-    label: 'Component Name',
-    icon: <Package className="h-4 w-4" />,
-    description: 'Sort by component name',
   },
   {
     value: 'license',

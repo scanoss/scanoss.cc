@@ -29,7 +29,6 @@ type SortOrder string
 const (
 	SortByMatchPercentage SortOption = "match_percentage"
 	SortByPath            SortOption = "path"
-	SortByComponentName   SortOption = "component_name"
 	SortByLicense         SortOption = "license"
 
 	SortOrderAsc  SortOrder = "asc"

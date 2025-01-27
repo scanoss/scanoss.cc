@@ -95,13 +95,19 @@ func (c *Config) SetScanSettingsFilePath(path string) {
 	c.ScanSettingsFilePath = path
 }
 
-func GetDefaultResultFilePath() string {
-	workingDir, _ := os.Getwd()
+func GetDefaultResultFilePath(originalWorkDir string) string {
+	workingDir := originalWorkDir
+	if workingDir == "" {
+		workingDir, _ = os.Getwd()
+	}
 	return filepath.Join(workingDir, SCANOSS_HIDDEN_FOLDER, DEFAULT_RESULTS_FILE)
 }
 
-func GetDefaultScanSettingsFilePath() string {
-	workingDir, _ := os.Getwd()
+func GetDefaultScanSettingsFilePath(originalWorkDir string) string {
+	workingDir := originalWorkDir
+	if workingDir == "" {
+		workingDir, _ = os.Getwd()
+	}
 	return filepath.Join(workingDir, DEFAULT_SCANOSS_SETTINGS_FILE)
 }
 
@@ -141,7 +147,7 @@ func setupLogger(debug bool) error {
 	return nil
 }
 
-func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath string, debug bool) error {
+func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath string, originalWorkDir string, debug bool) error {
 	if err := setupLogger(debug); err != nil {
 		return fmt.Errorf("error setting up logger: %w", err)
 	}
@@ -210,17 +216,21 @@ func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSetti
 
 	// Set default values if not set via config file or command line args
 	if instance.ScanRoot == "" {
-		wd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf("error getting working directory: %w", err)
+		if originalWorkDir != "" {
+			instance.ScanRoot = originalWorkDir
+		} else {
+			wd, err := os.Getwd()
+			if err != nil {
+				return fmt.Errorf("error getting working directory: %w", err)
+			}
+			instance.ScanRoot = wd
 		}
-		instance.ScanRoot = wd
 	}
 	if instance.ResultFilePath == "" {
-		instance.ResultFilePath = GetDefaultResultFilePath()
+		instance.ResultFilePath = GetDefaultResultFilePath(originalWorkDir)
 	}
 	if instance.ScanSettingsFilePath == "" {
-		instance.ScanSettingsFilePath = GetDefaultScanSettingsFilePath()
+		instance.ScanSettingsFilePath = GetDefaultScanSettingsFilePath(originalWorkDir)
 	}
 
 	return nil

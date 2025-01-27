@@ -23,7 +23,6 @@ export namespace entities {
 	    ReplaceComponentWithComments = "replaceComponentWithComments",
 	    ToggleSyncScrollPosition = "toggleSyncScrollPosition",
 	    ShowKeyboardShortcutsModal = "showKeyboardShortcutsModal",
-	    ScanCurrentDirectory = "scanCurrentDirectory",
 	    ScanWithOptions = "scanWithOptions",
 	}
 	export class ComponentFilter {

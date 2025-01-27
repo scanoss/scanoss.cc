@@ -156,11 +156,6 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     description: 'Scan with options',
     keys: 'mod+shift+b',
   },
-  [entities.Action.ScanCurrentDirectory]: {
-    name: 'Scan Current Directory',
-    description: 'Scan the current directory',
-    keys: 'mod+shift+c',
-  },
 };
 
 export const getShortcutDisplay = (keys: string, modifierKey: string): string[] => {

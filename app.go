@@ -135,9 +135,6 @@ func (a *App) initializeMenu() {
 
 	// Scan menu
 	ScanMenu := AppMenu.AddSubmenu("Scan")
-	ScanMenu.AddText("Scan Current Directory", keys.Combo("b", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {
-		runtime.EventsEmit(a.ctx, "scanCurrentDirectory")
-	})
 	ScanMenu.AddText("Scan With Options", keys.Combo("c", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, "scanWithOptions")
 	})

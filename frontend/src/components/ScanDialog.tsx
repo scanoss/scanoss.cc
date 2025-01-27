@@ -137,17 +137,13 @@ export default function ScanDialog({ onOpenChange, withOptions }: ScanDialogProp
   }, []);
 
   const isScanning = scanStatus === 'scanning';
-  const dialogTitle = withOptions ? 'Scan With Options' : 'Scan Current Directory';
-  const dialogDescription = withOptions
-    ? 'Run a scan on the selected directory with the provided arguments.'
-    : 'Run a scan on the current directory with default arguments.';
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{dialogTitle}</DialogTitle>
-          <DialogDescription>{dialogDescription}</DialogDescription>
+          <DialogTitle>Scan With Options</DialogTitle>
+          <DialogDescription>Run a scan on the selected directory with the provided arguments.</DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[600px]">
           <div className="flex flex-col gap-4 py-4">

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2018-2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,24 +24,21 @@
 import { ExternalLink, Folder, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Label } from '@/components/ui/label';
 import { withErrorHandling } from '@/lib/errors';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 import useConfigStore from '@/stores/useConfigStore';
 
 import { GetWorkingDir, SelectDirectory } from '../../wailsjs/go/main/App';
-import { ScanStream } from '../../wailsjs/go/service/ScanServicePythonImpl';
+import { entities } from '../../wailsjs/go/models';
+import { GetScanArgs, ScanStream } from '../../wailsjs/go/service/ScanServicePythonImpl';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
 import Link from './Link';
+import ScanOption from './ScanOption';
 import TerminalOutput from './TerminalOutput';
-import { Label } from './ui/label';
-import { ScrollArea } from './ui/scroll-area';
 import { useToast } from './ui/use-toast';
 
 interface OutputLine {
@@ -50,24 +47,6 @@ interface OutputLine {
 }
 
 type ScanStatus = 'idle' | 'scanning' | 'completed' | 'failed';
-
-interface ScanOptions {
-  output: string;
-  settings: string;
-  debug: boolean;
-  trace: boolean;
-  quiet: boolean;
-  showAdvanced: boolean;
-  // Advanced options
-  threads: number;
-  timeout: number;
-  retry: number;
-  postSize: number;
-  flags: number;
-  dependencies: boolean;
-  dependenciesOnly: boolean;
-  noWfpOutput: boolean;
-}
 
 interface ScanDialogProps {
   onOpenChange: () => void;
@@ -82,22 +61,8 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
   const [scanStatus, setScanStatus] = useState<ScanStatus>('idle');
 
   const [directory, setDirectory] = useState('');
-  const [options, setOptions] = useState<ScanOptions>({
-    output: '',
-    settings: '',
-    debug: false,
-    trace: false,
-    quiet: true,
-    showAdvanced: false,
-    threads: 5,
-    timeout: 180,
-    retry: 5,
-    postSize: 32,
-    flags: 0,
-    dependencies: false,
-    dependenciesOnly: false,
-    noWfpOutput: false,
-  });
+  const [scanArgs, setScanArgs] = useState<entities.ScanArgDef[]>([]);
+  const [options, setOptions] = useState<Record<string, string | number | boolean | string[]>>({});
 
   const fetchResults = useResultsStore((state) => state.fetchResults);
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
@@ -123,26 +88,27 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
       setScanStatus('scanning');
       setOutput([]);
 
-      const scanArgs: string[] = [directory];
+      let cmdArgs: string[] = [directory];
 
-      // Add core options
-      if (options.output) scanArgs.push('--output', options.output);
-      if (options.settings) scanArgs.push('--settings', options.settings);
-      if (options.debug) scanArgs.push('--debug');
-      if (options.trace) scanArgs.push('--trace');
-      if (options.quiet) scanArgs.push('--quiet');
+      // We should only add options that have non-default values
+      Object.entries(options).forEach(([key, value]) => {
+        const arg = scanArgs.find((a) => a.Name === key);
 
-      // Add advanced options
-      if (options.threads !== 5) scanArgs.push('--threads', options.threads.toString());
-      if (options.timeout !== 180) scanArgs.push('--timeout', options.timeout.toString());
-      if (options.retry !== 5) scanArgs.push('--retry', options.retry.toString());
-      if (options.postSize !== 32) scanArgs.push('--post-size', options.postSize.toString());
-      if (options.flags !== 0) scanArgs.push('--flags', options.flags.toString());
-      if (options.dependencies) scanArgs.push('--dependencies');
-      if (options.dependenciesOnly) scanArgs.push('--dependencies-only');
-      if (options.noWfpOutput) scanArgs.push('--no-wfp-output');
+        if (arg && value !== arg.Default) {
+          if (arg.Type === 'bool') {
+            if (value === true) {
+              cmdArgs.push(`--${key}`);
+            } else {
+              cmdArgs = cmdArgs.filter((arg) => arg !== `--${key}`);
+            }
+          } else {
+            console.log('pushing', `--${key}`, String(value));
+            cmdArgs.push(`--${key}`, String(value));
+          }
+        }
+      });
 
-      await ScanStream(scanArgs);
+      await ScanStream(cmdArgs);
       await setScanRoot(directory);
       setSelectedResults([]);
       await fetchResults();
@@ -159,19 +125,66 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
     },
   });
 
+  const handleOptionChange = (name: string, value: string | number | boolean | string[]) => {
+    setOptions((prev) => ({ ...prev, [name]: value }));
+  };
+
+  console.log(options);
+
+  const handleFileSelect = (name: string) => {
+    return withErrorHandling({
+      asyncFn: async () => {
+        const selectedFile = await SelectDirectory();
+        if (selectedFile) {
+          const arg = scanArgs.find((a) => a.Name === name);
+          if (arg?.Type === 'string') {
+            handleOptionChange(name, selectedFile);
+          }
+        }
+      },
+      onError: () => {
+        toast({
+          title: 'Error',
+          description: `An error occurred while selecting the ${name} file. Please try again.`,
+          variant: 'destructive',
+        });
+      },
+    });
+  };
+
   useEffect(() => {
-    async function fetchDefaultDirectory() {
-      const dir = await GetWorkingDir();
-      setDirectory(dir);
-      // Set default output path based on directory
-      setOptions((prev) => ({
-        ...prev,
-        output: `${dir}/.scanoss/results.json`,
-        settings: `${dir}/scanoss.json`,
-      }));
+    async function initialize() {
+      try {
+        // Get scan arguments from backend
+        const args = await GetScanArgs();
+        setScanArgs(args);
+
+        // Initialize options with default values
+        const initialOptions: Record<string, string | number | boolean | string[]> = {};
+        args.forEach((arg) => {
+          initialOptions[arg.Name] = arg.Default;
+        });
+        setOptions(initialOptions);
+
+        // Set default directory and paths
+        const dir = await GetWorkingDir();
+        setDirectory(dir);
+        setOptions((prev) => ({
+          ...prev,
+          output: `${dir}/.scanoss/results.json`,
+          settings: `${dir}/scanoss.json`,
+        }));
+      } catch (error) {
+        console.error('Failed to initialize scan dialog:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to initialize scan options. Please try again.',
+          variant: 'destructive',
+        });
+      }
     }
-    fetchDefaultDirectory();
-  }, []);
+    initialize();
+  }, [toast]);
 
   useEffect(() => {
     const subs = [
@@ -193,287 +206,75 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
     return () => subs.forEach((unsub) => unsub());
   }, []);
 
-  const handleSelectOutput = withErrorHandling({
-    asyncFn: async () => {
-      const selectedFile = await SelectDirectory();
-      if (selectedFile) {
-        setOptions((prev) => ({ ...prev, output: selectedFile }));
-      }
-    },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: 'An error occurred while selecting the output file. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const handleSelectSettings = withErrorHandling({
-    asyncFn: async () => {
-      const selectedFile = await SelectDirectory();
-      if (selectedFile) {
-        setOptions((prev) => ({ ...prev, settings: selectedFile }));
-      }
-    },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: 'An error occurred while selecting the settings file. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
-
   const isScanning = scanStatus === 'scanning';
+  const coreOptions = scanArgs.filter((arg) => arg.IsCore);
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] max-w-3xl flex-col">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Scan With Options</DialogTitle>
           <DialogDescription>Run a scan on the selected directory with the provided arguments.</DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-1">
-          <div className="flex flex-col gap-6 py-4 pr-4">
-            {/* Core Settings */}
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="directory">Directory to scan</Label>
-                <div className="flex gap-2">
-                  <Input id="directory" value={directory} readOnly placeholder="Select a directory" className="text-sm" />
-                  <Button type="button" onClick={handleSelectDirectory} variant="secondary" size="icon">
-                    <Folder className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Label htmlFor="output">Output Path</Label>
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      id="output"
-                      value={options.output}
-                      onChange={(e) => setOptions((prev) => ({ ...prev, output: e.target.value }))}
-                      placeholder="[root]/.scanoss/results.json"
-                      className="text-sm"
-                    />
-                    <Button type="button" onClick={handleSelectOutput} variant="secondary" size="icon">
-                      <Folder className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Label htmlFor="settings">Settings File</Label>
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      id="settings"
-                      value={options.settings}
-                      onChange={(e) => setOptions((prev) => ({ ...prev, settings: e.target.value }))}
-                      placeholder="[root]/scanoss.json"
-                      className="text-sm"
-                    />
-                    <Button type="button" onClick={handleSelectSettings} variant="secondary" size="icon">
-                      <Folder className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Core Flags */}
-              <div className="space-y-2">
-                <Label>Basic Options</Label>
-                <div className="grid grid-cols-3 gap-4">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="debug"
-                          checked={options.debug}
-                          onCheckedChange={(checked) => setOptions((prev) => ({ ...prev, debug: checked === true }))}
-                        />
-                        <Label htmlFor="debug" className="cursor-help">
-                          Debug
-                        </Label>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Enable debug messages for detailed logging</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="trace"
-                          checked={options.trace}
-                          onCheckedChange={(checked) => setOptions((prev) => ({ ...prev, trace: checked === true }))}
-                        />
-                        <Label htmlFor="trace" className="cursor-help">
-                          Trace
-                        </Label>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Enable trace messages, including API posts</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="quiet"
-                          checked={options.quiet}
-                          onCheckedChange={(checked) => setOptions((prev) => ({ ...prev, quiet: checked === true }))}
-                        />
-                        <Label htmlFor="quiet" className="cursor-help">
-                          Quiet
-                        </Label>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Enable quiet mode (reduce output verbosity)</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </div>
+        <div className="flex flex-col gap-6 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="directory">Directory to scan</Label>
+            <div className="flex gap-2">
+              <Input id="directory" value={directory} readOnly placeholder="Select a directory" className="text-sm" />
+              <Button type="button" onClick={handleSelectDirectory} variant="secondary" size="icon">
+                <Folder className="h-4 w-4" />
+              </Button>
             </div>
+          </div>
 
-            {/* Advanced Settings */}
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="advanced-settings">
-                <AccordionTrigger className="text-sm font-medium">Advanced Settings</AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-6 pt-2">
-                    {/* Performance Settings */}
-                    <div className="space-y-4">
-                      <Label className="text-sm font-medium">Performance</Label>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="threads" className="text-sm text-muted-foreground">
-                            Threads
-                          </Label>
-                          <Input
-                            id="threads"
-                            type="number"
-                            min="1"
-                            max="32"
-                            value={options.threads}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              if (!isNaN(value) && value >= 1 && value <= 32) {
-                                setOptions((prev) => ({ ...prev, threads: value }));
-                              }
-                            }}
-                            className="font-mono text-sm"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="timeout" className="text-sm text-muted-foreground">
-                            Timeout (s)
-                          </Label>
-                          <Input
-                            id="timeout"
-                            type="number"
-                            min="1"
-                            max="3600"
-                            value={options.timeout}
-                            onChange={(e) => {
-                              const value = parseInt(e.target.value);
-                              if (!isNaN(value) && value >= 1 && value <= 3600) {
-                                setOptions((prev) => ({ ...prev, timeout: value }));
-                              }
-                            }}
-                            className="font-mono text-sm"
-                          />
-                        </div>
-                      </div>
-                    </div>
+          {/* Core Options */}
+          <div className="space-y-6">
+            {coreOptions.map((arg) => (
+              // TODO: With this same component, we could easily add the advanced options below in an accordion or something like that
+              <ScanOption
+                key={arg.Name}
+                name={arg.Name}
+                type={arg.Type.toLowerCase() as 'string' | 'int' | 'bool' | 'stringSlice'}
+                value={options[arg.Name]}
+                defaultValue={arg.Default}
+                usage={arg.Usage}
+                onChange={(value) => handleOptionChange(arg.Name, value)}
+                onSelectFile={arg.IsFileSelector ? () => handleFileSelect(arg.Name)() : undefined}
+                isFileSelector={arg.IsFileSelector}
+              />
+            ))}
+          </div>
 
-                    <Separator />
-
-                    {/* Additional Options */}
-                    <div className="space-y-4">
-                      <Label className="text-sm font-medium">Additional Options</Label>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="dependencies"
-                            checked={options.dependencies}
-                            onCheckedChange={(checked) => setOptions((prev) => ({ ...prev, dependencies: checked === true }))}
-                          />
-                          <Label htmlFor="dependencies" className="text-sm text-muted-foreground">
-                            Dependencies
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="dependenciesOnly"
-                            checked={options.dependenciesOnly}
-                            onCheckedChange={(checked) => setOptions((prev) => ({ ...prev, dependenciesOnly: checked === true }))}
-                          />
-                          <Label htmlFor="dependenciesOnly" className="text-sm text-muted-foreground">
-                            Dependencies Only
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="noWfpOutput"
-                            checked={options.noWfpOutput}
-                            onCheckedChange={(checked) => setOptions((prev) => ({ ...prev, noWfpOutput: checked === true }))}
-                          />
-                          <Label htmlFor="noWfpOutput" className="text-sm text-muted-foreground">
-                            Skip WFP Output
-                          </Label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            {/* Documentation Link */}
-            <p className="text-sm text-muted-foreground">
-              Need help with options?{' '}
-              <Link
-                to="https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/#commands-and-arguments"
-                className="inline-flex items-center hover:text-primary"
-              >
+          {/* Documentation Link */}
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <span>Need help with options?</span>
+            <Link to="https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/#commands-and-arguments">
+              <div className="inline-flex items-center">
                 View documentation
                 <ExternalLink className="ml-1 h-3 w-3" />
-              </Link>
-            </p>
-          </div>
-        </ScrollArea>
-        <DialogFooter>
-          <div className="flex w-full flex-col gap-3">
-            <Button onClick={handleScan} disabled={isScanning || !directory} className="w-full">
-              {isScanning ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Scanning...
-                </>
-              ) : (
-                'Start Scan'
-              )}
-            </Button>
-
-            {(isScanning || output.length > 0) && (
-              <div className="space-y-2">
-                <Label>Console Output:</Label>
-                <TerminalOutput lines={output} />
               </div>
-            )}
+            </Link>
           </div>
+        </div>
+        <DialogFooter className="flex flex-1 gap-2 sm:flex-col">
+          {output.length > 0 && (
+            <div className="space-y-2">
+              <Label>Console Output:</Label>
+              <TerminalOutput lines={output} />
+            </div>
+          )}
+
+          <Button onClick={handleScan} disabled={isScanning || !directory} className="!ml-0">
+            {isScanning ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Scanning...
+              </>
+            ) : (
+              'Start Scan'
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -28,3 +28,44 @@ type ScanResponse struct {
 	ErrOutput string `json:"error_output,omitempty"`
 	Error     error  `json:"error,omitempty"`
 }
+
+type ScanArgDef struct {
+	Name           string
+	Shorthand      string
+	Default        interface{}
+	Usage          string
+	Type           string
+	IsCore         bool
+	IsFileSelector bool
+}
+
+var (
+	ScanArguments = []ScanArgDef{
+		{"wfp", "w", "", "Scan a WFP File instead of a folder (optional)", "string", false, true},
+		{"dep", "p", "", "Use a dependency file instead of a folder (optional)", "string", false, true},
+		{"stdin", "s", "", "Scan the file contents supplied via STDIN (optional)", "string", false, false},
+		{"files", "e", []string{}, "List of files to scan.", "stringSlice", false, false},
+		{"identify", "i", "", "Scan and identify components in SBOM file", "string", false, true},
+		{"ignore", "n", "", "Ignore components specified in the SBOM file", "string", false, true},
+		{"output", "o", "", "Output result file name (optional - default stdout).", "string", true, true},
+		{"format", "f", "plain", "Result output format (optional - default: plain)", "string", false, false},
+		{"threads", "T", 5, "Number of threads to use while scanning (optional - default 5)", "int", false, false},
+		{"flags", "F", 0, "Scanning engine flags", "int", false, false},
+		{"post-size", "P", 32, "Number of kilobytes to limit the post to while scanning (optional - default 32)", "int", false, false},
+		{"timeout", "M", 180, "Timeout (in seconds) for API communication (optional - default 180)", "int", false, false},
+		{"retry", "R", 5, "Retry limit for API communication (optional - default 5)", "int", false, false},
+		{"no-wfp-output", "", false, "Skip WFP file generation", "bool", false, false},
+		{"dependencies", "D", false, "Add Dependency scanning", "bool", false, false},
+		{"dependencies-only", "", false, "Run Dependency scanning only", "bool", false, false},
+		{"sc-command", "", "", "Scancode command and path if required (optional - default scancode).", "string", false, false},
+		{"sc-timeout", "", 600, "Timeout (in seconds) for scancode to complete (optional - default 600)", "int", false, false},
+		{"dep-scope", "", "", "Filter dependencies by scope - default all (options: dev/prod)", "string", false, false},
+		{"dep-scope-inc", "", "", "Include dependencies with declared scopes", "string", false, false},
+		{"dep-scope-exc", "", "", "Exclude dependencies with declared scopes", "string", false, false},
+		{"settings", "", "", "Settings file to use for scanning (optional - default scanoss.json)", "string", true, true},
+		{"skip-settings-file", "", false, "Skip default settings file (scanoss.json) if it exists", "bool", false, false},
+		{"debug", "d", false, "Enable debug messages", "bool", true, false},
+		{"trace", "t", false, "Enable trace messages, including API posts", "bool", true, false},
+		{"quiet", "q", true, "Enable quiet mode", "bool", true, false},
+	}
+)

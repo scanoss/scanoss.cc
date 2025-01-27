@@ -370,6 +370,30 @@ export namespace entities {
 		    return a;
 		}
 	}
+	export class ScanArgDef {
+	    Name: string;
+	    Shorthand: string;
+	    Default: any;
+	    Usage: string;
+	    Type: string;
+	    IsCore: boolean;
+	    IsFileSelector: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new ScanArgDef(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.Name = source["Name"];
+	        this.Shorthand = source["Shorthand"];
+	        this.Default = source["Default"];
+	        this.Usage = source["Usage"];
+	        this.Type = source["Type"];
+	        this.IsCore = source["IsCore"];
+	        this.IsFileSelector = source["IsFileSelector"];
+	    }
+	}
 	export class SizesSkipSettings {
 	    patterns?: string[];
 	    min?: number;

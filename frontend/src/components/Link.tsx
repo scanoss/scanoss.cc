@@ -33,7 +33,7 @@ export default function Link({ children, to, className, ...props }: { children: 
         e.preventDefault();
         BrowserOpenURL(to);
       }}
-      className={clsx(className, 'cursor-pointer text-blue-500 underline')}
+      className={clsx(className, 'cursor-pointer text-blue-500 underline hover:text-blue-600')}
       {...props}
     >
       {children}

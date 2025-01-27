@@ -31,6 +31,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -212,4 +213,9 @@ func (s *ScanServicePythonImpl) emitEvent(eventName string, data ...interface{})
 	if s.ctx != nil {
 		runtime.EventsEmit(s.ctx, eventName, data...)
 	}
+}
+
+// GetScanArgs returns the scan arguments configuration
+func (s *ScanServicePythonImpl) GetScanArgs() []entities.ScanArgDef {
+	return entities.ScanArguments
 }

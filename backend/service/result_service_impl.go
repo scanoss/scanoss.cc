@@ -101,17 +101,6 @@ func (s *ResultServiceImpl) sortResults(results []entities.Result, dto *entities
 					sortOrder == entities.SortOrderAsc && iPercentage < jPercentage
 			}
 			return firstResult.Path < secondResult.Path // Secondary sort by path
-		case entities.SortByComponentName:
-			if firstResult.ComponentName != secondResult.ComponentName {
-				if firstResult.ComponentName == "" {
-					return sortOrder == entities.SortOrderAsc
-				}
-				if secondResult.ComponentName == "" {
-					return sortOrder == entities.SortOrderDesc
-				}
-				return (sortOrder == entities.SortOrderAsc) == (firstResult.ComponentName < secondResult.ComponentName)
-			}
-			return firstResult.Path < secondResult.Path
 		case entities.SortByPath:
 			return (sortOrder == entities.SortOrderAsc) == (firstResult.Path < secondResult.Path)
 		case entities.SortByLicense:

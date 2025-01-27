@@ -28,14 +28,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function encodeFilePath(filePath: string) {
-  return btoa(filePath);
-}
-
-export function decodeFilePath(encodedPath: string) {
-  return atob(encodedPath);
-}
-
 export function getFileName(filePath: string) {
   const parts = filePath.split('/');
   return parts.pop() || '';
@@ -44,4 +36,15 @@ export function getFileName(filePath: string) {
 export function getDirectory(filePath: string) {
   const parts = filePath.split('/');
   return parts.slice(0, -1).join('/');
+}
+
+export function truncatePath(path: string, maxLength: number = 30) {
+  if (path.length <= maxLength) return path;
+  const parts = path.split('/');
+  if (parts.length <= 2) return path;
+
+  const isAbsolute = path.startsWith('/');
+  const first = isAbsolute ? `/${parts[1]}` : parts[0];
+  const last = parts[parts.length - 1];
+  return `${first}/.../${last}`;
 }

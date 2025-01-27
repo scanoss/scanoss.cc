@@ -35,23 +35,13 @@ import { EventsOn } from '../../wailsjs/runtime/runtime';
 
 export default function Root() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
-  const [scanModal, setScanModal] = useState({
-    open: false,
-    withOptions: false,
-  });
-
+  const [scanModal, setScanModal] = useState(false);
   const handleCloseScanModal = () => {
-    setScanModal({
-      open: false,
-      withOptions: false,
-    });
+    setScanModal(false);
   };
 
-  const handleShowScanModal = ({ withOptions }: { withOptions: boolean }) => {
-    setScanModal({
-      open: true,
-      withOptions,
-    });
+  const handleShowScanModal = () => {
+    setScanModal(true);
   };
 
   useEffect(() => {
@@ -60,7 +50,7 @@ export default function Root() {
       setShowKeyboardShortcuts(true);
     });
     EventsOn(entities.Action.ScanWithOptions, () => {
-      handleShowScanModal({ withOptions: true });
+      handleShowScanModal();
     });
   }, []);
 
@@ -85,7 +75,7 @@ export default function Root() {
         <StatusBar />
       </div>
       <KeyboardShortcutsDialog open={showKeyboardShortcuts} onOpenChange={() => setShowKeyboardShortcuts(false)} />
-      {scanModal.open && <ScanDialog onOpenChange={handleCloseScanModal} withOptions={scanModal.withOptions} />}
+      {scanModal && <ScanDialog onOpenChange={handleCloseScanModal} />}
     </div>
   );
 }

@@ -202,8 +202,8 @@ func (c *Config) InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, 
 		viper.AddConfigPath(c.GetDefaultConfigFolder())
 
 		// Default values
-		viper.SetDefault("apiUrl", DEFAULT_API_URL)
-		viper.SetDefault("apiToken", "")
+		viper.SetDefault("apiurl", DEFAULT_API_URL)
+		viper.SetDefault("apitoken", "")
 
 		if err := viper.ReadInConfig(); err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
@@ -221,13 +221,10 @@ func (c *Config) InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, 
 		}
 	}
 
-	once.Do(func() {
-		instance = &Config{
-			ApiToken: viper.GetString("apiToken"),
-			ApiUrl:   viper.GetString("apiUrl"),
-			Debug:    debug,
-		}
-	})
+	c.SetApiToken(viper.GetString("apitoken"))
+	c.SetApiUrl(viper.GetString("apiurl"))
+
+	c.Debug = debug
 
 	// Override with command line flags
 	if apiKey != "" {

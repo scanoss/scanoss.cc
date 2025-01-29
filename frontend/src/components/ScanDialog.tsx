@@ -21,7 +21,8 @@
  * SOFTWARE.
  */
 
-import { ExternalLink, Folder, Loader2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Check, ExternalLink, Folder, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,7 @@ import { withErrorHandling } from '@/lib/errors';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 import useConfigStore from '@/stores/useConfigStore';
 
-import { GetWorkingDir, SelectDirectory } from '../../wailsjs/go/main/App';
+import { GetScanRoot, SelectDirectory } from '../../wailsjs/go/main/App';
 import { entities } from '../../wailsjs/go/models';
 import { GetScanArgs, ScanStream } from '../../wailsjs/go/service/ScanServicePythonImpl';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
@@ -59,6 +60,7 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
 
   const [output, setOutput] = useState<OutputLine[]>([]);
   const [scanStatus, setScanStatus] = useState<ScanStatus>('idle');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const [directory, setDirectory] = useState('');
   const [scanArgs, setScanArgs] = useState<entities.ScanArgDef[]>([]);
@@ -72,6 +74,7 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
       const selectedDir = await SelectDirectory();
       if (selectedDir) {
         setDirectory(selectedDir);
+        setOptions((prev) => ({ ...prev, output: `${selectedDir}/.scanoss/results.json`, settings: `${selectedDir}/scanoss.json` }));
       }
     },
     onError: () => {
@@ -129,8 +132,6 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
     setOptions((prev) => ({ ...prev, [name]: value }));
   };
 
-  console.log(options);
-
   const handleFileSelect = (name: string) => {
     return withErrorHandling({
       asyncFn: async () => {
@@ -167,7 +168,7 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
         setOptions(initialOptions);
 
         // Set default directory and paths
-        const dir = await GetWorkingDir();
+        const dir = await GetScanRoot();
         setDirectory(dir);
         setOptions((prev) => ({
           ...prev,
@@ -196,6 +197,12 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
       }),
       EventsOn('scanComplete', () => {
         setScanStatus('completed');
+        setShowSuccess(true);
+
+        setTimeout(() => {
+          setShowSuccess(false);
+          setScanStatus('idle');
+        }, 2000);
       }),
       EventsOn('scanFailed', (error) => {
         setScanStatus('failed');
@@ -229,20 +236,20 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
           </div>
 
           {/* Core Options */}
-          <div className="space-y-6">
+          <div className="grid grid-cols-4 gap-6">
             {coreOptions.map((arg) => (
-              // TODO: With this same component, we could easily add the advanced options below in an accordion or something like that
-              <ScanOption
-                key={arg.Name}
-                name={arg.Name}
-                type={arg.Type.toLowerCase() as 'string' | 'int' | 'bool' | 'stringSlice'}
-                value={options[arg.Name]}
-                defaultValue={arg.Default}
-                usage={arg.Usage}
-                onChange={(value) => handleOptionChange(arg.Name, value)}
-                onSelectFile={arg.IsFileSelector ? () => handleFileSelect(arg.Name)() : undefined}
-                isFileSelector={arg.IsFileSelector}
-              />
+              <div key={arg.Name} className={arg.Type.toLowerCase() === 'bool' ? 'col-span-1' : 'col-span-4'}>
+                <ScanOption
+                  name={arg.Name}
+                  type={arg.Type.toLowerCase() as 'string' | 'int' | 'bool' | 'stringSlice'}
+                  value={options[arg.Name]}
+                  defaultValue={arg.Default}
+                  usage={arg.Usage}
+                  onChange={(value) => handleOptionChange(arg.Name, value)}
+                  onSelectFile={arg.IsFileSelector ? () => handleFileSelect(arg.Name)() : undefined}
+                  isFileSelector={arg.IsFileSelector}
+                />
+              </div>
             ))}
           </div>
 
@@ -265,16 +272,58 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
             </div>
           )}
 
-          <Button onClick={handleScan} disabled={isScanning || !directory} className="!ml-0">
-            {isScanning ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Scanning...
-              </>
-            ) : (
-              'Start Scan'
-            )}
-          </Button>
+          <div className="flex items-center justify-end gap-2">
+            <Button variant="outline" onClick={onOpenChange}>
+              Close
+            </Button>
+
+            <motion.div initial={false} animate={scanStatus} className="relative">
+              <Button onClick={handleScan} disabled={isScanning || !directory} className="relative min-w-[120px] overflow-hidden">
+                <AnimatePresence mode="wait">
+                  {isScanning && (
+                    <motion.span key="scanning" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Scanning...
+                    </motion.span>
+                  )}
+                  {showSuccess && (
+                    <div className="flex items-center justify-center">
+                      <Check className="h-4 w-4" />
+                      <span className="ml-2 text-sm">Done!</span>
+                    </div>
+                  )}
+
+                  {!isScanning && !showSuccess && (
+                    <motion.span key="default" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center">
+                      {scanStatus === 'completed' ? 'Scan Again' : 'Start Scan'}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </Button>
+              {isScanning && (
+                <>
+                  <motion.div
+                    className="pointer-events-none absolute inset-0 rounded-md border border-blue-400/30"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  />
+                  <motion.div
+                    className="pointer-events-none absolute inset-0 rounded-md border-2 border-blue-500"
+                    initial={{ opacity: 0 }}
+                    animate={{
+                      opacity: [0.15, 0.3, 0.15],
+                      scale: [1, 1.05, 1],
+                      transition: {
+                        repeat: Infinity,
+                        duration: 2,
+                        ease: 'easeInOut',
+                      },
+                    }}
+                  />
+                </>
+              )}
+            </motion.div>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

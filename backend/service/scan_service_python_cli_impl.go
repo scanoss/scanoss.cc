@@ -30,7 +30,9 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 
+	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -113,6 +115,9 @@ func (s *ScanServicePythonImpl) executeScanWithPipes(args []string) (*exec.Cmd, 
 
 	cmdArgs = append(cmdArgs, sensitiveArgs...)
 
+	// If the output folder does not exist, create it. This should be handled by the python cli
+	s.maybeCreateOutputFolder(args)
+
 	cmd := exec.Command(s.cmd, cmdArgs...)
 
 	stdout, err := cmd.StdoutPipe()
@@ -183,12 +188,12 @@ func (s *ScanServicePythonImpl) GetDefaultScanArgs() []string {
 	args := []string{}
 	cfg := config.GetInstance()
 
-	if cfg.ResultFilePath != "" {
-		args = append(args, "--output", cfg.ResultFilePath)
+	if cfg.GetResultFilePath() != "" {
+		args = append(args, "--output", cfg.GetResultFilePath())
 	}
 
-	if cfg.ScanSettingsFilePath != "" {
-		args = append(args, "--settings", cfg.ScanSettingsFilePath)
+	if cfg.GetScanSettingsFilePath() != "" {
+		args = append(args, "--settings", cfg.GetScanSettingsFilePath())
 	}
 
 	return args
@@ -198,12 +203,12 @@ func (s *ScanServicePythonImpl) GetSensitiveDefaultScanArgs() []string {
 	args := make([]string, 0)
 	cfg := config.GetInstance()
 
-	if cfg.ApiToken != "" {
-		args = append(args, "--key", cfg.ApiToken)
+	if cfg.GetApiToken() != "" {
+		args = append(args, "--key", cfg.GetApiToken())
 	}
 
-	if cfg.ApiUrl != "" {
-		args = append(args, "--apiurl", fmt.Sprintf("%s/scan/direct", cfg.ApiUrl))
+	if cfg.GetApiUrl() != "" {
+		args = append(args, "--apiurl", fmt.Sprintf("%s/scan/direct", cfg.GetApiUrl()))
 	}
 
 	return args
@@ -215,7 +220,26 @@ func (s *ScanServicePythonImpl) emitEvent(eventName string, data ...interface{})
 	}
 }
 
-// GetScanArgs returns the scan arguments configuration
 func (s *ScanServicePythonImpl) GetScanArgs() []entities.ScanArgDef {
 	return entities.ScanArguments
+}
+
+func (s *ScanServicePythonImpl) maybeCreateOutputFolder(args []string) {
+	outputPath := s.getOutputPathFromArgs(args)
+	outputFolder := filepath.Dir(outputPath)
+	if outputFolder != "" {
+		if _, err := os.Stat(outputFolder); os.IsNotExist(err) {
+			log.Info().Msgf("The provided output path does not exist. Creating it: %s", outputFolder)
+			os.MkdirAll(outputFolder, os.ModePerm)
+		}
+	}
+}
+
+func (s *ScanServicePythonImpl) getOutputPathFromArgs(args []string) string {
+	for i := 0; i < len(args)-1; i++ {
+		if args[i] == "--output" {
+			return args[i+1]
+		}
+	}
+	return ""
 }

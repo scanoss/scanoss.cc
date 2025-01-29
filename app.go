@@ -26,7 +26,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 	"slices"
 
 	"github.com/rs/zerolog/log"
@@ -43,6 +42,7 @@ type App struct {
 	ctx                    context.Context
 	scanossSettingsService service.ScanossSettingsService
 	keyboardService        service.KeyboardService
+	cfg                    *config.Config
 }
 
 func NewApp() *App {
@@ -53,15 +53,16 @@ func (a *App) Init(ctx context.Context, scanossSettingsService service.ScanossSe
 	a.ctx = ctx
 	a.scanossSettingsService = scanossSettingsService
 	a.keyboardService = keyboardService
+	a.cfg = config.GetInstance()
 	a.startup()
 }
 
 func (a *App) startup() {
 	a.maybeSetWindowTitle()
 	a.initializeMenu()
-	log.Debug().Msgf("Scan Settings file path: %s", config.GetInstance().ScanSettingsFilePath)
-	log.Debug().Msgf("Results file path: %s", config.GetInstance().ResultFilePath)
-	log.Debug().Msgf("Scan Root file path: %s", config.GetInstance().ScanRoot)
+	log.Debug().Msgf("Scan Settings file path: %s", a.cfg.GetScanSettingsFilePath())
+	log.Debug().Msgf("Results file path: %s", a.cfg.GetResultFilePath())
+	log.Debug().Msgf("Scan Root file path: %s", a.cfg.GetScanRoot())
 	log.Info().Msgf("App Version: %s", entities.AppVersion)
 }
 
@@ -186,31 +187,26 @@ func (a *App) SelectFile(defaultDir string) (string, error) {
 	return filePath, nil
 }
 
-func (a *App) GetWorkingDir() string {
-	workingDir, _ := os.Getwd()
-	return workingDir
-}
-
 func (a *App) GetScanRoot() (string, error) {
-	return config.GetInstance().ScanRoot, nil
+	return a.cfg.GetScanRoot(), nil
 }
 
 func (a *App) GetResultFilePath() (string, error) {
-	return config.GetInstance().ResultFilePath, nil
+	return a.cfg.GetResultFilePath(), nil
 }
 
 func (a *App) GetScanSettingsFilePath() (string, error) {
-	return config.GetInstance().ScanSettingsFilePath, nil
+	return a.cfg.GetScanSettingsFilePath(), nil
 }
 
 func (a *App) SetScanRoot(path string) {
-	config.GetInstance().SetScanRoot(path)
+	a.cfg.SetScanRoot(path)
 }
 
 func (a *App) SetResultFilePath(path string) {
-	config.GetInstance().SetResultFilePath(path)
+	a.cfg.SetResultFilePath(path)
 }
 
 func (a *App) SetScanSettingsFilePath(path string) {
-	config.GetInstance().SetScanSettingsFilePath(path)
+	a.cfg.SetScanSettingsFilePath(path)
 }

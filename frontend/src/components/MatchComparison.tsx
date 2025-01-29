@@ -22,6 +22,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
+import { FileSearch } from 'lucide-react';
 import { memo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -29,9 +30,12 @@ import CodeViewer from '@/components/CodeViewer';
 import useSelectedResult from '@/hooks/useSelectedResult';
 import { getFileName } from '@/lib/utils';
 
+import { entities } from '../../wailsjs/go/models';
 import { GetComponentByPath } from '../../wailsjs/go/service/ComponentServiceImpl';
 import { GetLocalFile, GetRemoteFile } from '../../wailsjs/go/service/FileServiceImpl';
+import { EventsEmit } from '../../wailsjs/runtime/runtime';
 import EditorToolbar from './EditorToolbar';
+import EmptyState from './EmptyState';
 import FileInfoCard from './FileInfoCard';
 import Header from './Header';
 import MatchInfoCard from './MatchInfoCard';
@@ -70,7 +74,19 @@ export default function MatchComparison() {
   });
 
   if (!selectedResult) {
-    return null;
+    return (
+      <EmptyState
+        icon={<FileSearch className="h-12 w-12" />}
+        title="No file selected"
+        subtitle="Select a file from the results list to view the comparison, or run a new scan to compare files."
+        action={{
+          label: 'Run a new scan',
+          onClick: () => {
+            EventsEmit(entities.Action.ScanWithOptions);
+          },
+        }}
+      />
+    );
   }
 
   return (

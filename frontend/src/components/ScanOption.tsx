@@ -46,6 +46,8 @@ export default function ScanOption({ name, type, value, defaultValue, usage, onC
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 
+  const isOutput = name === 'output';
+
   const renderInput = () => {
     switch (type) {
       case 'bool':
@@ -74,7 +76,7 @@ export default function ScanOption({ name, type, value, defaultValue, usage, onC
                   onChange(val);
                 }
               }}
-              className="font-mono text-sm"
+              className="text-sm"
             />
           </div>
         );
@@ -83,13 +85,13 @@ export default function ScanOption({ name, type, value, defaultValue, usage, onC
         return (
           <div className="space-y-2">
             <Label htmlFor={name}>{displayName}</Label>
-            <div className="flex gap-2">
+            <div className="flex items-stretch gap-2">
               <Input
                 id={name}
                 value={(value as string[]).join(',')}
                 onChange={(e) => onChange(e.target.value.split(','))}
                 placeholder={`${(defaultValue as string[]).join(',') || `[Enter ${displayName}]`}`}
-                className="text-sm"
+                className="flex-1 text-sm"
               />
               {isFileSelector && (
                 <Button type="button" onClick={onSelectFile} variant="secondary" size="icon">
@@ -105,20 +107,22 @@ export default function ScanOption({ name, type, value, defaultValue, usage, onC
         return (
           <div className="space-y-2">
             <Label htmlFor={name}>{displayName}</Label>
-            <div className="flex gap-2">
+            <div className="flex items-stretch gap-2">
               <Input
                 id={name}
                 value={value as string}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={`${(defaultValue as string) || `[Enter ${displayName}]`}`}
                 className="text-sm"
+                disabled={isOutput}
               />
-              {isFileSelector && (
+              {isFileSelector && !isOutput && (
                 <Button type="button" onClick={onSelectFile} variant="secondary" size="icon">
                   <Folder className="h-4 w-4" />
                 </Button>
               )}
             </div>
+            {isOutput && <p className="text-xs text-muted-foreground">Automatically set based on the scan root folder</p>}
           </div>
         );
     }
@@ -126,9 +130,7 @@ export default function ScanOption({ name, type, value, defaultValue, usage, onC
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <div className="w-full">{renderInput()}</div>
-      </TooltipTrigger>
+      <TooltipTrigger asChild>{renderInput()}</TooltipTrigger>
       <TooltipContent>
         <p>{usage}</p>
       </TooltipContent>

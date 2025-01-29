@@ -72,8 +72,8 @@ const useResultsStore = create<ResultsStore>()(
     query: '',
     filterByMatchType: 'all',
     sort: {
-      option: 'match_percentage',
-      order: 'desc' as const,
+      option: 'path',
+      order: 'asc' as const,
     },
 
     setSort: (option, order) => {
@@ -88,7 +88,7 @@ const useResultsStore = create<ResultsStore>()(
 
     fetchResults: async () => {
       const { selectedResults, filterByMatchType, query, sort } = get();
-      set({ isLoading: true, error: null }, false, 'FETCH_RESULTS');
+      set({ selectedResults: [], isLoading: true, error: null }, false, 'FETCH_RESULTS');
       try {
         const results = await GetAll(
           entities.RequestResultDTO.createFrom({

@@ -25,6 +25,7 @@ package repository
 
 import (
 	"encoding/json"
+	"os"
 
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
@@ -43,10 +44,12 @@ func NewResultRepositoryJsonImpl(fr utils.FileReader) *ResultRepositoryJsonImpl 
 }
 
 func (r *ResultRepositoryJsonImpl) GetResults(filter entities.ResultFilter) ([]entities.Result, error) {
-	// Path to your JSON file
-	resultFilePath := config.GetInstance().ResultFilePath
+	resultFilePath := config.GetInstance().GetResultFilePath()
 	resultByte, err := r.fr.ReadFile(resultFilePath)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return []entities.Result{}, nil
+		}
 		log.Error().Err(err).Msg("Error reading result file")
 		return []entities.Result{}, entities.ErrReadingResultFile
 	}

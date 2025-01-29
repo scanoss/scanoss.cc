@@ -85,7 +85,9 @@ func init() {
 }
 
 func initConfig() {
-	if err := config.InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath, originalWorkDir, debug); err != nil {
+	cfg := config.GetInstance()
+
+	if err := cfg.InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath, originalWorkDir, debug); err != nil {
 		log.Fatal().Err(err).Msg("Error initializing config")
 	}
 }

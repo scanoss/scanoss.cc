@@ -52,7 +52,7 @@ func (r *ScanossSettingsJsonRepository) Init() error {
 
 	sf, err := r.Read()
 	if err != nil {
-		log.Fatal().Err(err).Msgf("Error reading settings file: %v", config.GetInstance().ScanSettingsFilePath)
+		log.Fatal().Err(err).Msgf("Error reading settings file: %v", config.GetInstance().GetScanSettingsFilePath())
 		return err
 	}
 
@@ -65,17 +65,18 @@ func (r *ScanossSettingsJsonRepository) Init() error {
 
 func (r *ScanossSettingsJsonRepository) Save() error {
 	sf := r.GetSettings()
-	if err := utils.WriteJsonFile(config.GetInstance().ScanSettingsFilePath, sf); err != nil {
+	if err := utils.WriteJsonFile(config.GetInstance().GetScanSettingsFilePath(), sf); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *ScanossSettingsJsonRepository) Read() (entities.SettingsFile, error) {
-	if config.GetInstance() == nil {
+	cfg := config.GetInstance()
+	if cfg == nil {
 		return entities.SettingsFile{}, fmt.Errorf("config is not initialized")
 	}
-	scanSettingsFileBytes, err := r.fr.ReadFile(config.GetInstance().ScanSettingsFilePath)
+	scanSettingsFileBytes, err := r.fr.ReadFile(cfg.GetScanSettingsFilePath())
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return entities.SettingsFile{}, nil

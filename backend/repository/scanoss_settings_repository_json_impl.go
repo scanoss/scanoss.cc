@@ -47,23 +47,43 @@ func NewScanossSettingsJsonRepository(fr utils.FileReader) ScanossSettingsReposi
 }
 
 func (r *ScanossSettingsJsonRepository) Init() error {
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
+	cfg := config.GetInstance()
 
-	sf, err := r.Read()
-	if err != nil {
-		log.Fatal().Err(err).Msgf("Error reading settings file: %v", config.GetInstance().GetScanSettingsFilePath())
+	if cfg == nil {
+		err := fmt.Errorf("config is not initialized")
+		log.Error().Err(err).Msg("Error initializing ScanossSettingsJsonRepository")
 		return err
+	}
+
+	r.setSettingsFile(cfg.GetScanSettingsFilePath())
+
+	cfg.RegisterListener(r.onConfigChange)
+
+	return nil
+}
+
+// Triggered when the config is changed (e.g. scan root, scan settings file path, etc.)
+func (r *ScanossSettingsJsonRepository) onConfigChange(newCfg *config.Config) {
+	r.setSettingsFile(newCfg.GetScanSettingsFilePath())
+}
+
+func (r *ScanossSettingsJsonRepository) setSettingsFile(path string) {
+	sf, err := r.Read()
+
+	if err != nil {
+		log.Error().Err(err).Msgf("Error reading settings file: %v", path)
+		return
 	}
 
 	entities.ScanossSettingsJson = &entities.ScanossSettings{
 		SettingsFile: &sf,
 	}
-
-	return nil
 }
 
 func (r *ScanossSettingsJsonRepository) Save() error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
 	sf := r.GetSettings()
 	if err := utils.WriteJsonFile(config.GetInstance().GetScanSettingsFilePath(), sf); err != nil {
 		return err
@@ -72,6 +92,9 @@ func (r *ScanossSettingsJsonRepository) Save() error {
 }
 
 func (r *ScanossSettingsJsonRepository) Read() (entities.SettingsFile, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
 	cfg := config.GetInstance()
 	if cfg == nil {
 		return entities.SettingsFile{}, fmt.Errorf("config is not initialized")

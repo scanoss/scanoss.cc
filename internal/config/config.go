@@ -60,6 +60,7 @@ type Config struct {
 	ScanSettingsFilePath string `json:"scansettingsfilepath,omitempty"`
 	Debug                bool   `json:"debug,omitempty"`
 	mu                   sync.RWMutex
+	listeners            []func(*Config)
 }
 
 var instance *Config
@@ -70,6 +71,24 @@ func GetInstance() *Config {
 		instance = &Config{}
 	})
 	return instance
+}
+
+func (c *Config) RegisterListener(listener func(*Config)) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.listeners = append(c.listeners, listener)
+}
+
+func (c *Config) notifyListeners() {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	listeners := make([]func(*Config), len(c.listeners))
+	copy(listeners, c.listeners)
+
+	for _, listener := range listeners {
+		listener(c)
+	}
 }
 
 func (c *Config) getDefaultResultFilePath(scanRoot string) string {
@@ -112,39 +131,43 @@ func (c *Config) GetScanSettingsFilePath() string {
 
 func (c *Config) SetApiToken(token string) error {
 	c.mu.Lock()
-	defer c.mu.Unlock()
 	c.ApiToken = token
 	viper.Set("apitoken", token)
+	c.mu.Unlock()
+	c.notifyListeners()
 	return viper.WriteConfig()
 }
 
 func (c *Config) SetApiUrl(url string) error {
 	c.mu.Lock()
-	defer c.mu.Unlock()
 	c.ApiUrl = url
 	viper.Set("apiurl", url)
+	c.mu.Unlock()
+	c.notifyListeners()
 	return viper.WriteConfig()
 }
 
 func (c *Config) SetResultFilePath(path string) {
 	c.mu.Lock()
-	defer c.mu.Unlock()
 	c.ResultFilePath = path
+	c.mu.Unlock()
+	c.notifyListeners()
 }
 
 func (c *Config) SetScanRoot(path string) {
 	c.mu.Lock()
-	defer c.mu.Unlock()
-
 	c.ScanRoot = path
 	c.ResultFilePath = c.getDefaultResultFilePath(path)
 	c.ScanSettingsFilePath = c.getDefaultScanSettingsFilePath(path)
+	c.mu.Unlock()
+	c.notifyListeners()
 }
 
 func (c *Config) SetScanSettingsFilePath(path string) {
 	c.mu.Lock()
-	defer c.mu.Unlock()
 	c.ScanSettingsFilePath = path
+	c.mu.Unlock()
+	c.notifyListeners()
 }
 
 func (c *Config) GetDefaultConfigFolder() string {

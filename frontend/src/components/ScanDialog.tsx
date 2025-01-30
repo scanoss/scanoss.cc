@@ -262,7 +262,7 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
               id="advanced-options"
               value={advancedScanArgs.join(' ')}
               onChange={(e) => setAdvancedScanArgs(e.target.value.split(' '))}
-              placeholder="e.g. --threads 10 --no-wfp-output"
+              placeholder="e.g. --timeout 500 --skip-settings-file --dependencies"
               className="text-sm"
             />
             <p className="text-xs text-muted-foreground">

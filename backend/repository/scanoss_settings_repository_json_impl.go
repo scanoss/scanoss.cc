@@ -75,9 +75,13 @@ func (r *ScanossSettingsJsonRepository) setSettingsFile(path string) {
 		return
 	}
 
-	entities.ScanossSettingsJson = &entities.ScanossSettings{
-		SettingsFile: &sf,
+	if entities.ScanossSettingsJson == nil {
+		entities.ScanossSettingsJson = &entities.ScanossSettings{
+			SettingsFile: &sf,
+		}
 	}
+
+	entities.ScanossSettingsJson.SettingsFile = &sf
 }
 
 func (r *ScanossSettingsJsonRepository) Save() error {

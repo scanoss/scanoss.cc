@@ -30,8 +30,6 @@ import { MatchType } from '../domain';
 
 interface ResultsState {
   completedResults: entities.ResultDTO[];
-  error: string | null;
-  isLoading: boolean;
   lastSelectedIndex: number;
   lastSelectionType: 'pending' | 'completed' | null;
   pendingResults: entities.ResultDTO[];
@@ -88,39 +86,32 @@ const useResultsStore = create<ResultsStore>()(
 
     fetchResults: async () => {
       const { selectedResults, filterByMatchType, query, sort } = get();
-      set({ selectedResults: [], isLoading: true, error: null }, false, 'FETCH_RESULTS');
-      try {
-        const results = await GetAll(
-          entities.RequestResultDTO.createFrom({
-            match_type: filterByMatchType === 'all' ? undefined : filterByMatchType,
-            query,
-            sort: {
-              option: sort.option,
-              order: sort.order,
-            },
-          })
-        );
-        const pendingResults = results.filter((r) => r.workflow_state === 'pending');
-        const completedResults = results.filter((r) => r.workflow_state === 'completed');
+      const results = await GetAll(
+        entities.RequestResultDTO.createFrom({
+          match_type: filterByMatchType === 'all' ? undefined : filterByMatchType,
+          query,
+          sort: {
+            option: sort.option,
+            order: sort.order,
+          },
+        })
+      );
+      const pendingResults = results.filter((r) => r.workflow_state === 'pending');
+      const completedResults = results.filter((r) => r.workflow_state === 'completed');
 
-        set({ pendingResults, completedResults });
+      console.log('pendingResults', pendingResults);
+      console.log('completedResults', completedResults);
 
-        // When the app first loads or if changing the query, select the first result
-        if (!selectedResults.length) {
-          const hasPendingResults = pendingResults.length > 0;
-          const hasCompletedResults = completedResults.length > 0;
-          const firstSelectedResult = hasPendingResults ? pendingResults[0] : hasCompletedResults ? completedResults[0] : null;
-          const selectedResults = firstSelectedResult ? [firstSelectedResult] : [];
+      set({ pendingResults, completedResults });
 
-          set({ selectedResults, lastSelectionType: firstSelectedResult?.workflow_state as 'pending' | 'completed', lastSelectedIndex: 0 });
-        }
-      } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : 'An error occurred while fetching results',
-        });
-        throw error;
-      } finally {
-        set({ isLoading: false }, false, 'FETCH_RESULTS');
+      // When the app first loads or if changing the query, select the first result
+      if (!selectedResults.length) {
+        const hasPendingResults = pendingResults.length > 0;
+        const hasCompletedResults = completedResults.length > 0;
+        const firstSelectedResult = hasPendingResults ? pendingResults[0] : hasCompletedResults ? completedResults[0] : null;
+        const selectedResults = firstSelectedResult ? [firstSelectedResult] : [];
+
+        set({ selectedResults, lastSelectionType: firstSelectedResult?.workflow_state as 'pending' | 'completed', lastSelectedIndex: 0 });
       }
     },
 

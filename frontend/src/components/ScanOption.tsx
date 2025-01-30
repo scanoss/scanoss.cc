@@ -122,7 +122,7 @@ export default function ScanOption({ name, type, value, defaultValue, usage, onC
                 </Button>
               )}
             </div>
-            {isOutput && <p className="text-xs text-muted-foreground">Automatically set based on the scan root folder</p>}
+            {isOutput && <span className="text-xs text-muted-foreground">Automatically set based on the scan root folder</span>}
           </div>
         );
     }

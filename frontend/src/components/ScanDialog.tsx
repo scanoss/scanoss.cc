@@ -64,6 +64,7 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
 
   const [directory, setDirectory] = useState('');
   const [scanArgs, setScanArgs] = useState<entities.ScanArgDef[]>([]);
+  const [advancedScanArgs, setAdvancedScanArgs] = useState<string[]>([]);
   const [options, setOptions] = useState<Record<string, string | number | boolean | string[]>>({});
 
   const fetchResults = useResultsStore((state) => state.fetchResults);
@@ -105,11 +106,12 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
               cmdArgs = cmdArgs.filter((arg) => arg !== `--${key}`);
             }
           } else {
-            console.log('pushing', `--${key}`, String(value));
             cmdArgs.push(`--${key}`, String(value));
           }
         }
       });
+
+      cmdArgs.push(...advancedScanArgs);
 
       await ScanStream(cmdArgs);
       await setScanRoot(directory);
@@ -253,15 +255,25 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
             ))}
           </div>
 
-          {/* Documentation Link */}
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <span>Need help with options?</span>
-            <Link to="https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/#commands-and-arguments">
-              <div className="inline-flex items-center">
-                View documentation
-                <ExternalLink className="ml-1 h-3 w-3" />
-              </div>
-            </Link>
+          {/* Advanced Options */}
+          <div className="space-y-2">
+            <Label htmlFor="advanced-options">Advanced Options</Label>
+            <Input
+              id="advanced-options"
+              value={advancedScanArgs.join(' ')}
+              onChange={(e) => setAdvancedScanArgs(e.target.value.split(' '))}
+              placeholder="e.g. --threads 10 --no-wfp-output"
+              className="text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              You can add advanced options here. These will be passed to the scan command as is.
+              <Link to="https://scanoss.readthedocs.io/projects/scanoss-py/en/latest/#commands-and-arguments">
+                <div className="inline-flex items-center">
+                  View documentation
+                  <ExternalLink className="ml-1 h-3 w-3" />
+                </div>
+              </Link>
+            </p>
           </div>
         </div>
         <DialogFooter className="flex flex-1 gap-2 sm:flex-col">

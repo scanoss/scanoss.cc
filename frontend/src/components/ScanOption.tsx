@@ -72,7 +72,7 @@ export default function ScanOption({ name, type, value, defaultValue, usage, onC
               value={value as number}
               onChange={(e) => {
                 const val = parseInt(e.target.value);
-                if (!isNaN(val)) {
+                if (!Number.isNaN(val)) {
                   onChange(val);
                 }
               }}

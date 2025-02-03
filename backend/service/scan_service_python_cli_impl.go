@@ -230,7 +230,9 @@ func (s *ScanServicePythonImpl) maybeCreateOutputFolder(args []string) {
 	if outputFolder != "" {
 		if _, err := os.Stat(outputFolder); os.IsNotExist(err) {
 			log.Info().Msgf("The provided output path does not exist. Creating it: %s", outputFolder)
-			os.MkdirAll(outputFolder, os.ModePerm)
+			if err := os.MkdirAll(outputFolder, os.ModePerm); err != nil {
+				log.Error().Err(err).Msgf("Failed to create output folder: %s", outputFolder)
+			}
 		}
 	}
 }

@@ -41,7 +41,7 @@ export default function SelectResultsFile() {
 
   const handleSelectResultsFile = withErrorHandling({
     asyncFn: async () => {
-      const file = await SelectFile(scanRoot);
+      const file = await SelectFile(scanRoot ?? '.');
       if (file) {
         await setResultsFile(file);
         await fetchResults();

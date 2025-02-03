@@ -18,10 +18,6 @@ export function GetScanSettingsFilePath() {
   return window['go']['main']['App']['GetScanSettingsFilePath']();
 }
 
-export function GetWorkingDir() {
-  return window['go']['main']['App']['GetWorkingDir']();
-}
-
 export function Init(arg1, arg2, arg3) {
   return window['go']['main']['App']['Init'](arg1, arg2, arg3);
 }

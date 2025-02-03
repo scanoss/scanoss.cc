@@ -28,47 +28,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/backend/service"
 	"github.com/spf13/cobra"
-)
-
-type ArgDef struct {
-	Name      string
-	Shorthand string
-	Default   interface{}
-	Usage     string
-	Type      string
-}
-
-var (
-	scanArgs = []ArgDef{
-		{"wfp", "w", "", "Scan a WFP File instead of a folder (optional)", "string"},
-		{"dep", "p", "", "Use a dependency file instead of a folder (optional)", "string"},
-		{"stdin", "s", "", "Scan the file contents supplied via STDIN (optional)", "string"},
-		{"files", "e", []string{}, "List of files to scan.", "stringSlice"},
-		{"identify", "i", "", "Scan and identify components in SBOM file", "string"},
-		{"ignore", "n", "", "Ignore components specified in the SBOM file", "string"},
-		{"output", "o", "", "Output result file name (optional - default stdout).", "string"},
-		{"format", "f", "plain", "Result output format (optional - default: plain)", "string"},
-		{"threads", "T", 5, "Number of threads to use while scanning (optional - default 5)", "int"},
-		{"flags", "F", 0, "Scanning engine flags", "int"},
-		{"post-size", "P", 32, "Number of kilobytes to limit the post to while scanning (optional - default 32)", "int"},
-		{"timeout", "M", 180, "Timeout (in seconds) for API communication (optional - default 180)", "int"},
-		{"retry", "R", 5, "Retry limit for API communication (optional - default 5)", "int"},
-		{"no-wfp-output", "", false, "Skip WFP file generation", "bool"},
-		{"dependencies", "D", false, "Add Dependency scanning", "bool"},
-		{"dependencies-only", "", false, "Run Dependency scanning only", "bool"},
-		{"sc-command", "", "", "Scancode command and path if required (optional - default scancode).", "string"},
-		{"sc-timeout", "", 600, "Timeout (in seconds) for scancode to complete (optional - default 600)", "int"},
-		{"dep-scope", "", "", "Filter dependencies by scope - default all (options: dev/prod)", "string"},
-		{"dep-scope-inc", "", "", "Include dependencies with declared scopes", "string"},
-		{"dep-scope-exc", "", "", "Exclude dependencies with declared scopes", "string"},
-		{"settings", "", "", "Settings file to use for scanning (optional - default scanoss.json)", "string"},
-		{"skip-settings-file", "", false, "Skip default settings file (scanoss.json) if it exists", "bool"},
-		{"debug", "d", false, "Enable debug messages", "bool"},
-		{"trace", "t", false, "Enable trace messages, including API posts", "bool"},
-		{"quiet", "q", true, "Enable quiet mode", "bool"},
-	}
 )
 
 func NewScanCmd(scanService service.ScanService) *cobra.Command {
@@ -100,7 +62,7 @@ func NewScanCmd(scanService service.ScanService) *cobra.Command {
 				scanOptions = append(scanOptions, scanDirPath)
 			}
 
-			for _, arg := range scanArgs {
+			for _, arg := range entities.ScanArguments {
 				flag := cmd.Flag(arg.Name)
 				if flag == nil || !flag.Changed {
 					continue
@@ -129,7 +91,7 @@ func NewScanCmd(scanService service.ScanService) *cobra.Command {
 		},
 	}
 
-	for _, arg := range scanArgs {
+	for _, arg := range entities.ScanArguments {
 		switch arg.Type {
 		case "string":
 			cmd.Flags().StringP(arg.Name, arg.Shorthand, arg.Default.(string), arg.Usage)

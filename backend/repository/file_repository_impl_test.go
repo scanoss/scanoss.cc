@@ -49,7 +49,7 @@ func TestFileRepositoryImpl(t *testing.T) {
 		err := os.WriteFile(absolutePath, testContent, 0644)
 		assert.NoError(t, err)
 
-		config.GetInstance().ScanRoot = currentPath
+		config.GetInstance().SetScanRoot(currentPath)
 
 		repo := NewFileRepositoryImpl()
 

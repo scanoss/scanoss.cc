@@ -59,6 +59,8 @@ type Config struct {
 	ScanRoot             string `json:"scanroot,omitempty"`
 	ScanSettingsFilePath string `json:"scansettingsfilepath,omitempty"`
 	Debug                bool   `json:"debug,omitempty"`
+	mu                   sync.RWMutex
+	listeners            []func(*Config)
 }
 
 var instance *Config
@@ -71,47 +73,104 @@ func GetInstance() *Config {
 	return instance
 }
 
+func (c *Config) RegisterListener(listener func(*Config)) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.listeners = append(c.listeners, listener)
+}
+
+func (c *Config) notifyListeners() {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	listeners := make([]func(*Config), len(c.listeners))
+	copy(listeners, c.listeners)
+
+	for _, listener := range listeners {
+		listener(c)
+	}
+}
+
+func (c *Config) getDefaultResultFilePath(scanRoot string) string {
+	return filepath.Join(scanRoot, SCANOSS_HIDDEN_FOLDER, DEFAULT_RESULTS_FILE)
+}
+
+func (c *Config) getDefaultScanSettingsFilePath(scanRoot string) string {
+	return filepath.Join(scanRoot, DEFAULT_SCANOSS_SETTINGS_FILE)
+}
+
+func (c *Config) GetApiToken() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.ApiToken
+}
+
+func (c *Config) GetApiUrl() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.ApiUrl
+}
+
+func (c *Config) GetResultFilePath() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.ResultFilePath
+}
+
+func (c *Config) GetScanRoot() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.ScanRoot
+}
+
+func (c *Config) GetScanSettingsFilePath() string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.ScanSettingsFilePath
+}
+
 func (c *Config) SetApiToken(token string) error {
+	c.mu.Lock()
 	c.ApiToken = token
 	viper.Set("apitoken", token)
+	c.mu.Unlock()
+	c.notifyListeners()
 	return viper.WriteConfig()
 }
 
 func (c *Config) SetApiUrl(url string) error {
+	c.mu.Lock()
 	c.ApiUrl = url
 	viper.Set("apiurl", url)
+	c.mu.Unlock()
+	c.notifyListeners()
 	return viper.WriteConfig()
 }
 
 func (c *Config) SetResultFilePath(path string) {
+	c.mu.Lock()
 	c.ResultFilePath = path
+	c.mu.Unlock()
+	c.notifyListeners()
 }
 
 func (c *Config) SetScanRoot(path string) {
+	c.mu.Lock()
 	c.ScanRoot = path
+	c.ResultFilePath = c.getDefaultResultFilePath(path)
+	c.ScanSettingsFilePath = c.getDefaultScanSettingsFilePath(path)
+	c.mu.Unlock()
+	c.notifyListeners()
 }
 
 func (c *Config) SetScanSettingsFilePath(path string) {
+	c.mu.Lock()
 	c.ScanSettingsFilePath = path
+	c.mu.Unlock()
+	c.notifyListeners()
 }
 
-func GetDefaultResultFilePath(originalWorkDir string) string {
-	workingDir := originalWorkDir
-	if workingDir == "" {
-		workingDir, _ = os.Getwd()
-	}
-	return filepath.Join(workingDir, SCANOSS_HIDDEN_FOLDER, DEFAULT_RESULTS_FILE)
-}
-
-func GetDefaultScanSettingsFilePath(originalWorkDir string) string {
-	workingDir := originalWorkDir
-	if workingDir == "" {
-		workingDir, _ = os.Getwd()
-	}
-	return filepath.Join(workingDir, DEFAULT_SCANOSS_SETTINGS_FILE)
-}
-
-func GetDefaultConfigFolder() string {
+func (c *Config) GetDefaultConfigFolder() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		log.Error().Err(err).Msg("Error getting user home directory")
@@ -121,14 +180,14 @@ func GetDefaultConfigFolder() string {
 	return filepath.Join(homeDir, ROOT_FOLDER, SCANOSS_HIDDEN_FOLDER)
 }
 
-func setupLogger(debug bool) error {
-	logsDir := filepath.Join(GetDefaultConfigFolder(), "logs")
-	if err := os.MkdirAll(logsDir, 0755); err != nil {
+func (c *Config) setupLogger(debug bool) error {
+	logsDir := filepath.Join(c.GetDefaultConfigFolder(), "logs")
+	if err := os.MkdirAll(logsDir, os.ModePerm); err != nil {
 		return fmt.Errorf("error creating logs directory: %w", err)
 	}
 
 	logFileName := fmt.Sprintf("scanoss-cc-%s.log", time.Now().Format(time.DateOnly))
-	logFile, err := os.OpenFile(filepath.Join(logsDir, logFileName), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	logFile, err := os.OpenFile(filepath.Join(logsDir, logFileName), os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("error creating log file: %w", err)
 	}
@@ -147,8 +206,8 @@ func setupLogger(debug bool) error {
 	return nil
 }
 
-func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath string, originalWorkDir string, debug bool) error {
-	if err := setupLogger(debug); err != nil {
+func (c *Config) InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath string, originalWorkDir string, debug bool) error {
+	if err := c.setupLogger(debug); err != nil {
 		return fmt.Errorf("error setting up logger: %w", err)
 	}
 
@@ -163,16 +222,16 @@ func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSetti
 	} else {
 		viper.SetConfigName(DEFAULT_CONFIG_FILE_NAME)
 		viper.SetConfigType(DEFAULT_CONFIG_FILE_TYPE)
-		viper.AddConfigPath(GetDefaultConfigFolder())
+		viper.AddConfigPath(c.GetDefaultConfigFolder())
 
 		// Default values
-		viper.SetDefault("apiUrl", DEFAULT_API_URL)
-		viper.SetDefault("apiToken", "")
+		viper.SetDefault("apiurl", DEFAULT_API_URL)
+		viper.SetDefault("apitoken", "")
 
 		if err := viper.ReadInConfig(); err != nil {
 			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				defaultConfigDir := GetDefaultConfigFolder()
-				if err := os.MkdirAll(defaultConfigDir, 0755); err != nil {
+				defaultConfigDir := c.GetDefaultConfigFolder()
+				if err := os.MkdirAll(defaultConfigDir, os.ModePerm); err != nil {
 					return fmt.Errorf("error creating config directory: %w", err)
 				}
 				if err := viper.SafeWriteConfig(); err != nil {
@@ -185,52 +244,49 @@ func InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSetti
 		}
 	}
 
-	once.Do(func() {
-		instance = &Config{
-			ApiToken: viper.GetString("apiToken"),
-			ApiUrl:   viper.GetString("apiUrl"),
-			Debug:    debug,
-		}
-	})
+	c.SetApiToken(viper.GetString("apitoken"))
+	c.SetApiUrl(viper.GetString("apiurl"))
+
+	c.Debug = debug
 
 	// Override with command line flags
 	if apiKey != "" {
-		if err := instance.SetApiToken(apiKey); err != nil {
+		if err := c.SetApiToken(apiKey); err != nil {
 			return fmt.Errorf("error saving API token: %w", err)
 		}
 	}
 	if apiUrl != "" {
-		if err := instance.SetApiUrl(apiUrl); err != nil {
+		if err := c.SetApiUrl(apiUrl); err != nil {
 			return fmt.Errorf("error saving API URL: %w", err)
 		}
 	}
 	if scanRoot != "" {
-		instance.SetScanRoot(scanRoot)
+		c.SetScanRoot(scanRoot)
 	}
 	if inputFile != "" {
-		instance.SetResultFilePath(inputFile)
+		c.SetResultFilePath(inputFile)
 	}
 	if scanossSettingsFilePath != "" {
-		instance.SetScanSettingsFilePath(scanossSettingsFilePath)
+		c.SetScanSettingsFilePath(scanossSettingsFilePath)
 	}
 
 	// Set default values if not set via config file or command line args
-	if instance.ScanRoot == "" {
+	if c.ScanRoot == "" {
 		if originalWorkDir != "" {
-			instance.ScanRoot = originalWorkDir
+			c.SetScanRoot(originalWorkDir)
 		} else {
 			wd, err := os.Getwd()
 			if err != nil {
 				return fmt.Errorf("error getting working directory: %w", err)
 			}
-			instance.ScanRoot = wd
+			c.SetScanRoot(wd)
 		}
 	}
-	if instance.ResultFilePath == "" {
-		instance.ResultFilePath = GetDefaultResultFilePath(originalWorkDir)
+	if c.ResultFilePath == "" {
+		c.SetResultFilePath(c.getDefaultResultFilePath(originalWorkDir))
 	}
-	if instance.ScanSettingsFilePath == "" {
-		instance.ScanSettingsFilePath = GetDefaultScanSettingsFilePath(originalWorkDir)
+	if c.ScanSettingsFilePath == "" {
+		c.SetScanSettingsFilePath(c.getDefaultScanSettingsFilePath(originalWorkDir))
 	}
 
 	return nil

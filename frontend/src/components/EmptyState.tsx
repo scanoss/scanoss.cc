@@ -1,39 +1,35 @@
-// SPDX-License-Identifier: MIT
-/*
- * Copyright (C) 2018-2024 SCANOSS.COM
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
-import React from 'react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
+  icon?: React.ReactNode;
+  image?: string;
   title: string;
-  subtitle: string;
+  subtitle?: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+  className?: string;
 }
 
-export default function EmptyState({ title, subtitle }: EmptyStateProps) {
+export default function EmptyState({ icon, image, title, subtitle, action, className }: EmptyStateProps) {
   return (
-    <div className="rounded-sm border border-border bg-black/20 p-4 backdrop-blur-sm">
-      <div className="flex flex-col gap-3">
-        <h3 className="text-xl font-bold">{title}</h3>
-        <p className="text-muted-foreground">{subtitle}</p>
+    <div className={cn('flex h-full flex-col items-center justify-center p-8', className)}>
+      <div className="flex max-w-[420px] flex-col items-center text-center">
+        {icon && <div className="mb-4 text-muted-foreground">{icon}</div>}
+        {image && (
+          <div className="mb-4">
+            <img src={image} alt="" className="h-40 w-40 object-contain" />
+          </div>
+        )}
+        <h3 className="mb-2 text-xl font-semibold">{title}</h3>
+        {subtitle && <p className="mb-6 text-sm text-muted-foreground">{subtitle}</p>}
+        {action && (
+          <Button onClick={action.onClick} variant="default">
+            {action.label}
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -10,7 +10,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Upcoming changes...
 
-## [0.5.0]
+## [0.6.0] 2024-02-03
+
+### Added
+- Add sort options for results:
+  - By path
+  - By match percentage
+- Add empty state for results
+- Add scan root selector and info in top bar
+
+
+### Fixed
+- Improved diff viewer scrolling performance
+- Show help command without running the process
+- Check for several python default install locations when running scan command
+- Set proper scan root when executing the app from symlink
+
+### Changed
+- Use same color for left and right code viewers
+- "Scan With Options" improvements
+  - Add advanced options input
+  - Do not allow to manually select output path
+  - Show boolean options as checkboxes
+  - Hide console output when no lines are available
+  - Create .scanoss directory if it does not exist
+
+### Removed
+- Remove "Scan Current Directory" menu option
+
+
+
+## [0.5.0] - 2024-01-24
 ### Added
 - Initial open source release
 - React-based frontend for diff viewer
@@ -21,3 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keyboard shortcuts support
 - Terminal output viewer
 - Configuration management through CLI
+
+
+[0.5.0]: https://github.com/scanoss/scanoss.cc/compare/v0.4.0...v0.5.0
+[0.6.0]: https://github.com/scanoss/scanoss.cc/compare/v0.5.0...v0.6.0

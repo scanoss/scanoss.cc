@@ -5,6 +5,7 @@ node_modules
 frontend/dist
 .idea
 .vscode
+.cursor
 
 .scanoss
 scanoss.json

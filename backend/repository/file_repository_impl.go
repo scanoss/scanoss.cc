@@ -41,7 +41,7 @@ func NewFileRepositoryImpl() FileRepository {
 }
 
 func (r *FileRepositoryImpl) ReadLocalFile(path string) (entities.File, error) {
-	scanRootPath := config.GetInstance().ScanRoot
+	scanRootPath := config.GetInstance().GetScanRoot()
 
 	absolutePath := filepath.Join(scanRootPath, path)
 
@@ -54,8 +54,10 @@ func (r *FileRepositoryImpl) ReadLocalFile(path string) (entities.File, error) {
 }
 
 func (r *FileRepositoryImpl) ReadRemoteFileByMD5(path string, md5 string) (entities.File, error) {
-	baseURL := config.GetInstance().ApiUrl
-	token := config.GetInstance().ApiToken
+	cfg := config.GetInstance()
+
+	baseURL := cfg.GetApiUrl()
+	token := cfg.GetApiToken()
 
 	url := fmt.Sprintf("%s/file_contents/%s", baseURL, md5)
 

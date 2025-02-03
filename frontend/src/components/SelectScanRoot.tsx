@@ -27,6 +27,7 @@ import { Folder } from 'lucide-react';
 import useSelectedResult from '@/hooks/useSelectedResult';
 import { withErrorHandling } from '@/lib/errors';
 import { truncatePath } from '@/lib/utils';
+import useResultsStore from '@/modules/results/stores/useResultsStore';
 import useConfigStore from '@/stores/useConfigStore';
 
 import { SelectDirectory } from '../../wailsjs/go/main/App';
@@ -36,16 +37,19 @@ import { toast } from './ui/use-toast';
 export default function SelectScanRoot() {
   const queryClient = useQueryClient();
 
+  const selectedResult = useSelectedResult();
+
   const scanRoot = useConfigStore((state) => state.scanRoot);
   const setScanRoot = useConfigStore((state) => state.setScanRoot);
 
-  const selectedResult = useSelectedResult();
+  const fetchResults = useResultsStore((state) => state.fetchResults);
 
   const handleSelectScanRoot = withErrorHandling({
     asyncFn: async () => {
       const selectedDir = await SelectDirectory();
       if (selectedDir) {
         await setScanRoot(selectedDir);
+        await fetchResults();
         await queryClient.invalidateQueries({
           queryKey: ['localFileContent', selectedResult?.path],
         });

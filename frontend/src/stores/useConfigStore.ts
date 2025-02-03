@@ -50,18 +50,17 @@ interface ResultsActions {
 type ConfigStore = ResultsState & ResultsActions;
 
 export default create<ConfigStore>()(
-  devtools((set) => ({
+  devtools((set, get) => ({
     scanRoot: '',
     resultsFile: '',
     settingsFile: '',
 
     setScanRoot: async (scanRoot: string) => {
       await SetScanRoot(scanRoot);
-      set({ scanRoot });
+      await get().getInitialConfig();
     },
     setResultsFile: async (resultsFile: string) => {
       await SetResultFilePath(resultsFile);
-      console.log(resultsFile);
       set({ resultsFile });
     },
     setSettingsFile: async (settingsFile: string) => {

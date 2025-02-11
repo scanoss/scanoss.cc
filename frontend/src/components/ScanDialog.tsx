@@ -246,7 +246,7 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
                   type={arg.Type.toLowerCase() as 'string' | 'int' | 'bool' | 'stringSlice'}
                   value={options[arg.Name]}
                   defaultValue={arg.Default}
-                  usage={arg.Usage}
+                  tooltip={arg.Tooltip}
                   onChange={(value) => handleOptionChange(arg.Name, value)}
                   onSelectFile={arg.IsFileSelector ? () => handleFileSelect(arg.Name)() : undefined}
                   isFileSelector={arg.IsFileSelector}

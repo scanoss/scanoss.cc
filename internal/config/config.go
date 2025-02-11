@@ -24,6 +24,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -53,14 +54,48 @@ const (
 )
 
 type Config struct {
+	apiToken             string
+	apiUrl               string
+	resultFilePath       string
+	scanRoot             string
+	scanSettingsFilePath string
+	debug                bool
+	mu                   sync.RWMutex
+	listeners            []func(*Config)
+}
+
+type ConfigDTO struct {
 	ApiToken             string `json:"apitoken"`
 	ApiUrl               string `json:"apiurl"`
 	ResultFilePath       string `json:"resultfilepath,omitempty"`
 	ScanRoot             string `json:"scanroot,omitempty"`
 	ScanSettingsFilePath string `json:"scansettingsfilepath,omitempty"`
 	Debug                bool   `json:"debug,omitempty"`
-	mu                   sync.RWMutex
-	listeners            []func(*Config)
+}
+
+func (c *Config) MarshalJSON() ([]byte, error) {
+	return json.Marshal(ConfigDTO{
+		ApiToken:             c.apiToken,
+		ApiUrl:               c.apiUrl,
+		ResultFilePath:       c.resultFilePath,
+		ScanRoot:             c.scanRoot,
+		ScanSettingsFilePath: c.scanSettingsFilePath,
+		Debug:                c.debug,
+	})
+}
+
+func (c *Config) UnmarshalJSON(data []byte) error {
+	var j ConfigDTO
+	if err := json.Unmarshal(data, &j); err != nil {
+		return err
+	}
+	c.apiToken = j.ApiToken
+	c.apiUrl = j.ApiUrl
+	c.resultFilePath = j.ResultFilePath
+	c.scanRoot = j.ScanRoot
+	c.scanSettingsFilePath = j.ScanSettingsFilePath
+	c.debug = j.Debug
+	return nil
 }
 
 var instance *Config
@@ -102,36 +137,42 @@ func (c *Config) getDefaultScanSettingsFilePath(scanRoot string) string {
 func (c *Config) GetApiToken() string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	return c.ApiToken
+	return c.apiToken
 }
 
 func (c *Config) GetApiUrl() string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	return c.ApiUrl
+	return c.apiUrl
 }
 
 func (c *Config) GetResultFilePath() string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	return c.ResultFilePath
+	return c.resultFilePath
 }
 
 func (c *Config) GetScanRoot() string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	return c.ScanRoot
+	return c.scanRoot
 }
 
 func (c *Config) GetScanSettingsFilePath() string {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
-	return c.ScanSettingsFilePath
+	return c.scanSettingsFilePath
+}
+
+func (c *Config) GetDebug() bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.debug
 }
 
 func (c *Config) SetApiToken(token string) error {
 	c.mu.Lock()
-	c.ApiToken = token
+	c.apiToken = token
 	viper.Set("apitoken", token)
 	c.mu.Unlock()
 	c.notifyListeners()
@@ -140,7 +181,7 @@ func (c *Config) SetApiToken(token string) error {
 
 func (c *Config) SetApiUrl(url string) error {
 	c.mu.Lock()
-	c.ApiUrl = url
+	c.apiUrl = url
 	viper.Set("apiurl", url)
 	c.mu.Unlock()
 	c.notifyListeners()
@@ -149,23 +190,30 @@ func (c *Config) SetApiUrl(url string) error {
 
 func (c *Config) SetResultFilePath(path string) {
 	c.mu.Lock()
-	c.ResultFilePath = path
+	c.resultFilePath = path
 	c.mu.Unlock()
 	c.notifyListeners()
 }
 
 func (c *Config) SetScanRoot(path string) {
 	c.mu.Lock()
-	c.ScanRoot = path
-	c.ResultFilePath = c.getDefaultResultFilePath(path)
-	c.ScanSettingsFilePath = c.getDefaultScanSettingsFilePath(path)
+	c.scanRoot = path
+	c.resultFilePath = c.getDefaultResultFilePath(path)
+	c.scanSettingsFilePath = c.getDefaultScanSettingsFilePath(path)
 	c.mu.Unlock()
 	c.notifyListeners()
 }
 
 func (c *Config) SetScanSettingsFilePath(path string) {
 	c.mu.Lock()
-	c.ScanSettingsFilePath = path
+	c.scanSettingsFilePath = path
+	c.mu.Unlock()
+	c.notifyListeners()
+}
+
+func (c *Config) SetDebug(debug bool) {
+	c.mu.Lock()
+	c.debug = debug
 	c.mu.Unlock()
 	c.notifyListeners()
 }
@@ -206,11 +254,7 @@ func (c *Config) setupLogger(debug bool) error {
 	return nil
 }
 
-func (c *Config) InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath string, originalWorkDir string, debug bool) error {
-	if err := c.setupLogger(debug); err != nil {
-		return fmt.Errorf("error setting up logger: %w", err)
-	}
-
+func (c *Config) initializeConfigFile(cfgFile string) error {
 	if cfgFile != "" {
 		absCfgFile, _ := filepath.Abs(cfgFile)
 		log.Debug().Msgf("Using config file: %s", absCfgFile)
@@ -219,35 +263,37 @@ func (c *Config) InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, 
 		if err := viper.ReadInConfig(); err != nil {
 			log.Fatal().Err(err).Msgf("Error reading config file %v", err.Error())
 		}
-	} else {
-		viper.SetConfigName(DEFAULT_CONFIG_FILE_NAME)
-		viper.SetConfigType(DEFAULT_CONFIG_FILE_TYPE)
-		viper.AddConfigPath(c.GetDefaultConfigFolder())
-
-		// Default values
-		viper.SetDefault("apiurl", DEFAULT_API_URL)
-		viper.SetDefault("apitoken", "")
-
-		if err := viper.ReadInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				defaultConfigDir := c.GetDefaultConfigFolder()
-				if err := os.MkdirAll(defaultConfigDir, os.ModePerm); err != nil {
-					return fmt.Errorf("error creating config directory: %w", err)
-				}
-				if err := viper.SafeWriteConfig(); err != nil {
-					return fmt.Errorf("error creating config file: %w", err)
-				}
-				log.Debug().Msgf("Created default config file: %s", viper.ConfigFileUsed())
-			} else {
-				return fmt.Errorf("error reading config file: %w", err)
-			}
-		}
+		return nil
 	}
 
+	viper.SetConfigName(DEFAULT_CONFIG_FILE_NAME)
+	viper.SetConfigType(DEFAULT_CONFIG_FILE_TYPE)
+	viper.AddConfigPath(c.GetDefaultConfigFolder())
+
+	// Default values
+	viper.SetDefault("apiurl", DEFAULT_API_URL)
+	viper.SetDefault("apitoken", "")
+
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			defaultConfigDir := c.GetDefaultConfigFolder()
+			if err := os.MkdirAll(defaultConfigDir, os.ModePerm); err != nil {
+				return fmt.Errorf("error creating config directory: %w", err)
+			}
+			if err := viper.SafeWriteConfig(); err != nil {
+				return fmt.Errorf("error creating config file: %w", err)
+			}
+			log.Debug().Msgf("Created default config file: %s", viper.ConfigFileUsed())
+		} else {
+			return fmt.Errorf("error reading config file: %w", err)
+		}
+	}
+	return nil
+}
+
+func (c *Config) initializeApiConfig(apiKey, apiUrl string) error {
 	c.SetApiToken(viper.GetString("apitoken"))
 	c.SetApiUrl(viper.GetString("apiurl"))
-
-	c.Debug = debug
 
 	// Override with command line flags
 	if apiKey != "" {
@@ -260,6 +306,10 @@ func (c *Config) InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, 
 			return fmt.Errorf("error saving API URL: %w", err)
 		}
 	}
+	return nil
+}
+
+func (c *Config) initializePathConfig(scanRoot, inputFile, scanossSettingsFilePath, originalWorkDir string) error {
 	if scanRoot != "" {
 		c.SetScanRoot(scanRoot)
 	}
@@ -271,7 +321,7 @@ func (c *Config) InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, 
 	}
 
 	// Set default values if not set via config file or command line args
-	if c.ScanRoot == "" {
+	if c.GetScanRoot() == "" {
 		if originalWorkDir != "" {
 			c.SetScanRoot(originalWorkDir)
 		} else {
@@ -282,11 +332,36 @@ func (c *Config) InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, 
 			c.SetScanRoot(wd)
 		}
 	}
-	if c.ResultFilePath == "" {
-		c.SetResultFilePath(c.getDefaultResultFilePath(originalWorkDir))
+	if c.GetResultFilePath() == "" {
+		defaultPath := c.getDefaultResultFilePath(originalWorkDir)
+		if !filepath.IsAbs(defaultPath) {
+			defaultPath = filepath.Join(c.GetScanRoot(), defaultPath)
+		}
+		c.SetResultFilePath(defaultPath)
 	}
-	if c.ScanSettingsFilePath == "" {
+	if c.GetScanSettingsFilePath() == "" {
 		c.SetScanSettingsFilePath(c.getDefaultScanSettingsFilePath(originalWorkDir))
+	}
+	return nil
+}
+
+func (c *Config) InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath string, originalWorkDir string, debug bool) error {
+	if err := c.setupLogger(debug); err != nil {
+		return fmt.Errorf("error setting up logger: %w", err)
+	}
+
+	if err := c.initializeConfigFile(cfgFile); err != nil {
+		return err
+	}
+
+	if err := c.initializeApiConfig(apiKey, apiUrl); err != nil {
+		return err
+	}
+
+	c.SetDebug(debug)
+
+	if err := c.initializePathConfig(scanRoot, inputFile, scanossSettingsFilePath, originalWorkDir); err != nil {
+		return err
 	}
 
 	return nil

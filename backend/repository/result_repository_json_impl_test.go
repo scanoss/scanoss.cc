@@ -43,7 +43,7 @@ func TestGetResults(t *testing.T) {
 
 	t.Run("No filter", func(t *testing.T) {
 		mu := internal_test.NewMockUtils()
-		mu.On("ReadFile", config.GetInstance().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
+		mu.On("ReadFile", config.GetInstance().GetResultFilePath()).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
 		repo := repository.NewResultRepositoryJsonImpl(mu)
 		results, err := repo.GetResults(nil)
@@ -57,7 +57,7 @@ func TestGetResults(t *testing.T) {
 
 	t.Run("With filter", func(t *testing.T) {
 		mu := internal_test.NewMockUtils()
-		mu.On("ReadFile", config.GetInstance().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
+		mu.On("ReadFile", config.GetInstance().GetResultFilePath()).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
 		filter := mocks.MockResultFilter{}
 		filter.EXPECT().IsValid(mock.Anything).Return(true)
@@ -74,7 +74,7 @@ func TestGetResults(t *testing.T) {
 
 	t.Run("Read file error", func(t *testing.T) {
 		mu := internal_test.NewMockUtils()
-		mu.On("ReadFile", config.GetInstance().ResultFilePath).Return([]byte{}, entities.ErrReadingResultFile)
+		mu.On("ReadFile", config.GetInstance().GetResultFilePath()).Return([]byte{}, entities.ErrReadingResultFile)
 
 		repo := repository.NewResultRepositoryJsonImpl(mu)
 		results, err := repo.GetResults(nil)
@@ -86,7 +86,7 @@ func TestGetResults(t *testing.T) {
 
 	t.Run("Invalid json", func(t *testing.T) {
 		mu := internal_test.NewMockUtils()
-		mu.On("ReadFile", config.GetInstance().ResultFilePath).Return([]byte(`invalid json`), nil)
+		mu.On("ReadFile", config.GetInstance().GetResultFilePath()).Return([]byte(`invalid json`), nil)
 
 		repo := repository.NewResultRepositoryJsonImpl(mu)
 		results, err := repo.GetResults(nil)
@@ -97,7 +97,7 @@ func TestGetResults(t *testing.T) {
 
 	t.Run("Filter no match", func(t *testing.T) {
 		mu := internal_test.NewMockUtils()
-		mu.On("ReadFile", config.GetInstance().ResultFilePath).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
+		mu.On("ReadFile", config.GetInstance().GetResultFilePath()).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
 		filter := mocks.MockResultFilter{}
 		filter.EXPECT().IsValid(mock.Anything).Return(false)

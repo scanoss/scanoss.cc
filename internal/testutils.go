@@ -44,7 +44,7 @@ func InitializeTestEnvironment(t *testing.T) func() {
 	InitValidatorForTests()
 
 	cfg := config.GetInstance()
-	cfg.ScanRoot = t.TempDir()
+	cfg.SetScanRoot(t.TempDir())
 
 	return func() {
 		cfg = nil

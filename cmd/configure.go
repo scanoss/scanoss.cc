@@ -59,8 +59,8 @@ var configureCmd = &cobra.Command{
 			}
 		}
 
-		log.Info().Msgf("API URL: %s", cfg.ApiUrl)
-		log.Info().Msgf("KEY: %s", strings.Repeat("*", len(cfg.ApiToken)))
+		log.Info().Msgf("API URL: %s", cfg.GetApiUrl())
+		log.Info().Msgf("KEY: %s", strings.Repeat("*", len(cfg.GetApiToken())))
 		log.Info().Msg("Configuration saved successfully!")
 	},
 }

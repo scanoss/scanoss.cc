@@ -34,13 +34,13 @@ interface ScanOptionProps {
   type: 'string' | 'int' | 'bool' | 'stringSlice';
   value: string | number | boolean | string[];
   defaultValue: string | number | boolean | string[];
-  usage: string;
+  tooltip: string;
   onChange: (value: string | number | boolean | string[]) => void;
   onSelectFile?: () => void;
   isFileSelector?: boolean;
 }
 
-export default function ScanOption({ name, type, value, defaultValue, usage, onChange, onSelectFile, isFileSelector }: ScanOptionProps) {
+export default function ScanOption({ name, type, value, defaultValue, tooltip, onChange, onSelectFile, isFileSelector }: ScanOptionProps) {
   const displayName = name
     .split('-')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -132,7 +132,7 @@ export default function ScanOption({ name, type, value, defaultValue, usage, onC
     <Tooltip>
       <TooltipTrigger asChild>{renderInput()}</TooltipTrigger>
       <TooltipContent>
-        <p>{usage}</p>
+        <p>{tooltip}</p>
       </TooltipContent>
     </Tooltip>
   );

@@ -375,6 +375,7 @@ export namespace entities {
 	    Shorthand: string;
 	    Default: any;
 	    Usage: string;
+	    Tooltip: string;
 	    Type: string;
 	    IsCore: boolean;
 	    IsFileSelector: boolean;
@@ -389,6 +390,7 @@ export namespace entities {
 	        this.Shorthand = source["Shorthand"];
 	        this.Default = source["Default"];
 	        this.Usage = source["Usage"];
+	        this.Tooltip = source["Tooltip"];
 	        this.Type = source["Type"];
 	        this.IsCore = source["IsCore"];
 	        this.IsFileSelector = source["IsFileSelector"];

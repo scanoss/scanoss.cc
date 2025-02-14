@@ -40,6 +40,7 @@ interface ResultsState {
     option: string;
     order: 'asc' | 'desc';
   };
+  viewMode: 'list' | 'tree';
 }
 
 interface ResultsActions {
@@ -54,6 +55,7 @@ interface ResultsActions {
   setQuery: (query: string) => void;
   setFilterByMatchType: (matchType: MatchType | 'all') => void;
   setSort: (option: string, order: 'asc' | 'desc') => void;
+  setViewMode: (mode: 'list' | 'tree') => void;
 }
 
 type ResultsStore = ResultsState & ResultsActions;
@@ -73,6 +75,7 @@ const useResultsStore = create<ResultsStore>()(
       option: 'path',
       order: 'asc' as const,
     },
+    viewMode: 'list',
 
     setSort: (option, order) => {
       set({ sort: { option, order } }, false, 'SET_SORT');
@@ -232,6 +235,7 @@ const useResultsStore = create<ResultsStore>()(
     },
     setQuery: (query) => set({ query }, false, 'SET_QUERY'),
     setFilterByMatchType: (matchType) => set({ filterByMatchType: matchType }, false, 'SET_FILTER_BY_MATCH_TYPE'),
+    setViewMode: (mode) => set({ viewMode: mode }, false, 'SET_VIEW_MODE'),
   }))
 );
 

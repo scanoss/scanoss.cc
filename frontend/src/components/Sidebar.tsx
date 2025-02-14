@@ -22,7 +22,7 @@
  */
 
 import clsx from 'clsx';
-import { Braces, ChevronRight, File } from 'lucide-react';
+import { Braces, ChevronRight, File, LayoutList, TreeDeciduous } from 'lucide-react';
 import { ReactNode, useEffect, useRef } from 'react';
 import { entities } from 'wailsjs/go/models';
 
@@ -30,15 +30,17 @@ import ResultSearchBar from '@/components/ResultSearchBar';
 import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
-import { getDirectory, getFileName } from '@/lib/utils';
+import { cn, getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import MatchTypeSelector from './MatchTypeSelector';
+import ResultsTreeView from './ResultsTreeView';
 import SelectScanRoot from './SelectScanRoot';
 import SortSelector from './SortSelector';
+import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -61,6 +63,11 @@ export default function Sidebar() {
   const filterByMatchType = useResultsStore((state) => state.filterByMatchType);
   const query = useResultsStore((state) => state.query);
   const debouncedQuery: string = useDebounce(query, DEBOUNCE_QUERY_MS);
+
+  const viewMode = useResultsStore((state) => state.viewMode);
+  const setViewMode = useResultsStore((state) => state.setViewMode);
+
+  const selectedResults = useResultsStore((state) => state.selectedResults);
 
   const handleSelectFiles = (e: React.MouseEvent, result: entities.ResultDTO, selectionType: 'pending' | 'completed') => {
     e.preventDefault();
@@ -123,7 +130,17 @@ export default function Sidebar() {
 
       <div className="flex flex-col gap-4 px-4 py-6">
         <div className="flex flex-col gap-2">
-          <MatchTypeSelector />
+          <div className="flex items-center justify-between">
+            <MatchTypeSelector />
+            <div className="flex gap-1">
+              <Button variant="ghost" size="icon" className={cn('h-8 w-8', viewMode === 'list' && 'bg-muted')} onClick={() => setViewMode('list')}>
+                <LayoutList className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className={cn('h-8 w-8', viewMode === 'tree' && 'bg-muted')} onClick={() => setViewMode('tree')}>
+                <TreeDeciduous className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
           <SortSelector />
         </div>
         <ResultSearchBar searchInputRef={searchInputRef} />
@@ -131,8 +148,16 @@ export default function Sidebar() {
 
       <ScrollArea className="flex-1">
         <div className="flex flex-1 flex-col gap-2 outline-none" tabIndex={-1} ref={resultsListRef}>
-          <ResultSection title="Pending files" results={pendingResults} onSelect={handleSelectFiles} selectionType="pending" />
-          <ResultSection title="Completed files" results={completedResults} onSelect={handleSelectFiles} selectionType="completed" />
+          {viewMode === 'list' ? (
+            <>
+              <ResultSection title="Pending files" results={pendingResults} onSelect={handleSelectFiles} selectionType="pending" />
+              <ResultSection title="Completed files" results={completedResults} onSelect={handleSelectFiles} selectionType="completed" />
+            </>
+          ) : (
+            <div className="px-1">
+              <ResultsTreeView results={[...pendingResults, ...completedResults]} onSelect={handleSelectFiles} selectedResults={selectedResults} />
+            </div>
+          )}
         </div>
       </ScrollArea>
     </aside>

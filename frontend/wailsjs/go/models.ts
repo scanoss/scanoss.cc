@@ -598,6 +598,81 @@ export namespace entities {
 	
 	
 	
+	
+	export class TreeNode {
+	    id: string;
+	    name: string;
+	    path: string;
+	    isFolder: boolean;
+	    state: string;
+	    data?: ResultDTO;
+	    childCount: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new TreeNode(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.path = source["path"];
+	        this.isFolder = source["isFolder"];
+	        this.state = source["state"];
+	        this.data = this.convertValues(source["data"], ResultDTO);
+	        this.childCount = source["childCount"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class TreeNodeResponse {
+	    nodes: TreeNode[];
+	    totalCount: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new TreeNodeResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.nodes = this.convertValues(source["nodes"], TreeNode);
+	        this.totalCount = source["totalCount"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 
 }
 

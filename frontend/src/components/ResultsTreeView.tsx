@@ -1,23 +1,44 @@
 import { Braces, ChevronRight, File, Folder } from 'lucide-react';
+import React from 'react';
 import { NodeApi, Tree } from 'react-arborist';
 
 import { cn } from '@/lib/utils';
-import { transformToTreeData, TreeNode } from '@/modules/results/utils/tree-utils';
+import useTreeStore, { TreeNode, TreeNodeState } from '@/modules/results/stores/useTreeStore';
 
 import { entities } from '../../wailsjs/go/models';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 interface ResultsTreeViewProps {
-  results: entities.ResultDTO[];
   onSelect: (e: React.MouseEvent, result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   selectedResults: entities.ResultDTO[];
 }
 
-export default function ResultsTreeView({ results, onSelect, selectedResults }: ResultsTreeViewProps) {
-  const treeData = transformToTreeData(results);
+export default function ResultsTreeView({ onSelect, selectedResults }: ResultsTreeViewProps) {
+  const { nodes, isLoading, childrenCache } = useTreeStore();
+
+  const treeData = React.useMemo(() => {
+    return nodes.map((node) => ({
+      ...node,
+      children: childrenCache[node.path] || [],
+    }));
+  }, [nodes, childrenCache]);
+
+  if (isLoading) {
+    return <div className="p-4 text-sm text-muted-foreground">Loading...</div>;
+  }
 
   return (
-    <Tree data={treeData} width="100%" height={500} indent={24} rowHeight={28} overscanCount={10} paddingTop={8} paddingBottom={8}>
+    <Tree<TreeNode>
+      data={treeData}
+      width="100%"
+      height={500}
+      indent={24}
+      rowHeight={28}
+      overscanCount={10}
+      paddingTop={8}
+      paddingBottom={8}
+      openByDefault={false}
+    >
       {(props) => <TreeNodeComponent {...props} onSelect={onSelect} selectedResults={selectedResults} />}
     </Tree>
   );
@@ -32,31 +53,51 @@ interface TreeNodeComponentProps {
 }
 
 function TreeNodeComponent({ node, style, dragHandle, onSelect, selectedResults }: TreeNodeComponentProps) {
+  const getChildren = useTreeStore((state) => state.getChildren);
   const data = node.data;
   const isSelected = data.data ? selectedResults.some((r) => r.path === data.data?.path) : false;
+  const [isLoadingChildren, setIsLoadingChildren] = React.useState(false);
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (data.data) {
+  const handleClick = async (e: React.MouseEvent) => {
+    if (data.isFolder) {
+      if (!node.isOpen) {
+        if (!data.children?.length) {
+          setIsLoadingChildren(true);
+          try {
+            await getChildren(data.path);
+          } finally {
+            setIsLoadingChildren(false);
+          }
+        }
+        node.open();
+      } else {
+        node.close();
+      }
+    } else if (data.data) {
       onSelect(e, data.data, data.state as 'pending' | 'completed');
-    } else if (data.isFolder) {
-      toggleNode();
     }
   };
 
-  const handleChevronClick = (e: React.MouseEvent) => {
+  const handleChevronClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleNode();
-  };
-
-  const toggleNode = () => {
-    if (node.isOpen) {
-      node.close();
-    } else {
-      node.open();
+    if (data.isFolder) {
+      if (!node.isOpen) {
+        if (!data.children?.length) {
+          setIsLoadingChildren(true);
+          try {
+            await getChildren(data.path);
+          } finally {
+            setIsLoadingChildren(false);
+          }
+        }
+        node.open();
+      } else {
+        node.close();
+      }
     }
   };
 
-  const getStateIndicatorStyle = (state?: 'pending' | 'completed' | 'mixed') => {
+  const getStateIndicatorStyle = (state: TreeNodeState) => {
     switch (state) {
       case 'pending':
         return 'bg-yellow-500';
@@ -64,8 +105,6 @@ function TreeNodeComponent({ node, style, dragHandle, onSelect, selectedResults 
         return 'bg-green-500';
       case 'mixed':
         return 'bg-orange-500';
-      default:
-        return 'bg-transparent';
     }
   };
 
@@ -85,7 +124,10 @@ function TreeNodeComponent({ node, style, dragHandle, onSelect, selectedResults 
           onClick={handleClick}
         >
           {data.isFolder && (
-            <ChevronRight className={cn('h-3 w-3 transform transition-transform', node.isOpen && 'rotate-90')} onClick={handleChevronClick} />
+            <ChevronRight
+              className={cn('h-3 w-3 transform transition-transform', node.isOpen && 'rotate-90', isLoadingChildren && 'animate-spin')}
+              onClick={handleChevronClick}
+            />
           )}
           <span className="relative">
             {data.isFolder ? (
@@ -98,6 +140,7 @@ function TreeNodeComponent({ node, style, dragHandle, onSelect, selectedResults 
             <span className={cn('absolute bottom-0 right-0 h-1 w-1 rounded-full', getStateIndicatorStyle(data.state))} />
           </span>
           <span className="truncate">{data.name}</span>
+          {data.isFolder && data.childCount > 0 && <span className="text-xs text-muted-foreground">({data.childCount})</span>}
         </div>
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={15}>

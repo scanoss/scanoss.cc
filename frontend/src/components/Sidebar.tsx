@@ -35,6 +35,7 @@ import { FilterAction } from '@/modules/components/domain';
 import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
+import useTreeStore from '@/modules/results/stores/useTreeStore';
 
 import MatchTypeSelector from './MatchTypeSelector';
 import ResultsTreeView from './ResultsTreeView';
@@ -69,6 +70,9 @@ export default function Sidebar() {
 
   const selectedResults = useResultsStore((state) => state.selectedResults);
 
+  const getRootNodes = useTreeStore((state) => state.getRootNodes);
+  const searchNodes = useTreeStore((state) => state.searchNodes);
+
   const handleSelectFiles = (e: React.MouseEvent, result: entities.ResultDTO, selectionType: 'pending' | 'completed') => {
     e.preventDefault();
 
@@ -98,8 +102,16 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
-    fetchResults();
-  }, [filterByMatchType, debouncedQuery]);
+    if (viewMode === 'list') {
+      fetchResults();
+    } else {
+      if (debouncedQuery) {
+        searchNodes(debouncedQuery);
+      } else {
+        getRootNodes();
+      }
+    }
+  }, [filterByMatchType, debouncedQuery, viewMode]);
 
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveUp.keys, moveToPreviousResult, {
     enableOnFormTags: false,
@@ -155,7 +167,7 @@ export default function Sidebar() {
             </>
           ) : (
             <div className="px-1">
-              <ResultsTreeView results={[...pendingResults, ...completedResults]} onSelect={handleSelectFiles} selectedResults={selectedResults} />
+              <ResultsTreeView onSelect={handleSelectFiles} selectedResults={selectedResults} />
             </div>
           )}
         </div>

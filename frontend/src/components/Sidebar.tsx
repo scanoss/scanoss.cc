@@ -21,6 +21,7 @@
  * SOFTWARE.
  */
 
+import { useVirtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
 import { Braces, ChevronRight, File } from 'lucide-react';
 import { ReactNode, useEffect, useRef } from 'react';
@@ -147,6 +148,16 @@ interface ResultSectionProps {
 }
 
 function ResultSection({ title, results, onSelect, selectionType }: ResultSectionProps) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const ITEM_HEIGHT = 32; // Height of each result item in pixels
+
+  const virtualizer = useVirtualizer({
+    count: results.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ITEM_HEIGHT,
+    overscan: 5, // Number of items to render outside of the visible area
+  });
+
   return (
     <Collapsible defaultOpen className="flex-1">
       <CollapsibleTrigger className="group w-full">
@@ -159,9 +170,31 @@ function ResultSection({ title, results, onSelect, selectionType }: ResultSectio
       </CollapsibleTrigger>
       {results.length > 0 && (
         <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
-          {results.map((result) => (
-            <SidebarItem key={result.path} result={result} onSelect={onSelect} selectionType={selectionType} />
-          ))}
+          <div ref={parentRef} className="h-[400px] overflow-auto">
+            <div
+              style={{
+                height: `${virtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              {virtualizer.getVirtualItems().map((virtualRow) => (
+                <div
+                  key={virtualRow.key}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  <SidebarItem result={results[virtualRow.index]} onSelect={onSelect} selectionType={selectionType} />
+                </div>
+              ))}
+            </div>
+          </div>
         </CollapsibleContent>
       )}
     </Collapsible>

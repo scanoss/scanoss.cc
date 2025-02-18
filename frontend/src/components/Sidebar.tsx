@@ -23,7 +23,7 @@
 
 import { useVirtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
-import { Braces, ChevronRight, File } from 'lucide-react';
+import { Braces, File } from 'lucide-react';
 import { ReactNode, useEffect, useRef } from 'react';
 import { entities } from 'wailsjs/go/models';
 
@@ -40,7 +40,6 @@ import useResultsStore from '@/modules/results/stores/useResultsStore';
 import MatchTypeSelector from './MatchTypeSelector';
 import SelectScanRoot from './SelectScanRoot';
 import SortSelector from './SortSelector';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
@@ -130,12 +129,14 @@ export default function Sidebar() {
         <ResultSearchBar searchInputRef={searchInputRef} />
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="flex flex-1 flex-col gap-2 outline-none" tabIndex={-1} ref={resultsListRef}>
-          <ResultSection title="Pending files" results={pendingResults} onSelect={handleSelectFiles} selectionType="pending" />
-          <ResultSection title="Completed files" results={completedResults} onSelect={handleSelectFiles} selectionType="completed" />
+      <div className="min-h-0 flex-1">
+        <div className="flex h-full min-h-0 flex-1 flex-col outline-none" tabIndex={-1} ref={resultsListRef}>
+          <div className="flex min-h-0 flex-1 flex-col gap-2">
+            <ResultSection title="Pending files" results={pendingResults} onSelect={handleSelectFiles} selectionType="pending" />
+            <ResultSection title="Completed files" results={completedResults} onSelect={handleSelectFiles} selectionType="completed" />
+          </div>
         </div>
-      </ScrollArea>
+      </div>
     </aside>
   );
 }
@@ -149,55 +150,50 @@ interface ResultSectionProps {
 
 function ResultSection({ title, results, onSelect, selectionType }: ResultSectionProps) {
   const parentRef = useRef<HTMLDivElement>(null);
-  const ITEM_HEIGHT = 32; // Height of each result item in pixels
+  const ITEM_HEIGHT = 32;
 
   const virtualizer = useVirtualizer({
     count: results.length,
-    getScrollElement: () => parentRef.current,
+    getScrollElement: () => parentRef.current?.querySelector('[data-radix-scroll-area-viewport]') as Element,
     estimateSize: () => ITEM_HEIGHT,
-    overscan: 5, // Number of items to render outside of the visible area
+    overscan: 5,
   });
 
   return (
-    <Collapsible defaultOpen className="flex-1">
-      <CollapsibleTrigger className="group w-full">
-        <div className="flex items-center gap-1 border-b border-border px-3 pb-1">
-          <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
-          <span className="text-sm text-muted-foreground">
-            {title} <span className="text-xs">({results.length})</span>
-          </span>
-        </div>
-      </CollapsibleTrigger>
-      {results.length > 0 && (
-        <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
-          <div ref={parentRef} className="h-[400px] overflow-auto">
-            <div
-              style={{
-                height: `${virtualizer.getTotalSize()}px`,
-                width: '100%',
-                position: 'relative',
-              }}
-            >
-              {virtualizer.getVirtualItems().map((virtualRow) => (
-                <div
-                  key={virtualRow.key}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: `${virtualRow.size}px`,
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                >
-                  <SidebarItem result={results[virtualRow.index]} onSelect={onSelect} selectionType={selectionType} />
-                </div>
-              ))}
-            </div>
+    <div className="flex h-1/2 flex-col">
+      <div className="flex flex-shrink-0 items-center gap-1 border-b border-border px-3 pb-1">
+        <span className="text-sm text-muted-foreground">
+          {title} <span className="text-xs">({results.length})</span>
+        </span>
+      </div>
+      <div className="min-h-0 flex-1" ref={parentRef}>
+        <ScrollArea className="h-full">
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative',
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualRow) => (
+              <div
+                key={virtualRow.key}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+              >
+                <SidebarItem result={results[virtualRow.index]} onSelect={onSelect} selectionType={selectionType} />
+              </div>
+            ))}
           </div>
-        </CollapsibleContent>
-      )}
-    </Collapsible>
+        </ScrollArea>
+      </div>
+    </div>
   );
 }
 

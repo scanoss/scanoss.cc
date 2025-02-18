@@ -142,7 +142,7 @@ export default function CodeViewer({
 
   useEffect(() => {
     updateHighlight();
-  }, [editorId]);
+  }, []);
 
   if (isError) {
     return (

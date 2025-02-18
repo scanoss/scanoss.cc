@@ -26,6 +26,8 @@ package repository
 import (
 	"encoding/json"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
@@ -34,7 +36,10 @@ import (
 )
 
 type ResultRepositoryJsonImpl struct {
-	fr utils.FileReader
+	fr           utils.FileReader
+	cache        []entities.Result
+	lastModified time.Time
+	mutex        sync.RWMutex
 }
 
 func NewResultRepositoryJsonImpl(fr utils.FileReader) *ResultRepositoryJsonImpl {
@@ -44,37 +49,76 @@ func NewResultRepositoryJsonImpl(fr utils.FileReader) *ResultRepositoryJsonImpl 
 }
 
 func (r *ResultRepositoryJsonImpl) GetResults(filter entities.ResultFilter) ([]entities.Result, error) {
-	resultFilePath := config.GetInstance().GetResultFilePath()
-	resultByte, err := r.fr.ReadFile(resultFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return []entities.Result{}, nil
-		}
-		log.Error().Err(err).Msg("Error reading result file")
-		return []entities.Result{}, entities.ErrReadingResultFile
-	}
+	r.mutex.RLock()
 
-	scanResults, err := r.parseScanResults(resultByte)
-	if err != nil {
-		return []entities.Result{}, entities.ErrParsingResultFile
+	if r.shouldRefreshCache() {
+		r.mutex.RUnlock()
+		r.mutex.Lock()
+		defer r.mutex.Unlock()
+
+		if r.shouldRefreshCache() {
+			if err := r.refreshCache(); err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		defer r.mutex.RUnlock()
 	}
 
 	if filter == nil {
-		return scanResults, nil
+		return r.cache, nil
 	}
 
-	// Filter scan results
 	var filteredResults []entities.Result
-	for _, result := range scanResults {
+	for _, result := range r.cache {
 		if result.IsEmpty() {
 			continue
 		}
-
 		if filter.IsValid(result) {
 			filteredResults = append(filteredResults, result)
 		}
 	}
+
 	return filteredResults, nil
+}
+
+func (r *ResultRepositoryJsonImpl) shouldRefreshCache() bool {
+	if r.cache == nil {
+		return true
+	}
+
+	resultFilePath := config.GetInstance().GetResultFilePath()
+	fileInfo, err := os.Stat(resultFilePath)
+	if err != nil {
+		return true
+	}
+
+	return fileInfo.ModTime().After(r.lastModified)
+}
+
+func (r *ResultRepositoryJsonImpl) refreshCache() error {
+	resultFilePath := config.GetInstance().GetResultFilePath()
+	resultByte, err := r.fr.ReadFile(resultFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			r.cache = []entities.Result{}
+			return nil
+		}
+		return entities.ErrReadingResultFile
+	}
+
+	scanResults, err := r.parseScanResults(resultByte)
+	if err != nil {
+		return entities.ErrParsingResultFile
+	}
+
+	fileInfo, err := os.Stat(resultFilePath)
+	if err == nil {
+		r.lastModified = fileInfo.ModTime()
+	}
+
+	r.cache = scanResults
+	return nil
 }
 
 func (r *ResultRepositoryJsonImpl) parseScanResults(resultByte []byte) ([]entities.Result, error) {

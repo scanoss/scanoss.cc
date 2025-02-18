@@ -27,6 +27,7 @@ import { RotateCcw, RotateCw, Save } from 'lucide-react';
 
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { useResults } from '@/hooks/useResults';
+import { withErrorHandling } from '@/lib/errors';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 
@@ -64,18 +65,36 @@ export default function ActionToolbar() {
     },
   });
 
-  const handleUndo = async () => {
-    await undo();
-    reset();
-  };
+  const handleUndo = withErrorHandling({
+    asyncFn: undo,
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'An error occurred while undoing the last action. Please try again.',
+        variant: 'destructive',
+      });
+    },
+    onSuccess: async () => {
+      reset();
+    },
+  });
 
-  const handleRedo = async () => {
-    await redo();
-    reset();
-  };
+  const handleRedo = withErrorHandling({
+    asyncFn: redo,
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'An error occurred while redoing the last action. Please try again.',
+        variant: 'destructive',
+      });
+    },
+    onSuccess: async () => {
+      reset();
+    },
+  });
 
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.undo.keys, async () => await handleUndo());
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.redo.keys, async () => await handleRedo());
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.undo.keys, handleUndo);
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.redo.keys, handleRedo);
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.save.keys, () => saveChanges());
 
   return (

@@ -38,8 +38,10 @@ type ResultMapperImpl struct {
 	scanossSettings *entities.ScanossSettings
 }
 
-// Global cache variable (ensure proper concurrency control)
-var purlCache sync.Map
+var (
+	resultDTOCache sync.Map
+	purlCache      sync.Map
+)
 
 func NewResultMapper(scanossSettings *entities.ScanossSettings) ResultMapper {
 	return &ResultMapperImpl{
@@ -47,9 +49,27 @@ func NewResultMapper(scanossSettings *entities.ScanossSettings) ResultMapper {
 	}
 }
 
+func (m ResultMapperImpl) generateCacheKey(result entities.Result, bomEntry entities.ComponentFilter) string {
+	return fmt.Sprintf("%s-%s-%s-%s-%s-%s-%s",
+		result.Path,
+		strings.Join(*result.Purl, ","),
+		result.MatchType,
+		bomEntry.ReplaceWith,
+		bomEntry.Comment,
+		m.scanossSettings.SettingsFile.GetResultWorkflowState(result),
+		m.scanossSettings.SettingsFile.GetResultFilterConfig(result),
+	)
+}
+
 func (m ResultMapperImpl) MapToResultDTO(result entities.Result) entities.ResultDTO {
 	bomEntry := m.scanossSettings.SettingsFile.GetBomEntryFromResult(result)
-	return entities.ResultDTO{
+	cacheKey := m.generateCacheKey(result, bomEntry)
+
+	if cached, ok := resultDTOCache.Load(cacheKey); ok {
+		return cached.(entities.ResultDTO)
+	}
+
+	dto := entities.ResultDTO{
 		MatchType:        entities.MatchType(result.MatchType),
 		Path:             result.Path,
 		DetectedPurl:     (*result.Purl)[0],
@@ -61,6 +81,9 @@ func (m ResultMapperImpl) MapToResultDTO(result entities.Result) entities.Result
 		FilterConfig:     m.mapFilterConfig(result),
 		Comment:          bomEntry.Comment,
 	}
+
+	resultDTOCache.Store(cacheKey, dto)
+	return dto
 }
 
 func (m ResultMapperImpl) mapConcludedPurl(result entities.Result) string {
@@ -69,7 +92,7 @@ func (m ResultMapperImpl) mapConcludedPurl(result entities.Result) string {
 
 func (m ResultMapperImpl) MapToResultDTOList(results []entities.Result) []entities.ResultDTO {
 	output := make([]entities.ResultDTO, len(results))
-	numWorkers := runtime.NumCPU() // or any number that fits your workload and machine
+	numWorkers := runtime.NumCPU()
 	jobChan := make(chan int, len(results))
 	var wg sync.WaitGroup
 

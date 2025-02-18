@@ -70,9 +70,20 @@ func NewResultRepositoryJsonImpl(fr utils.FileReader) *ResultRepositoryJsonImpl 
 		log.Error().Err(err).Msg("Error loading initial cache")
 	}
 
+	config.GetInstance().RegisterListener(repo.onConfigChange)
+
 	go repo.watchForChanges()
 
 	return repo
+}
+
+func (r *ResultRepositoryJsonImpl) onConfigChange(newCfg *config.Config) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if err := r.refreshCache(); err != nil {
+		log.Error().Err(err).Msg("Error refreshing results cache after config change")
+	}
 }
 
 func (r *ResultRepositoryJsonImpl) watchForChanges() {

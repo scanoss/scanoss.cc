@@ -138,11 +138,8 @@ export default function CodeViewer({
 
   useEffect(() => {
     updateContent();
-  }, [content]);
-
-  useEffect(() => {
     updateHighlight();
-  }, []);
+  }, [content]);
 
   if (isError) {
     return (

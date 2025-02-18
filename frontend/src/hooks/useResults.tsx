@@ -10,6 +10,7 @@ export const useResults = () => {
   const query = useResultsStore((state) => state.query);
   const sort = useResultsStore((state) => state.sort);
   const fetchResults = useResultsStore((state) => state.fetchResults);
+
   const setQuery = useResultsStore((state) => state.setQuery);
 
   const debouncedQuery = useDebounce<string>(query, DEBOUNCE_QUERY_MS);

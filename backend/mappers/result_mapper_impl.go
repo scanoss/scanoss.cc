@@ -73,7 +73,6 @@ func (m ResultMapperImpl) MapToResultDTOList(results []entities.Result) []entiti
 	jobChan := make(chan int, len(results))
 	var wg sync.WaitGroup
 
-	// Fill the channel with indices
 	for i := 0; i < len(results); i++ {
 		jobChan <- i
 	}

@@ -25,7 +25,9 @@ import clsx from 'clsx';
 import { ArrowDownNarrowWide, ArrowUpNarrowWide, FileText, Percent } from 'lucide-react';
 import { ReactNode } from 'react';
 
+import useDebounce from '@/hooks/useDebounce';
 import { useResults } from '@/hooks/useResults';
+import { DEBOUNCE_RESET_RESULTS_MS } from '@/modules/results/constants';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import { Button } from './ui/button';
@@ -57,6 +59,7 @@ export default function SortSelector() {
   const { reset } = useResults();
   const sort = useResultsStore((state) => state.sort);
   const setSort = useResultsStore((state) => state.setSort);
+  const debouncedReset = useDebounce<() => void>(reset, DEBOUNCE_RESET_RESULTS_MS);
 
   const selectedOption = sortOptions.find((option) => option.value === sort.option) || sortOptions[0];
 
@@ -75,7 +78,7 @@ export default function SortSelector() {
               key={option.value}
               onClick={() => {
                 setSort(option.value, sort.order);
-                reset();
+                debouncedReset();
               }}
               className={clsx('gap-2', {
                 'bg-primary text-primary-foreground': sort.option === option.value,
@@ -96,7 +99,7 @@ export default function SortSelector() {
         className="gap-2"
         onClick={() => {
           setSort(sort.option, sort.order === 'asc' ? 'desc' : 'asc');
-          reset();
+          debouncedReset();
         }}
       >
         {sort.order === 'asc' ? <ArrowUpNarrowWide className="h-4 w-4" /> : <ArrowDownNarrowWide className="h-4 w-4" />}

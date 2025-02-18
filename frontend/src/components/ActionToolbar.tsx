@@ -102,7 +102,7 @@ export default function ActionToolbar() {
       <div className="flex gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" className="h-full w-14 rounded-none" onClick={() => undo()} disabled={!canUndo}>
+            <Button variant="ghost" className="h-full w-14 rounded-none" onClick={handleUndo} disabled={!canUndo}>
               <div className="flex flex-col items-center gap-1">
                 <span className="text-xs">Undo</span>
                 <RotateCcw className="h-4 w-4" />
@@ -113,7 +113,7 @@ export default function ActionToolbar() {
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" className="h-full w-14 rounded-none" onClick={() => redo()} disabled={!canRedo}>
+            <Button variant="ghost" className="h-full w-14 rounded-none" onClick={handleRedo} disabled={!canRedo}>
               <div className="flex flex-col items-center gap-1">
                 <span className="text-xs">Redo</span>
                 <RotateCw className="h-4 w-4" />

@@ -25,10 +25,12 @@ package repository
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"sync"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/internal/config"
@@ -40,30 +42,65 @@ type ResultRepositoryJsonImpl struct {
 	cache        []entities.Result
 	lastModified time.Time
 	mutex        sync.RWMutex
+	watcher      *fsnotify.Watcher
 }
 
 func NewResultRepositoryJsonImpl(fr utils.FileReader) *ResultRepositoryJsonImpl {
-	return &ResultRepositoryJsonImpl{
+	repo := &ResultRepositoryJsonImpl{
 		fr: fr,
+	}
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating watcher")
+		return repo
+	}
+
+	resultFilePath := config.GetInstance().GetResultFilePath()
+	if err := watcher.Add(resultFilePath); err != nil {
+		log.Error().Err(err).Msgf("Error watching file: %s", resultFilePath)
+		watcher.Close()
+		return repo
+	}
+
+	repo.watcher = watcher
+
+	// Initial cache load
+	if err := repo.refreshCache(); err != nil {
+		log.Error().Err(err).Msg("Error loading initial cache")
+	}
+
+	go repo.watchForChanges()
+
+	return repo
+}
+
+func (r *ResultRepositoryJsonImpl) watchForChanges() {
+	for {
+		select {
+		case event, ok := <-r.watcher.Events:
+			if !ok {
+				return
+			}
+			if event.Op&fsnotify.Write == fsnotify.Write {
+				r.mutex.Lock()
+				if err := r.refreshCache(); err != nil {
+					log.Error().Err(err).Msg("Error refreshing cache after file change")
+				}
+				r.mutex.Unlock()
+			}
+		case err, ok := <-r.watcher.Errors:
+			if !ok {
+				return
+			}
+			log.Error().Err(err).Msg("Watcher error")
+		}
 	}
 }
 
 func (r *ResultRepositoryJsonImpl) GetResults(filter entities.ResultFilter) ([]entities.Result, error) {
 	r.mutex.RLock()
-
-	if r.shouldRefreshCache() {
-		r.mutex.RUnlock()
-		r.mutex.Lock()
-		defer r.mutex.Unlock()
-
-		if r.shouldRefreshCache() {
-			if err := r.refreshCache(); err != nil {
-				return nil, err
-			}
-		}
-	} else {
-		defer r.mutex.RUnlock()
-	}
+	defer r.mutex.RUnlock()
 
 	if filter == nil {
 		return r.cache, nil
@@ -80,20 +117,6 @@ func (r *ResultRepositoryJsonImpl) GetResults(filter entities.ResultFilter) ([]e
 	}
 
 	return filteredResults, nil
-}
-
-func (r *ResultRepositoryJsonImpl) shouldRefreshCache() bool {
-	if r.cache == nil {
-		return true
-	}
-
-	resultFilePath := config.GetInstance().GetResultFilePath()
-	fileInfo, err := os.Stat(resultFilePath)
-	if err != nil {
-		return true
-	}
-
-	return fileInfo.ModTime().After(r.lastModified)
 }
 
 func (r *ResultRepositoryJsonImpl) refreshCache() error {
@@ -122,7 +145,7 @@ func (r *ResultRepositoryJsonImpl) refreshCache() error {
 }
 
 func (r *ResultRepositoryJsonImpl) parseScanResults(resultByte []byte) ([]entities.Result, error) {
-	var intermediateMap map[string][]entities.Match
+	var intermediateMap map[string][]entities.Component
 	if err := json.Unmarshal(resultByte, &intermediateMap); err != nil {
 		log.Error().Err(err).Msg("Error parsing scan results")
 		return []entities.Result{}, err
@@ -136,11 +159,24 @@ func (r *ResultRepositoryJsonImpl) parseScanResults(resultByte []byte) ([]entiti
 			scanResult.Path = key
 			scanResult.MatchType = match.ID
 			scanResult.Purl = &match.Purl
-			scanResult.ComponentName = match.ComponentName
-			scanResult.Matches = []entities.Match{match}
+			scanResult.ComponentName = match.Component
+			scanResult.Matches = []entities.Component{match}
 			scanResults = append(scanResults, scanResult)
 		}
 	}
 
 	return scanResults, nil
+}
+
+func (r *ResultRepositoryJsonImpl) GetResultByPath(path string) (entities.Result, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	for _, result := range r.cache {
+		if result.Path == path {
+			return result, nil
+		}
+	}
+
+	return entities.Result{}, fmt.Errorf("result not found: %s", path)
 }

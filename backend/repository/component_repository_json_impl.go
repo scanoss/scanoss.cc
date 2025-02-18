@@ -28,7 +28,6 @@ import (
 	"sort"
 
 	"github.com/scanoss/scanoss.cc/backend/entities"
-	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/scanoss/scanoss.cc/internal/utils"
 )
 
@@ -47,29 +46,24 @@ var licenseSourceOrder = map[string]int{
 }
 
 type JSONComponentRepository struct {
-	fr utils.FileReader
+	fr                utils.FileReader
+	resultsRepository ResultRepository
 }
 
-func NewJSONComponentRepository(fr utils.FileReader) *JSONComponentRepository {
+func NewJSONComponentRepository(fr utils.FileReader, resultsRepository ResultRepository) *JSONComponentRepository {
 	return &JSONComponentRepository{
-		fr: fr,
+		fr:                fr,
+		resultsRepository: resultsRepository,
 	}
 }
 
 func (r *JSONComponentRepository) FindByFilePath(path string) (entities.Component, error) {
-	resultFilePath := config.GetInstance().GetResultFilePath()
-
-	resultFileBytes, err := r.fr.ReadFile(resultFilePath)
-	if err != nil {
-		return entities.Component{}, err
-	}
-	results, err := utils.JSONParse[map[string][]entities.Component](resultFileBytes)
+	result, err := r.resultsRepository.GetResultByPath(path)
 	if err != nil {
 		return entities.Component{}, err
 	}
 
-	// Gets components from results
-	components := results[path]
+	components := result.Matches
 
 	// Order component licenses by source
 	if len(components[0].Licenses) > 0 {

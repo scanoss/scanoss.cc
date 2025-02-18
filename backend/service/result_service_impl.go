@@ -27,7 +27,6 @@ import (
 	"context"
 	"sort"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/backend/mappers"
@@ -36,22 +35,15 @@ import (
 )
 
 type ResultServiceImpl struct {
-	ctx     context.Context
-	watcher *fsnotify.Watcher
-	repo    repository.ResultRepository
-	mapper  mappers.ResultMapper
+	ctx    context.Context
+	repo   repository.ResultRepository
+	mapper mappers.ResultMapper
 }
 
 func NewResultServiceImpl(repo repository.ResultRepository, mapper mappers.ResultMapper) ResultService {
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		log.Error().Err(err).Msg("Error creating watcher: %v")
-	}
-
 	return &ResultServiceImpl{
-		repo:    repo,
-		mapper:  mapper,
-		watcher: watcher,
+		repo:   repo,
+		mapper: mapper,
 	}
 }
 

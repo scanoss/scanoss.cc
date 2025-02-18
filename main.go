@@ -73,10 +73,10 @@ func run() error {
 	fr := utils.NewDefaultFileReader()
 
 	// Repositories
-	componentRepository := repository.NewJSONComponentRepository(fr)
 	scanossSettingsRepository := repository.NewScanossSettingsJsonRepository(fr)
 	scanossSettingsRepository.Init()
 	resultRepository := repository.NewResultRepositoryJsonImpl(fr)
+	componentRepository := repository.NewJSONComponentRepository(fr, resultRepository)
 	fileRepository := repository.NewFileRepositoryImpl()
 	licenseRepository := repository.NewLicenseJsonRepository(fr)
 

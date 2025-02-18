@@ -22,3 +22,4 @@
  */
 
 export const DEBOUNCE_QUERY_MS = 300;
+export const DEBOUNCE_RESET_RESULTS_MS = 300;

@@ -83,19 +83,16 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
       await FilterComponents(dto);
 
       await get().updateUndoRedoState();
-      await useResultsStore.getState().fetchResults();
     },
 
     undo: async () => {
       await Undo();
       await get().updateUndoRedoState();
-      await useResultsStore.getState().fetchResults();
     },
 
     redo: async () => {
       await Redo();
       await get().updateUndoRedoState();
-      await useResultsStore.getState().fetchResults();
     },
 
     updateUndoRedoState: async () => {

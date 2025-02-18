@@ -25,6 +25,7 @@ import clsx from 'clsx';
 import { ArrowDownNarrowWide, ArrowUpNarrowWide, FileText, Percent } from 'lucide-react';
 import { ReactNode } from 'react';
 
+import { useResults } from '@/hooks/useResults';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import { Button } from './ui/button';
@@ -53,6 +54,7 @@ const sortOptions: SortOption[] = [
 ];
 
 export default function SortSelector() {
+  const { reset } = useResults();
   const sort = useResultsStore((state) => state.sort);
   const setSort = useResultsStore((state) => state.setSort);
 
@@ -71,7 +73,10 @@ export default function SortSelector() {
           {sortOptions.map((option) => (
             <DropdownMenuItem
               key={option.value}
-              onClick={() => setSort(option.value, sort.order)}
+              onClick={() => {
+                setSort(option.value, sort.order);
+                reset();
+              }}
               className={clsx('gap-2', {
                 'bg-primary text-primary-foreground': sort.option === option.value,
               })}
@@ -85,7 +90,15 @@ export default function SortSelector() {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button size="sm" variant="outline" className="gap-2" onClick={() => setSort(sort.option, sort.order === 'asc' ? 'desc' : 'asc')}>
+      <Button
+        size="sm"
+        variant="outline"
+        className="gap-2"
+        onClick={() => {
+          setSort(sort.option, sort.order === 'asc' ? 'desc' : 'asc');
+          reset();
+        }}
+      >
         {sort.order === 'asc' ? <ArrowUpNarrowWide className="h-4 w-4" /> : <ArrowDownNarrowWide className="h-4 w-4" />}
       </Button>
     </div>

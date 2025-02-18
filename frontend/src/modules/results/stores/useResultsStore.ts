@@ -76,7 +76,6 @@ const useResultsStore = create<ResultsStore>()(
 
     setSort: (option, order) => {
       set({ sort: { option, order } }, false, 'SET_SORT');
-      get().fetchResults();
     },
     setSelectedResults: (selectedResults) => set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
@@ -96,6 +95,7 @@ const useResultsStore = create<ResultsStore>()(
           },
         })
       );
+
       const pendingResults = results.filter((r) => r.workflow_state === 'pending');
       const completedResults = results.filter((r) => r.workflow_state === 'completed');
 

@@ -26,9 +26,9 @@ import { useMutation } from '@tanstack/react-query';
 import { RotateCcw, RotateCw, Save } from 'lucide-react';
 
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { useResults } from '@/hooks/useResults';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
-import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import { Save as SaveBomChanges } from '../../wailsjs/go/service/ScanossSettingsServiceImp';
 import { Button } from './ui/button';
@@ -44,7 +44,7 @@ export default function ActionToolbar() {
   const canUndo = useComponentFilterStore((state) => state.canUndo);
   const canRedo = useComponentFilterStore((state) => state.canRedo);
 
-  const fetchResults = useResultsStore((state) => state.fetchResults);
+  const { reset } = useResults();
 
   const { mutate: saveChanges, isPending } = useMutation({
     mutationFn: SaveBomChanges,
@@ -53,7 +53,7 @@ export default function ActionToolbar() {
         title: 'Success',
         description: `Your changes have been successfully saved.`,
       });
-      await fetchResults();
+      reset();
     },
     onError: (e) => {
       toast({
@@ -64,8 +64,18 @@ export default function ActionToolbar() {
     },
   });
 
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.undo.keys, undo);
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.redo.keys, redo);
+  const handleUndo = async () => {
+    await undo();
+    reset();
+  };
+
+  const handleRedo = async () => {
+    await redo();
+    reset();
+  };
+
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.undo.keys, async () => await handleUndo());
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.redo.keys, async () => await handleRedo());
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.save.keys, () => saveChanges());
 
   return (

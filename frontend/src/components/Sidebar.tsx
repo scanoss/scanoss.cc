@@ -21,7 +21,6 @@
  * SOFTWARE.
  */
 
-import { useQuery } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
 import { Braces, File } from 'lucide-react';
@@ -29,12 +28,11 @@ import { ReactNode, useRef } from 'react';
 import { entities } from 'wailsjs/go/models';
 
 import ResultSearchBar from '@/components/ResultSearchBar';
-import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { useResults } from '@/hooks/useResults';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
-import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
@@ -49,7 +47,6 @@ export default function Sidebar() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsListRef = useRef<HTMLDivElement>(null);
 
-  const fetchResults = useResultsStore((state) => state.fetchResults);
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
   const selectResultRange = useResultsStore((state) => state.selectResultRange);
   const toggleResultSelection = useResultsStore((state) => state.toggleResultSelection);
@@ -58,16 +55,9 @@ export default function Sidebar() {
   const moveToNextResult = useResultsStore((state) => state.moveToNextResult);
   const moveToPreviousResult = useResultsStore((state) => state.moveToPreviousResult);
 
-  const filterByMatchType = useResultsStore((state) => state.filterByMatchType);
-  const query = useResultsStore((state) => state.query);
-  const debouncedQuery: string = useDebounce(query, DEBOUNCE_QUERY_MS);
+  const { data: results, isLoading: isLoadingResults } = useResults();
 
-  const { data, isLoading: isLoadingResults } = useQuery({
-    queryKey: ['results', debouncedQuery, filterByMatchType],
-    queryFn: () => fetchResults(),
-  });
-
-  const { pendingResults = [], completedResults = [] } = data ?? {};
+  const { pendingResults = [], completedResults = [] } = results ?? {};
 
   const handleSelectFiles = (e: React.MouseEvent, result: entities.ResultDTO, selectionType: 'pending' | 'completed') => {
     e.preventDefault();

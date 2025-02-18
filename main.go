@@ -76,6 +76,7 @@ func run() error {
 	scanossSettingsRepository := repository.NewScanossSettingsJsonRepository(fr)
 	scanossSettingsRepository.Init()
 	resultRepository := repository.NewResultRepositoryJsonImpl(fr)
+	defer resultRepository.Close()
 	componentRepository := repository.NewJSONComponentRepository(fr, resultRepository)
 	fileRepository := repository.NewFileRepositoryImpl()
 	licenseRepository := repository.NewLicenseJsonRepository(fr)

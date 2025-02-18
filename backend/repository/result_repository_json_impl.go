@@ -191,3 +191,9 @@ func (r *ResultRepositoryJsonImpl) GetResultByPath(path string) (entities.Result
 
 	return entities.Result{}, fmt.Errorf("result not found: %s", path)
 }
+
+func (r *ResultRepositoryJsonImpl) Close() {
+	if r.watcher != nil {
+		r.watcher.Close()
+	}
+}

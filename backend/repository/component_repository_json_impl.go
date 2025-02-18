@@ -65,6 +65,10 @@ func (r *JSONComponentRepository) FindByFilePath(path string) (entities.Componen
 
 	components := result.Matches
 
+	if len(components) == 0 {
+		return entities.Component{}, errors.New("no components found")
+	}
+
 	// Order component licenses by source
 	if len(components[0].Licenses) > 0 {
 		r.orderComponentLicensesBySourceType(&components[0])

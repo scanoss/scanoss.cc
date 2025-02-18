@@ -94,13 +94,15 @@ export default function CodeViewer({
 
   const updateContent = () => {
     const { current: mEditor } = editor;
+    let oldModel: monaco.editor.ITextModel | null = null;
 
     if (mEditor) {
-      const model = mEditor.getModel();
-      if (model) model.dispose();
+      oldModel = mEditor.getModel();
 
       const nModel = monaco.editor.createModel(content as string, language as string);
       mEditor.setModel(nModel);
+
+      if (oldModel) oldModel.dispose();
     }
   };
 
@@ -139,7 +141,7 @@ export default function CodeViewer({
   useEffect(() => {
     updateContent();
     updateHighlight();
-  }, [content]);
+  }, [content, language]);
 
   if (isError) {
     return (

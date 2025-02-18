@@ -132,7 +132,9 @@ func (a *App) initializeMenu() {
 
 	// View menu
 	ViewMenu := AppMenu.AddSubmenu("View")
-	ViewMenu.AddText("Sync Scroll Position", keys.Combo("e", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {})
+	ViewMenu.AddText("Sync Scroll Position", keys.Combo("e", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionToggleSyncScrollPosition))
+	})
 
 	// Scan menu
 	ScanMenu := AppMenu.AddSubmenu("Scan")

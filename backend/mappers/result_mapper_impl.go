@@ -63,10 +63,6 @@ func (m ResultMapperImpl) MapToResultDTO(result entities.Result) entities.Result
 	}
 }
 
-func (m ResultMapperImpl) mapComment(result entities.Result) string {
-	return m.scanossSettings.SettingsFile.GetBomEntryFromResult(result).Comment
-}
-
 func (m ResultMapperImpl) mapConcludedPurl(result entities.Result) string {
 	return m.scanossSettings.SettingsFile.GetBomEntryFromResult(result).ReplaceWith
 }

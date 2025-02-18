@@ -99,9 +99,6 @@ const useResultsStore = create<ResultsStore>()(
       const pendingResults = results.filter((r) => r.workflow_state === 'pending');
       const completedResults = results.filter((r) => r.workflow_state === 'completed');
 
-      console.log('pendingResults', pendingResults);
-      console.log('completedResults', completedResults);
-
       set({ pendingResults, completedResults });
 
       // When the app first loads or if changing the query, select the first result

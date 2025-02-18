@@ -38,6 +38,7 @@ import EditorToolbar from './EditorToolbar';
 import EmptyState from './EmptyState';
 import FileInfoCard from './FileInfoCard';
 import Header from './Header';
+import Loading from './Loading';
 import MatchInfoCard from './MatchInfoCard';
 
 const MemoizedCodeViewer = memo(CodeViewer);
@@ -47,9 +48,9 @@ export default function MatchComparison() {
 
   const {
     data: localFileContent,
-    isFetching: isLoadingLocalFileContent,
     isError: isErrorLocalFileContent,
     error: errorLocalFileContent,
+    isLoading: isLoadingLocalFileContent,
   } = useQuery({
     queryKey: ['localFileContent', selectedResult?.path],
     queryFn: () => GetLocalFile(selectedResult?.path as string),
@@ -58,8 +59,8 @@ export default function MatchComparison() {
 
   const {
     data: remoteFileContent,
-    isFetching: isLoadingRemoteFileContent,
     isError: isErrorRemoteFileContent,
+    isLoading: isLoadingRemoteFileContent,
     error: errorRemoteFileContent,
   } = useQuery({
     queryKey: ['remoteFileContent', selectedResult?.path],
@@ -67,7 +68,7 @@ export default function MatchComparison() {
     enabled: !!selectedResult?.path,
   });
 
-  const { data: component } = useQuery({
+  const { data: component, isLoading: isLoadingComponent } = useQuery({
     queryKey: ['component', selectedResult?.path],
     queryFn: () => GetComponentByPath(selectedResult?.path as string),
     enabled: !!selectedResult?.path,
@@ -89,8 +90,11 @@ export default function MatchComparison() {
     );
   }
 
+  const isLoadingLocalFile = isLoadingLocalFileContent || isLoadingComponent;
+  const isLoadingRemoteFile = isLoadingRemoteFileContent || isLoadingComponent;
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col overflow-hidden">
       <header className="h-[65px] border-b border-b-border px-6">
         <Header />
       </header>
@@ -104,26 +108,34 @@ export default function MatchComparison() {
           <div className="col-span-2">
             <EditorToolbar />
           </div>
-          <MemoizedCodeViewer
-            content={localFileContent?.content}
-            isError={isErrorLocalFileContent}
-            error={errorLocalFileContent}
-            isLoading={isLoadingLocalFileContent}
-            language={localFileContent?.language}
-            highlightLines={component?.lines}
-            editorType="local"
-            editorId={uuidv4()}
-          />
-          <MemoizedCodeViewer
-            content={remoteFileContent?.content}
-            isError={isErrorRemoteFileContent}
-            error={errorRemoteFileContent}
-            isLoading={isLoadingRemoteFileContent}
-            language={remoteFileContent?.language}
-            highlightLines={component?.oss_lines}
-            editorType="remote"
-            editorId={uuidv4()}
-          />
+          <div className="flex flex-1 items-center justify-center text-muted-foreground">
+            {isLoadingLocalFile ? (
+              <Loading text="Loading local file..." />
+            ) : (
+              <MemoizedCodeViewer
+                content={localFileContent?.content}
+                isError={isErrorLocalFileContent}
+                error={errorLocalFileContent}
+                language={localFileContent?.language}
+                highlightLines={component?.lines}
+                editorId={uuidv4()}
+              />
+            )}
+          </div>
+          <div className="flex flex-1 items-center justify-center text-muted-foreground">
+            {isLoadingRemoteFile ? (
+              <Loading text="Loading remote file..." />
+            ) : (
+              <MemoizedCodeViewer
+                content={remoteFileContent?.content}
+                isError={isErrorRemoteFileContent}
+                error={errorRemoteFileContent}
+                language={remoteFileContent?.language}
+                highlightLines={component?.oss_lines}
+                editorId={uuidv4()}
+              />
+            )}
+          </div>
         </div>
       </main>
     </div>

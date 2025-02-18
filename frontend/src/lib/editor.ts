@@ -84,6 +84,13 @@ export class MonacoManager implements EditorManager {
     }
   }
 
+  public removeEditor(id: string) {
+    const existingEditorIndex = this.editors.findIndex((e) => e.id === id);
+    if (existingEditorIndex > -1) {
+      this.editors.splice(existingEditorIndex, 1);
+    }
+  }
+
   public getScrollSyncEnabled(): boolean {
     return this.scrollSyncEnabled;
   }

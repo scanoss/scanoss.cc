@@ -34,7 +34,7 @@ import { withErrorHandling } from '@/lib/errors';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 import useConfigStore from '@/stores/useConfigStore';
 
-import { GetScanRoot, SelectDirectory } from '../../wailsjs/go/main/App';
+import { GetScanRoot, JoinPaths, SelectDirectory } from '../../wailsjs/go/main/App';
 import { entities } from '../../wailsjs/go/models';
 import { GetScanArgs, ScanStream } from '../../wailsjs/go/service/ScanServicePythonImpl';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
@@ -51,12 +51,14 @@ interface OutputLine {
 type ScanStatus = 'idle' | 'scanning' | 'completed' | 'failed';
 
 interface ScanDialogProps {
+  open: boolean;
   onOpenChange: () => void;
 }
 
-export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
+export default function ScanDialog({ open, onOpenChange }: ScanDialogProps) {
   const { toast } = useToast();
 
+  const initialScanRoot = useConfigStore((state) => state.scanRoot);
   const setScanRoot = useConfigStore((state) => state.setScanRoot);
 
   const [output, setOutput] = useState<OutputLine[]>([]);
@@ -71,18 +73,40 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
   const { reset: resetResults } = useResults();
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
 
-  const handleSelectDirectory = withErrorHandling({
+  const handleSelectScanRoot = withErrorHandling({
     asyncFn: async () => {
       const selectedDir = await SelectDirectory();
       if (selectedDir) {
         setDirectory(selectedDir);
-        setOptions((prev) => ({ ...prev, output: `${selectedDir}/.scanoss/results.json`, settings: `${selectedDir}/scanoss.json` }));
+        updatePathWhenScanRootChanges(selectedDir);
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Failed to select scan root:', error);
       toast({
         title: 'Error',
         description: 'An error occurred while selecting the directory. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updatePathWhenScanRootChanges = withErrorHandling({
+    asyncFn: async (selectedDir: string) => {
+      const defaultOutputPath = await JoinPaths([selectedDir, '.scanoss', 'results.json']);
+      const defaultSettingsPath = await JoinPaths([selectedDir, 'scanoss.json']);
+
+      setOptions((prev) => ({
+        ...prev,
+        output: defaultOutputPath,
+        settings: defaultSettingsPath,
+      }));
+    },
+    onError: (error) => {
+      console.error('Failed to update paths:', error);
+      toast({
+        title: 'Error',
+        description: 'An error occurred. Please try again.',
         variant: 'destructive',
       });
     },
@@ -170,14 +194,9 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
         });
         setOptions(initialOptions);
 
-        // Set default directory and paths
         const dir = await GetScanRoot();
         setDirectory(dir);
-        setOptions((prev) => ({
-          ...prev,
-          output: `${dir}/.scanoss/results.json`,
-          settings: `${dir}/scanoss.json`,
-        }));
+        await updatePathWhenScanRootChanges(dir);
       } catch (error) {
         console.error('Failed to initialize scan dialog:', error);
         toast({
@@ -188,7 +207,7 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
       }
     }
     initialize();
-  }, [toast]);
+  }, [initialScanRoot]);
 
   useEffect(() => {
     const subs = [
@@ -220,7 +239,7 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
   const coreOptions = scanArgs.filter((arg) => arg.IsCore);
 
   return (
-    <Dialog open onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Scan With Options</DialogTitle>
@@ -232,7 +251,7 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
             <Label htmlFor="directory">Directory to scan</Label>
             <div className="flex gap-2">
               <Input id="directory" value={directory} readOnly placeholder="Select a directory" className="text-sm" />
-              <Button type="button" onClick={handleSelectDirectory} variant="secondary" size="icon">
+              <Button type="button" onClick={handleSelectScanRoot} variant="secondary" size="icon">
                 <Folder className="h-4 w-4" />
               </Button>
             </div>

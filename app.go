@@ -26,6 +26,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"slices"
 
 	"github.com/rs/zerolog/log"
@@ -211,4 +212,8 @@ func (a *App) SetResultFilePath(path string) {
 
 func (a *App) SetScanSettingsFilePath(path string) {
 	a.cfg.SetScanSettingsFilePath(path)
+}
+
+func (a *App) JoinPaths(elements []string) string {
+	return filepath.Join(elements...)
 }

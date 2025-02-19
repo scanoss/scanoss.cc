@@ -73,7 +73,7 @@ export default function Root() {
         <StatusBar />
       </div>
       <KeyboardShortcutsDialog open={showKeyboardShortcuts} onOpenChange={() => setShowKeyboardShortcuts(false)} />
-      {scanModal && <ScanDialog onOpenChange={handleCloseScanModal} />}
+      <ScanDialog open={scanModal} onOpenChange={handleCloseScanModal} />
     </div>
   );
 }

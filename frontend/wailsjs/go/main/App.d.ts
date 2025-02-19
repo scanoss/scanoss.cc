@@ -13,6 +13,8 @@ export function GetScanSettingsFilePath():Promise<string>;
 
 export function Init(arg1:context.Context,arg2:service.ScanossSettingsService,arg3:service.KeyboardService):Promise<void>;
 
+export function JoinPaths(arg1:Array<string>):Promise<string>;
+
 export function SelectDirectory():Promise<string>;
 
 export function SelectFile(arg1:string):Promise<string>;

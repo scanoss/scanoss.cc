@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Upcoming changes...
 
+## [0.6.1] 2025-02-19
+
+### Fixed
+- Fix scan dialog animation not working when clicking "Scan With Options"
+- Fix path building when selecting scan root
+- Fix scan dialog resetting to default values when opening
+
+### Changed
+- Use a single function to get all scan root derived paths in ScanDialog (results path, settings path, etc)
+
 ## [0.6.0] 2024-02-03
 
 ### Added
@@ -55,3 +65,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.5.0]: https://github.com/scanoss/scanoss.cc/compare/v0.4.0...v0.5.0
 [0.6.0]: https://github.com/scanoss/scanoss.cc/compare/v0.5.0...v0.6.0
+[0.6.1]: https://github.com/scanoss/scanoss.cc/compare/v0.6.0...v0.6.1

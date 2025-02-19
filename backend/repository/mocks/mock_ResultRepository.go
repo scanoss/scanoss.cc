@@ -20,6 +20,62 @@ func (_m *MockResultRepository) EXPECT() *MockResultRepository_Expecter {
 	return &MockResultRepository_Expecter{mock: &_m.Mock}
 }
 
+// GetResultByPath provides a mock function with given fields: path
+func (_m *MockResultRepository) GetResultByPath(path string) (entities.Result, error) {
+	ret := _m.Called(path)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetResultByPath")
+	}
+
+	var r0 entities.Result
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (entities.Result, error)); ok {
+		return rf(path)
+	}
+	if rf, ok := ret.Get(0).(func(string) entities.Result); ok {
+		r0 = rf(path)
+	} else {
+		r0 = ret.Get(0).(entities.Result)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(path)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockResultRepository_GetResultByPath_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetResultByPath'
+type MockResultRepository_GetResultByPath_Call struct {
+	*mock.Call
+}
+
+// GetResultByPath is a helper method to define mock.On call
+//   - path string
+func (_e *MockResultRepository_Expecter) GetResultByPath(path interface{}) *MockResultRepository_GetResultByPath_Call {
+	return &MockResultRepository_GetResultByPath_Call{Call: _e.mock.On("GetResultByPath", path)}
+}
+
+func (_c *MockResultRepository_GetResultByPath_Call) Run(run func(path string)) *MockResultRepository_GetResultByPath_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *MockResultRepository_GetResultByPath_Call) Return(_a0 entities.Result, _a1 error) *MockResultRepository_GetResultByPath_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockResultRepository_GetResultByPath_Call) RunAndReturn(run func(string) (entities.Result, error)) *MockResultRepository_GetResultByPath_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetResults provides a mock function with given fields: filters
 func (_m *MockResultRepository) GetResults(filters entities.ResultFilter) ([]entities.Result, error) {
 	ret := _m.Called(filters)

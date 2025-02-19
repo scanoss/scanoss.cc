@@ -27,6 +27,14 @@ import { useEffect, useMemo, useRef } from 'react';
 import { HighlightRange, MonacoManager } from '@/lib/editor';
 import { getHighlightLineRanges } from '@/modules/results/utils';
 
+const EDITOR_DEFAULT_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
+  readOnly: true,
+  theme: 'vs-dark',
+  minimap: { enabled: false },
+  automaticLayout: true,
+  fontSize: 12,
+};
+
 interface CodeViewerProps {
   content: string | undefined;
   editorId: string;
@@ -62,23 +70,12 @@ export default function CodeViewer({
     []
   );
 
-  const editorDefaultOptions: monaco.editor.IStandaloneEditorConstructionOptions = useMemo(
-    () => ({
-      readOnly: true,
-      theme: 'vs-dark',
-      minimap: { enabled: false },
-      automaticLayout: true,
-      fontSize: 12,
-    }),
-    []
-  );
-
   const initMonaco = () => {
     if (editorContainer.current) {
       editor.current = monaco.editor.create(editorContainer.current, {
         language: language as string,
         model: null,
-        ...editorDefaultOptions,
+        ...EDITOR_DEFAULT_OPTIONS,
       });
 
       monacoManager.addEditor(editorId, editor.current);

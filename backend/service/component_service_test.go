@@ -23,8 +23,8 @@ func TestInsertComponentFilterActions(t *testing.T) {
 	defer cleanup()
 
 	fr := utils.NewDefaultFileReader()
-	repo := repository.NewJSONComponentRepository(fr)
-	resultRepo := repository.NewResultRepositoryJsonImpl(fr)
+	resultRepo, _ := repository.NewResultRepositoryJsonImpl(fr, nil)
+	repo := repository.NewJSONComponentRepository(fr, resultRepo)
 	scanossSettingsRepo := repository.NewScanossSettingsJsonRepository(fr)
 	componentMapper := mappers.NewComponentMapper()
 

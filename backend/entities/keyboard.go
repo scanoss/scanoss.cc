@@ -53,7 +53,7 @@ const (
 	ActionReplaceComponentWithComments    Action = "replaceComponentWithComments"
 
 	// View
-	ActionSyncScrollPosition         Action = "toggleSyncScrollPosition"
+	ActionToggleSyncScrollPosition   Action = "toggleSyncScrollPosition"
 	ActionShowKeyboardShortcutsModal Action = "showKeyboardShortcutsModal"
 
 	// Scan
@@ -105,7 +105,7 @@ var AllShortcutActions = []struct {
 	{ActionReplaceFileWithComments, "ReplaceFileWithComments"},
 	{ActionReplaceComponentWithoutComments, "ReplaceComponentWithoutComments"},
 	{ActionReplaceComponentWithComments, "ReplaceComponentWithComments"},
-	{ActionSyncScrollPosition, "ToggleSyncScrollPosition"},
+	{ActionToggleSyncScrollPosition, "ToggleSyncScrollPosition"},
 	{ActionShowKeyboardShortcutsModal, "ShowKeyboardShortcutsModal"},
 	{ActionScanWithOptions, "ScanWithOptions"},
 }
@@ -296,8 +296,8 @@ var DefaultShortcuts = []Shortcut{
 		Description: "Sync the scroll position of the editors",
 		Accelerator: keys.Combo("e", keys.ShiftKey, keys.CmdOrCtrlKey),
 		Keys:        "shift+mod+e",
-		Group:       GroupActions,
-		Action:      ActionReplaceComponentWithComments,
+		Group:       GroupView,
+		Action:      ActionToggleSyncScrollPosition,
 	},
 
 	// Scan

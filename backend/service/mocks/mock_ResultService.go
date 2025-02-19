@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	entities "github.com/scanoss/scanoss.cc/backend/entities"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -74,6 +76,39 @@ func (_c *MockResultService_GetAll_Call) Return(_a0 []entities.ResultDTO, _a1 er
 }
 
 func (_c *MockResultService_GetAll_Call) RunAndReturn(run func(*entities.RequestResultDTO) ([]entities.ResultDTO, error)) *MockResultService_GetAll_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetContext provides a mock function with given fields: ctx
+func (_m *MockResultService) SetContext(ctx context.Context) {
+	_m.Called(ctx)
+}
+
+// MockResultService_SetContext_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetContext'
+type MockResultService_SetContext_Call struct {
+	*mock.Call
+}
+
+// SetContext is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockResultService_Expecter) SetContext(ctx interface{}) *MockResultService_SetContext_Call {
+	return &MockResultService_SetContext_Call{Call: _e.mock.On("SetContext", ctx)}
+}
+
+func (_c *MockResultService_SetContext_Call) Run(run func(ctx context.Context)) *MockResultService_SetContext_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *MockResultService_SetContext_Call) Return() *MockResultService_SetContext_Call {
+	_c.Call.Return()
+	return _c
+}
+
+func (_c *MockResultService_SetContext_Call) RunAndReturn(run func(context.Context)) *MockResultService_SetContext_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -21,25 +21,25 @@
  * SOFTWARE.
  */
 
+import { useVirtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
-import { Braces, ChevronRight, File } from 'lucide-react';
-import { ReactNode, useEffect, useRef } from 'react';
+import { Braces, File } from 'lucide-react';
+import { ReactNode, useRef } from 'react';
 import { entities } from 'wailsjs/go/models';
 
 import ResultSearchBar from '@/components/ResultSearchBar';
-import useDebounce from '@/hooks/useDebounce';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { useResults } from '@/hooks/useResults';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { getDirectory, getFileName } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
-import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { MatchType, stateInfoPresentation } from '@/modules/results/domain';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
+import Loading from './Loading';
 import MatchTypeSelector from './MatchTypeSelector';
 import SelectScanRoot from './SelectScanRoot';
 import SortSelector from './SortSelector';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
@@ -47,20 +47,17 @@ export default function Sidebar() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsListRef = useRef<HTMLDivElement>(null);
 
-  const fetchResults = useResultsStore((state) => state.fetchResults);
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
   const selectResultRange = useResultsStore((state) => state.selectResultRange);
   const toggleResultSelection = useResultsStore((state) => state.toggleResultSelection);
-  const pendingResults = useResultsStore((state) => state.pendingResults);
-  const completedResults = useResultsStore((state) => state.completedResults);
   const setLastSelectedIndex = useResultsStore((state) => state.setLastSelectedIndex);
   const setLastSelectionType = useResultsStore((state) => state.setLastSelectionType);
   const moveToNextResult = useResultsStore((state) => state.moveToNextResult);
   const moveToPreviousResult = useResultsStore((state) => state.moveToPreviousResult);
 
-  const filterByMatchType = useResultsStore((state) => state.filterByMatchType);
-  const query = useResultsStore((state) => state.query);
-  const debouncedQuery: string = useDebounce(query, DEBOUNCE_QUERY_MS);
+  const { data: results, isLoading: isLoadingResults } = useResults();
+
+  const { pendingResults = [], completedResults = [] } = results ?? {};
 
   const handleSelectFiles = (e: React.MouseEvent, result: entities.ResultDTO, selectionType: 'pending' | 'completed') => {
     e.preventDefault();
@@ -74,6 +71,13 @@ export default function Sidebar() {
     }
   };
 
+  const moveFocusToResults = () => {
+    if (resultsListRef.current) {
+      resultsListRef.current.setAttribute('tabindex', '-1');
+      resultsListRef.current.focus();
+    }
+  };
+
   const handleSingleSelection = (result: entities.ResultDTO, selectionType: 'pending' | 'completed') => {
     const resultsOfType = selectionType === 'pending' ? pendingResults : completedResults;
     const lastSelectedIndex = resultsOfType.findIndex((r) => r.path === result.path);
@@ -82,17 +86,6 @@ export default function Sidebar() {
     setLastSelectedIndex(lastSelectedIndex);
     setSelectedResults([result]);
   };
-
-  const moveFocusToResults = () => {
-    if (resultsListRef.current) {
-      resultsListRef.current.setAttribute('tabindex', '-1');
-      resultsListRef.current.focus();
-    }
-  };
-
-  useEffect(() => {
-    fetchResults();
-  }, [filterByMatchType, debouncedQuery]);
 
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveUp.keys, moveToPreviousResult, {
     enableOnFormTags: false,
@@ -115,6 +108,8 @@ export default function Sidebar() {
               </span>{' '}
               <SelectScanRoot />
             </div>
+          ) : isLoadingResults ? (
+            <Loading text="Loading results..." size="w-3 h-3" />
           ) : (
             'You have no decisions to make in working directory'
           )}
@@ -129,12 +124,26 @@ export default function Sidebar() {
         <ResultSearchBar searchInputRef={searchInputRef} />
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="flex flex-1 flex-col gap-2 outline-none" tabIndex={-1} ref={resultsListRef}>
-          <ResultSection title="Pending files" results={pendingResults} onSelect={handleSelectFiles} selectionType="pending" />
-          <ResultSection title="Completed files" results={completedResults} onSelect={handleSelectFiles} selectionType="completed" />
+      <div className="min-h-0 flex-1">
+        <div className="flex h-full min-h-0 flex-1 flex-col outline-none" tabIndex={-1} ref={resultsListRef}>
+          <div className="flex min-h-0 flex-1 flex-col gap-2">
+            <ResultSection
+              title="Pending files"
+              results={pendingResults}
+              onSelect={handleSelectFiles}
+              selectionType="pending"
+              isLoading={isLoadingResults}
+            />
+            <ResultSection
+              title="Completed files"
+              results={completedResults}
+              onSelect={handleSelectFiles}
+              selectionType="completed"
+              isLoading={isLoadingResults}
+            />
+          </div>
         </div>
-      </ScrollArea>
+      </div>
     </aside>
   );
 }
@@ -144,27 +153,61 @@ interface ResultSectionProps {
   results: entities.ResultDTO[];
   onSelect: (e: React.MouseEvent, result: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   selectionType: 'pending' | 'completed';
+  isLoading: boolean;
 }
 
-function ResultSection({ title, results, onSelect, selectionType }: ResultSectionProps) {
+function ResultSection({ title, results, onSelect, selectionType, isLoading }: ResultSectionProps) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const ITEM_HEIGHT = 32;
+
+  const virtualizer = useVirtualizer({
+    count: results.length,
+    getScrollElement: () => parentRef.current?.querySelector('[data-radix-scroll-area-viewport]') as Element,
+    estimateSize: () => ITEM_HEIGHT,
+    overscan: 5,
+  });
+
   return (
-    <Collapsible defaultOpen className="flex-1">
-      <CollapsibleTrigger className="group w-full">
-        <div className="flex items-center gap-1 border-b border-border px-3 pb-1">
-          <ChevronRight className="group-data-[state=open]:stroke-text-foreground h-3 w-3 transform stroke-muted-foreground group-data-[state=open]:rotate-90" />
-          <span className="text-sm text-muted-foreground">
-            {title} <span className="text-xs">({results.length})</span>
-          </span>
-        </div>
-      </CollapsibleTrigger>
-      {results.length > 0 && (
-        <CollapsibleContent className="flex flex-col gap-1 overflow-y-auto py-2">
-          {results.map((result) => (
-            <SidebarItem key={result.path} result={result} onSelect={onSelect} selectionType={selectionType} />
-          ))}
-        </CollapsibleContent>
-      )}
-    </Collapsible>
+    <div className="flex h-1/2 flex-col">
+      <div className="flex flex-shrink-0 items-center gap-1 border-b border-border px-3 pb-1">
+        <span className="text-sm text-muted-foreground">
+          {title} {results.length > 0 ? <span className="text-xs">({results.length})</span> : null}
+        </span>
+      </div>
+      <div className="min-h-0 flex-1" ref={parentRef}>
+        <ScrollArea className="h-full">
+          {isLoading ? (
+            <div className="flex h-full w-full items-center justify-center">
+              <Loading text="Loading results..." size="w-3 h-3" />
+            </div>
+          ) : (
+            <div
+              style={{
+                height: `${virtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              {virtualizer.getVirtualItems().map((virtualRow) => (
+                <div
+                  key={virtualRow.key}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  <SidebarItem result={results[virtualRow.index]} onSelect={onSelect} selectionType={selectionType} />
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </div>
+    </div>
   );
 }
 

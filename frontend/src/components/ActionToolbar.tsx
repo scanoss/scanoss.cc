@@ -26,9 +26,10 @@ import { useMutation } from '@tanstack/react-query';
 import { RotateCcw, RotateCw, Save } from 'lucide-react';
 
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { useResults } from '@/hooks/useResults';
+import { withErrorHandling } from '@/lib/errors';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
-import useResultsStore from '@/modules/results/stores/useResultsStore';
 
 import { Save as SaveBomChanges } from '../../wailsjs/go/service/ScanossSettingsServiceImp';
 import { Button } from './ui/button';
@@ -44,7 +45,7 @@ export default function ActionToolbar() {
   const canUndo = useComponentFilterStore((state) => state.canUndo);
   const canRedo = useComponentFilterStore((state) => state.canRedo);
 
-  const fetchResults = useResultsStore((state) => state.fetchResults);
+  const { reset } = useResults();
 
   const { mutate: saveChanges, isPending } = useMutation({
     mutationFn: SaveBomChanges,
@@ -53,7 +54,7 @@ export default function ActionToolbar() {
         title: 'Success',
         description: `Your changes have been successfully saved.`,
       });
-      await fetchResults();
+      reset();
     },
     onError: (e) => {
       toast({
@@ -64,8 +65,36 @@ export default function ActionToolbar() {
     },
   });
 
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.undo.keys, undo);
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.redo.keys, redo);
+  const handleUndo = withErrorHandling({
+    asyncFn: undo,
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'An error occurred while undoing the last action. Please try again.',
+        variant: 'destructive',
+      });
+    },
+    onSuccess: async () => {
+      reset();
+    },
+  });
+
+  const handleRedo = withErrorHandling({
+    asyncFn: redo,
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'An error occurred while redoing the last action. Please try again.',
+        variant: 'destructive',
+      });
+    },
+    onSuccess: async () => {
+      reset();
+    },
+  });
+
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.undo.keys, handleUndo);
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.redo.keys, handleRedo);
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.save.keys, () => saveChanges());
 
   return (
@@ -73,7 +102,7 @@ export default function ActionToolbar() {
       <div className="flex gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" className="h-full w-14 rounded-none" onClick={() => undo()} disabled={!canUndo}>
+            <Button variant="ghost" className="h-full w-14 rounded-none" onClick={handleUndo} disabled={!canUndo}>
               <div className="flex flex-col items-center gap-1">
                 <span className="text-xs">Undo</span>
                 <RotateCcw className="h-4 w-4" />
@@ -84,7 +113,7 @@ export default function ActionToolbar() {
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" className="h-full w-14 rounded-none" onClick={() => redo()} disabled={!canRedo}>
+            <Button variant="ghost" className="h-full w-14 rounded-none" onClick={handleRedo} disabled={!canRedo}>
               <div className="flex flex-col items-center gap-1">
                 <span className="text-xs">Redo</span>
                 <RotateCw className="h-4 w-4" />

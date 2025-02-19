@@ -43,7 +43,7 @@ interface ResultsState {
 }
 
 interface ResultsActions {
-  fetchResults: () => Promise<void>;
+  fetchResults: () => Promise<{ pendingResults: entities.ResultDTO[]; completedResults: entities.ResultDTO[] }>;
   moveToNextResult: () => void;
   moveToPreviousResult: () => void;
   selectResultRange: (endResult: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
@@ -76,7 +76,6 @@ const useResultsStore = create<ResultsStore>()(
 
     setSort: (option, order) => {
       set({ sort: { option, order } }, false, 'SET_SORT');
-      get().fetchResults();
     },
     setSelectedResults: (selectedResults) => set({ selectedResults }, false, 'SET_SELECTED_RESULTS'),
 
@@ -96,11 +95,9 @@ const useResultsStore = create<ResultsStore>()(
           },
         })
       );
+
       const pendingResults = results.filter((r) => r.workflow_state === 'pending');
       const completedResults = results.filter((r) => r.workflow_state === 'completed');
-
-      console.log('pendingResults', pendingResults);
-      console.log('completedResults', completedResults);
 
       set({ pendingResults, completedResults });
 
@@ -113,6 +110,8 @@ const useResultsStore = create<ResultsStore>()(
 
         set({ selectedResults, lastSelectionType: firstSelectedResult?.workflow_state as 'pending' | 'completed', lastSelectedIndex: 0 });
       }
+
+      return { pendingResults, completedResults };
     },
 
     toggleResultSelection: (result, selectionType) =>

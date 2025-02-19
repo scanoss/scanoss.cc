@@ -59,9 +59,7 @@ export default function Root() {
       <div className="min-h-0 flex-1">
         <ResizablePanelGroup direction="horizontal" className="h-full" autoSaveId="panels-layout">
           <ResizablePanel defaultSize={30}>
-            <div className="h-full overflow-auto">
-              <Sidebar />
-            </div>
+            <Sidebar />
           </ResizablePanel>
           <ResizableHandle />
           <ResizablePanel>

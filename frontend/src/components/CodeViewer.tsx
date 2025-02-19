@@ -21,25 +21,27 @@
  * SOFTWARE.
  */
 
-import { Editor } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import { HighlightRange, MonacoManager } from '@/lib/editor';
 import { getHighlightLineRanges } from '@/modules/results/utils';
 
-import Loading from './Loading';
-import { Skeleton } from './ui/skeleton';
+const EDITOR_DEFAULT_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
+  readOnly: true,
+  theme: 'vs-dark',
+  minimap: { enabled: false },
+  automaticLayout: true,
+  fontSize: 12,
+};
 
 interface CodeViewerProps {
   content: string | undefined;
   editorId: string;
-  editorType: 'local' | 'remote';
   error: Error | null;
   height?: string;
   highlightLines?: string;
   isError: boolean;
-  isLoading: boolean;
   language: string | null | undefined;
   width?: string;
 }
@@ -47,18 +49,16 @@ interface CodeViewerProps {
 export default function CodeViewer({
   content,
   editorId,
-  editorType,
   error,
   height = '100%',
   highlightLines,
   isError,
-  isLoading,
   language,
   width = '100%',
 }: CodeViewerProps) {
   const highlightAll = highlightLines === 'all';
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const scrollListenerRef = useRef<monaco.IDisposable | null>(null);
+  const editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const editorContainer = useRef<HTMLDivElement>(null);
   const monacoManager = MonacoManager.getInstance();
 
   const decorationOptions = useMemo<monaco.editor.IModelDecorationOptions>(
@@ -70,67 +70,75 @@ export default function CodeViewer({
     []
   );
 
-  const applyHighlights = useCallback(
-    (editor: monaco.editor.IStandaloneCodeEditor) => {
-      const model = editor.getModel();
-      if (!model) return;
-
-      let highlightRanges: HighlightRange[] = [];
-
-      if (highlightAll) {
-        // For highlight all, highlight all lines
-        highlightRanges.push({
-          start: 1,
-          end: model.getLineCount(),
-        });
-      } else if (highlightLines) {
-        highlightRanges = getHighlightLineRanges(highlightLines);
-      }
-
-      // Create and apply decorations
-      const decorations: monaco.editor.IModelDeltaDecoration[] = highlightRanges.map(({ start, end }) => ({
-        range: new monaco.Range(start, 1, end, 1),
-        options: decorationOptions,
-      }));
-
-      editor.deltaDecorations([], decorations);
-    },
-    [highlightAll, highlightLines, decorationOptions]
-  );
-
-  const handleEditorMount = useCallback(
-    (editor: monaco.editor.IStandaloneCodeEditor) => {
-      editorRef.current = editor;
-
-      // Apply highlights once on mount
-      applyHighlights(editor);
-
-      const highlightRanges = highlightLines ? getHighlightLineRanges(highlightLines) : [];
-      monacoManager.addEditor(editorId, editor, {
-        revealLine: highlightRanges[0]?.start,
+  const initMonaco = () => {
+    if (editorContainer.current) {
+      editor.current = monaco.editor.create(editorContainer.current, {
+        language: language as string,
+        model: null,
+        ...EDITOR_DEFAULT_OPTIONS,
       });
-    },
-    [editorId, highlightLines, monacoManager, applyHighlights]
-  );
+
+      monacoManager.addEditor(editorId, editor.current);
+    }
+  };
+
+  const destroyMonaco = () => {
+    if (editor.current) {
+      editor.current.dispose();
+      monacoManager.removeEditor(editorId);
+    }
+  };
+
+  const updateContent = () => {
+    const { current: mEditor } = editor;
+    let oldModel: monaco.editor.ITextModel | null = null;
+
+    if (mEditor) {
+      oldModel = mEditor.getModel();
+
+      const nModel = monaco.editor.createModel(content as string, language as string);
+      mEditor.setModel(nModel);
+
+      if (oldModel) oldModel.dispose();
+    }
+  };
+
+  const updateHighlight = () => {
+    if (!editor.current) return;
+
+    const model = editor.current.getModel();
+    if (!model) return;
+
+    let highlightRanges: HighlightRange[] = [];
+
+    if (highlightAll) {
+      // For highlight all, highlight all lines
+      highlightRanges.push({
+        start: 1,
+        end: model.getLineCount(),
+      });
+    } else if (highlightLines) {
+      highlightRanges = getHighlightLineRanges(highlightLines);
+    }
+
+    // Create and apply decorations
+    const decorations: monaco.editor.IModelDeltaDecoration[] = highlightRanges.map(({ start, end }) => ({
+      range: new monaco.Range(start, 1, end, 1),
+      options: decorationOptions,
+    }));
+
+    editor.current.deltaDecorations([], decorations);
+  };
 
   useEffect(() => {
-    return () => {
-      if (scrollListenerRef.current) {
-        scrollListenerRef.current.dispose();
-        scrollListenerRef.current = null;
-      }
+    initMonaco();
+    return destroyMonaco;
+  }, []);
 
-      monacoManager.dispose();
-    };
-  }, [monacoManager]);
-
-  if (isLoading || !highlightLines) {
-    return (
-      <div className="flex flex-1 items-center justify-center text-muted-foreground">
-        <Loading text={`Loading ${editorType} file...`} />
-      </div>
-    );
-  }
+  useEffect(() => {
+    updateContent();
+    updateHighlight();
+  }, [content, language]);
 
   if (isError) {
     return (
@@ -140,19 +148,5 @@ export default function CodeViewer({
     );
   }
 
-  return (
-    <Editor
-      height={height}
-      loading={<Skeleton className="h-full w-full" />}
-      onMount={handleEditorMount}
-      value={content}
-      width={width}
-      theme="vs-dark"
-      {...(language ? { language } : {})}
-      options={{
-        minimap: { enabled: false },
-        readOnly: true,
-      }}
-    />
-  );
+  return <div ref={editorContainer} style={{ width, height }} />;
 }

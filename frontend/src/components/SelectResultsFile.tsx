@@ -23,9 +23,9 @@
 
 import { File } from 'lucide-react';
 
+import { useResults } from '@/hooks/useResults';
 import { withErrorHandling } from '@/lib/errors';
 import { truncatePath } from '@/lib/utils';
-import useResultsStore from '@/modules/results/stores/useResultsStore';
 import useConfigStore from '@/stores/useConfigStore';
 
 import { SelectFile } from '../../wailsjs/go/main/App';
@@ -33,18 +33,18 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { toast } from './ui/use-toast';
 
 export default function SelectResultsFile() {
-  const fetchResults = useResultsStore((state) => state.fetchResults);
-
   const scanRoot = useConfigStore((state) => state.scanRoot);
   const resultsFile = useConfigStore((state) => state.resultsFile);
   const setResultsFile = useConfigStore((state) => state.setResultsFile);
+
+  const { reset: resetResults } = useResults();
 
   const handleSelectResultsFile = withErrorHandling({
     asyncFn: async () => {
       const file = await SelectFile(scanRoot ?? '.');
       if (file) {
         await setResultsFile(file);
-        await fetchResults();
+        resetResults();
       }
     },
     onError: () => {

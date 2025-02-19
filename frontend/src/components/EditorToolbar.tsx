@@ -23,14 +23,15 @@
 
 import clsx from 'clsx';
 import { MoveVertical } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { MonacoManager } from '@/lib/editor';
 import { getShortcutDisplay, KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 
-import { EventsEmit } from '../../wailsjs/runtime/runtime';
+import { entities } from '../../wailsjs/go/models';
+import { EventsOff, EventsOn } from '../../wailsjs/runtime/runtime';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export default function EditorToolbar() {
@@ -41,10 +42,17 @@ export default function EditorToolbar() {
   const handleToggleSyncScroll = () => {
     monacoManager.toggleSyncScroll();
     setScrollEnabled(monacoManager.getScrollSyncEnabled());
-    EventsEmit('editor:syncScrollPosition', monacoManager.getScrollSyncEnabled());
   };
 
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.toggleSyncScrollPosition.keys, handleToggleSyncScroll);
+
+  useEffect(() => {
+    EventsOn(entities.Action.ToggleSyncScrollPosition, handleToggleSyncScroll);
+
+    return () => {
+      EventsOff(entities.Action.ToggleSyncScrollPosition);
+    };
+  }, []);
 
   return (
     <div className="flex p-2">

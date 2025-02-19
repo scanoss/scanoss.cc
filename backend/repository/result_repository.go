@@ -27,4 +27,5 @@ import "github.com/scanoss/scanoss.cc/backend/entities"
 
 type ResultRepository interface {
 	GetResults(filters entities.ResultFilter) ([]entities.Result, error)
+	GetResultByPath(path string) (entities.Result, error)
 }

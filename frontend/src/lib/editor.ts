@@ -84,6 +84,13 @@ export class MonacoManager implements EditorManager {
     }
   }
 
+  public removeEditor(id: string) {
+    const existingEditorIndex = this.editors.findIndex((e) => e.id === id);
+    if (existingEditorIndex > -1) {
+      this.editors.splice(existingEditorIndex, 1);
+    }
+  }
+
   public getScrollSyncEnabled(): boolean {
     return this.scrollSyncEnabled;
   }
@@ -169,16 +176,19 @@ export class MonacoManager implements EditorManager {
       this.scrollThrottleTimeout = null;
     }
 
-    if (!Object.keys(this.scrollSyncListeners).length) {
-      return this.editors.forEach(({ id }) => this.syncScroll(id));
-    }
-
-    return this.editors.forEach(({ id }) => {
-      if (this.scrollSyncListeners[id]) {
+    if (this.scrollSyncEnabled) {
+      this.editors.forEach(({ id }) => {
+        if (this.scrollSyncListeners[id]) {
+          this.scrollSyncListeners[id].dispose();
+        }
+        this.syncScroll(id);
+      });
+    } else {
+      Object.keys(this.scrollSyncListeners).forEach((id) => {
         this.scrollSyncListeners[id].dispose();
         delete this.scrollSyncListeners[id];
-      }
-    });
+      });
+    }
   }
 
   public dispose() {

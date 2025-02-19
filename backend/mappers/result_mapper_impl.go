@@ -25,7 +25,9 @@ package mappers
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/rs/zerolog/log"
 	purlutils "github.com/scanoss/go-purl-helper/pkg"
@@ -36,29 +38,52 @@ type ResultMapperImpl struct {
 	scanossSettings *entities.ScanossSettings
 }
 
+var (
+	resultDTOCache sync.Map
+	purlCache      sync.Map
+)
+
 func NewResultMapper(scanossSettings *entities.ScanossSettings) ResultMapper {
 	return &ResultMapperImpl{
 		scanossSettings: scanossSettings,
 	}
 }
 
+func (m ResultMapperImpl) generateCacheKey(result entities.Result, bomEntry entities.ComponentFilter) string {
+	return fmt.Sprintf("%s-%s-%s-%s-%s-%s-%s",
+		result.Path,
+		strings.Join(*result.Purl, ","),
+		result.MatchType,
+		bomEntry.ReplaceWith,
+		bomEntry.Comment,
+		m.scanossSettings.SettingsFile.GetResultWorkflowState(result),
+		m.scanossSettings.SettingsFile.GetResultFilterConfig(result),
+	)
+}
+
 func (m ResultMapperImpl) MapToResultDTO(result entities.Result) entities.ResultDTO {
-	return entities.ResultDTO{
+	bomEntry := m.scanossSettings.SettingsFile.GetBomEntryFromResult(result)
+	cacheKey := m.generateCacheKey(result, bomEntry)
+
+	if cached, ok := resultDTOCache.Load(cacheKey); ok {
+		return cached.(entities.ResultDTO)
+	}
+
+	dto := entities.ResultDTO{
 		MatchType:        entities.MatchType(result.MatchType),
 		Path:             result.Path,
 		DetectedPurl:     (*result.Purl)[0],
 		DetectedPurlUrl:  m.mapDetectedPurlUrl(result),
-		ConcludedPurl:    m.mapConcludedPurl(result),
+		ConcludedPurl:    bomEntry.ReplaceWith,
 		ConcludedPurlUrl: m.mapConcludedPurlUrl(result),
 		ConcludedName:    m.mapConcludedName(result),
 		WorkflowState:    m.mapWorkflowState(result),
 		FilterConfig:     m.mapFilterConfig(result),
-		Comment:          m.mapComment(result),
+		Comment:          bomEntry.Comment,
 	}
-}
 
-func (m ResultMapperImpl) mapComment(result entities.Result) string {
-	return m.scanossSettings.SettingsFile.GetBomEntryFromResult(result).Comment
+	resultDTOCache.Store(cacheKey, dto)
+	return dto
 }
 
 func (m ResultMapperImpl) mapConcludedPurl(result entities.Result) string {
@@ -67,11 +92,26 @@ func (m ResultMapperImpl) mapConcludedPurl(result entities.Result) string {
 
 func (m ResultMapperImpl) MapToResultDTOList(results []entities.Result) []entities.ResultDTO {
 	output := make([]entities.ResultDTO, len(results))
+	numWorkers := runtime.NumCPU()
+	jobChan := make(chan int, len(results))
+	var wg sync.WaitGroup
 
-	for i, v := range results {
-		output[i] = m.MapToResultDTO(v)
+	for i := 0; i < len(results); i++ {
+		jobChan <- i
+	}
+	close(jobChan)
+
+	wg.Add(numWorkers)
+	for w := 0; w < numWorkers; w++ {
+		go func() {
+			defer wg.Done()
+			for idx := range jobChan {
+				output[idx] = m.MapToResultDTO(results[idx])
+			}
+		}()
 	}
 
+	wg.Wait()
 	return output
 }
 
@@ -101,38 +141,40 @@ func (m *ResultMapperImpl) mapConcludedPurlUrl(result entities.Result) string {
 		purlName = fmt.Sprintf("%s/%s", purlObject.Namespace, purlObject.Name)
 	}
 
-	purlUrl, err := purlutils.ProjectUrl(purlName, purlObject.Type)
+	return m.getProjectURL(concludedPurl, func() (string, error) {
+		return purlutils.ProjectUrl(purlName, purlObject.Type)
+	})
+}
+
+func (m ResultMapperImpl) getProjectURL(purl string, compute func() (string, error)) string {
+	if cached, ok := purlCache.Load(purl); ok {
+		return cached.(string)
+	}
+	url, err := compute()
 	if err != nil {
-		log.Error().Err(err).Msg("Error getting project url")
+		log.Error().Err(err).Msg("Error computing project URL")
 		return ""
 	}
-
-	return purlUrl
+	purlCache.Store(purl, url)
+	return url
 }
 
 func (m ResultMapperImpl) mapDetectedPurlUrl(result entities.Result) string {
 	detectedPurl := (*result.Purl)[0]
 
 	purlObject, err := purlutils.PurlFromString(detectedPurl)
-
 	if err != nil {
 		log.Error().Err(err).Msg("Error parsing detected purl")
 		return ""
 	}
-
-	// Workaround for github purls until purlutils is updated
 	purlName := purlObject.Name
 	if purlObject.Type == "github" && purlObject.Namespace != "" {
 		purlName = fmt.Sprintf("%s/%s", purlObject.Namespace, purlObject.Name)
 	}
 
-	purlUrl, err := purlutils.ProjectUrl(purlName, purlObject.Type)
-	if err != nil {
-		log.Error().Err(err).Msg("Error getting detected purl url")
-		return ""
-	}
-
-	return purlUrl
+	return m.getProjectURL(detectedPurl, func() (string, error) {
+		return purlutils.ProjectUrl(purlName, purlObject.Type)
+	})
 }
 
 func (m ResultMapperImpl) mapConcludedName(result entities.Result) string {

@@ -45,7 +45,7 @@ func TestGetResults(t *testing.T) {
 		mu := internal_test.NewMockUtils()
 		mu.On("ReadFile", config.GetInstance().GetResultFilePath()).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
-		repo := repository.NewResultRepositoryJsonImpl(mu)
+		repo, err := repository.NewResultRepositoryJsonImpl(mu, nil)
 		results, err := repo.GetResults(nil)
 
 		assert.NoError(t, err)
@@ -62,7 +62,7 @@ func TestGetResults(t *testing.T) {
 		filter := mocks.MockResultFilter{}
 		filter.EXPECT().IsValid(mock.Anything).Return(true)
 
-		repo := repository.NewResultRepositoryJsonImpl(mu)
+		repo, err := repository.NewResultRepositoryJsonImpl(mu, nil)
 		results, err := repo.GetResults(&filter)
 
 		assert.NoError(t, err)
@@ -76,23 +76,21 @@ func TestGetResults(t *testing.T) {
 		mu := internal_test.NewMockUtils()
 		mu.On("ReadFile", config.GetInstance().GetResultFilePath()).Return([]byte{}, entities.ErrReadingResultFile)
 
-		repo := repository.NewResultRepositoryJsonImpl(mu)
-		results, err := repo.GetResults(nil)
+		_, err := repository.NewResultRepositoryJsonImpl(mu, nil)
 
 		assert.Error(t, err)
 		assert.Equal(t, entities.ErrReadingResultFile, err)
-		assert.Len(t, results, 0)
+		mu.AssertExpectations(t)
 	})
 
 	t.Run("Invalid json", func(t *testing.T) {
 		mu := internal_test.NewMockUtils()
 		mu.On("ReadFile", config.GetInstance().GetResultFilePath()).Return([]byte(`invalid json`), nil)
 
-		repo := repository.NewResultRepositoryJsonImpl(mu)
-		results, err := repo.GetResults(nil)
+		_, err := repository.NewResultRepositoryJsonImpl(mu, nil)
 
 		assert.Error(t, err)
-		assert.Len(t, results, 0)
+		mu.AssertExpectations(t)
 	})
 
 	t.Run("Filter no match", func(t *testing.T) {
@@ -102,7 +100,7 @@ func TestGetResults(t *testing.T) {
 		filter := mocks.MockResultFilter{}
 		filter.EXPECT().IsValid(mock.Anything).Return(false)
 
-		repo := repository.NewResultRepositoryJsonImpl(mu)
+		repo, err := repository.NewResultRepositoryJsonImpl(mu, nil)
 		results, err := repo.GetResults(&filter)
 
 		assert.NoError(t, err)

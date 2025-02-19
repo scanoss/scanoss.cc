@@ -25,7 +25,10 @@ package repository
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
@@ -34,69 +37,162 @@ import (
 )
 
 type ResultRepositoryJsonImpl struct {
-	fr utils.FileReader
+	fr           utils.FileReader
+	cache        []entities.Result
+	pathIndex    map[string]entities.Result
+	lastModified time.Time
+	mutex        sync.RWMutex
+	watcher      entities.FileWatcher
 }
 
-func NewResultRepositoryJsonImpl(fr utils.FileReader) *ResultRepositoryJsonImpl {
-	return &ResultRepositoryJsonImpl{
-		fr: fr,
+func NewResultRepositoryJsonImpl(fr utils.FileReader, watcher entities.FileWatcher) (*ResultRepositoryJsonImpl, error) {
+	repo := &ResultRepositoryJsonImpl{
+		fr:      fr,
+		watcher: watcher,
+	}
+
+	// Initial cache load
+	if err := repo.refreshCache(); err != nil {
+		log.Error().Err(err).Msg("Error loading initial cache")
+		return repo, err
+	}
+
+	if watcher != nil {
+		repo.watcher = watcher
+		if err := watcher.Start(); err != nil {
+			log.Error().Err(err).Msg("Error starting results watcher")
+			return repo, err
+		}
+	}
+
+	config.GetInstance().RegisterListener(repo.onConfigChange)
+
+	return repo, nil
+}
+
+func NewResultRepositoryJsonImplWithWatcher(fr utils.FileReader) (*ResultRepositoryJsonImpl, error) {
+	resultPath := config.GetInstance().GetResultFilePath()
+	repo := &ResultRepositoryJsonImpl{
+		fr:        fr,
+		pathIndex: make(map[string]entities.Result),
+	}
+
+	watcher, err := entities.NewFsNotifyWatcher(resultPath, func() {
+		repo.mutex.Lock()
+		defer repo.mutex.Unlock()
+		if err := repo.refreshCache(); err != nil {
+			log.Error().Err(err).Msg("Error refreshing cache after file change")
+
+		}
+	})
+
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating watcher")
+		return repo, err
+	}
+
+	return NewResultRepositoryJsonImpl(fr, watcher)
+}
+
+func (r *ResultRepositoryJsonImpl) onConfigChange(newCfg *config.Config) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	if err := r.refreshCache(); err != nil {
+		log.Error().Err(err).Msg("Error refreshing results cache after config change")
 	}
 }
 
 func (r *ResultRepositoryJsonImpl) GetResults(filter entities.ResultFilter) ([]entities.Result, error) {
-	resultFilePath := config.GetInstance().GetResultFilePath()
-	resultByte, err := r.fr.ReadFile(resultFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return []entities.Result{}, nil
-		}
-		log.Error().Err(err).Msg("Error reading result file")
-		return []entities.Result{}, entities.ErrReadingResultFile
-	}
-
-	scanResults, err := r.parseScanResults(resultByte)
-	if err != nil {
-		return []entities.Result{}, entities.ErrParsingResultFile
-	}
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
 
 	if filter == nil {
-		return scanResults, nil
+		return r.cache, nil
 	}
 
-	// Filter scan results
 	var filteredResults []entities.Result
-	for _, result := range scanResults {
+	for _, result := range r.cache {
 		if result.IsEmpty() {
 			continue
 		}
-
 		if filter.IsValid(result) {
 			filteredResults = append(filteredResults, result)
 		}
 	}
+
 	return filteredResults, nil
 }
 
+func (r *ResultRepositoryJsonImpl) refreshCache() error {
+	resultFilePath := config.GetInstance().GetResultFilePath()
+	resultByte, err := r.fr.ReadFile(resultFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			r.cache = []entities.Result{}
+			return nil
+		}
+		return entities.ErrReadingResultFile
+	}
+
+	scanResults, err := r.parseScanResults(resultByte)
+	if err != nil {
+		return entities.ErrParsingResultFile
+	}
+
+	fileInfo, err := os.Stat(resultFilePath)
+	if err == nil {
+		r.lastModified = fileInfo.ModTime()
+	}
+
+	r.cache = scanResults
+	r.pathIndex = make(map[string]entities.Result)
+	for _, result := range scanResults {
+		r.pathIndex[result.Path] = result
+	}
+	return nil
+}
+
 func (r *ResultRepositoryJsonImpl) parseScanResults(resultByte []byte) ([]entities.Result, error) {
-	var intermediateMap map[string][]entities.Match
+	var intermediateMap map[string][]entities.Component
 	if err := json.Unmarshal(resultByte, &intermediateMap); err != nil {
 		log.Error().Err(err).Msg("Error parsing scan results")
 		return []entities.Result{}, err
 	}
 
 	var scanResults []entities.Result
-
-	for key, matches := range intermediateMap {
-		for _, match := range matches {
-			scanResult := entities.Result{}
-			scanResult.Path = key
-			scanResult.MatchType = match.ID
-			scanResult.Purl = &match.Purl
-			scanResult.ComponentName = match.ComponentName
-			scanResult.Matches = []entities.Match{match}
-			scanResults = append(scanResults, scanResult)
+	for path, components := range intermediateMap {
+		// Create a single Result for each path with all its components
+		result := entities.Result{
+			Path:    path,
+			Matches: components,
 		}
+
+		// If there are components, set the first component's details as the main result details
+		if len(components) > 0 {
+			result.MatchType = components[0].ID
+			result.ComponentName = components[0].Component
+			result.Purl = &components[0].Purl
+		}
+
+		scanResults = append(scanResults, result)
 	}
 
 	return scanResults, nil
+}
+
+func (r *ResultRepositoryJsonImpl) GetResultByPath(path string) (entities.Result, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	result, ok := r.pathIndex[path]
+	if !ok {
+		return entities.Result{}, fmt.Errorf("result not found: %s", path)
+	}
+
+	return result, nil
+}
+
+func (r *ResultRepositoryJsonImpl) Close() error {
+	return r.watcher.Close()
 }

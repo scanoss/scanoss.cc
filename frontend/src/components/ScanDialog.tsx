@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useResults } from '@/hooks/useResults';
 import { withErrorHandling } from '@/lib/errors';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 import useConfigStore from '@/stores/useConfigStore';
@@ -67,7 +68,7 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
   const [advancedScanArgs, setAdvancedScanArgs] = useState<string[]>([]);
   const [options, setOptions] = useState<Record<string, string | number | boolean | string[]>>({});
 
-  const fetchResults = useResultsStore((state) => state.fetchResults);
+  const { reset: resetResults } = useResults();
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
 
   const handleSelectDirectory = withErrorHandling({
@@ -116,7 +117,7 @@ export default function ScanDialog({ onOpenChange }: ScanDialogProps) {
       await ScanStream(cmdArgs);
       await setScanRoot(directory);
       setSelectedResults([]);
-      await fetchResults();
+      resetResults();
     },
     onError: () => {
       toast({

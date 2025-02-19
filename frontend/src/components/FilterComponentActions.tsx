@@ -24,6 +24,7 @@
 import { Check, PackageMinus, Replace } from 'lucide-react';
 import { useState } from 'react';
 
+import { useResults } from '@/hooks/useResults';
 import { withErrorHandling } from '@/lib/errors';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { FilterAction } from '@/modules/components/domain';
@@ -35,6 +36,7 @@ import { useToast } from './ui/use-toast';
 
 export default function FilterComponentActions() {
   const { toast } = useToast();
+  const { reset } = useResults();
 
   const [showReplaceComponentDialog, setShowReplaceComponentDialog] = useState(false);
   const [withComment, setWithComment] = useState(false);
@@ -45,6 +47,7 @@ export default function FilterComponentActions() {
   const handleFilterComponent = withErrorHandling({
     asyncFn: async (args: OnFilterComponentArgs) => {
       await onFilterComponent(args);
+      reset();
     },
     onError: () => {
       toast({

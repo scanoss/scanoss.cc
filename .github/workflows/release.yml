@@ -51,7 +51,12 @@ jobs:
           mkdir -p build
           cp -r assets build/assets
           cp assets/appicon.png build
-          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal" -o "${{ env.ARTIFACT_NAME_PREFIX }}"
+          # Build for ARM64
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/arm64" -o "${{ env.ARTIFACT_NAME_PREFIX }}-arm64"
+          # Build for AMD64
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/amd64" -o "${{ env.ARTIFACT_NAME_PREFIX }}-amd64"
+          # Create universal binary
+          lipo -create -output "build/bin/${{ env.ARTIFACT_NAME_PREFIX }}" "build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-arm64" "build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-amd64"
         shell: bash
 
       # Make sure the .app exists

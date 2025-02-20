@@ -26,5 +26,5 @@ package service
 import "github.com/scanoss/scanoss.cc/backend/entities"
 
 type TreeService interface {
-	GetTree(rootPath string) (entities.Tree, error)
+	GetTree(rootPath string) ([]entities.TreeNode, error)
 }

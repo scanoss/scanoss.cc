@@ -2,24 +2,22 @@ package entities
 
 import (
 	"path/filepath"
+
+	"github.com/google/uuid"
 )
 
-type Tree struct {
-	Nodes []TreeNode
-}
-
 type TreeNode struct {
-	ID            string
-	Name          string
-	Path          string
-	IsFolder      bool
-	WorkflowState WorkflowState
-	Children      []TreeNode
+	ID            string        `json:"id"`
+	Name          string        `json:"name"`
+	Path          string        `json:"path"`
+	IsFolder      bool          `json:"isFolder"`
+	WorkflowState WorkflowState `json:"workflowState"`
+	Children      []TreeNode    `json:"children"`
 }
 
 func NewTreeNode(path string, result ResultDTO, isFolder bool) TreeNode {
 	return TreeNode{
-		ID:            path,
+		ID:            uuid.New().String(),
 		Name:          filepath.Base(path),
 		Path:          path,
 		IsFolder:      isFolder,

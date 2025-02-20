@@ -21,14 +21,9 @@
  * SOFTWARE.
  */
 
-import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
-
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import useConfigStore from '@/stores/useConfigStore';
 
-import { GetTree } from '../../wailsjs/go/service/TreeServiceImpl';
-import { useToast } from './ui/use-toast';
+import ResultsTree from './ResultsTree';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -36,28 +31,6 @@ interface SettingsDialogProps {
 }
 
 export default function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
-  const { toast } = useToast();
-
-  const scanRoot = useConfigStore((state) => state.scanRoot);
-
-  const { data: tree, error } = useQuery({
-    queryKey: ['tree', scanRoot],
-    queryFn: () => GetTree(scanRoot),
-    enabled: !!scanRoot && open,
-  });
-
-  console.log(tree);
-
-  useEffect(() => {
-    if (error) {
-      console.log(error);
-      toast({
-        title: 'Error',
-        description: error.message,
-      });
-    }
-  }, [error]);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -65,7 +38,7 @@ export default function SettingsDialog({ open, onOpenChange }: SettingsDialogPro
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>Configure the settings for the application.</DialogDescription>
         </DialogHeader>
-
+        <ResultsTree />
         <DialogFooter className="flex flex-1 gap-2 sm:flex-col"></DialogFooter>
       </DialogContent>
     </Dialog>

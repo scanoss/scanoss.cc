@@ -9,6 +9,7 @@ toolchain go1.22.5
 require (
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-playground/validator v9.31.0+incompatible
+	github.com/google/uuid v1.4.0
 	github.com/rs/zerolog v1.33.0
 	github.com/scanoss/go-purl-helper v0.2.1
 	github.com/spf13/cobra v1.8.1
@@ -24,7 +25,6 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
-	github.com/google/uuid v1.4.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jchv/go-winloader v0.0.0-20210711035445-715c2860da7e // indirect

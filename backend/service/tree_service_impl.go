@@ -29,7 +29,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
 )
 
@@ -41,20 +40,20 @@ func NewTreeServiceImpl(resultService ResultService) *TreeServiceImpl {
 	return &TreeServiceImpl{resultService: resultService}
 }
 
-func (s *TreeServiceImpl) GetTree(rootPath string) (entities.Tree, error) {
+func (s *TreeServiceImpl) GetTree(rootPath string) ([]entities.TreeNode, error) {
 	rootInfo, err := os.Stat(rootPath)
 	if err != nil {
-		return entities.Tree{}, err
+		return nil, err
 	}
 
 	root := entities.NewTreeNode(rootInfo.Name(), entities.ResultDTO{}, rootInfo.IsDir())
 
 	err = s.buildTree(rootPath, &root)
 	if err != nil {
-		return entities.Tree{}, err
+		return nil, err
 	}
 
-	return entities.Tree{Nodes: []entities.TreeNode{root}}, nil
+	return root.Children, nil
 }
 
 func (s *TreeServiceImpl) buildTree(path string, node *entities.TreeNode) error {
@@ -70,8 +69,6 @@ func (s *TreeServiceImpl) buildTree(path string, node *entities.TreeNode) error 
 
 		fullPath := filepath.Join(path, entry.Name())
 		result := s.resultService.GetByPath(fullPath)
-
-		log.Info().Msgf("result: %+v", result)
 
 		childNode := entities.NewTreeNode(entry.Name(), result, entry.IsDir())
 
@@ -93,7 +90,10 @@ func (s *TreeServiceImpl) buildTree(path string, node *entities.TreeNode) error 
 // sortTreeNodes sorts tree nodes by path name
 func sortTreeNodes(nodes []entities.TreeNode) {
 	sort.Slice(nodes, func(i, j int) bool {
-		return nodes[i].Path < nodes[j].Path
+		if nodes[i].IsFolder == nodes[j].IsFolder {
+			return nodes[i].Path < nodes[j].Path
+		}
+		return nodes[i].IsFolder
 	})
 }
 

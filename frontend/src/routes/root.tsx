@@ -26,6 +26,7 @@ import { Outlet } from 'react-router-dom';
 
 import KeyboardShortcutsDialog from '@/components/KeyboardShortcutsDialog';
 import ScanDialog from '@/components/ScanDialog';
+import SettingsDialog from '@/components/SettingsDialog';
 import Sidebar from '@/components/Sidebar';
 import StatusBar from '@/components/StatusBar';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
@@ -35,14 +36,8 @@ import { EventsOn } from '../../wailsjs/runtime/runtime';
 
 export default function Root() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
-  const [scanModal, setScanModal] = useState(false);
-  const handleCloseScanModal = () => {
-    setScanModal(false);
-  };
-
-  const handleShowScanModal = () => {
-    setScanModal(true);
-  };
+  const [showScanModal, setShowScanModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(true);
 
   useEffect(() => {
     // Register event listeners
@@ -50,7 +45,7 @@ export default function Root() {
       setShowKeyboardShortcuts(true);
     });
     EventsOn(entities.Action.ScanWithOptions, () => {
-      handleShowScanModal();
+      setShowScanModal(true);
     });
   }, []);
 
@@ -73,7 +68,8 @@ export default function Root() {
         <StatusBar />
       </div>
       <KeyboardShortcutsDialog open={showKeyboardShortcuts} onOpenChange={() => setShowKeyboardShortcuts(false)} />
-      <ScanDialog open={scanModal} onOpenChange={handleCloseScanModal} />
+      <ScanDialog open={showScanModal} onOpenChange={() => setShowScanModal(false)} />
+      <SettingsDialog open={showSettingsModal} onOpenChange={() => setShowSettingsModal(false)} />
     </div>
   );
 }

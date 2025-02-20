@@ -107,3 +107,12 @@ func (s *ResultServiceImpl) sortResults(results []entities.Result, dto *entities
 		}
 	})
 }
+
+func (s *ResultServiceImpl) GetByPath(path string) entities.ResultDTO {
+	result := s.repo.GetResultByPath(path)
+	if result == nil {
+		return entities.ResultDTO{}
+	}
+
+	return s.mapper.MapToResultDTO(*result)
+}

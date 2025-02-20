@@ -5,4 +5,6 @@ import {context} from '../models';
 
 export function GetAll(arg1:entities.RequestResultDTO):Promise<Array<entities.ResultDTO>>;
 
+export function GetByPath(arg1:string):Promise<entities.ResultDTO>;
+
 export function SetContext(arg1:context.Context):Promise<void>;

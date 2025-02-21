@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2018-2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,40 +21,20 @@
  * SOFTWARE.
  */
 
-import { useEffect } from 'react';
+import useResizeObserver from 'use-resize-observer';
 
-import useConfigStore from '@/stores/useConfigStore';
+import ResultsTree from './ResultsTree';
 
-import AppSettings from './AppSettings';
-import SelectResultsFile from './SelectResultsFile';
-import SelectScanRoot from './SelectScanRoot';
-import SelectSettingsFile from './SelectSettingsFile';
-
-export default function StatusBar() {
-  const getInitialConfig = useConfigStore((state) => state.getInitialConfig);
-
-  useEffect(() => {
-    getInitialConfig();
-  }, []);
+export default function SkipSettings() {
+  const { ref, width, height } = useResizeObserver();
 
   return (
-    <div className="flex w-full justify-between bg-background px-4 py-1 text-xs text-muted-foreground">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span>Scan Root:</span>
-          <SelectScanRoot />
+    <div className="flex h-full flex-col gap-4">
+      <p className="text-sm text-muted-foreground">Configure the files, directories and extensions to skip while scanning</p>
+      <div className="flex flex-1 gap-4">
+        <div className="flex flex-grow" style={{ minBlockSize: 0 }} ref={ref}>
+          <ResultsTree width={width} height={height} />
         </div>
-        <div className="flex items-center gap-2">
-          <span>Results File:</span>
-          <SelectResultsFile />
-        </div>
-        <div className="flex items-center gap-2">
-          <span>Settings File:</span>
-          <SelectSettingsFile />
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <AppSettings />
       </div>
     </div>
   );

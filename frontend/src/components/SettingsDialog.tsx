@@ -21,25 +21,54 @@
  * SOFTWARE.
  */
 
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FileCog } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
-import ResultsTree from './ResultsTree';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+import SettingsSidebar from './SettingsSidebar';
+import SkipSettings from './SkipSettings';
 
 interface SettingsDialogProps {
   open: boolean;
   onOpenChange: () => void;
 }
 
+export const SETTINGS_OPTIONS = [
+  {
+    id: 'skip-settings',
+    title: 'Skip Settings',
+    description: 'Configure the files, directories and extensions to skip while scanning',
+    icon: FileCog,
+    component: <SkipSettings />,
+  },
+];
+
 export default function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
+  const [activeSetting, setActiveSetting] = useState<string>(SETTINGS_OPTIONS[0].id);
+
+  const activeSettingTitle = useMemo(() => SETTINGS_OPTIONS.find((option) => option.id === activeSetting)?.title, [activeSetting]);
+  const activeSettingComponent = useMemo(() => SETTINGS_OPTIONS.find((option) => option.id === activeSetting)?.component, [activeSetting]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
-          <DialogDescription>Configure the settings for the application.</DialogDescription>
-        </DialogHeader>
-        <ResultsTree />
-        <DialogFooter className="flex flex-1 gap-2 sm:flex-col"></DialogFooter>
+      <DialogContent className="settings-dialog h-[calc(80dvh)] w-[calc(70dvw)] max-w-none">
+        <div className="flex h-full overflow-hidden">
+          <div className="w-1/4 border-r">
+            <SettingsSidebar activeSetting={activeSetting} setActiveSetting={setActiveSetting} />
+          </div>
+          <div className="flex h-full flex-1 flex-col">
+            <div className="flex h-12 w-full items-center border-b bg-background px-4">
+              <span className="text-sm">{activeSettingTitle}</span>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <ScrollArea className="h-full">
+                <div className="h-full p-4">{activeSettingComponent}</div>
+              </ScrollArea>
+            </div>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

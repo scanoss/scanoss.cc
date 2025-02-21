@@ -23,16 +23,15 @@
 
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
-import { ChevronDown, ChevronRight, File, Folder, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ChevronDown, ChevronRight, File, Folder, Loader2, RefreshCcw } from 'lucide-react';
+import { useState } from 'react';
 import { NodeRendererProps, Tree } from 'react-arborist';
 
 import { Card } from '@/components/ui/card';
 import useConfigStore from '@/stores/useConfigStore';
 
 import { GetTree } from '../../wailsjs/go/service/TreeServiceImpl';
-import { ScrollArea } from './ui/scroll-area';
-import { useToast } from './ui/use-toast';
+import { Button } from './ui/button';
 
 interface TreeNode {
   id: string;
@@ -43,8 +42,12 @@ interface TreeNode {
   children?: TreeNode[];
 }
 
-export default function ResultsTree() {
-  const { toast } = useToast();
+interface ResultsTreeProps {
+  width: number | undefined;
+  height: number | undefined;
+}
+
+export default function ResultsTree({ width, height }: ResultsTreeProps) {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
@@ -54,37 +57,34 @@ export default function ResultsTree() {
     data: tree,
     error,
     isLoading,
+    refetch,
   } = useQuery({
     queryKey: ['tree', scanRoot],
     queryFn: () => GetTree(scanRoot),
     enabled: !!scanRoot,
   });
 
-  useEffect(() => {
-    if (error) {
-      console.log(error);
-      toast({
-        title: 'Error loading file tree',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  }, [error]);
-
   if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center p-4">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
+      <Card className="flex flex-1 items-center justify-center p-4 text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          <p className="text-sm">Loading file tree...</p>
+        </div>
+      </Card>
     );
   }
 
   if (error) {
     return (
-      <Card className="flexflex-1 items-center justify-center p-4">
-        <div className="text-center">
-          <p className="text-sm font-medium text-destructive">Failed to load file tree</p>
-          <p className="mt-1 text-sm text-muted-foreground">{error.message}</p>
+      <Card className="flex flex-1 items-center justify-center p-4">
+        <div className="text-center text-sm">
+          <p className="text-destructive">Failed to load file tree</p>
+          <p className="mt-1 text-muted-foreground">{error.message}</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            <RefreshCcw className="mr-2 h-3 w-3" />
+            Retry
+          </Button>
         </div>
       </Card>
     );
@@ -134,25 +134,8 @@ export default function ResultsTree() {
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <ScrollArea className="flex-1">
-        <Tree<TreeNode>
-          data={tree}
-          openByDefault={false}
-          width={400}
-          height={400}
-          indent={24}
-          rowHeight={32}
-          overscanCount={5}
-          paddingTop={16}
-          paddingBottom={16}
-          padding={16}
-          disableDrag
-          disableDrop
-        >
-          {Node}
-        </Tree>
-      </ScrollArea>
-    </div>
+    <Tree<TreeNode> data={tree} openByDefault={false} width={width} height={height} disableDrag disableDrop>
+      {Node}
+    </Tree>
   );
 }

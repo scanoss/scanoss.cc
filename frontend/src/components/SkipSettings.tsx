@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2018-2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,21 @@
  * SOFTWARE.
  */
 
-package service
+import useResizeObserver from 'use-resize-observer';
 
-type ScanossSettingsService interface {
-	Save() error
-	HasUnsavedChanges() (bool, error)
-	AddScanningSkipPattern(pattern string) error
-	RemoveScanningSkipPattern(pattern string) error
+import ResultsTree from './ResultsTree';
+
+export default function SkipSettings() {
+  const { ref, width, height } = useResizeObserver();
+
+  return (
+    <div className="flex h-full flex-col gap-4">
+      <p className="text-sm text-muted-foreground">Configure the files, directories and extensions to skip while scanning</p>
+      <div className="flex flex-1 gap-4">
+        <div className="flex flex-grow" style={{ minBlockSize: 0 }} ref={ref}>
+          <ResultsTree width={width} height={height} />
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -49,3 +49,11 @@ func (s *ScanossSettingsServiceImp) HasUnsavedChanges() (bool, error) {
 func (s *ScanossSettingsServiceImp) GetSettings() *entities.SettingsFile {
 	return s.repository.GetSettings()
 }
+
+func (s *ScanossSettingsServiceImp) AddScanningSkipPattern(pattern string) error {
+	return s.repository.AddScanningSkipPattern(pattern)
+}
+
+func (s *ScanossSettingsServiceImp) RemoveScanningSkipPattern(pattern string) error {
+	return s.repository.RemoveScanningSkipPattern(pattern)
+}

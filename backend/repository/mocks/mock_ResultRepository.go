@@ -21,31 +21,23 @@ func (_m *MockResultRepository) EXPECT() *MockResultRepository_Expecter {
 }
 
 // GetResultByPath provides a mock function with given fields: path
-func (_m *MockResultRepository) GetResultByPath(path string) (entities.Result, error) {
+func (_m *MockResultRepository) GetResultByPath(path string) *entities.Result {
 	ret := _m.Called(path)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetResultByPath")
 	}
 
-	var r0 entities.Result
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string) (entities.Result, error)); ok {
-		return rf(path)
-	}
-	if rf, ok := ret.Get(0).(func(string) entities.Result); ok {
+	var r0 *entities.Result
+	if rf, ok := ret.Get(0).(func(string) *entities.Result); ok {
 		r0 = rf(path)
 	} else {
-		r0 = ret.Get(0).(entities.Result)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*entities.Result)
+		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(path)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // MockResultRepository_GetResultByPath_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetResultByPath'
@@ -66,12 +58,12 @@ func (_c *MockResultRepository_GetResultByPath_Call) Run(run func(path string)) 
 	return _c
 }
 
-func (_c *MockResultRepository_GetResultByPath_Call) Return(_a0 entities.Result, _a1 error) *MockResultRepository_GetResultByPath_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *MockResultRepository_GetResultByPath_Call) Return(_a0 *entities.Result) *MockResultRepository_GetResultByPath_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockResultRepository_GetResultByPath_Call) RunAndReturn(run func(string) (entities.Result, error)) *MockResultRepository_GetResultByPath_Call {
+func (_c *MockResultRepository_GetResultByPath_Call) RunAndReturn(run func(string) *entities.Result) *MockResultRepository_GetResultByPath_Call {
 	_c.Call.Return(run)
 	return _c
 }

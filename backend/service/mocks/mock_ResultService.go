@@ -80,6 +80,52 @@ func (_c *MockResultService_GetAll_Call) RunAndReturn(run func(*entities.Request
 	return _c
 }
 
+// GetByPath provides a mock function with given fields: path
+func (_m *MockResultService) GetByPath(path string) entities.ResultDTO {
+	ret := _m.Called(path)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByPath")
+	}
+
+	var r0 entities.ResultDTO
+	if rf, ok := ret.Get(0).(func(string) entities.ResultDTO); ok {
+		r0 = rf(path)
+	} else {
+		r0 = ret.Get(0).(entities.ResultDTO)
+	}
+
+	return r0
+}
+
+// MockResultService_GetByPath_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByPath'
+type MockResultService_GetByPath_Call struct {
+	*mock.Call
+}
+
+// GetByPath is a helper method to define mock.On call
+//   - path string
+func (_e *MockResultService_Expecter) GetByPath(path interface{}) *MockResultService_GetByPath_Call {
+	return &MockResultService_GetByPath_Call{Call: _e.mock.On("GetByPath", path)}
+}
+
+func (_c *MockResultService_GetByPath_Call) Run(run func(path string)) *MockResultService_GetByPath_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *MockResultService_GetByPath_Call) Return(_a0 entities.ResultDTO) *MockResultService_GetByPath_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockResultService_GetByPath_Call) RunAndReturn(run func(string) entities.ResultDTO) *MockResultService_GetByPath_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetContext provides a mock function with given fields: ctx
 func (_m *MockResultService) SetContext(ctx context.Context) {
 	_m.Called(ctx)

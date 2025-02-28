@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2018-2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,29 @@
  * SOFTWARE.
  */
 
-package service
+import { Settings } from 'lucide-react';
+import { useState } from 'react';
 
-type ScanossSettingsService interface {
-	Save() error
-	HasUnsavedChanges() (bool, error)
-	AddScanningSkipPattern(pattern string) error
-	RemoveScanningSkipPattern(pattern string) error
+import SettingsDialog from './SettingsDialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+
+export default function AppSettings() {
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+  const handleOpenSettingsModal = () => setShowSettingsModal(true);
+  const handleCloseSettingsModal = () => setShowSettingsModal(false);
+
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger>
+          <div className="cursor-pointer rounded-full p-1 hover:bg-muted" onClick={handleOpenSettingsModal}>
+            <Settings className="h-4 w-4" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>App Settings</TooltipContent>
+      </Tooltip>
+      <SettingsDialog open={showSettingsModal} onOpenChange={handleCloseSettingsModal} />
+    </>
+  );
 }

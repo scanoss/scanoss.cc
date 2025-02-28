@@ -31,5 +31,6 @@ import (
 
 type ResultService interface {
 	GetAll(dto *entities.RequestResultDTO) ([]entities.ResultDTO, error)
+	GetByPath(path string) entities.ResultDTO
 	SetContext(ctx context.Context)
 }

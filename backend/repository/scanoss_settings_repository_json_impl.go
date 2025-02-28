@@ -27,8 +27,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
+	"strings"
 	"sync"
 
+	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/internal/config"
@@ -85,13 +88,12 @@ func (r *ScanossSettingsJsonRepository) setSettingsFile(path string) {
 }
 
 func (r *ScanossSettingsJsonRepository) Save() error {
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-
 	sf := r.GetSettings()
+
 	if err := utils.WriteJsonFile(config.GetInstance().GetScanSettingsFilePath(), sf); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -221,4 +223,65 @@ func extractPurlsFromBom(componentFilters []entities.ComponentFilter) []string {
 	}
 
 	return extractedPurls
+}
+
+func (r *ScanossSettingsJsonRepository) MatchesScanningSkipPattern(path string) bool {
+	patterns := r.getScanningSkipPatterns()
+
+	var matchers []gitignore.Pattern
+	for _, pattern := range patterns {
+		matcher := gitignore.ParsePattern(pattern, nil)
+		matchers = append(matchers, matcher)
+	}
+
+	ps := gitignore.NewMatcher(matchers)
+
+	isDir := false
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		log.Debug().Err(err).Msgf("Error checking if path is directory: %s", path)
+	} else {
+		isDir = fileInfo.IsDir()
+	}
+
+	if ps.Match(strings.Split(path, "/"), isDir) {
+		return true
+	}
+
+	return false
+}
+
+func (r *ScanossSettingsJsonRepository) getScanningSkipPatterns() []string {
+	sf := r.GetSettings()
+	return sf.Settings.Skip.Patterns.Scanning
+}
+
+func (r *ScanossSettingsJsonRepository) AddScanningSkipPattern(pattern string) error {
+	sf := r.GetSettings()
+
+	if slices.Contains(sf.Settings.Skip.Patterns.Scanning, pattern) {
+		log.Info().Msgf("Scanning skip pattern already exists, skipping: %s", pattern)
+		return nil
+	}
+
+	sf.Settings.Skip.Patterns.Scanning = append(sf.Settings.Skip.Patterns.Scanning, pattern)
+
+	if err := r.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *ScanossSettingsJsonRepository) RemoveScanningSkipPattern(pattern string) error {
+	sf := r.GetSettings()
+	sf.Settings.Skip.Patterns.Scanning = slices.DeleteFunc(sf.Settings.Skip.Patterns.Scanning, func(p string) bool {
+		return p == pattern
+	})
+
+	if err := r.Save(); err != nil {
+		return err
+	}
+
+	return nil
 }

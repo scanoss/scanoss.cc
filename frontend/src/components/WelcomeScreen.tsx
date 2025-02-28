@@ -22,7 +22,7 @@
  */
 
 import { FolderOpen, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { withErrorHandling } from '@/lib/errors';
 import useConfigStore from '@/stores/useConfigStore';
@@ -72,9 +72,15 @@ export default function WelcomeScreen() {
   const handleCloseScanModal = () => setScanModal(false);
   const handleShowScanModal = () => setScanModal(true);
 
-  EventsOn(entities.Action.ScanWithOptions, () => {
-    handleShowScanModal();
-  });
+  useEffect(() => {
+    const unsubScanWithOptions = EventsOn(entities.Action.ScanWithOptions, () => {
+      handleShowScanModal();
+    });
+
+    return () => {
+      unsubScanWithOptions();
+    };
+  }, []);
 
   return (
     <div className="flex h-screen w-screen flex-col items-center justify-center space-y-8 p-8">

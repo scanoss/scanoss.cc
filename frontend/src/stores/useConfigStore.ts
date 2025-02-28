@@ -25,6 +25,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import {
+  GetRecentScanRoots,
   GetResultFilePath,
   GetScanRoot,
   GetScanSettingsFilePath,
@@ -37,6 +38,7 @@ interface ResultsState {
   scanRoot: string;
   resultsFile: string;
   settingsFile: string;
+  recentScanRoots: string[];
 }
 
 interface ResultsActions {
@@ -54,6 +56,7 @@ export default create<ConfigStore>()(
     scanRoot: '',
     resultsFile: '',
     settingsFile: '',
+    recentScanRoots: [],
 
     setScanRoot: async (scanRoot: string) => {
       await SetScanRoot(scanRoot);
@@ -72,7 +75,8 @@ export default create<ConfigStore>()(
       const scanRoot = await GetScanRoot();
       const resultsFile = await GetResultFilePath();
       const settingsFile = await GetScanSettingsFilePath();
-      set({ scanRoot, resultsFile, settingsFile });
+      const recentScanRoots = await GetRecentScanRoots();
+      set({ scanRoot, resultsFile, settingsFile, recentScanRoots });
     },
   }))
 );

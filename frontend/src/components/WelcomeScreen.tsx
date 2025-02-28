@@ -37,6 +37,7 @@ import { toast } from './ui/use-toast';
 
 export default function WelcomeScreen() {
   const setScanRoot = useConfigStore((state) => state.setScanRoot);
+  const recentScanRoots = useConfigStore((state) => state.recentScanRoots);
   const [scanModal, setScanModal] = useState(false);
 
   const handleSelectScanRoot = withErrorHandling({
@@ -55,13 +56,21 @@ export default function WelcomeScreen() {
     },
   });
 
-  const handleCloseScanModal = () => {
-    setScanModal(false);
-  };
+  const handleSelectRecentFolder = withErrorHandling({
+    asyncFn: async (path: string) => {
+      await setScanRoot(path);
+    },
+    onError: () => {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'An error occurred while selecting the recent folder. Please try again.',
+      });
+    },
+  });
 
-  const handleShowScanModal = () => {
-    setScanModal(true);
-  };
+  const handleCloseScanModal = () => setScanModal(false);
+  const handleShowScanModal = () => setScanModal(true);
 
   EventsOn(entities.Action.ScanWithOptions, () => {
     handleShowScanModal();
@@ -95,7 +104,25 @@ export default function WelcomeScreen() {
           <CardHeader>
             <CardTitle className="text-lg font-medium">Recent</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">No recent folders</CardContent>
+          <CardContent>
+            {recentScanRoots.length > 0 ? (
+              <div className="grid gap-2">
+                {recentScanRoots.map((path) => (
+                  <Button
+                    key={path}
+                    variant="ghost"
+                    className="w-full justify-start gap-2 px-2 text-sm"
+                    onClick={() => handleSelectRecentFolder(path)}
+                  >
+                    <FolderOpen className="h-4 w-4" />
+                    {path}
+                  </Button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No recent folders</p>
+            )}
+          </CardContent>
         </Card>
       </div>
 

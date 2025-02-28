@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
 import KeyboardShortcutsDialog from '@/components/KeyboardShortcutsDialog';
@@ -29,11 +29,14 @@ import ScanDialog from '@/components/ScanDialog';
 import Sidebar from '@/components/Sidebar';
 import StatusBar from '@/components/StatusBar';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import WelcomeScreen from '@/components/WelcomeScreen';
+import useConfigStore from '@/stores/useConfigStore';
 
 import { entities } from '../../wailsjs/go/models';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
 
 export default function Root() {
+  const scanRoot = useConfigStore((state) => state.scanRoot);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [scanModal, setScanModal] = useState(false);
   const handleCloseScanModal = () => {
@@ -44,15 +47,16 @@ export default function Root() {
     setScanModal(true);
   };
 
-  useEffect(() => {
-    // Register event listeners
-    EventsOn(entities.Action.ShowKeyboardShortcutsModal, () => {
-      setShowKeyboardShortcuts(true);
-    });
-    EventsOn(entities.Action.ScanWithOptions, () => {
-      handleShowScanModal();
-    });
-  }, []);
+  EventsOn(entities.Action.ShowKeyboardShortcutsModal, () => {
+    setShowKeyboardShortcuts(true);
+  });
+  EventsOn(entities.Action.ScanWithOptions, () => {
+    handleShowScanModal();
+  });
+
+  if (scanRoot === '/') {
+    return <WelcomeScreen />;
+  }
 
   return (
     <div className="flex h-screen w-full flex-col bg-background backdrop-blur-lg">

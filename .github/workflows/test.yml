@@ -90,13 +90,22 @@ jobs:
         with:
           python-version: "3.8"
 
-      - name: Install scanoss
+      - name: Install scanoss in venv
         run: |
+          python -m venv venv
+          source venv/bin/activate
           python -m pip install --upgrade pip
           pip install scanoss
+          # Verify installation
+          python -c "import scanoss; print('SCANOSS Python package version:', scanoss.__version__)"
+          which scanoss-py || echo "scanoss-py not found in PATH"
+          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+          echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
 
       - name: Run integration tests
         env:
           SCANOSS_API_KEY: ${{ secrets.SCANOSS_API_KEY }}
-        run: go test -v ./... -tags=integration
+        run: |
+          source venv/bin/activate
+          go test -v ./... -tags=integration
 

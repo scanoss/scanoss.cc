@@ -29,11 +29,17 @@ import ScanDialog from '@/components/ScanDialog';
 import Sidebar from '@/components/Sidebar';
 import StatusBar from '@/components/StatusBar';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import WelcomeScreen from '@/components/WelcomeScreen';
+import useEnvironment from '@/hooks/useEnvironment';
+import { isDefaultPath } from '@/lib/utils';
+import useConfigStore from '@/stores/useConfigStore';
 
 import { entities } from '../../wailsjs/go/models';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
 
 export default function Root() {
+  const { environment } = useEnvironment();
+  const scanRoot = useConfigStore((state) => state.scanRoot);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [scanModal, setScanModal] = useState(false);
   const handleCloseScanModal = () => {
@@ -45,14 +51,22 @@ export default function Root() {
   };
 
   useEffect(() => {
-    // Register event listeners
-    EventsOn(entities.Action.ShowKeyboardShortcutsModal, () => {
+    const unsubShowKeyboardShortcuts = EventsOn(entities.Action.ShowKeyboardShortcutsModal, () => {
       setShowKeyboardShortcuts(true);
     });
-    EventsOn(entities.Action.ScanWithOptions, () => {
+    const unsubScanWithOptions = EventsOn(entities.Action.ScanWithOptions, () => {
       handleShowScanModal();
     });
+
+    return () => {
+      unsubShowKeyboardShortcuts();
+      unsubScanWithOptions();
+    };
   }, []);
+
+  if (isDefaultPath(scanRoot, environment?.platform)) {
+    return <WelcomeScreen />;
+  }
 
   return (
     <div className="flex h-screen w-full flex-col bg-background backdrop-blur-lg">

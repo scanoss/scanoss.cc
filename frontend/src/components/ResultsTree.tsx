@@ -31,6 +31,7 @@ import useConfigStore from '@/stores/useConfigStore';
 
 import { GetTree } from '../../wailsjs/go/service/TreeServiceImpl';
 import { Node, TreeNode } from './ResultsTreeNode';
+import SaveButton from './SaveSkipSettingsButton';
 import { Button } from './ui/button';
 
 interface ResultsTreeProps {
@@ -113,6 +114,8 @@ export default function ResultsTree({ width, height }: ResultsTreeProps) {
           />
         )}
       </Tree>
+
+      <SaveButton />
     </div>
   );
 }

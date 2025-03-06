@@ -21,16 +21,16 @@
  * SOFTWARE.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { CheckCircle, ChevronDown, ChevronRight, File, FileType, Folder, Loader2, XCircle } from 'lucide-react';
 import path from 'path-browserify';
 import { memo } from 'react';
 import { NodeRendererProps } from 'react-arborist';
 
-import useConfigStore from '@/stores/useConfigStore';
+import useSkipPatternStore from '@/hooks/useSkipPatternStore';
 
-import { AddScanningSkipPattern, RemoveScanningSkipPattern } from '../../wailsjs/go/service/ScanossSettingsServiceImp';
+import { AddStagedScanningSkipPattern, RemoveStagedScanningSkipPattern } from '../../wailsjs/go/service/ScanossSettingsServiceImp';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from './ui/context-menu';
 import { useToast } from './ui/use-toast';
 
@@ -63,13 +63,13 @@ interface NodeProps extends NodeRendererProps<TreeNode> {
 export const Node = memo(
   ({ node, style, tree, selectedNode, expandedNodes, onNodeSelect, onNodeToggle, loadingNodeId, setLoadingNodeId }: NodeProps) => {
     const { toast } = useToast();
-    const scanRoot = useConfigStore((state) => state.scanRoot);
-    const queryClient = useQueryClient();
-
-    const isSelected = node.id === selectedNode;
     const isExpanded = expandedNodes.has(node.id);
     const hasChildren = node.data.children && node.data.children.length > 0;
     const isLoading = loadingNodeId === node.id;
+    const isSelected = node.id === selectedNode;
+    const { setHasUnsavedChanges, addNodeWithUnsavedChanges, nodesWithUnsavedChanges } = useSkipPatternStore();
+
+    const hasUnsavedChanges = nodesWithUnsavedChanges.has(node.id);
 
     const handleClickNode = (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -80,47 +80,6 @@ export const Node = memo(
         tree.toggle(node.id);
       }
     };
-
-    const { mutate: addScanningSkipPattern } = useMutation({
-      mutationFn: async (pattern: string) => {
-        setLoadingNodeId(node.id);
-
-        await AddScanningSkipPattern(pattern);
-      },
-      onSuccess: (_, pattern) => {
-        toast({
-          title: 'Success',
-          description: `Added "${pattern}" to scanning skip patterns`,
-        });
-        queryClient.invalidateQueries({ queryKey: ['resultsTree', scanRoot] });
-        setLoadingNodeId(null);
-      },
-      onError: (error, pattern) => {
-        console.error(`Error adding/saving skip pattern: ${pattern}`, error);
-        setLoadingNodeId(null);
-      },
-    });
-
-    const { mutate: removeScanningSkipPattern } = useMutation({
-      mutationFn: async (pattern: string) => {
-        setLoadingNodeId(node.id);
-
-        await RemoveScanningSkipPattern(pattern);
-      },
-      onSuccess: (_, pattern) => {
-        toast({
-          title: 'Success',
-          description: `Removed "${pattern}" from scanning skip patterns`,
-        });
-        queryClient.invalidateQueries({ queryKey: ['resultsTree', scanRoot] });
-        setLoadingNodeId(null);
-      },
-      onError: (error, pattern) => {
-        console.error(`Error removing skip pattern: ${pattern}`, error);
-
-        setLoadingNodeId(null);
-      },
-    });
 
     const handleToggleSkipFile = () => {
       if (loadingNodeId !== null) return;
@@ -149,49 +108,91 @@ export const Node = memo(
       if (loadingNodeId !== null) return;
 
       const extension = path.extname(node.data.path);
-      if (!extension || !validExtensionRegex.test(extension)) {
+      if (!validExtensionRegex.test(extension)) {
         toast({
-          title: 'Warning',
-          description: 'Invalid or missing file extension',
-          variant: 'default',
+          title: 'Invalid Extension',
+          description: `Cannot skip files with extension "${extension}"`,
+          variant: 'destructive',
         });
         return;
       }
 
-      const pattern = `**/*${extension}`;
+      const pattern = `*${extension}`;
 
       if (node.data.scanningSkipState === SKIP_STATES.EXCLUDED) {
         removeScanningSkipPattern(pattern);
       } else {
         addScanningSkipPattern(pattern);
       }
+
+      addNodeWithUnsavedChanges(node.id);
     };
 
-    const skipMenuItemText = () => {
-      if (node.data.scanningSkipState === SKIP_STATES.EXCLUDED) {
-        return `Include ${node.data.isFolder ? 'folder' : 'file'} for scanning`;
-      }
+    const { mutate: addScanningSkipPattern } = useMutation({
+      mutationFn: async (pattern: string) => {
+        setLoadingNodeId(node.id);
+        await AddStagedScanningSkipPattern(pattern);
 
-      return `Skip ${node.data.isFolder ? 'folder' : 'file'} for scanning`;
+        setHasUnsavedChanges(true);
+        addNodeWithUnsavedChanges(node.id);
+      },
+      onSuccess: (_, pattern) => {
+        toast({
+          title: 'Success',
+          description: `Added "${pattern}" to scanning skip patterns`,
+        });
+        setLoadingNodeId(null);
+      },
+      onError: (error, pattern) => {
+        console.error(`Error adding skip pattern: ${pattern}`, error);
+        setLoadingNodeId(null);
+      },
+    });
+
+    const { mutate: removeScanningSkipPattern } = useMutation({
+      mutationFn: async (pattern: string) => {
+        setLoadingNodeId(node.id);
+        await RemoveStagedScanningSkipPattern(pattern);
+
+        setHasUnsavedChanges(true);
+        addNodeWithUnsavedChanges(node.id);
+      },
+      onSuccess: (_, pattern) => {
+        toast({
+          title: 'Success',
+          description: `Removed "${pattern}" from scanning skip patterns`,
+        });
+        setLoadingNodeId(null);
+      },
+      onError: (error, pattern) => {
+        console.error(`Error removing skip pattern: ${pattern}`, error);
+        setLoadingNodeId(null);
+      },
+    });
+
+    const skipMenuItemText = () => {
+      return node.data.scanningSkipState === SKIP_STATES.EXCLUDED
+        ? `Include ${node.data.isFolder ? 'folder' : 'file'} in scanning`
+        : `Exclude ${node.data.isFolder ? 'folder' : 'file'} from scanning`;
     };
 
     const skipExtensionMenuItemText = () => {
-      if (node.data.scanningSkipState === SKIP_STATES.EXCLUDED) {
-        return `Include all files with this extension for scanning`;
-      }
-
-      return `Skip all files with this extension`;
+      const extension = path.extname(node.data.path);
+      return node.data.scanningSkipState === SKIP_STATES.EXCLUDED
+        ? `Include all ${extension} files in scanning`
+        : `Exclude all ${extension} files from scanning`;
     };
 
     return (
       <ContextMenu>
         <ContextMenuTrigger>
           <div
-            style={style}
             className={clsx(
-              'relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1',
-              isSelected ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
+              'flex cursor-pointer items-center gap-1 rounded-md px-2 py-1 hover:bg-accent',
+              isSelected && 'bg-accent',
+              hasUnsavedChanges && 'border-l-2 border-yellow-500'
             )}
+            style={style}
             onClick={handleClickNode}
           >
             {hasChildren && (
@@ -210,6 +211,7 @@ export const Node = memo(
                 )}
                 title={`Scanning status: ${node.data.scanningSkipState}`}
               ></div>
+              {hasUnsavedChanges && <div className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-yellow-500" title="Has unsaved changes"></div>}
             </div>
             <span className="truncate text-sm">{node.data.name}</span>
             {isLoading && <Loader2 className="ml-1 h-3 w-3 animate-spin" />}

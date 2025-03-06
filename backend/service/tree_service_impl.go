@@ -146,7 +146,7 @@ func (s *TreeServiceImpl) buildTree(path string, node *entities.TreeNode) error 
 }
 
 func (s *TreeServiceImpl) calculateScanningSkipState(absPath string) entities.SkipState {
-	if s.scanossSettingsRepo.MatchesScanningSkipPattern(absPath) {
+	if s.scanossSettingsRepo.MatchesEffectiveScanningSkipPattern(absPath) {
 		return entities.SkipStateExcluded
 	}
 	return entities.SkipStateIncluded
@@ -155,7 +155,7 @@ func (s *TreeServiceImpl) calculateScanningSkipState(absPath string) entities.Sk
 func (s *TreeServiceImpl) calculateFolderScanningSkipState(node entities.TreeNode) entities.SkipState {
 	absPath := filepath.Join(config.GetInstance().GetScanRoot(), node.Path)
 
-	if s.scanossSettingsRepo.MatchesScanningSkipPattern(absPath) {
+	if s.scanossSettingsRepo.MatchesEffectiveScanningSkipPattern(absPath) {
 		return entities.SkipStateExcluded
 	}
 

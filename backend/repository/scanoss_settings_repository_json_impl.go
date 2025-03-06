@@ -39,8 +39,9 @@ import (
 )
 
 type ScanossSettingsJsonRepository struct {
-	fr    utils.FileReader
-	mutex sync.RWMutex
+	fr                  utils.FileReader
+	mutex               sync.RWMutex
+	defaultSkipPatterns []string
 }
 
 func NewScanossSettingsJsonRepository(fr utils.FileReader) ScanossSettingsRepository {
@@ -57,6 +58,8 @@ func (r *ScanossSettingsJsonRepository) Init() error {
 		log.Error().Err(err).Msg("Error initializing ScanossSettingsJsonRepository")
 		return err
 	}
+
+	r.defaultSkipPatterns = r.generateDefaultSkipPatterns()
 
 	r.setSettingsFile(cfg.GetScanSettingsFilePath())
 
@@ -244,16 +247,37 @@ func (r *ScanossSettingsJsonRepository) MatchesScanningSkipPattern(path string) 
 		isDir = fileInfo.IsDir()
 	}
 
-	if ps.Match(strings.Split(path, "/"), isDir) {
-		return true
-	}
-
-	return false
+	pathParts := strings.Split(path, "/")
+	return ps.Match(pathParts, isDir)
 }
 
 func (r *ScanossSettingsJsonRepository) getScanningSkipPatterns() []string {
 	sf := r.GetSettings()
-	return sf.Settings.Skip.Patterns.Scanning
+	return append(r.defaultSkipPatterns, sf.Settings.Skip.Patterns.Scanning...)
+}
+
+func (r *ScanossSettingsJsonRepository) generateDefaultSkipPatterns() []string {
+	defaultSkipPatterns := make([]string, 0, len(entities.DefaultSkippedDirExtensions)+len(entities.DefaultSkippedExtensions)+len(entities.DefaultSkippedDirs)+len(entities.DefaultSkippedFiles))
+
+	for _, dirExtension := range entities.DefaultSkippedDirExtensions {
+		defaultSkipPatterns = append(defaultSkipPatterns, fmt.Sprintf("*%s", dirExtension))
+	}
+
+	for _, extension := range entities.DefaultSkippedExtensions {
+		defaultSkipPatterns = append(defaultSkipPatterns, fmt.Sprintf("*%s", extension))
+	}
+
+	for _, dir := range entities.DefaultSkippedDirs {
+		defaultSkipPatterns = append(defaultSkipPatterns, fmt.Sprintf("%s/", dir))
+	}
+
+	defaultSkipPatterns = append(defaultSkipPatterns, entities.DefaultSkippedFiles...)
+
+	return defaultSkipPatterns
+}
+
+func (r *ScanossSettingsJsonRepository) GetDefaultSkipPatterns(sf *entities.SettingsFile) []string {
+	return r.defaultSkipPatterns
 }
 
 func (r *ScanossSettingsJsonRepository) AddScanningSkipPattern(pattern string) error {

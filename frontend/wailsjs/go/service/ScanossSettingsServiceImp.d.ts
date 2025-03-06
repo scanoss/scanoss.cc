@@ -4,10 +4,18 @@ import {entities} from '../models';
 
 export function AddScanningSkipPattern(arg1:string):Promise<void>;
 
+export function CleanupConflictingPatterns():Promise<void>;
+
+export function GetMatchingSkipPattern(arg1:string):Promise<string|boolean>;
+
 export function GetSettings():Promise<entities.SettingsFile>;
 
 export function HasUnsavedChanges():Promise<boolean>;
 
+export function IsDefaultSkipPattern(arg1:string):Promise<boolean>;
+
 export function RemoveScanningSkipPattern(arg1:string):Promise<void>;
 
 export function Save():Promise<void>;
+
+export function ToggleSkipPattern(arg1:string,arg2:boolean):Promise<void>;

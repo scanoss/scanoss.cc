@@ -149,6 +149,11 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     description: 'Show the keyboard shortcuts modal',
     keys: 'mod+shift+k',
   },
+  [entities.Action.OpenSettings]: {
+    name: 'Open Settings',
+    description: 'Open the app settings',
+    keys: 'mod+,',
+  },
 
   // Scan
   [entities.Action.ScanWithOptions]: {

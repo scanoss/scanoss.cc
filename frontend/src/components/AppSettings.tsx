@@ -22,8 +22,10 @@
  */
 
 import { Settings } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { entities } from '../../wailsjs/go/models';
+import { EventsOn } from '../../wailsjs/runtime/runtime';
 import SettingsDialog from './SettingsDialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
@@ -32,6 +34,12 @@ export default function AppSettings() {
 
   const handleOpenSettingsModal = () => setShowSettingsModal(true);
   const handleCloseSettingsModal = () => setShowSettingsModal(false);
+
+  useEffect(() => {
+    EventsOn(entities.Action.OpenSettings, () => {
+      setShowSettingsModal(true);
+    });
+  }, []);
 
   return (
     <>

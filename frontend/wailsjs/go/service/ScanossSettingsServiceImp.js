@@ -6,6 +6,14 @@ export function AddScanningSkipPattern(arg1) {
   return window['go']['service']['ScanossSettingsServiceImp']['AddScanningSkipPattern'](arg1);
 }
 
+export function CleanupConflictingPatterns() {
+  return window['go']['service']['ScanossSettingsServiceImp']['CleanupConflictingPatterns']();
+}
+
+export function GetMatchingSkipPattern(arg1) {
+  return window['go']['service']['ScanossSettingsServiceImp']['GetMatchingSkipPattern'](arg1);
+}
+
 export function GetSettings() {
   return window['go']['service']['ScanossSettingsServiceImp']['GetSettings']();
 }
@@ -14,10 +22,18 @@ export function HasUnsavedChanges() {
   return window['go']['service']['ScanossSettingsServiceImp']['HasUnsavedChanges']();
 }
 
+export function IsDefaultSkipPattern(arg1) {
+  return window['go']['service']['ScanossSettingsServiceImp']['IsDefaultSkipPattern'](arg1);
+}
+
 export function RemoveScanningSkipPattern(arg1) {
   return window['go']['service']['ScanossSettingsServiceImp']['RemoveScanningSkipPattern'](arg1);
 }
 
 export function Save() {
   return window['go']['service']['ScanossSettingsServiceImp']['Save']();
+}
+
+export function ToggleSkipPattern(arg1, arg2) {
+  return window['go']['service']['ScanossSettingsServiceImp']['ToggleSkipPattern'](arg1, arg2);
 }

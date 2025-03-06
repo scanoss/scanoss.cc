@@ -24,6 +24,7 @@ export namespace entities {
 	    ToggleSyncScrollPosition = "toggleSyncScrollPosition",
 	    ShowKeyboardShortcutsModal = "showKeyboardShortcutsModal",
 	    ScanWithOptions = "scanWithOptions",
+	    OpenSettings = "openSettings",
 	}
 	export class ComponentFilter {
 	    path?: string;

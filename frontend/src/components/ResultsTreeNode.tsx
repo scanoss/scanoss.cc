@@ -35,10 +35,16 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { useToast } from './ui/use-toast';
 
 const validExtensionRegex = /^\.[a-zA-Z0-9]+$/;
-const SKIP_STATES = {
+export const SKIP_STATES = {
   EXCLUDED: 'excluded',
   INCLUDED: 'included',
   MIXED: 'mixed',
+};
+
+export const SKIP_STATE_DESCRIPTIONS = {
+  [SKIP_STATES.EXCLUDED]: 'Excluded from scanning',
+  [SKIP_STATES.INCLUDED]: 'Included in scanning',
+  [SKIP_STATES.MIXED]: 'Partially included in scanning',
 };
 
 export interface TreeNode {

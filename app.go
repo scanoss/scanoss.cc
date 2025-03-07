@@ -118,7 +118,7 @@ func (a *App) initializeMenu() {
 	groupedShortcuts := a.keyboardService.GetGroupedShortcuts()
 	actionShortcuts := groupedShortcuts[entities.GroupActions]
 	globalShortcuts := groupedShortcuts[entities.GroupGlobal]
-
+	viewShortcuts := groupedShortcuts[entities.GroupView]
 	// Global edit menu
 	EditMenu := AppMenu.AddSubmenu("Edit")
 	for _, shortcut := range globalShortcuts {
@@ -133,9 +133,11 @@ func (a *App) initializeMenu() {
 
 	// View menu
 	ViewMenu := AppMenu.AddSubmenu("View")
-	ViewMenu.AddText("Sync Scroll Position", keys.Combo("e", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {
-		runtime.EventsEmit(a.ctx, string(entities.ActionToggleSyncScrollPosition))
-	})
+	for _, shortcut := range viewShortcuts {
+		ViewMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {
+			runtime.EventsEmit(a.ctx, string(shortcut.Action))
+		})
+	}
 
 	// Scan menu
 	ScanMenu := AppMenu.AddSubmenu("Scan")

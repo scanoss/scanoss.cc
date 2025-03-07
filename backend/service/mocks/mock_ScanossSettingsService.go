@@ -17,6 +17,142 @@ func (_m *MockScanossSettingsService) EXPECT() *MockScanossSettingsService_Expec
 	return &MockScanossSettingsService_Expecter{mock: &_m.Mock}
 }
 
+// AddStagedScanningSkipPattern provides a mock function with given fields: pattern
+func (_m *MockScanossSettingsService) AddStagedScanningSkipPattern(pattern string) error {
+	ret := _m.Called(pattern)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AddStagedScanningSkipPattern")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pattern)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockScanossSettingsService_AddStagedScanningSkipPattern_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddStagedScanningSkipPattern'
+type MockScanossSettingsService_AddStagedScanningSkipPattern_Call struct {
+	*mock.Call
+}
+
+// AddStagedScanningSkipPattern is a helper method to define mock.On call
+//   - pattern string
+func (_e *MockScanossSettingsService_Expecter) AddStagedScanningSkipPattern(pattern interface{}) *MockScanossSettingsService_AddStagedScanningSkipPattern_Call {
+	return &MockScanossSettingsService_AddStagedScanningSkipPattern_Call{Call: _e.mock.On("AddStagedScanningSkipPattern", pattern)}
+}
+
+func (_c *MockScanossSettingsService_AddStagedScanningSkipPattern_Call) Run(run func(pattern string)) *MockScanossSettingsService_AddStagedScanningSkipPattern_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *MockScanossSettingsService_AddStagedScanningSkipPattern_Call) Return(_a0 error) *MockScanossSettingsService_AddStagedScanningSkipPattern_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockScanossSettingsService_AddStagedScanningSkipPattern_Call) RunAndReturn(run func(string) error) *MockScanossSettingsService_AddStagedScanningSkipPattern_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CommitStagedSkipPatterns provides a mock function with given fields:
+func (_m *MockScanossSettingsService) CommitStagedSkipPatterns() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for CommitStagedSkipPatterns")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockScanossSettingsService_CommitStagedSkipPatterns_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CommitStagedSkipPatterns'
+type MockScanossSettingsService_CommitStagedSkipPatterns_Call struct {
+	*mock.Call
+}
+
+// CommitStagedSkipPatterns is a helper method to define mock.On call
+func (_e *MockScanossSettingsService_Expecter) CommitStagedSkipPatterns() *MockScanossSettingsService_CommitStagedSkipPatterns_Call {
+	return &MockScanossSettingsService_CommitStagedSkipPatterns_Call{Call: _e.mock.On("CommitStagedSkipPatterns")}
+}
+
+func (_c *MockScanossSettingsService_CommitStagedSkipPatterns_Call) Run(run func()) *MockScanossSettingsService_CommitStagedSkipPatterns_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockScanossSettingsService_CommitStagedSkipPatterns_Call) Return(_a0 error) *MockScanossSettingsService_CommitStagedSkipPatterns_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockScanossSettingsService_CommitStagedSkipPatterns_Call) RunAndReturn(run func() error) *MockScanossSettingsService_CommitStagedSkipPatterns_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DiscardStagedSkipPatterns provides a mock function with given fields:
+func (_m *MockScanossSettingsService) DiscardStagedSkipPatterns() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DiscardStagedSkipPatterns")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockScanossSettingsService_DiscardStagedSkipPatterns_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DiscardStagedSkipPatterns'
+type MockScanossSettingsService_DiscardStagedSkipPatterns_Call struct {
+	*mock.Call
+}
+
+// DiscardStagedSkipPatterns is a helper method to define mock.On call
+func (_e *MockScanossSettingsService_Expecter) DiscardStagedSkipPatterns() *MockScanossSettingsService_DiscardStagedSkipPatterns_Call {
+	return &MockScanossSettingsService_DiscardStagedSkipPatterns_Call{Call: _e.mock.On("DiscardStagedSkipPatterns")}
+}
+
+func (_c *MockScanossSettingsService_DiscardStagedSkipPatterns_Call) Run(run func()) *MockScanossSettingsService_DiscardStagedSkipPatterns_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockScanossSettingsService_DiscardStagedSkipPatterns_Call) Return(_a0 error) *MockScanossSettingsService_DiscardStagedSkipPatterns_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockScanossSettingsService_DiscardStagedSkipPatterns_Call) RunAndReturn(run func() error) *MockScanossSettingsService_DiscardStagedSkipPatterns_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // HasUnsavedChanges provides a mock function with given fields:
 func (_m *MockScanossSettingsService) HasUnsavedChanges() (bool, error) {
 	ret := _m.Called()
@@ -68,6 +204,52 @@ func (_c *MockScanossSettingsService_HasUnsavedChanges_Call) Return(_a0 bool, _a
 }
 
 func (_c *MockScanossSettingsService_HasUnsavedChanges_Call) RunAndReturn(run func() (bool, error)) *MockScanossSettingsService_HasUnsavedChanges_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RemoveStagedScanningSkipPattern provides a mock function with given fields: pattern
+func (_m *MockScanossSettingsService) RemoveStagedScanningSkipPattern(pattern string) error {
+	ret := _m.Called(pattern)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveStagedScanningSkipPattern")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pattern)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockScanossSettingsService_RemoveStagedScanningSkipPattern_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveStagedScanningSkipPattern'
+type MockScanossSettingsService_RemoveStagedScanningSkipPattern_Call struct {
+	*mock.Call
+}
+
+// RemoveStagedScanningSkipPattern is a helper method to define mock.On call
+//   - pattern string
+func (_e *MockScanossSettingsService_Expecter) RemoveStagedScanningSkipPattern(pattern interface{}) *MockScanossSettingsService_RemoveStagedScanningSkipPattern_Call {
+	return &MockScanossSettingsService_RemoveStagedScanningSkipPattern_Call{Call: _e.mock.On("RemoveStagedScanningSkipPattern", pattern)}
+}
+
+func (_c *MockScanossSettingsService_RemoveStagedScanningSkipPattern_Call) Run(run func(pattern string)) *MockScanossSettingsService_RemoveStagedScanningSkipPattern_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *MockScanossSettingsService_RemoveStagedScanningSkipPattern_Call) Return(_a0 error) *MockScanossSettingsService_RemoveStagedScanningSkipPattern_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockScanossSettingsService_RemoveStagedScanningSkipPattern_Call) RunAndReturn(run func(string) error) *MockScanossSettingsService_RemoveStagedScanningSkipPattern_Call {
 	_c.Call.Return(run)
 	return _c
 }

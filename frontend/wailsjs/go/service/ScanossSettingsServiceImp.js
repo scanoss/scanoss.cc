@@ -18,10 +18,6 @@ export function GetSettings() {
   return window['go']['service']['ScanossSettingsServiceImp']['GetSettings']();
 }
 
-export function HasStagedChanges() {
-  return window['go']['service']['ScanossSettingsServiceImp']['HasStagedChanges']();
-}
-
 export function HasUnsavedChanges() {
   return window['go']['service']['ScanossSettingsServiceImp']['HasUnsavedChanges']();
 }

@@ -30,5 +30,4 @@ type ScanossSettingsService interface {
 	RemoveStagedScanningSkipPattern(pattern string) error
 	CommitStagedSkipPatterns() error
 	DiscardStagedSkipPatterns() error
-	HasStagedChanges() bool
 }

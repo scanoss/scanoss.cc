@@ -106,7 +106,7 @@ func (s *TreeServiceImpl) buildTree(path string, node *entities.TreeNode) error 
 			}
 
 			result := s.resultService.GetByPath(resultRelativePath)
-			childNode := entities.NewTreeNode(entry.Name(), result, entry.IsDir())
+			childNode := entities.NewTreeNode(resultRelativePath, result, entry.IsDir())
 
 			if entry.IsDir() {
 				if err := s.buildTree(absPath, &childNode); err != nil {

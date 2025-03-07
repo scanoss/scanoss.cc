@@ -39,7 +39,6 @@ type ScanossSettingsRepository interface {
 	RemoveStagedScanningSkipPattern(pattern string) error
 	CommitStagedSkipPatterns() error
 	DiscardStagedSkipPatterns() error
-	HasStagedChanges() bool
 	GetEffectiveSkipPatterns() []string
 	MatchesEffectiveScanningSkipPattern(path string) bool
 }

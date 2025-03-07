@@ -65,7 +65,3 @@ func (s *ScanossSettingsServiceImp) CommitStagedSkipPatterns() error {
 func (s *ScanossSettingsServiceImp) DiscardStagedSkipPatterns() error {
 	return s.repository.DiscardStagedSkipPatterns()
 }
-
-func (s *ScanossSettingsServiceImp) HasStagedChanges() bool {
-	return s.repository.HasStagedChanges()
-}

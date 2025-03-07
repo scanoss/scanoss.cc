@@ -1,36 +1,20 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2, Save, XCircle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import useSkipPatternStore from '@/hooks/useSkipPatternStore';
 import useConfigStore from '@/stores/useConfigStore';
 
-import { CommitStagedSkipPatterns, DiscardStagedSkipPatterns, HasStagedChanges } from '../../wailsjs/go/service/ScanossSettingsServiceImp';
+import { CommitStagedSkipPatterns, DiscardStagedSkipPatterns } from '../../wailsjs/go/service/ScanossSettingsServiceImp';
 import { Button } from './ui/button';
 import { useToast } from './ui/use-toast';
 
-export default function SaveButton() {
+export default function SaveSkipSettingsButton() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const scanRoot = useConfigStore((state) => state.scanRoot);
   const [isLoading, setIsLoading] = useState(false);
   const { hasUnsavedChanges, setHasUnsavedChanges, clearNodesWithUnsavedChanges } = useSkipPatternStore();
-
-  useEffect(() => {
-    const checkUnsavedChanges = async () => {
-      try {
-        const hasChanges = await HasStagedChanges();
-        setHasUnsavedChanges(hasChanges);
-      } catch (error) {
-        console.error('Error checking for unsaved changes', error);
-      }
-    };
-
-    checkUnsavedChanges();
-
-    const interval = setInterval(checkUnsavedChanges, 5000);
-    return () => clearInterval(interval);
-  }, [setHasUnsavedChanges]);
 
   const commitStagedSkipPatterns = async () => {
     try {

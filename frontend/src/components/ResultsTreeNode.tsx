@@ -77,6 +77,48 @@ export const Node = memo(
 
     const hasUnsavedChanges = nodesWithUnsavedChanges.has(node.id);
 
+    const { mutate: addScanningSkipPattern } = useMutation({
+      mutationFn: async (pattern: string) => {
+        setLoadingNodeId(node.id);
+        await AddStagedScanningSkipPattern(pattern);
+
+        setHasUnsavedChanges(true);
+        addNodeWithUnsavedChanges(node.id);
+      },
+      onSuccess: (_, pattern) => {
+        toast({
+          title: 'Success',
+          description: `Added "${pattern}" to scanning skip patterns`,
+        });
+        setLoadingNodeId(null);
+      },
+      onError: (error, pattern) => {
+        console.error(`Error adding skip pattern: ${pattern}`, error);
+        setLoadingNodeId(null);
+      },
+    });
+
+    const { mutate: removeScanningSkipPattern } = useMutation({
+      mutationFn: async (pattern: string) => {
+        setLoadingNodeId(node.id);
+        await RemoveStagedScanningSkipPattern(pattern);
+
+        setHasUnsavedChanges(true);
+        addNodeWithUnsavedChanges(node.id);
+      },
+      onSuccess: (_, pattern) => {
+        toast({
+          title: 'Success',
+          description: `Removed "${pattern}" from scanning skip patterns`,
+        });
+        setLoadingNodeId(null);
+      },
+      onError: (error, pattern) => {
+        console.error(`Error removing skip pattern: ${pattern}`, error);
+        setLoadingNodeId(null);
+      },
+    });
+
     const handleClickNode = (e: React.MouseEvent) => {
       e.stopPropagation();
       onNodeSelect(node.id);
@@ -133,48 +175,6 @@ export const Node = memo(
 
       addNodeWithUnsavedChanges(node.id);
     };
-
-    const { mutate: addScanningSkipPattern } = useMutation({
-      mutationFn: async (pattern: string) => {
-        setLoadingNodeId(node.id);
-        await AddStagedScanningSkipPattern(pattern);
-
-        setHasUnsavedChanges(true);
-        addNodeWithUnsavedChanges(node.id);
-      },
-      onSuccess: (_, pattern) => {
-        toast({
-          title: 'Success',
-          description: `Added "${pattern}" to scanning skip patterns`,
-        });
-        setLoadingNodeId(null);
-      },
-      onError: (error, pattern) => {
-        console.error(`Error adding skip pattern: ${pattern}`, error);
-        setLoadingNodeId(null);
-      },
-    });
-
-    const { mutate: removeScanningSkipPattern } = useMutation({
-      mutationFn: async (pattern: string) => {
-        setLoadingNodeId(node.id);
-        await RemoveStagedScanningSkipPattern(pattern);
-
-        setHasUnsavedChanges(true);
-        addNodeWithUnsavedChanges(node.id);
-      },
-      onSuccess: (_, pattern) => {
-        toast({
-          title: 'Success',
-          description: `Removed "${pattern}" from scanning skip patterns`,
-        });
-        setLoadingNodeId(null);
-      },
-      onError: (error, pattern) => {
-        console.error(`Error removing skip pattern: ${pattern}`, error);
-        setLoadingNodeId(null);
-      },
-    });
 
     const skipMenuItemText = () => {
       return node.data.scanningSkipState === SKIP_STATES.EXCLUDED

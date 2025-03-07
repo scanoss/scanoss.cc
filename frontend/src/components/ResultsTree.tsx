@@ -50,6 +50,7 @@ export default function ResultsTree({ width, height }: ResultsTreeProps) {
     data: tree,
     error,
     isLoading,
+    isFetching,
     refetch,
   } = useQuery({
     queryKey: ['resultsTree', scanRoot],
@@ -73,7 +74,7 @@ export default function ResultsTree({ width, height }: ResultsTreeProps) {
     });
   }, []);
 
-  if (isLoading) {
+  if (isLoading || isFetching) {
     return (
       <Card className="flex flex-1 items-center justify-center p-4 text-muted-foreground">
         <div className="flex items-center gap-2">

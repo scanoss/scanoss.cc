@@ -10,8 +10,6 @@ export function DiscardStagedSkipPatterns():Promise<void>;
 
 export function GetSettings():Promise<entities.SettingsFile>;
 
-export function HasStagedChanges():Promise<boolean>;
-
 export function HasUnsavedChanges():Promise<boolean>;
 
 export function RemoveStagedScanningSkipPattern(arg1:string):Promise<void>;

@@ -34,7 +34,6 @@ type ScanossSettingsRepository interface {
 	ClearAllFilters() error
 	GetSettings() *entities.SettingsFile
 	GetDeclaredPurls() []string
-	MatchesScanningSkipPattern(path string) bool
 	CommitStagedSkipPatterns() error
 	DiscardStagedSkipPatterns() error
 	GetEffectiveSkipPatterns() []string

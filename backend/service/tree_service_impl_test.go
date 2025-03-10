@@ -95,7 +95,7 @@ func TestGetTree(t *testing.T) {
 	defer unpatch() // Restore original config after test
 
 	mockScanossSettingsRepository := repositoryMocks.NewMockScanossSettingsRepository(t)
-	mockScanossSettingsRepository.EXPECT().MatchesScanningSkipPattern(mock.AnythingOfType("string")).Return(false).Times(7)
+	mockScanossSettingsRepository.EXPECT().MatchesEffectiveScanningSkipPattern(mock.AnythingOfType("string")).Return(false).Times(7)
 
 	mockResultService := mocks.NewMockResultService(t)
 	mockResultService.EXPECT().GetByPath(mock.AnythingOfType("string")).Return(entities.ResultDTO{}).Times(7)

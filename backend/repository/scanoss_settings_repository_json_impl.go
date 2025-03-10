@@ -232,34 +232,6 @@ func extractPurlsFromBom(componentFilters []entities.ComponentFilter) []string {
 	return extractedPurls
 }
 
-func (r *ScanossSettingsJsonRepository) MatchesScanningSkipPattern(path string) bool {
-	patterns := r.getScanningSkipPatterns()
-
-	var matchers []gitignore.Pattern
-	for _, pattern := range patterns {
-		matcher := gitignore.ParsePattern(pattern, nil)
-		matchers = append(matchers, matcher)
-	}
-
-	ps := gitignore.NewMatcher(matchers)
-
-	isDir := false
-	fileInfo, err := os.Stat(path)
-	if err != nil {
-		log.Debug().Err(err).Msgf("Error checking if path is directory: %s", path)
-	} else {
-		isDir = fileInfo.IsDir()
-	}
-
-	pathParts := strings.Split(path, "/")
-	return ps.Match(pathParts, isDir)
-}
-
-func (r *ScanossSettingsJsonRepository) getScanningSkipPatterns() []string {
-	sf := r.GetSettings()
-	return append(r.defaultSkipPatterns, sf.Settings.Skip.Patterns.Scanning...)
-}
-
 func (r *ScanossSettingsJsonRepository) generateDefaultSkipPatterns() []string {
 	defaultSkipPatterns := make([]string, 0, len(entities.DefaultSkippedDirExtensions)+len(entities.DefaultSkippedExtensions)+len(entities.DefaultSkippedDirs)+len(entities.DefaultSkippedFiles))
 

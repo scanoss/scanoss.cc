@@ -116,7 +116,7 @@ func (s *TreeServiceImpl) buildTree(path string, node *entities.TreeNode) error 
 				childNode.WorkflowState = calculateFolderWorkflowState(childNode.Children)
 				childNode.ScanningSkipState = s.calculateFolderScanningSkipState(childNode)
 			} else {
-				childNode.ScanningSkipState = s.calculateScanningSkipState(absPath)
+				childNode.ScanningSkipState = s.calculateScanningSkipState(resultRelativePath)
 			}
 
 			childrenChan <- childNode
@@ -145,17 +145,15 @@ func (s *TreeServiceImpl) buildTree(path string, node *entities.TreeNode) error 
 	return nil
 }
 
-func (s *TreeServiceImpl) calculateScanningSkipState(absPath string) entities.SkipState {
-	if s.scanossSettingsRepo.MatchesEffectiveScanningSkipPattern(absPath) {
+func (s *TreeServiceImpl) calculateScanningSkipState(path string) entities.SkipState {
+	if s.scanossSettingsRepo.MatchesEffectiveScanningSkipPattern(path) {
 		return entities.SkipStateExcluded
 	}
 	return entities.SkipStateIncluded
 }
 
 func (s *TreeServiceImpl) calculateFolderScanningSkipState(node entities.TreeNode) entities.SkipState {
-	absPath := filepath.Join(config.GetInstance().GetScanRoot(), node.Path)
-
-	if s.scanossSettingsRepo.MatchesEffectiveScanningSkipPattern(absPath) {
+	if s.scanossSettingsRepo.MatchesEffectiveScanningSkipPattern(node.Path) {
 		return entities.SkipStateExcluded
 	}
 

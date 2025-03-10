@@ -39,11 +39,13 @@ import (
 )
 
 type ScanossSettingsJsonRepository struct {
-	fr                   utils.FileReader
-	mutex                sync.RWMutex
-	defaultSkipPatterns  []string
-	stagedAddPatterns    []string
-	stagedRemovePatterns []string
+	fr                    utils.FileReader
+	mutex                 sync.RWMutex
+	defaultSkipPatterns   []string
+	stagedAddPatterns     []string
+	stagedRemovePatterns  []string
+	effectiveSkipPatterns []string
+	compiledMatcher       gitignore.Matcher
 }
 
 func NewScanossSettingsJsonRepository(fr utils.FileReader) ScanossSettingsRepository {
@@ -282,123 +284,6 @@ func (r *ScanossSettingsJsonRepository) GetDefaultSkipPatterns(sf *entities.Sett
 	return r.defaultSkipPatterns
 }
 
-func (r *ScanossSettingsJsonRepository) isExcludedByBroaderPattern(path string) bool {
-	effectivePatterns := r.GetEffectiveSkipPatterns()
-	isExcluded := r.matchesPatterns(path, effectivePatterns)
-	if !isExcluded {
-		return false
-	}
-
-	exactMatch := slices.Contains(effectivePatterns, path)
-
-	for _, pattern := range effectivePatterns {
-		if strings.HasPrefix(pattern, "!") && strings.Contains(path, pattern[1:]) {
-			log.Debug().Str("path", path).Str("negationPattern", pattern).Msg("Found potential negation pattern match")
-		}
-	}
-
-	return !exactMatch // Excluded by a broader pattern
-}
-
-func (r *ScanossSettingsJsonRepository) matchesPatterns(path string, patterns []string) bool {
-	var matchers []gitignore.Pattern
-	for _, pattern := range patterns {
-		matcher := gitignore.ParsePattern(pattern, nil)
-		matchers = append(matchers, matcher)
-	}
-
-	ps := gitignore.NewMatcher(matchers)
-
-	isDir := false
-	fileInfo, err := os.Stat(path)
-	if err != nil {
-		log.Debug().Err(err).Msgf("Error checking if path is directory: %s", path)
-	} else {
-		isDir = fileInfo.IsDir()
-	}
-
-	pathParts := strings.Split(path, "/")
-	return ps.Match(pathParts, isDir)
-}
-
-func (r *ScanossSettingsJsonRepository) AddStagedScanningSkipPattern(pattern string) error {
-	sf := r.GetSettings()
-	negationPattern := "!" + pattern
-	hasNegationPattern := slices.Contains(sf.Settings.Skip.Patterns.Scanning, negationPattern)
-	patternExistsInSettings := slices.Contains(sf.Settings.Skip.Patterns.Scanning, pattern)
-
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-
-	if patternExistsInSettings {
-		log.Debug().Msgf("Pattern already exists in settings file, skipping: %s", pattern)
-		return nil
-	}
-
-	if slices.Contains(r.stagedAddPatterns, pattern) {
-		log.Debug().Msgf("Pattern already staged for addition, skipping: %s", pattern)
-		return nil
-	}
-
-	if hasNegationPattern {
-		r.stagedRemovePatterns = append(r.stagedRemovePatterns, negationPattern)
-		return nil
-	}
-
-	r.stagedAddPatterns = append(r.stagedAddPatterns, pattern)
-
-	return nil
-}
-
-func (r *ScanossSettingsJsonRepository) RemoveStagedScanningSkipPattern(pattern string) error {
-	isExcludedByBroader := r.isExcludedByBroaderPattern(pattern)
-
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-
-	sf := r.GetSettings()
-
-	patternExistsInSettings := slices.Contains(sf.Settings.Skip.Patterns.Scanning, pattern)
-
-	if patternExistsInSettings {
-		r.stagedRemovePatterns = append(r.stagedRemovePatterns, pattern)
-		return nil
-	}
-
-	if i := slices.Index(r.stagedAddPatterns, pattern); i >= 0 {
-		r.stagedAddPatterns = slices.Delete(r.stagedAddPatterns, i, i+1)
-		return nil
-	}
-
-	if isExcludedByBroader {
-		negationPatterns := r.createNegationPattern(pattern)
-
-		for _, negationPattern := range negationPatterns {
-			if !slices.Contains(sf.Settings.Skip.Patterns.Scanning, negationPattern) &&
-				!slices.Contains(r.stagedAddPatterns, negationPattern) {
-				r.stagedAddPatterns = append(r.stagedAddPatterns, negationPattern)
-			}
-		}
-	}
-
-	return nil
-}
-
-func (r *ScanossSettingsJsonRepository) createNegationPattern(path string) []string {
-	negationPatterns := []string{"!" + path}
-
-	if strings.Contains(path, "/") {
-		parts := strings.Split(path, "/")
-		if len(parts) > 1 {
-			filename := parts[len(parts)-1]
-			negationPatterns = append(negationPatterns, "!"+filename)
-			log.Debug().Str("path", path).Str("filenameNegation", "!"+filename).Msg("Added filename-only negation pattern")
-		}
-	}
-
-	return negationPatterns
-}
-
 func (r *ScanossSettingsJsonRepository) CommitStagedSkipPatterns() error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
@@ -419,6 +304,7 @@ func (r *ScanossSettingsJsonRepository) CommitStagedSkipPatterns() error {
 
 	r.stagedAddPatterns = nil
 	r.stagedRemovePatterns = nil
+	r.effectiveSkipPatterns = nil
 
 	return r.Save()
 }
@@ -429,6 +315,8 @@ func (r *ScanossSettingsJsonRepository) DiscardStagedSkipPatterns() error {
 
 	r.stagedAddPatterns = nil
 	r.stagedRemovePatterns = nil
+	r.effectiveSkipPatterns = nil
+
 	return nil
 }
 
@@ -456,16 +344,27 @@ func (r *ScanossSettingsJsonRepository) GetEffectiveSkipPatterns() []string {
 	return effectivePatterns
 }
 
-func (r *ScanossSettingsJsonRepository) MatchesEffectiveScanningSkipPattern(path string) bool {
+func (r *ScanossSettingsJsonRepository) compileEffectivePatterns() {
 	patterns := r.GetEffectiveSkipPatterns()
 
+	// No change, use existing patterns
+	if slices.Equal(patterns, r.effectiveSkipPatterns) {
+		return
+	}
+
+	// Patterns have changed, update cache
 	var matchers []gitignore.Pattern
 	for _, pattern := range patterns {
 		matcher := gitignore.ParsePattern(pattern, nil)
 		matchers = append(matchers, matcher)
 	}
 
-	ps := gitignore.NewMatcher(matchers)
+	r.effectiveSkipPatterns = patterns
+	r.compiledMatcher = gitignore.NewMatcher(matchers)
+}
+
+func (r *ScanossSettingsJsonRepository) MatchesEffectiveScanningSkipPattern(path string) bool {
+	r.compileEffectivePatterns()
 
 	isDir := false
 	fileInfo, err := os.Stat(path)
@@ -476,5 +375,86 @@ func (r *ScanossSettingsJsonRepository) MatchesEffectiveScanningSkipPattern(path
 	}
 
 	pathParts := strings.Split(path, "/")
-	return ps.Match(pathParts, isDir)
+	return r.compiledMatcher.Match(pathParts, isDir)
+}
+
+func (r *ScanossSettingsJsonRepository) findMatchingPatterns(path string, patterns []string) []string {
+	var matchingPatterns []string
+
+	for _, pattern := range patterns {
+		if strings.HasPrefix(pattern, "!") {
+			continue
+		}
+
+		matcher := gitignore.ParsePattern(pattern, nil)
+		ps := gitignore.NewMatcher([]gitignore.Pattern{matcher})
+
+		isDir := false
+		fileInfo, err := os.Stat(path)
+		if err == nil {
+			isDir = fileInfo.IsDir()
+		}
+
+		pathParts := strings.Split(path, "/")
+
+		if ps.Match(pathParts, isDir) {
+			matchingPatterns = append(matchingPatterns, pattern)
+			log.Debug().Str("path", path).Str("matchingPattern", pattern).Msg("Found matching pattern")
+		}
+	}
+
+	return matchingPatterns
+}
+
+func (r *ScanossSettingsJsonRepository) ToggleScanningSkipPattern(pattern string) error {
+	effectiveSkipPatterns := r.GetEffectiveSkipPatterns()
+
+	matchingPatterns := r.findMatchingPatterns(pattern, effectiveSkipPatterns)
+
+	// If no patterns match and it's not already in stagedAddPatterns, add it
+	if len(matchingPatterns) == 0 && !slices.Contains(r.stagedAddPatterns, pattern) {
+		r.stagedAddPatterns = append(r.stagedAddPatterns, pattern)
+		return nil
+	}
+
+	negationPattern := "!" + pattern
+	isPatternAlreadyNegated := slices.Contains(effectiveSkipPatterns, negationPattern)
+	if isPatternAlreadyNegated {
+		r.stagedAddPatterns = append(r.stagedAddPatterns, pattern)
+		r.stagedRemovePatterns = append(r.stagedRemovePatterns, negationPattern)
+		return nil
+	}
+
+	for _, matchingPattern := range matchingPatterns {
+		isExactMatch := matchingPattern == pattern
+
+		removedIndex := slices.Index(r.stagedRemovePatterns, matchingPattern)
+		addedIndex := slices.Index(r.stagedAddPatterns, matchingPattern)
+
+		isStagedForRemoval := removedIndex >= 0
+		isStagedForAddition := addedIndex >= 0
+
+		if isStagedForRemoval {
+			r.stagedRemovePatterns = slices.Delete(r.stagedRemovePatterns, removedIndex, removedIndex+1)
+			r.stagedAddPatterns = append(r.stagedAddPatterns, matchingPattern)
+		} else if isStagedForAddition {
+			r.stagedAddPatterns = slices.Delete(r.stagedAddPatterns, addedIndex, addedIndex+1)
+			r.stagedRemovePatterns = append(r.stagedRemovePatterns, matchingPattern)
+		} else if slices.Contains(r.defaultSkipPatterns, pattern) {
+			r.stagedAddPatterns = append(r.stagedAddPatterns, "!"+pattern)
+		} else {
+			r.stagedRemovePatterns = append(r.stagedRemovePatterns, pattern)
+		}
+
+		// If the pattern is a broader match, we need to add a negation pattern to the staged additions
+		if !isExactMatch {
+			negationPattern := "!" + pattern
+			r.stagedAddPatterns = append(r.stagedAddPatterns, negationPattern)
+		}
+	}
+
+	// Reset the effective skip patterns cache
+	r.effectiveSkipPatterns = nil
+
+	return nil
 }

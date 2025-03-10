@@ -50,18 +50,14 @@ func (s *ScanossSettingsServiceImp) GetSettings() *entities.SettingsFile {
 	return s.repository.GetSettings()
 }
 
-func (s *ScanossSettingsServiceImp) AddStagedScanningSkipPattern(pattern string) error {
-	return s.repository.AddStagedScanningSkipPattern(pattern)
-}
-
-func (s *ScanossSettingsServiceImp) RemoveStagedScanningSkipPattern(pattern string) error {
-	return s.repository.RemoveStagedScanningSkipPattern(pattern)
-}
-
 func (s *ScanossSettingsServiceImp) CommitStagedSkipPatterns() error {
 	return s.repository.CommitStagedSkipPatterns()
 }
 
 func (s *ScanossSettingsServiceImp) DiscardStagedSkipPatterns() error {
 	return s.repository.DiscardStagedSkipPatterns()
+}
+
+func (s *ScanossSettingsServiceImp) ToggleScanningSkipPattern(pattern string) error {
+	return s.repository.ToggleScanningSkipPattern(pattern)
 }

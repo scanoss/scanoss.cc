@@ -25,12 +25,12 @@ import { useMutation } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { CheckCircle, ChevronDown, ChevronRight, File, FileType, Folder, Loader2, XCircle } from 'lucide-react';
 import path from 'path-browserify';
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { NodeRendererProps } from 'react-arborist';
 
 import useSkipPatternStore from '@/hooks/useSkipPatternStore';
 
-import { AddStagedScanningSkipPattern, RemoveStagedScanningSkipPattern } from '../../wailsjs/go/service/ScanossSettingsServiceImp';
+import { ToggleScanningSkipPattern } from '../../wailsjs/go/service/ScanossSettingsServiceImp';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from './ui/context-menu';
 import { useToast } from './ui/use-toast';
 
@@ -77,10 +77,10 @@ export const Node = memo(
 
     const hasUnsavedChanges = nodesWithUnsavedChanges.has(node.id);
 
-    const { mutate: addScanningSkipPattern } = useMutation({
+    const { mutate: toggleScanningSkipPattern } = useMutation({
       mutationFn: async (pattern: string) => {
         setLoadingNodeId(node.id);
-        await AddStagedScanningSkipPattern(pattern);
+        await ToggleScanningSkipPattern(pattern);
 
         setHasUnsavedChanges(true);
         addNodeWithUnsavedChanges(node.id);
@@ -94,27 +94,6 @@ export const Node = memo(
       },
       onError: (error, pattern) => {
         console.error(`Error adding skip pattern: ${pattern}`, error);
-        setLoadingNodeId(null);
-      },
-    });
-
-    const { mutate: removeScanningSkipPattern } = useMutation({
-      mutationFn: async (pattern: string) => {
-        setLoadingNodeId(node.id);
-        await RemoveStagedScanningSkipPattern(pattern);
-
-        setHasUnsavedChanges(true);
-        addNodeWithUnsavedChanges(node.id);
-      },
-      onSuccess: (_, pattern) => {
-        toast({
-          title: 'Success',
-          description: `Removed "${pattern}" from scanning skip patterns`,
-        });
-        setLoadingNodeId(null);
-      },
-      onError: (error, pattern) => {
-        console.error(`Error removing skip pattern: ${pattern}`, error);
         setLoadingNodeId(null);
       },
     });
@@ -133,11 +112,7 @@ export const Node = memo(
       if (loadingNodeId !== null) return;
       const pattern = node.data.path;
 
-      if (node.data.scanningSkipState === SKIP_STATES.EXCLUDED) {
-        removeScanningSkipPattern(pattern);
-      } else {
-        addScanningSkipPattern(pattern);
-      }
+      toggleScanningSkipPattern(pattern);
     };
 
     const handleToggleSkipFolder = () => {
@@ -145,11 +120,7 @@ export const Node = memo(
 
       const pattern = `${node.data.path}/`;
 
-      if (node.data.scanningSkipState === SKIP_STATES.EXCLUDED) {
-        removeScanningSkipPattern(pattern);
-      } else {
-        addScanningSkipPattern(pattern);
-      }
+      toggleScanningSkipPattern(pattern);
     };
 
     const handleToggleSkipExtension = () => {
@@ -167,27 +138,42 @@ export const Node = memo(
 
       const pattern = `*${extension}`;
 
-      if (node.data.scanningSkipState === SKIP_STATES.EXCLUDED) {
-        removeScanningSkipPattern(pattern);
-      } else {
-        addScanningSkipPattern(pattern);
-      }
-
-      addNodeWithUnsavedChanges(node.id);
+      toggleScanningSkipPattern(pattern);
     };
 
-    const skipMenuItemText = () => {
+    const skipMenuItemText = useCallback(() => {
+      if (hasUnsavedChanges) {
+        return node.data.scanningSkipState === SKIP_STATES.EXCLUDED
+          ? `Exclude ${node.data.isFolder ? 'folder' : 'file'} from scanning`
+          : `Include ${node.data.isFolder ? 'folder' : 'file'} in scanning`;
+      }
+
       return node.data.scanningSkipState === SKIP_STATES.EXCLUDED
         ? `Include ${node.data.isFolder ? 'folder' : 'file'} in scanning`
         : `Exclude ${node.data.isFolder ? 'folder' : 'file'} from scanning`;
-    };
+    }, [hasUnsavedChanges, node.data.scanningSkipState, node.data.isFolder, node.data.path]);
 
-    const skipExtensionMenuItemText = () => {
+    const skipExtensionMenuItemText = useCallback(() => {
       const extension = path.extname(node.data.path);
+
+      if (hasUnsavedChanges) {
+        return node.data.scanningSkipState === SKIP_STATES.EXCLUDED
+          ? `Exclude all ${extension} files from scanning`
+          : `Include all ${extension} files in scanning`;
+      }
+
       return node.data.scanningSkipState === SKIP_STATES.EXCLUDED
         ? `Include all ${extension} files in scanning`
         : `Exclude all ${extension} files from scanning`;
-    };
+    }, [hasUnsavedChanges, node.data.scanningSkipState, node.data.path]);
+
+    const skipFileFolderIcon = useCallback(() => {
+      if (hasUnsavedChanges) {
+        return node.data.scanningSkipState === SKIP_STATES.EXCLUDED ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />;
+      }
+
+      return node.data.scanningSkipState === SKIP_STATES.EXCLUDED ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />;
+    }, [hasUnsavedChanges, node.data.scanningSkipState]);
 
     return (
       <ContextMenu>
@@ -226,7 +212,7 @@ export const Node = memo(
         <ContextMenuContent>
           <ContextMenuItem onClick={node.data.isFolder ? handleToggleSkipFolder : handleToggleSkipFile} asChild>
             <div className="flex items-center gap-2">
-              {node.data.scanningSkipState === SKIP_STATES.EXCLUDED ? <CheckCircle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+              {skipFileFolderIcon()}
               <span>{skipMenuItemText()}</span>
             </div>
           </ContextMenuItem>

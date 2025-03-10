@@ -26,8 +26,7 @@ package service
 type ScanossSettingsService interface {
 	Save() error
 	HasUnsavedChanges() (bool, error)
-	AddStagedScanningSkipPattern(pattern string) error
-	RemoveStagedScanningSkipPattern(pattern string) error
 	CommitStagedSkipPatterns() error
 	DiscardStagedSkipPatterns() error
+	ToggleScanningSkipPattern(pattern string) error
 }

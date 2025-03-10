@@ -48,3 +48,14 @@ export function truncatePath(path: string, maxLength: number = 30) {
   const last = parts[parts.length - 1];
   return `${first}/.../${last}`;
 }
+
+export const isDefaultPath = (path: string, platform: string | undefined) => {
+  switch (platform) {
+    case 'darwin':
+      return path === '/' || path === '/Users';
+    case 'windows':
+      return path === 'C:\\' || path === '';
+    default:
+      return path === '/' || path === '/home';
+  }
+};

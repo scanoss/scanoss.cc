@@ -194,6 +194,10 @@ func (a *App) GetScanRoot() (string, error) {
 	return a.cfg.GetScanRoot(), nil
 }
 
+func (a *App) GetRecentScanRoots() ([]string, error) {
+	return a.cfg.GetRecentScanRoots(), nil
+}
+
 func (a *App) GetResultFilePath() (string, error) {
 	return a.cfg.GetResultFilePath(), nil
 }

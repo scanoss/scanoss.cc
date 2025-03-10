@@ -32,6 +32,8 @@ import (
 	"sync"
 	"time"
 
+	"slices"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -59,18 +61,20 @@ type Config struct {
 	resultFilePath       string
 	scanRoot             string
 	scanSettingsFilePath string
+	recentScanRoots      []string
 	debug                bool
 	mu                   sync.RWMutex
 	listeners            []func(*Config)
 }
 
 type ConfigDTO struct {
-	ApiToken             string `json:"apitoken"`
-	ApiUrl               string `json:"apiurl"`
-	ResultFilePath       string `json:"resultfilepath,omitempty"`
-	ScanRoot             string `json:"scanroot,omitempty"`
-	ScanSettingsFilePath string `json:"scansettingsfilepath,omitempty"`
-	Debug                bool   `json:"debug,omitempty"`
+	ApiToken             string   `json:"apitoken"`
+	ApiUrl               string   `json:"apiurl"`
+	ResultFilePath       string   `json:"resultfilepath,omitempty"`
+	ScanRoot             string   `json:"scanroot,omitempty"`
+	ScanSettingsFilePath string   `json:"scansettingsfilepath,omitempty"`
+	RecentScanRoots      []string `json:"recentscanroots,omitempty"`
+	Debug                bool     `json:"debug,omitempty"`
 }
 
 func (c *Config) MarshalJSON() ([]byte, error) {
@@ -80,6 +84,7 @@ func (c *Config) MarshalJSON() ([]byte, error) {
 		ResultFilePath:       c.resultFilePath,
 		ScanRoot:             c.scanRoot,
 		ScanSettingsFilePath: c.scanSettingsFilePath,
+		RecentScanRoots:      c.recentScanRoots,
 		Debug:                c.debug,
 	})
 }
@@ -94,6 +99,7 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 	c.resultFilePath = j.ResultFilePath
 	c.scanRoot = j.ScanRoot
 	c.scanSettingsFilePath = j.ScanSettingsFilePath
+	c.recentScanRoots = j.RecentScanRoots
 	c.debug = j.Debug
 	return nil
 }
@@ -170,6 +176,35 @@ func (c *Config) GetDebug() bool {
 	return c.debug
 }
 
+func (c *Config) GetRecentScanRoots() []string {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.recentScanRoots
+}
+
+func (c *Config) AddRecentScanRoot(path string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	for i, p := range c.recentScanRoots {
+		if p == path {
+			c.recentScanRoots = slices.Delete(c.recentScanRoots, i, i+1)
+			break
+		}
+	}
+
+	c.recentScanRoots = append([]string{path}, c.recentScanRoots...)
+
+	// We show max 10 entries
+	if len(c.recentScanRoots) > 10 {
+		c.recentScanRoots = c.recentScanRoots[:10]
+	}
+
+	viper.Set("recentscanroots", c.recentScanRoots)
+
+	return viper.WriteConfig()
+}
+
 func (c *Config) SetApiToken(token string) error {
 	c.mu.Lock()
 	c.apiToken = token
@@ -201,6 +236,9 @@ func (c *Config) SetScanRoot(path string) {
 	c.resultFilePath = c.getDefaultResultFilePath(path)
 	c.scanSettingsFilePath = c.getDefaultScanSettingsFilePath(path)
 	c.mu.Unlock()
+	if err := c.AddRecentScanRoot(path); err != nil {
+		log.Error().Err(err).Msg("Error adding recent scan root")
+	}
 	c.notifyListeners()
 }
 
@@ -214,6 +252,13 @@ func (c *Config) SetScanSettingsFilePath(path string) {
 func (c *Config) SetDebug(debug bool) {
 	c.mu.Lock()
 	c.debug = debug
+	c.mu.Unlock()
+	c.notifyListeners()
+}
+
+func (c *Config) SetRecentScanRoots(roots []string) {
+	c.mu.Lock()
+	c.recentScanRoots = roots
 	c.mu.Unlock()
 	c.notifyListeners()
 }
@@ -310,6 +355,8 @@ func (c *Config) initializeApiConfig(apiKey, apiUrl string) error {
 }
 
 func (c *Config) initializePathConfig(scanRoot, inputFile, scanossSettingsFilePath, originalWorkDir string) error {
+	c.SetRecentScanRoots(viper.GetStringSlice("recentscanroots"))
+
 	if scanRoot != "" {
 		c.SetScanRoot(scanRoot)
 	}

@@ -26,7 +26,8 @@ export const useResults = () => {
   };
 
   return {
-    ...queryResult,
+    data: queryResult.data,
+    isLoading: queryResult.isLoading,
     reset,
   };
 };

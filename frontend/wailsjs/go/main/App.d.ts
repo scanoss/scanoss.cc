@@ -5,6 +5,8 @@ import {service} from '../models';
 
 export function BeforeClose(arg1:context.Context):Promise<boolean>;
 
+export function GetRecentScanRoots():Promise<Array<string>>;
+
 export function GetResultFilePath():Promise<string>;
 
 export function GetScanRoot():Promise<string>;

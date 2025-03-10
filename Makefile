@@ -48,7 +48,7 @@ go_lint_docker: ## Run docker instance of Go linting across the code base
 
 run: cp_assets ## Runs the application in development mode
 	$(eval APPARGS := $(ARGS))
-	@wails dev -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "$(APPARGS)")
+	@wails dev -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "--debug $(APPARGS)")
 
 npm: ## Install NPM dependencies for the frontend
 	@echo "Running npm install for frontend..."

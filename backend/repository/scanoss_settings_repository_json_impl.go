@@ -27,8 +27,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
+	"strings"
 	"sync"
 
+	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/internal/config"
@@ -36,8 +39,13 @@ import (
 )
 
 type ScanossSettingsJsonRepository struct {
-	fr    utils.FileReader
-	mutex sync.RWMutex
+	fr                    utils.FileReader
+	mutex                 sync.RWMutex
+	defaultSkipPatterns   []string
+	stagedAddPatterns     []string
+	stagedRemovePatterns  []string
+	effectiveSkipPatterns []string
+	compiledMatcher       gitignore.Matcher
 }
 
 func NewScanossSettingsJsonRepository(fr utils.FileReader) ScanossSettingsRepository {
@@ -54,6 +62,8 @@ func (r *ScanossSettingsJsonRepository) Init() error {
 		log.Error().Err(err).Msg("Error initializing ScanossSettingsJsonRepository")
 		return err
 	}
+
+	r.defaultSkipPatterns = r.generateDefaultSkipPatterns()
 
 	r.setSettingsFile(cfg.GetScanSettingsFilePath())
 
@@ -85,13 +95,12 @@ func (r *ScanossSettingsJsonRepository) setSettingsFile(path string) {
 }
 
 func (r *ScanossSettingsJsonRepository) Save() error {
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-
 	sf := r.GetSettings()
+
 	if err := utils.WriteJsonFile(config.GetInstance().GetScanSettingsFilePath(), sf); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -221,4 +230,203 @@ func extractPurlsFromBom(componentFilters []entities.ComponentFilter) []string {
 	}
 
 	return extractedPurls
+}
+
+func (r *ScanossSettingsJsonRepository) generateDefaultSkipPatterns() []string {
+	defaultSkipPatterns := make([]string, 0, len(entities.DefaultSkippedDirExtensions)+len(entities.DefaultSkippedExtensions)+len(entities.DefaultSkippedDirs)+len(entities.DefaultSkippedFiles))
+
+	for _, dirExtension := range entities.DefaultSkippedDirExtensions {
+		defaultSkipPatterns = append(defaultSkipPatterns, fmt.Sprintf("*%s", dirExtension))
+	}
+
+	for _, extension := range entities.DefaultSkippedExtensions {
+		defaultSkipPatterns = append(defaultSkipPatterns, fmt.Sprintf("*%s", extension))
+	}
+
+	for _, dir := range entities.DefaultSkippedDirs {
+		defaultSkipPatterns = append(defaultSkipPatterns, fmt.Sprintf("%s/", dir))
+	}
+
+	defaultSkipPatterns = append(defaultSkipPatterns, entities.DefaultSkippedFiles...)
+
+	return defaultSkipPatterns
+}
+
+func (r *ScanossSettingsJsonRepository) GetDefaultSkipPatterns(sf *entities.SettingsFile) []string {
+	return r.defaultSkipPatterns
+}
+
+func (r *ScanossSettingsJsonRepository) CommitStagedSkipPatterns() error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	sf := r.GetSettings()
+
+	for _, pattern := range r.stagedAddPatterns {
+		if !slices.Contains(sf.Settings.Skip.Patterns.Scanning, pattern) {
+			sf.Settings.Skip.Patterns.Scanning = append(sf.Settings.Skip.Patterns.Scanning, pattern)
+		}
+	}
+
+	for _, pattern := range r.stagedRemovePatterns {
+		sf.Settings.Skip.Patterns.Scanning = slices.DeleteFunc(sf.Settings.Skip.Patterns.Scanning, func(p string) bool {
+			return p == pattern
+		})
+	}
+
+	r.stagedAddPatterns = nil
+	r.stagedRemovePatterns = nil
+	r.effectiveSkipPatterns = nil
+
+	return r.Save()
+}
+
+func (r *ScanossSettingsJsonRepository) DiscardStagedSkipPatterns() error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	r.stagedAddPatterns = nil
+	r.stagedRemovePatterns = nil
+	r.effectiveSkipPatterns = nil
+
+	return nil
+}
+
+func (r *ScanossSettingsJsonRepository) GetEffectiveSkipPatterns() []string {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	sf := r.GetSettings()
+
+	effectivePatterns := make([]string, len(r.defaultSkipPatterns))
+	copy(effectivePatterns, r.defaultSkipPatterns)
+
+	for _, pattern := range sf.Settings.Skip.Patterns.Scanning {
+		if !slices.Contains(r.stagedRemovePatterns, pattern) {
+			effectivePatterns = append(effectivePatterns, pattern)
+		}
+	}
+
+	for _, pattern := range r.stagedAddPatterns {
+		if !slices.Contains(effectivePatterns, pattern) {
+			effectivePatterns = append(effectivePatterns, pattern)
+		}
+	}
+
+	return effectivePatterns
+}
+
+func (r *ScanossSettingsJsonRepository) compileEffectivePatterns() {
+	patterns := r.GetEffectiveSkipPatterns()
+
+	// No change, use existing patterns
+	if slices.Equal(patterns, r.effectiveSkipPatterns) {
+		return
+	}
+
+	// Patterns have changed, update cache
+	var matchers []gitignore.Pattern
+	for _, pattern := range patterns {
+		matcher := gitignore.ParsePattern(pattern, nil)
+		matchers = append(matchers, matcher)
+	}
+
+	r.effectiveSkipPatterns = patterns
+	r.compiledMatcher = gitignore.NewMatcher(matchers)
+}
+
+func (r *ScanossSettingsJsonRepository) MatchesEffectiveScanningSkipPattern(path string) bool {
+	r.compileEffectivePatterns()
+
+	isDir := false
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		log.Debug().Err(err).Msgf("Error checking if path is directory: %s", path)
+	} else {
+		isDir = fileInfo.IsDir()
+	}
+
+	pathParts := strings.Split(path, "/")
+	return r.compiledMatcher.Match(pathParts, isDir)
+}
+
+func (r *ScanossSettingsJsonRepository) findMatchingPatterns(path string, patterns []string) []string {
+	var matchingPatterns []string
+
+	for _, pattern := range patterns {
+		if strings.HasPrefix(pattern, "!") {
+			continue
+		}
+
+		matcher := gitignore.ParsePattern(pattern, nil)
+		ps := gitignore.NewMatcher([]gitignore.Pattern{matcher})
+
+		isDir := false
+		fileInfo, err := os.Stat(path)
+		if err == nil {
+			isDir = fileInfo.IsDir()
+		}
+
+		pathParts := strings.Split(path, "/")
+
+		if ps.Match(pathParts, isDir) {
+			matchingPatterns = append(matchingPatterns, pattern)
+			log.Debug().Str("path", path).Str("matchingPattern", pattern).Msg("Found matching pattern")
+		}
+	}
+
+	return matchingPatterns
+}
+
+func (r *ScanossSettingsJsonRepository) ToggleScanningSkipPattern(pattern string) error {
+	effectiveSkipPatterns := r.GetEffectiveSkipPatterns()
+
+	matchingPatterns := r.findMatchingPatterns(pattern, effectiveSkipPatterns)
+
+	// If no patterns match and it's not already in stagedAddPatterns, add it
+	if len(matchingPatterns) == 0 && !slices.Contains(r.stagedAddPatterns, pattern) {
+		r.stagedAddPatterns = append(r.stagedAddPatterns, pattern)
+		return nil
+	}
+
+	negationPattern := "!" + pattern
+	isPatternAlreadyNegated := slices.Contains(effectiveSkipPatterns, negationPattern)
+	if isPatternAlreadyNegated {
+		r.stagedAddPatterns = append(r.stagedAddPatterns, pattern)
+		r.stagedRemovePatterns = append(r.stagedRemovePatterns, negationPattern)
+		return nil
+	}
+
+	for _, matchingPattern := range matchingPatterns {
+		isExactMatch := matchingPattern == pattern
+
+		removedIndex := slices.Index(r.stagedRemovePatterns, matchingPattern)
+		addedIndex := slices.Index(r.stagedAddPatterns, matchingPattern)
+
+		isStagedForRemoval := removedIndex >= 0
+		isStagedForAddition := addedIndex >= 0
+
+		if isStagedForRemoval {
+			r.stagedRemovePatterns = slices.Delete(r.stagedRemovePatterns, removedIndex, removedIndex+1)
+			r.stagedAddPatterns = append(r.stagedAddPatterns, matchingPattern)
+		} else if isStagedForAddition {
+			r.stagedAddPatterns = slices.Delete(r.stagedAddPatterns, addedIndex, addedIndex+1)
+			r.stagedRemovePatterns = append(r.stagedRemovePatterns, matchingPattern)
+		} else if slices.Contains(r.defaultSkipPatterns, pattern) {
+			r.stagedAddPatterns = append(r.stagedAddPatterns, "!"+pattern)
+		} else {
+			r.stagedRemovePatterns = append(r.stagedRemovePatterns, pattern)
+		}
+
+		// If the pattern is a broader match, we need to add a negation pattern to the staged additions
+		if !isExactMatch {
+			negationPattern := "!" + pattern
+			r.stagedAddPatterns = append(r.stagedAddPatterns, negationPattern)
+		}
+	}
+
+	// Reset the effective skip patterns cache
+	r.effectiveSkipPatterns = nil
+
+	return nil
 }

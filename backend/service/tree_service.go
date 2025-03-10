@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2018-2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,41 +23,8 @@
 
 package service
 
-import (
-	"github.com/scanoss/scanoss.cc/backend/entities"
-	"github.com/scanoss/scanoss.cc/backend/repository"
-)
+import "github.com/scanoss/scanoss.cc/backend/entities"
 
-type ScanossSettingsServiceImp struct {
-	repository repository.ScanossSettingsRepository
-}
-
-func NewScanossSettingsServiceImpl(r repository.ScanossSettingsRepository) *ScanossSettingsServiceImp {
-	return &ScanossSettingsServiceImp{
-		repository: r,
-	}
-}
-
-func (s *ScanossSettingsServiceImp) Save() error {
-	return s.repository.Save()
-}
-
-func (s *ScanossSettingsServiceImp) HasUnsavedChanges() (bool, error) {
-	return s.repository.HasUnsavedChanges()
-}
-
-func (s *ScanossSettingsServiceImp) GetSettings() *entities.SettingsFile {
-	return s.repository.GetSettings()
-}
-
-func (s *ScanossSettingsServiceImp) CommitStagedSkipPatterns() error {
-	return s.repository.CommitStagedSkipPatterns()
-}
-
-func (s *ScanossSettingsServiceImp) DiscardStagedSkipPatterns() error {
-	return s.repository.DiscardStagedSkipPatterns()
-}
-
-func (s *ScanossSettingsServiceImp) ToggleScanningSkipPattern(pattern string) error {
-	return s.repository.ToggleScanningSkipPattern(pattern)
+type TreeService interface {
+	GetTree(rootPath string) ([]entities.TreeNode, error)
 }

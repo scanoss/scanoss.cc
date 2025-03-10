@@ -88,8 +88,18 @@ body {
   z-index: -1;
   opacity: 0.2;
 }
+
 .line-range-decoration {
   background: rgb(18, 37, 121);
   width: 3px !important;
   margin-left: 5px;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

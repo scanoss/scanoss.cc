@@ -67,52 +67,6 @@ func (_c *MockScanossSettingsRepository_AddBomEntry_Call) RunAndReturn(run func(
 	return _c
 }
 
-// AddStagedScanningSkipPattern provides a mock function with given fields: pattern
-func (_m *MockScanossSettingsRepository) AddStagedScanningSkipPattern(pattern string) error {
-	ret := _m.Called(pattern)
-
-	if len(ret) == 0 {
-		panic("no return value specified for AddStagedScanningSkipPattern")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(pattern)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// MockScanossSettingsRepository_AddStagedScanningSkipPattern_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AddStagedScanningSkipPattern'
-type MockScanossSettingsRepository_AddStagedScanningSkipPattern_Call struct {
-	*mock.Call
-}
-
-// AddStagedScanningSkipPattern is a helper method to define mock.On call
-//   - pattern string
-func (_e *MockScanossSettingsRepository_Expecter) AddStagedScanningSkipPattern(pattern interface{}) *MockScanossSettingsRepository_AddStagedScanningSkipPattern_Call {
-	return &MockScanossSettingsRepository_AddStagedScanningSkipPattern_Call{Call: _e.mock.On("AddStagedScanningSkipPattern", pattern)}
-}
-
-func (_c *MockScanossSettingsRepository_AddStagedScanningSkipPattern_Call) Run(run func(pattern string)) *MockScanossSettingsRepository_AddStagedScanningSkipPattern_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *MockScanossSettingsRepository_AddStagedScanningSkipPattern_Call) Return(_a0 error) *MockScanossSettingsRepository_AddStagedScanningSkipPattern_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *MockScanossSettingsRepository_AddStagedScanningSkipPattern_Call) RunAndReturn(run func(string) error) *MockScanossSettingsRepository_AddStagedScanningSkipPattern_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ClearAllFilters provides a mock function with given fields:
 func (_m *MockScanossSettingsRepository) ClearAllFilters() error {
 	ret := _m.Called()
@@ -636,52 +590,6 @@ func (_c *MockScanossSettingsRepository_Read_Call) RunAndReturn(run func() (enti
 	return _c
 }
 
-// RemoveStagedScanningSkipPattern provides a mock function with given fields: pattern
-func (_m *MockScanossSettingsRepository) RemoveStagedScanningSkipPattern(pattern string) error {
-	ret := _m.Called(pattern)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RemoveStagedScanningSkipPattern")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(pattern)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// MockScanossSettingsRepository_RemoveStagedScanningSkipPattern_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveStagedScanningSkipPattern'
-type MockScanossSettingsRepository_RemoveStagedScanningSkipPattern_Call struct {
-	*mock.Call
-}
-
-// RemoveStagedScanningSkipPattern is a helper method to define mock.On call
-//   - pattern string
-func (_e *MockScanossSettingsRepository_Expecter) RemoveStagedScanningSkipPattern(pattern interface{}) *MockScanossSettingsRepository_RemoveStagedScanningSkipPattern_Call {
-	return &MockScanossSettingsRepository_RemoveStagedScanningSkipPattern_Call{Call: _e.mock.On("RemoveStagedScanningSkipPattern", pattern)}
-}
-
-func (_c *MockScanossSettingsRepository_RemoveStagedScanningSkipPattern_Call) Run(run func(pattern string)) *MockScanossSettingsRepository_RemoveStagedScanningSkipPattern_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *MockScanossSettingsRepository_RemoveStagedScanningSkipPattern_Call) Return(_a0 error) *MockScanossSettingsRepository_RemoveStagedScanningSkipPattern_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *MockScanossSettingsRepository_RemoveStagedScanningSkipPattern_Call) RunAndReturn(run func(string) error) *MockScanossSettingsRepository_RemoveStagedScanningSkipPattern_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // Save provides a mock function with given fields:
 func (_m *MockScanossSettingsRepository) Save() error {
 	ret := _m.Called()
@@ -723,6 +631,52 @@ func (_c *MockScanossSettingsRepository_Save_Call) Return(_a0 error) *MockScanos
 }
 
 func (_c *MockScanossSettingsRepository_Save_Call) RunAndReturn(run func() error) *MockScanossSettingsRepository_Save_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ToggleScanningSkipPattern provides a mock function with given fields: pattern
+func (_m *MockScanossSettingsRepository) ToggleScanningSkipPattern(pattern string) error {
+	ret := _m.Called(pattern)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ToggleScanningSkipPattern")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pattern)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockScanossSettingsRepository_ToggleScanningSkipPattern_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ToggleScanningSkipPattern'
+type MockScanossSettingsRepository_ToggleScanningSkipPattern_Call struct {
+	*mock.Call
+}
+
+// ToggleScanningSkipPattern is a helper method to define mock.On call
+//   - pattern string
+func (_e *MockScanossSettingsRepository_Expecter) ToggleScanningSkipPattern(pattern interface{}) *MockScanossSettingsRepository_ToggleScanningSkipPattern_Call {
+	return &MockScanossSettingsRepository_ToggleScanningSkipPattern_Call{Call: _e.mock.On("ToggleScanningSkipPattern", pattern)}
+}
+
+func (_c *MockScanossSettingsRepository_ToggleScanningSkipPattern_Call) Run(run func(pattern string)) *MockScanossSettingsRepository_ToggleScanningSkipPattern_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *MockScanossSettingsRepository_ToggleScanningSkipPattern_Call) Return(_a0 error) *MockScanossSettingsRepository_ToggleScanningSkipPattern_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockScanossSettingsRepository_ToggleScanningSkipPattern_Call) RunAndReturn(run func(string) error) *MockScanossSettingsRepository_ToggleScanningSkipPattern_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -35,8 +35,8 @@ import SaveButton from './SaveSkipSettingsButton';
 import { Button } from './ui/button';
 
 interface ResultsTreeProps {
-  width: number | undefined;
-  height: number | undefined;
+  width?: number;
+  height?: number;
 }
 
 export default function ResultsTree({ width, height }: ResultsTreeProps) {

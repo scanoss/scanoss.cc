@@ -378,85 +378,58 @@ func (r *ScanossSettingsJsonRepository) findMatchingPatterns(path string, patter
 	return matchingPatterns
 }
 
-func (r *ScanossSettingsJsonRepository) AddStagedScanningSkipPattern(path string) error {
-	// r.mutex.Lock()
-	// defer r.mutex.Unlock()
+func (r *ScanossSettingsJsonRepository) AddStagedScanningSkipPattern(path string, pattern string) error {
+	// If pattern is already in stagedAddPatterns, nothing to do
+	if slices.Contains(r.stagedAddPatterns, pattern) {
+		return nil
+	}
 
-	effectiveScanningSkipPatterns := r.GetEffectiveScanningSkipPatterns()
-	matchingPatterns := r.findMatchingPatterns(path, effectiveScanningSkipPatterns)
-
-	// If no patterns match, add the path as a new pattern
-	if len(matchingPatterns) == 0 {
-		if !slices.Contains(r.stagedAddPatterns, path) {
-			r.stagedAddPatterns = append(r.stagedAddPatterns, path)
-		}
+	// If pattern is in stagedRemovePatterns, just unstage it
+	if index := slices.Index(r.stagedRemovePatterns, pattern); index >= 0 {
+		r.stagedRemovePatterns = slices.Delete(r.stagedRemovePatterns, index, index+1)
 		return nil
 	}
 
 	// Check for negation pattern first
-	negationPattern := "!" + path
-	if slices.Contains(effectiveScanningSkipPatterns, negationPattern) {
-		// Remove the negation pattern and add the positive pattern
+	negationPattern := "!" + pattern
+	if slices.Contains(r.GetEffectiveScanningSkipPatterns(), negationPattern) {
+		// Remove the negation pattern
 		r.stagedRemovePatterns = append(r.stagedRemovePatterns, negationPattern)
-		if !slices.Contains(r.stagedAddPatterns, path) {
-			r.stagedAddPatterns = append(r.stagedAddPatterns, path)
-		}
-		return nil
 	}
 
-	// For each matching pattern, ensure it's not staged for removal
-	for _, matchingPattern := range matchingPatterns {
-		removedIndex := slices.Index(r.stagedRemovePatterns, matchingPattern)
-		if removedIndex >= 0 {
-			// If pattern was staged for removal, unstage it
-			r.stagedRemovePatterns = slices.Delete(r.stagedRemovePatterns, removedIndex, removedIndex+1)
-		}
+	r.stagedAddPatterns = append(r.stagedAddPatterns, pattern)
 
-		// Handle non-exact matches - we need to add the specific pattern
-		if matchingPattern != path {
-			if !slices.Contains(r.stagedAddPatterns, path) {
-				r.stagedAddPatterns = append(r.stagedAddPatterns, path)
-			}
-		}
-	}
-
-	// Reset the effective skip patterns cache
+	// Reset effective patterns cache
 	r.effectiveScanningSkipPatterns = nil
 	return nil
 }
 
-func (r *ScanossSettingsJsonRepository) RemoveStagedScanningSkipPattern(path string) error {
-	// r.mutex.Lock()
-	// defer r.mutex.Unlock()
+func (r *ScanossSettingsJsonRepository) RemoveStagedScanningSkipPattern(path string, pattern string) error {
+	// If pattern is already in stagedRemovePatterns, nothing to do
+	if slices.Contains(r.stagedRemovePatterns, pattern) {
+		return nil
+	}
 
-	effectiveScanningSkipPatterns := r.GetEffectiveScanningSkipPatterns()
-	matchingPatterns := r.findMatchingPatterns(path, effectiveScanningSkipPatterns)
+	// If pattern is in stagedAddPatterns, just unstage it
+	if index := slices.Index(r.stagedAddPatterns, pattern); index >= 0 {
+		r.stagedAddPatterns = slices.Delete(r.stagedAddPatterns, index, index+1)
+		return nil
+	}
 
-	// If no patterns match, nothing to remove
+	// Find matching patterns to determine what we need to negate or remove
+	effectivePatterns := r.GetEffectiveScanningSkipPatterns()
+	matchingPatterns := r.findMatchingPatterns(path, effectivePatterns)
+
+	// If no patterns match, nothing to do
 	if len(matchingPatterns) == 0 {
-		// But check if it's staged for addition
-		addedIndex := slices.Index(r.stagedAddPatterns, path)
-		if addedIndex >= 0 {
-			r.stagedAddPatterns = slices.Delete(r.stagedAddPatterns, addedIndex, addedIndex+1)
-		}
 		return nil
 	}
 
 	// For each matching pattern
 	for _, matchingPattern := range matchingPatterns {
-		isExactMatch := matchingPattern == path
-
-		// Check if it's staged for addition
-		addedIndex := slices.Index(r.stagedAddPatterns, matchingPattern)
-		if addedIndex >= 0 {
-			// If pattern was staged for addition, unstage it
-			r.stagedAddPatterns = slices.Delete(r.stagedAddPatterns, addedIndex, addedIndex+1)
-			continue
-		}
-
-		// Handle default patterns - need to add a negation
+		// If pattern is in default patterns, add a negation pattern
 		if slices.Contains(r.defaultSkipPatterns, matchingPattern) {
-			negationPattern := "!" + matchingPattern
+			negationPattern := "!" + pattern
 			if !slices.Contains(r.stagedAddPatterns, negationPattern) {
 				r.stagedAddPatterns = append(r.stagedAddPatterns, negationPattern)
 			}
@@ -466,17 +439,9 @@ func (r *ScanossSettingsJsonRepository) RemoveStagedScanningSkipPattern(path str
 				r.stagedRemovePatterns = append(r.stagedRemovePatterns, matchingPattern)
 			}
 		}
-
-		// If it's not an exact match, add a negation pattern for the specific path
-		if !isExactMatch {
-			negationPattern := "!" + path
-			if !slices.Contains(r.stagedAddPatterns, negationPattern) {
-				r.stagedAddPatterns = append(r.stagedAddPatterns, negationPattern)
-			}
-		}
 	}
 
-	// Reset the effective skip patterns cache
+	// Reset effective patterns cache
 	r.effectiveScanningSkipPatterns = nil
 	return nil
 }

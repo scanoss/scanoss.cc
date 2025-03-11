@@ -20,7 +20,7 @@ export default function SaveSkipSettingsButton() {
   const { data: hasUnsavedChanges } = useQuery({
     queryKey: ['hasStagedScanningSkipPatternChanges', scanRoot],
     queryFn: HasStagedScanningSkipPatternChanges,
-    refetchInterval: 1000,
+    refetchInterval: 3000,
     refetchIntervalInBackground: false,
     retry: 3,
   });

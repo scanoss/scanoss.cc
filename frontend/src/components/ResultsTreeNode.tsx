@@ -68,9 +68,9 @@ export const Node = memo(({ node, style, tree }: NodeRendererProps<TreeNode>) =>
   const hasChildren = node.data.children && node.data.children.length > 0;
 
   const { mutate: addScanningSkipPattern } = useMutation({
-    mutationFn: async (pattern: string) => {
+    mutationFn: async ({ path, pattern }: { path: string; pattern: string }) => {
       setLoadingNodeId(node.id);
-      await AddStagedScanningSkipPattern(pattern);
+      await AddStagedScanningSkipPattern(path, pattern);
       queryClient.invalidateQueries({ queryKey: ['resultsTree', scanRoot] });
     },
     onSuccess: () => {
@@ -83,9 +83,9 @@ export const Node = memo(({ node, style, tree }: NodeRendererProps<TreeNode>) =>
   });
 
   const { mutate: removeScanningSkipPattern } = useMutation({
-    mutationFn: async (pattern: string) => {
+    mutationFn: async ({ path, pattern }: { path: string; pattern: string }) => {
       setLoadingNodeId(node.id);
-      await RemoveStagedScanningSkipPattern(pattern);
+      await RemoveStagedScanningSkipPattern(path, pattern);
       queryClient.invalidateQueries({ queryKey: ['resultsTree', scanRoot] });
     },
     onSuccess: () => {
@@ -112,9 +112,9 @@ export const Node = memo(({ node, style, tree }: NodeRendererProps<TreeNode>) =>
     const pattern = node.data.path;
 
     if (node.data.scanningSkipState === SKIP_STATES.EXCLUDED) {
-      removeScanningSkipPattern(pattern);
+      removeScanningSkipPattern({ path: node.data.path, pattern });
     } else {
-      addScanningSkipPattern(pattern);
+      addScanningSkipPattern({ path: node.data.path, pattern });
     }
   };
 
@@ -124,9 +124,9 @@ export const Node = memo(({ node, style, tree }: NodeRendererProps<TreeNode>) =>
     const pattern = `${node.data.path}/`;
 
     if (node.data.scanningSkipState === SKIP_STATES.EXCLUDED) {
-      removeScanningSkipPattern(pattern);
+      removeScanningSkipPattern({ path: node.data.path, pattern });
     } else {
-      addScanningSkipPattern(pattern);
+      addScanningSkipPattern({ path: node.data.path, pattern });
     }
   };
 
@@ -146,9 +146,9 @@ export const Node = memo(({ node, style, tree }: NodeRendererProps<TreeNode>) =>
     const pattern = `*${extension}`;
 
     if (node.data.scanningSkipState === SKIP_STATES.EXCLUDED) {
-      removeScanningSkipPattern(pattern);
+      removeScanningSkipPattern({ path: node.data.path, pattern });
     } else {
-      addScanningSkipPattern(pattern);
+      addScanningSkipPattern({ path: node.data.path, pattern });
     }
   };
 

@@ -69,10 +69,15 @@ func (m ResultMapperImpl) MapToResultDTO(result entities.Result) entities.Result
 		return cached.(entities.ResultDTO)
 	}
 
+	var detectedPurl string
+	if result.Purl != nil && len(*result.Purl) > 0 {
+		detectedPurl = (*result.Purl)[0]
+	}
+
 	dto := entities.ResultDTO{
 		MatchType:        entities.MatchType(result.MatchType),
 		Path:             result.Path,
-		DetectedPurl:     (*result.Purl)[0],
+		DetectedPurl:     detectedPurl,
 		DetectedPurlUrl:  m.mapDetectedPurlUrl(result),
 		ConcludedPurl:    bomEntry.ReplaceWith,
 		ConcludedPurlUrl: m.mapConcludedPurlUrl(result),
@@ -160,6 +165,10 @@ func (m ResultMapperImpl) getProjectURL(purl string, compute func() (string, err
 }
 
 func (m ResultMapperImpl) mapDetectedPurlUrl(result entities.Result) string {
+	if result.Purl == nil || len(*result.Purl) == 0 {
+		return ""
+	}
+
 	detectedPurl := (*result.Purl)[0]
 
 	purlObject, err := purlutils.PurlFromString(detectedPurl)

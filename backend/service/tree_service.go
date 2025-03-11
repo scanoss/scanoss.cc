@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2018-2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +23,8 @@
 
 package service
 
-type ScanossSettingsService interface {
-	Save() error
-	HasUnsavedChanges() (bool, error)
-	AddStagedScanningSkipPattern(pattern string) error
-	RemoveStagedScanningSkipPattern(pattern string) error
-	CommitStagedScanningSkipPatterns() error
-	DiscardStagedScanningSkipPatterns() error
-	HasStagedScanningSkipPatternChanges() bool
+import "github.com/scanoss/scanoss.cc/backend/entities"
+
+type TreeService interface {
+	GetTree(rootPath string) ([]entities.TreeNode, error)
 }

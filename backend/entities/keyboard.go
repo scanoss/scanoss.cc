@@ -55,7 +55,7 @@ const (
 	// View
 	ActionToggleSyncScrollPosition   Action = "toggleSyncScrollPosition"
 	ActionShowKeyboardShortcutsModal Action = "showKeyboardShortcutsModal"
-
+	ActionOpenSettings               Action = "openSettings"
 	// Scan
 	ActionScanWithOptions Action = "scanWithOptions"
 )
@@ -108,6 +108,7 @@ var AllShortcutActions = []struct {
 	{ActionToggleSyncScrollPosition, "ToggleSyncScrollPosition"},
 	{ActionShowKeyboardShortcutsModal, "ShowKeyboardShortcutsModal"},
 	{ActionScanWithOptions, "ScanWithOptions"},
+	{ActionOpenSettings, "OpenSettings"},
 }
 
 var DefaultShortcuts = []Shortcut{
@@ -291,6 +292,7 @@ var DefaultShortcuts = []Shortcut{
 		Action:                 ActionReplaceComponentWithComments,
 	},
 
+	// View
 	{
 		Name:        "Sync Scroll Position",
 		Description: "Sync the scroll position of the editors",
@@ -298,6 +300,14 @@ var DefaultShortcuts = []Shortcut{
 		Keys:        "shift+mod+e",
 		Group:       GroupView,
 		Action:      ActionToggleSyncScrollPosition,
+	},
+	{
+		Name:        "Settings",
+		Description: "Open the app settings",
+		Accelerator: keys.CmdOrCtrl(","),
+		Keys:        "mod+,",
+		Group:       GroupView,
+		Action:      ActionOpenSettings,
 	},
 
 	// Scan

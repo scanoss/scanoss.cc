@@ -24,7 +24,6 @@
 import './style.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider } from 'react-router-dom';
 
@@ -50,15 +49,13 @@ if (!rootElement.innerHTML) {
   const root = createRoot(rootElement);
 
   root.render(
-    <StrictMode>
-      <TooltipProvider skipDelayDuration={0}>
-        <QueryClientProvider client={queryClient}>
-          <DialogProvider>
-            <RouterProvider router={router} />
-            <Toaster />
-          </DialogProvider>
-        </QueryClientProvider>
-      </TooltipProvider>
-    </StrictMode>
+    <TooltipProvider skipDelayDuration={0}>
+      <QueryClientProvider client={queryClient}>
+        <DialogProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </DialogProvider>
+      </QueryClientProvider>
+    </TooltipProvider>
   );
 }

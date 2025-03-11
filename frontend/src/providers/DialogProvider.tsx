@@ -99,7 +99,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     <DialogContext.Provider value={{ showDialog }}>
       {children}
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent ref={ref} tabIndex={-1}>
+        <DialogContent ref={ref} tabIndex={-1} className="p-4">
           <DialogHeader>
             <DialogTitle>{options.title}</DialogTitle>
             <DialogDescription>{options.description}</DialogDescription>

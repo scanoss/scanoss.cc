@@ -282,7 +282,7 @@ jobs:
           mkdir -p build/bin
           cp -r assets build/assets
           cp assets/appicon.png build
-          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe"
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe" -windowsconsole
         shell: bash
 
       - uses: actions/upload-artifact@v4

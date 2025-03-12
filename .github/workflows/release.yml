@@ -289,7 +289,7 @@ jobs:
         with:
           name: artifact_w_unsigned
           path: |
-            build/bin/${{ env.ARTIFACT_NAME_PREFIX }}*.exe
+            build/bin/${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}*.exe
 
   build_w_sign:
     name: "Sign with CodeSignTool"

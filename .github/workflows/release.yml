@@ -11,6 +11,7 @@ env:
   # Necessary for most environments as build failure can occur due to OOM issues
   NODE_OPTIONS: "--max-old-space-size=4096"
   ARTIFACT_NAME_PREFIX: "SCANOSS Code Compare"
+  ARTIFACT_NAME_PREFIX_WINDOWS: "scanoss-cc"
   GOLANG_VERSION: "1.21"
   NODE_VERSION: "16.x"
 
@@ -281,7 +282,7 @@ jobs:
           mkdir -p build/bin
           cp -r assets build/assets
           cp assets/appicon.png build
-          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX }}-windows.exe"
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe"
         shell: bash
 
       - uses: actions/upload-artifact@v4
@@ -306,7 +307,7 @@ jobs:
         id: win-path-artifact
         run: |
           # Use find to locate the exe file
-          WIN_BINARY_FILEPATH=$(find . -name "${{ env.ARTIFACT_NAME_PREFIX }}-windows.exe")
+          WIN_BINARY_FILEPATH=$(find . -name "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe")
           mkdir -p win_unsigned
           mv "$WIN_BINARY_FILEPATH" win_unsigned/
           echo "ARTIFACT_WIN_PATH=win_unsigned/$(basename "$WIN_BINARY_FILEPATH")" >> "$GITHUB_OUTPUT"
@@ -331,7 +332,7 @@ jobs:
           mkdir -p build/bin
           cd win_unsigned
           # Create zip from the current directory
-          zip -j "../build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-win.zip" "${{ env.ARTIFACT_NAME_PREFIX }}-windows.exe"
+          zip -j "../build/bin/${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-win.zip" "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe"
 
       - uses: actions/upload-artifact@v4
         with:

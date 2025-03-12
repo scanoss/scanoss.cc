@@ -48,15 +48,31 @@ func setupHelpCommand(cmd *cobra.Command) {
 	originalHelp := cmd.HelpFunc()
 
 	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		// Call the original help function
 		originalHelp(cmd, args)
-		os.Exit(0)
+
+		// Only exit if this is a direct help request, not a command parsing error
+		// This checks if the help flag was explicitly requested
+		if cmd.Flags().Changed("help") || (len(args) > 0 && args[0] == "help") {
+			os.Exit(0)
+		}
+
+		// For other cases, let Cobra continue with normal command processing
 	})
 }
 
 var rootCmd = &cobra.Command{
 	Use:   "scanoss-cc",
 	Short: "Lightweight UI, that presents the findings from the latest scan and prompt the user to review pending identifications.",
-	Run:   func(cmd *cobra.Command, args []string) {},
+	Run: func(cmd *cobra.Command, args []string) {
+		// Check version flag here instead of in Execute()
+		if version {
+			fmt.Printf("scanoss-cc %s\n", entities.AppVersion)
+			return
+		}
+
+		// Normal application startup logic here
+	},
 }
 
 func init() {
@@ -93,10 +109,13 @@ func initConfig() {
 }
 
 func Execute() error {
-	isVersionCmd := len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "-v")
-	if isVersionCmd {
+	// Debug output to see what arguments are being received
+	fmt.Printf("Arguments received: %v\n", os.Args)
+
+	// Handle version flag through Cobra's normal mechanism instead of bypassing it
+	if version {
 		fmt.Printf("scanoss-cc %s\n", entities.AppVersion)
-		os.Exit(0)
+		return nil
 	}
 
 	return rootCmd.Execute()

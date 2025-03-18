@@ -69,15 +69,18 @@ func (s *ScanServicePythonImpl) ScanStream(args []string) error {
 		return err
 	}
 
+	stdoutReader := bufio.NewReaderSize(stdout, 16)
+	stderrReader := bufio.NewReaderSize(stderr, 16)
+
 	go func() {
-		scanner := bufio.NewScanner(stdout)
+		scanner := bufio.NewScanner(stdoutReader)
 		for scanner.Scan() {
 			s.emitEvent("commandOutput", scanner.Text())
 		}
 	}()
 
 	go func() {
-		scanner := bufio.NewScanner(stderr)
+		scanner := bufio.NewScanner(stderrReader)
 		for scanner.Scan() {
 			s.emitEvent("commandError", scanner.Text())
 		}
@@ -92,7 +95,7 @@ func (s *ScanServicePythonImpl) ScanStream(args []string) error {
 	}
 
 	s.emitEvent("scanComplete", nil)
-	s.emitEvent("commandOutput", "Scan completed succesfully!")
+	s.emitEvent("commandOutput", "Scan completed successfully!")
 	return nil
 }
 
@@ -118,7 +121,12 @@ func (s *ScanServicePythonImpl) executeScanWithPipes(args []string) (*exec.Cmd, 
 	// If the output folder does not exist, create it. This should be handled by the python cli
 	s.maybeCreateOutputFolder(args)
 
+	// This is to prevent we don't see anything on screen while scanning small directories
+	env := os.Environ()
+	env = append(env, "PYTHONUNBUFFERED=1")
+
 	cmd := exec.Command(s.cmd, cmdArgs...)
+	cmd.Env = env
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -214,7 +222,7 @@ func (s *ScanServicePythonImpl) GetSensitiveDefaultScanArgs() []string {
 	return args
 }
 
-func (s *ScanServicePythonImpl) emitEvent(eventName string, data ...interface{}) {
+func (s *ScanServicePythonImpl) emitEvent(eventName string, data ...any) {
 	if s.ctx != nil {
 		runtime.EventsEmit(s.ctx, eventName, data...)
 	}

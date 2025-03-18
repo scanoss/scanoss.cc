@@ -62,11 +62,13 @@ export default function TerminalOutput({ lines, autoScroll = true }: TerminalOut
 
     scrollToBottom();
     requestAnimationFrame(scrollToBottom);
-    setTimeout(scrollToBottom, 0);
+    const timeoutId = setTimeout(scrollToBottom, 10);
+
+    return () => clearTimeout(timeoutId);
   }, [lines, autoScroll, isUserScrolling]);
 
   return (
-    <div ref={scrollViewportRef} className="max-h-80 w-full overflow-y-auto rounded bg-gray-900 p-4 font-mono text-sm">
+    <div ref={scrollViewportRef} className="h-full max-h-60 w-full overflow-y-auto rounded bg-gray-900 p-4 font-mono text-sm">
       {lines.map((line, i) => (
         <div
           key={i}

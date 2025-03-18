@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Upcoming changes...
+  
+## [0.6.4] 2025-03-18
+
+### Fixed
+- Fix search bar not resetting results
+- Fix scan terminal output not showing output immediately
+- Fix scan dialog size
+
+## [0.6.3] 2025-03-12
+
+### Fixed
+- Fix windows build 
+
+## [0.6.2] 2025-03-12
+
+### Fixed
+- Fix windows build
 
 ## [0.6.1] 2025-02-19
 
@@ -66,3 +83,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.5.0]: https://github.com/scanoss/scanoss.cc/compare/v0.4.0...v0.5.0
 [0.6.0]: https://github.com/scanoss/scanoss.cc/compare/v0.5.0...v0.6.0
 [0.6.1]: https://github.com/scanoss/scanoss.cc/compare/v0.6.0...v0.6.1
+[0.6.2]: https://github.com/scanoss/scanoss.cc/compare/v0.6.1...v0.6.2
+[0.6.3]: https://github.com/scanoss/scanoss.cc/compare/v0.6.2...v0.6.3
+[0.6.4]: https://github.com/scanoss/scanoss.cc/compare/v0.6.3...v0.6.4

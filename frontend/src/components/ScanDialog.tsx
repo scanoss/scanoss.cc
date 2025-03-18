@@ -22,7 +22,7 @@
  */
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { Check, ExternalLink, Folder, Loader2 } from 'lucide-react';
+import { Check, CircleStop, ExternalLink, Folder, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,7 @@ import useConfigStore from '@/stores/useConfigStore';
 
 import { GetScanRoot, JoinPaths, SelectDirectory } from '../../wailsjs/go/main/App';
 import { entities } from '../../wailsjs/go/models';
-import { GetScanArgs, ScanStream } from '../../wailsjs/go/service/ScanServicePythonImpl';
+import { AbortScan, GetScanArgs, ScanStream } from '../../wailsjs/go/service/ScanServicePythonImpl';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
 import Link from './Link';
 import ScanOption from './ScanOption';
@@ -143,7 +143,8 @@ export default function ScanDialog({ open, onOpenChange }: ScanDialogProps) {
       setSelectedResults([]);
       resetResults();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Failed to scan:', error);
       toast({
         title: 'Error',
         description: 'An error occurred while scanning. Please try again.',
@@ -152,6 +153,20 @@ export default function ScanDialog({ open, onOpenChange }: ScanDialogProps) {
     },
     onFinish: () => {
       setScanStatus('idle');
+    },
+  });
+
+  const handleAbortScan = withErrorHandling({
+    asyncFn: async () => {
+      await AbortScan();
+    },
+    onError: (error) => {
+      console.error('Failed to abort scan', error);
+      toast({
+        title: 'Error',
+        description: 'An error occurred while aborting the scan. Please try again.',
+        variant: 'destructive',
+      });
     },
   });
 
@@ -308,15 +323,28 @@ export default function ScanDialog({ open, onOpenChange }: ScanDialogProps) {
             <Button variant="outline" onClick={onOpenChange}>
               Close
             </Button>
-
+            {isScanning && (
+              <Button variant="destructive" onClick={handleAbortScan}>
+                <CircleStop className="mr-2 h-4 w-4" />
+                Stop
+              </Button>
+            )}
             <motion.div initial={false} animate={scanStatus} className="relative">
               <Button onClick={handleScan} disabled={isScanning || !directory} className="relative min-w-[120px] overflow-hidden">
                 <AnimatePresence mode="wait">
                   {isScanning && (
-                    <motion.span key="scanning" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Scanning...
-                    </motion.span>
+                    <div className="flex items-center">
+                      <motion.span
+                        key="scanning"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex items-center"
+                      >
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Scanning...
+                      </motion.span>
+                    </div>
                   )}
                   {showSuccess && (
                     <div className="flex items-center justify-center">

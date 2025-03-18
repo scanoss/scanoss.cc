@@ -28,4 +28,5 @@ type ScanService interface {
 	GetDefaultScanArgs() []string
 	Scan(args []string) error
 	ScanStream(args []string) error
+	AbortScan() error
 }

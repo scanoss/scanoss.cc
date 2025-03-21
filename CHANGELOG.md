@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Upcoming changes...
+
+## [0.6.5] 2025-03-21
+
+### Added
+- Add UI for modifying scanoss.json skip settings
+- Add Settings menu
+
+### Modified
+- Improve scanning performance
+
   
 ## [0.6.4] 2025-03-18
 
@@ -86,3 +96,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.2]: https://github.com/scanoss/scanoss.cc/compare/v0.6.1...v0.6.2
 [0.6.3]: https://github.com/scanoss/scanoss.cc/compare/v0.6.2...v0.6.3
 [0.6.4]: https://github.com/scanoss/scanoss.cc/compare/v0.6.3...v0.6.4
+[0.6.5]: https://github.com/scanoss/scanoss.cc/compare/v0.6.4...v0.6.5

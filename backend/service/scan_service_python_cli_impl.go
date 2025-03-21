@@ -31,6 +31,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
@@ -39,13 +41,18 @@ import (
 )
 
 type ScanServicePythonImpl struct {
-	cmd string
-	ctx context.Context
+	cmd        string
+	ctx        context.Context
+	currentCmd *exec.Cmd
+	cmdLock    sync.Mutex
+	cancelFunc context.CancelFunc
 }
 
 func NewScanServicePythonImpl() *ScanServicePythonImpl {
 	return &ScanServicePythonImpl{
-		cmd: "scanoss-py",
+		cmd:        "scanoss-py",
+		currentCmd: nil,
+		cancelFunc: nil,
 	}
 }
 
@@ -64,42 +71,114 @@ func (s *ScanServicePythonImpl) Scan(args []string) error {
 }
 
 func (s *ScanServicePythonImpl) ScanStream(args []string) error {
-	cmd, stdout, stderr, err := s.executeScanWithPipes(args)
+	scanCtx, cancel := context.WithCancel(context.Background())
+
+	s.cmdLock.Lock()
+	s.cancelFunc = cancel
+	s.cmdLock.Unlock()
+
+	defer func() {
+		cancel()
+		s.cmdLock.Lock()
+		s.cancelFunc = nil
+		s.cmdLock.Unlock()
+	}()
+
+	cmd, stdout, stderr, err := s.executeScanWithPipes(args, scanCtx)
 	if err != nil {
 		return err
 	}
 
-	stdoutReader := bufio.NewReaderSize(stdout, 16)
-	stderrReader := bufio.NewReaderSize(stderr, 16)
+	s.cmdLock.Lock()
+	s.currentCmd = cmd
+	s.cmdLock.Unlock()
+
+	stdoutChan := make(chan string, 100)
+	stderrChan := make(chan string, 100)
+	done := make(chan error, 1)
+
+	outputCtx, outputCancel := context.WithCancel(context.Background())
+	defer outputCancel()
+
+	go s.processStreamOutput(scanCtx, stdout, stdoutChan)
+	go s.processStreamOutput(scanCtx, stderr, stderrChan)
+
+	go s.emitOutputEvents(outputCtx, stdoutChan, "commandOutput")
+	go s.emitOutputEvents(outputCtx, stderrChan, "commandError")
 
 	go func() {
-		scanner := bufio.NewScanner(stdoutReader)
-		for scanner.Scan() {
-			s.emitEvent("commandOutput", scanner.Text())
-		}
+		done <- cmd.Wait()
 	}()
 
-	go func() {
-		scanner := bufio.NewScanner(stderrReader)
-		for scanner.Scan() {
-			s.emitEvent("commandError", scanner.Text())
-		}
-	}()
+	select {
+	case err := <-done:
+		s.cmdLock.Lock()
+		s.currentCmd = nil
+		s.cmdLock.Unlock()
 
-	if err := cmd.Wait(); err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			s.emitEvent("scanFailed", exitErr.Error())
-			return exitErr
+		// Wait a short time for any remaining output to be processed
+		time.Sleep(100 * time.Millisecond)
+
+		if err != nil {
+			if exitErr, ok := err.(*exec.ExitError); ok {
+				if exitErr.ExitCode() == -1 {
+					s.emitEvent("scanAborted", "Scan was aborted")
+					return fmt.Errorf("scan aborted: %w", exitErr)
+				}
+				s.emitEvent("scanFailed", exitErr.Error())
+				return exitErr
+			}
+			return err
 		}
-		return err
+
+		s.emitEvent("scanComplete", nil)
+		s.emitEvent("commandOutput", "Scan completed successfully!")
+		return nil
+
+	case <-scanCtx.Done():
+		if cmd.Process != nil {
+			cmd.Process.Kill()
+		}
+		s.cmdLock.Lock()
+		s.currentCmd = nil
+		s.cmdLock.Unlock()
+
+		s.emitEvent("scanAborted", "Scan was aborted")
+		return nil
+	}
+}
+
+func (s *ScanServicePythonImpl) AbortScan() error {
+	s.cmdLock.Lock()
+	defer s.cmdLock.Unlock()
+
+	if s.cancelFunc != nil {
+		s.cancelFunc()
+		s.cancelFunc = nil
 	}
 
-	s.emitEvent("scanComplete", nil)
-	s.emitEvent("commandOutput", "Scan completed successfully!")
+	if s.currentCmd == nil || s.currentCmd.Process == nil {
+		return nil
+	}
+
+	err := s.currentCmd.Process.Signal(os.Interrupt)
+	if err != nil {
+		err := s.currentCmd.Process.Kill()
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to abort scan")
+			return fmt.Errorf("failed to abort scan: %w", err)
+		}
+	}
+
+	s.emitEvent("scanAborted", nil)
+	s.emitEvent("commandOutput", "Scan aborted by user")
+
+	s.currentCmd = nil
+
 	return nil
 }
 
-func (s *ScanServicePythonImpl) executeScanWithPipes(args []string) (*exec.Cmd, io.ReadCloser, io.ReadCloser, error) {
+func (s *ScanServicePythonImpl) executeScanWithPipes(args []string, scanCtx context.Context) (*exec.Cmd, io.ReadCloser, io.ReadCloser, error) {
 	if err := s.CheckDependencies(); err != nil {
 		s.emitEvent("scanFailed", err.Error())
 		return nil, nil, nil, fmt.Errorf("dependency check failed: %w", err)
@@ -125,7 +204,7 @@ func (s *ScanServicePythonImpl) executeScanWithPipes(args []string) (*exec.Cmd, 
 	env := os.Environ()
 	env = append(env, "PYTHONUNBUFFERED=1")
 
-	cmd := exec.Command(s.cmd, cmdArgs...)
+	cmd := exec.CommandContext(scanCtx, s.cmd, cmdArgs...)
 	cmd.Env = env
 
 	stdout, err := cmd.StdoutPipe()
@@ -143,6 +222,32 @@ func (s *ScanServicePythonImpl) executeScanWithPipes(args []string) (*exec.Cmd, 
 	}
 
 	return cmd, stdout, stderr, nil
+}
+
+func (s *ScanServicePythonImpl) processStreamOutput(ctx context.Context, reader io.Reader, output chan<- string) {
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			output <- scanner.Text()
+		}
+	}
+}
+
+func (s *ScanServicePythonImpl) emitOutputEvents(ctx context.Context, input <-chan string, eventName string) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case text, ok := <-input:
+			if !ok {
+				return
+			}
+			s.emitEvent(eventName, text)
+		}
+	}
 }
 
 func (s *ScanServicePythonImpl) CheckDependencies() error {

@@ -17,6 +17,51 @@ func (_m *MockScanService) EXPECT() *MockScanService_Expecter {
 	return &MockScanService_Expecter{mock: &_m.Mock}
 }
 
+// AbortScan provides a mock function with given fields:
+func (_m *MockScanService) AbortScan() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for AbortScan")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockScanService_AbortScan_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AbortScan'
+type MockScanService_AbortScan_Call struct {
+	*mock.Call
+}
+
+// AbortScan is a helper method to define mock.On call
+func (_e *MockScanService_Expecter) AbortScan() *MockScanService_AbortScan_Call {
+	return &MockScanService_AbortScan_Call{Call: _e.mock.On("AbortScan")}
+}
+
+func (_c *MockScanService_AbortScan_Call) Run(run func()) *MockScanService_AbortScan_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockScanService_AbortScan_Call) Return(_a0 error) *MockScanService_AbortScan_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockScanService_AbortScan_Call) RunAndReturn(run func() error) *MockScanService_AbortScan_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CheckDependencies provides a mock function with given fields:
 func (_m *MockScanService) CheckDependencies() error {
 	ret := _m.Called()

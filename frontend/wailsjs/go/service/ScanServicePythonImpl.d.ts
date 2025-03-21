@@ -3,6 +3,8 @@
 import {entities} from '../models';
 import {context} from '../models';
 
+export function AbortScan():Promise<void>;
+
 export function CheckDependencies():Promise<void>;
 
 export function GetDefaultScanArgs():Promise<Array<string>>;

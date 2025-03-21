@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2018-2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,41 +21,37 @@
  * SOFTWARE.
  */
 
-import { useEffect } from 'react';
+import { Settings } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-import useConfigStore from '@/stores/useConfigStore';
+import { entities } from '../../wailsjs/go/models';
+import { EventsOn } from '../../wailsjs/runtime/runtime';
+import SettingsDialog from './SettingsDialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
-import AppSettings from './AppSettings';
-import SelectResultsFile from './SelectResultsFile';
-import SelectScanRoot from './SelectScanRoot';
-import SelectSettingsFile from './SelectSettingsFile';
+export default function AppSettings() {
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
-export default function StatusBar() {
-  const getInitialConfig = useConfigStore((state) => state.getInitialConfig);
+  const handleOpenSettingsModal = () => setShowSettingsModal(true);
+  const handleCloseSettingsModal = () => setShowSettingsModal(false);
 
   useEffect(() => {
-    getInitialConfig();
+    EventsOn(entities.Action.OpenSettings, () => {
+      setShowSettingsModal(true);
+    });
   }, []);
 
   return (
-    <div className="flex w-full justify-between bg-background px-4 py-1 text-xs text-muted-foreground">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span>Scan Root:</span>
-          <SelectScanRoot />
-        </div>
-        <div className="flex items-center gap-2">
-          <span>Results File:</span>
-          <SelectResultsFile />
-        </div>
-        <div className="flex items-center gap-2">
-          <span>Settings File:</span>
-          <SelectSettingsFile />
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <AppSettings />
-      </div>
-    </div>
+    <>
+      <Tooltip>
+        <TooltipTrigger>
+          <div className="cursor-pointer rounded-full p-1 hover:bg-muted" onClick={handleOpenSettingsModal}>
+            <Settings className="h-4 w-4" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>App Settings</TooltipContent>
+      </Tooltip>
+      <SettingsDialog open={showSettingsModal} onOpenChange={handleCloseSettingsModal} />
+    </>
   );
 }

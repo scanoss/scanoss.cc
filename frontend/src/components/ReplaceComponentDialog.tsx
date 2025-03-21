@@ -137,7 +137,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
       <Form {...form}>
         <Dialog open onOpenChange={onOpenChange}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <DialogContent ref={ref} tabIndex={-1}>
+            <DialogContent ref={ref} tabIndex={-1} className="p-4">
               <DialogHeader>
                 <DialogTitle>Replace</DialogTitle>
                 <DialogDescription>You can search for an existing component or manually enter a PURL</DialogDescription>

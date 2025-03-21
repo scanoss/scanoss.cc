@@ -59,7 +59,7 @@ export default function NewComponentDialog({ onOpenChange, onCreated }: NewCompo
   return (
     <Form {...form}>
       <Dialog open onOpenChange={onOpenChange}>
-        <DialogContent>
+        <DialogContent className="p-4">
           <DialogHeader>
             <DialogTitle>Create Component</DialogTitle>
           </DialogHeader>

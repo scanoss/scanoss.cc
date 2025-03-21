@@ -58,9 +58,9 @@ func NewJSONComponentRepository(fr utils.FileReader, resultsRepository ResultRep
 }
 
 func (r *JSONComponentRepository) FindByFilePath(path string) (entities.Component, error) {
-	result, err := r.resultsRepository.GetResultByPath(path)
-	if err != nil {
-		return entities.Component{}, err
+	result := r.resultsRepository.GetResultByPath(path)
+	if result == nil {
+		return entities.Component{}, errors.New("no result found")
 	}
 
 	components := result.Matches

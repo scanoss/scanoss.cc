@@ -240,7 +240,7 @@ export default function ScanDialog({ open, onOpenChange }: ScanDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="p-4">
         <DialogHeader>
           <DialogTitle>Scan With Options</DialogTitle>
           <DialogDescription>Run a scan on the selected directory with the provided arguments.</DialogDescription>

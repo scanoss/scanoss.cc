@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2018-2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,40 +21,39 @@
  * SOFTWARE.
  */
 
-import { useEffect } from 'react';
+import { Settings } from 'lucide-react';
 
-import useConfigStore from '@/stores/useConfigStore';
+import { SETTINGS_OPTIONS } from '@/lib/settings';
 
-import AppSettings from './AppSettings';
-import SelectResultsFile from './SelectResultsFile';
-import SelectScanRoot from './SelectScanRoot';
-import SelectSettingsFile from './SelectSettingsFile';
+import { Button } from './ui/button';
 
-export default function StatusBar() {
-  const getInitialConfig = useConfigStore((state) => state.getInitialConfig);
+interface SettingsSidebarProps {
+  activeSetting: string;
+  setActiveSetting: (setting: string) => void;
+}
 
-  useEffect(() => {
-    getInitialConfig();
-  }, []);
-
+export default function SettingsSidebar({ activeSetting, setActiveSetting }: SettingsSidebarProps) {
   return (
-    <div className="flex w-full justify-between bg-background px-4 py-1 text-xs text-muted-foreground">
-      <div className="flex items-center gap-4">
+    <div className="flex h-full flex-col">
+      <div className="flex h-12 min-h-12 w-full items-center border-b px-4">
         <div className="flex items-center gap-2">
-          <span>Scan Root:</span>
-          <SelectScanRoot />
-        </div>
-        <div className="flex items-center gap-2">
-          <span>Results File:</span>
-          <SelectResultsFile />
-        </div>
-        <div className="flex items-center gap-2">
-          <span>Settings File:</span>
-          <SelectSettingsFile />
+          <Settings className="h-4 w-4" />
+          <span className="text-sm">SCANOSS Code Compare</span>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <AppSettings />
+      <div className="flex flex-col gap-2 p-4">
+        {SETTINGS_OPTIONS.map((option) => (
+          <Button
+            variant={activeSetting === option.id ? 'default' : 'outline'}
+            size="sm"
+            className="justify-start"
+            onClick={() => setActiveSetting(option.id)}
+            key={option.id}
+          >
+            <option.icon className="mr-2 h-4 w-4" />
+            {option.title}
+          </Button>
+        ))}
       </div>
     </div>
   );

@@ -25,7 +25,6 @@ package repository
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -181,16 +180,16 @@ func (r *ResultRepositoryJsonImpl) parseScanResults(resultByte []byte) ([]entiti
 	return scanResults, nil
 }
 
-func (r *ResultRepositoryJsonImpl) GetResultByPath(path string) (entities.Result, error) {
+func (r *ResultRepositoryJsonImpl) GetResultByPath(path string) *entities.Result {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
 	result, ok := r.pathIndex[path]
 	if !ok {
-		return entities.Result{}, fmt.Errorf("result not found: %s", path)
+		return nil
 	}
 
-	return result, nil
+	return &result
 }
 
 func (r *ResultRepositoryJsonImpl) Close() error {

@@ -108,6 +108,7 @@ type WorkflowState string
 const (
 	Pending   WorkflowState = "pending"
 	Completed WorkflowState = "completed"
+	Mixed     WorkflowState = "mixed"
 )
 
 type FilterConfig struct {

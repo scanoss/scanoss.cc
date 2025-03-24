@@ -6,7 +6,6 @@
 SCANOSS Code Compare is a streamlined desktop application for managing open source findings with a clean, distraction-free interface. It features vim-style navigation (j/k), side-by-side code comparison for both snippet and 100% matches, and robust decision management that persists across scans. Users can quickly filter results, mark components as included/omitted/replaced with single keystrokes, and access their previous decisions in future scans.
 
 
-
 ## Features
 
 - 🔍 Advanced code scanning and component identification
@@ -90,6 +89,15 @@ cd scanoss.cc
 ```bash
 make run
 ```
+
+### Pre-commit Setup
+This project uses pre-commit hooks to ensure code quality and consistency. To set up pre-commit, run:
+```bash
+pip3 install pre-commit
+pre-commit install
+```
+
+This will install the pre-commit tool and set up the git hooks defined in the `.pre-commit-config.yaml` file to run automatically on each commit.
 
 ### Development with Custom Parameters
 

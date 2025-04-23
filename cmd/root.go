@@ -60,6 +60,11 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	// Set cobra's "mousetrap text" to the blank string.
+	// On Windows, if this is non-blank, it will attempt to detect launch from icon (e.g. double clicking in explorer, a program menu icon, etc)
+	// and pop up a dialog saying that it's a CLI intended for use at a terminal & terminate.
+	cobra.MousetrapHelpText = ""
+
 	// We need the original wd to set the default values for the config.
 	// Otherwise, when running from a symlink, the default values will be incorrect.
 	var err error

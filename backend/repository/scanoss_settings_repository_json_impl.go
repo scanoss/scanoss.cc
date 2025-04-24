@@ -27,6 +27,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -346,7 +347,7 @@ func (r *ScanossSettingsJsonRepository) MatchesEffectiveScanningSkipPattern(path
 		isDir = fileInfo.IsDir()
 	}
 
-	pathParts := strings.Split(path, "/")
+	pathParts := fullySplitPath(path)
 	return r.compiledMatcher.Match(pathParts, isDir)
 }
 
@@ -367,7 +368,7 @@ func (r *ScanossSettingsJsonRepository) findMatchingPatterns(path string, patter
 			isDir = fileInfo.IsDir()
 		}
 
-		pathParts := strings.Split(path, "/")
+		pathParts := fullySplitPath(path)
 
 		if ps.Match(pathParts, isDir) {
 			matchingPatterns = append(matchingPatterns, pattern)
@@ -451,4 +452,30 @@ func (r *ScanossSettingsJsonRepository) HasStagedScanningSkipPatternChanges() bo
 	defer r.mutex.RUnlock()
 
 	return len(r.stagedAddPatterns) > 0 || len(r.stagedRemovePatterns) > 0
+}
+
+// fullySplitPath splits a path into ALL its components.
+// The gitignore library expects to be handed a slice of everything busted ALL the way apart, but
+// the core filepath.Split ONLY breaks off the final path component.
+//
+// We theoretically could split on our platform-native path separator BUT it's not quite that simple: on windows,
+// both forward AND back slashes as path separators, plus there's special handling of potential volume specifiers.
+//
+// We COULD mimic filepath.Split's implementation stepping through and checking IsPathSeparator(), but to keep
+// it simple, we'll just repeatedly call that directly. These are all short enough it isn't that expensive.
+//
+// TODO(dhoover): merge this with the one in monorepo and/or keep it here because we need to contribute this upstream
+func fullySplitPath(path string) (split []string) {
+	for path != "" {
+		dir, file := filepath.Split(filepath.Clean(path))
+		if file == "" {
+			break
+		}
+		split = append(split, file)
+		path = dir
+	}
+
+	slices.Reverse(split)
+
+	return
 }

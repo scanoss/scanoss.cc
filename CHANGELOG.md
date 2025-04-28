@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Upcoming changes...
+
+## [0.7.1] 2025-04-28
+### Fixed
+- Disabled the pop-up warning message that appeared when launching the application from a graphical interface on Windows.
+
   
 ## [0.7.0] 2025-03-24
 
@@ -103,3 +108,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.4]: https://github.com/scanoss/scanoss.cc/compare/v0.6.3...v0.6.4
 [0.6.5]: https://github.com/scanoss/scanoss.cc/compare/v0.6.4...v0.6.5
 [0.7.0]: https://github.com/scanoss/scanoss.cc/compare/v0.6.5...v0.7.0
+[0.7.1]: https://github.com/scanoss/scanoss.cc/compare/v0.7.0...v0.7.1

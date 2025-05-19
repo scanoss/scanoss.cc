@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -180,4 +181,13 @@ func FullySplitPath(path string) (split []string) {
 	slices.Reverse(split)
 
 	return
+}
+
+// We use this function to normalize paths on windows/unix systems, converting all separators to forward slashes and removing "." and ".."
+func NormalizePathToSlash(p string) string {
+	if p == "" {
+		return p
+	}
+
+	return path.Clean(filepath.ToSlash(p))
 }

@@ -346,7 +346,7 @@ func (r *ScanossSettingsJsonRepository) MatchesEffectiveScanningSkipPattern(path
 		isDir = fileInfo.IsDir()
 	}
 
-	pathParts := strings.Split(path, "/")
+	pathParts := utils.FullySplitPath(path)
 	return r.compiledMatcher.Match(pathParts, isDir)
 }
 

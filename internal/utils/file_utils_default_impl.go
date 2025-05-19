@@ -29,6 +29,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -155,4 +156,28 @@ func GetRelativePath(absolutePath string) (string, error) {
 	}
 
 	return relPath, nil
+}
+
+// fullySplitPath splits a path into ALL its components.
+// The gitignore library expects to be handed a slice of everything busted ALL the way apart, but
+// the core filepath.Split ONLY breaks off the final path component.
+//
+// We theoretically could split on our platform-native path separator BUT it's not quite that simple: on windows,
+// both forward AND back slashes as path separators, plus there's special handling of potential volume specifiers.
+//
+// We COULD mimic filepath.Split's implementation stepping through and checking IsPathSeparator(), but to keep
+// it simple, we'll just repeatedly call that directly. These are all short enough it isn't that expensive.
+func FullySplitPath(path string) (split []string) {
+	for path != "" {
+		dir, file := filepath.Split(filepath.Clean(path))
+		if file == "" {
+			break
+		}
+		split = append(split, file)
+		path = dir
+	}
+
+	slices.Reverse(split)
+
+	return
 }

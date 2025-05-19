@@ -10,11 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Upcoming changes...
 
+## [0.7.2] 2025-05-01
+### Fixed
+- Fix splitting paths on Windows
+
 ## [0.7.1] 2025-04-28
 ### Fixed
-- Disabled the pop-up warning message that appeared when launching the application from a graphical interface on Windows.
+- Disable pop-up warning message that appeared when launching the application from a graphical interface on Windows.
 
-  
+
 ## [0.7.0] 2025-03-24
 
 ### Added
@@ -29,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Modified
 - Improve scanning performance
 
-  
+
 ## [0.6.4] 2025-03-18
 
 ### Fixed
@@ -40,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.6.3] 2025-03-12
 
 ### Fixed
-- Fix windows build 
+- Fix windows build
 
 ## [0.6.2] 2025-03-12
 

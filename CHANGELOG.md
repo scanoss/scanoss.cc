@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Upcoming changes...
 
-## [0.7.2] 2025-05-01
+## [0.7.3] 2025-05-01
 ### Fixed
 - Fix splitting paths on Windows
 
@@ -113,3 +113,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.5]: https://github.com/scanoss/scanoss.cc/compare/v0.6.4...v0.6.5
 [0.7.0]: https://github.com/scanoss/scanoss.cc/compare/v0.6.5...v0.7.0
 [0.7.1]: https://github.com/scanoss/scanoss.cc/compare/v0.7.0...v0.7.1
+[0.7.2]: https://github.com/scanoss/scanoss.cc/compare/v0.7.0...v0.7.2
+[0.7.3]: https://github.com/scanoss/scanoss.cc/compare/v0.7.2...v0.7.3

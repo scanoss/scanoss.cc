@@ -189,5 +189,17 @@ func NormalizePathToSlash(p string) string {
 		return p
 	}
 
-	return path.Clean(filepath.ToSlash(p))
+	endsWithSlash := strings.HasSuffix(p, "/") || strings.HasSuffix(p, "\\")
+
+	p = filepath.ToSlash(p)
+
+	p = strings.ReplaceAll(p, "\\", "/")
+
+	p = path.Clean(p)
+
+	if endsWithSlash && p != "/" {
+		p += "/"
+	}
+
+	return p
 }

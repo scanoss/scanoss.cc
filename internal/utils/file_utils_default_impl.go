@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -180,4 +181,27 @@ func FullySplitPath(path string) (split []string) {
 	slices.Reverse(split)
 
 	return
+}
+
+// NormalizePathToSlash converts OS-specific separators to `/` and runs
+// `path.Clean` to collapse “…/.” or “…/..” segments. For empty input it
+// returns ".", mimicking `path.Clean`.
+func NormalizePathToSlash(p string) string {
+	if p == "" {
+		return p
+	}
+
+	endsWithSlash := strings.HasSuffix(p, "/") || strings.HasSuffix(p, "\\")
+
+	p = filepath.ToSlash(p)
+
+	p = strings.ReplaceAll(p, "\\", "/")
+
+	p = path.Clean(p)
+
+	if endsWithSlash && p != "/" {
+		p += "/"
+	}
+
+	return p
 }

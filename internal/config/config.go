@@ -105,6 +105,7 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 }
 
 var instance *Config
+var instanceMu sync.RWMutex
 var once sync.Once
 
 func GetInstance() *Config {
@@ -112,6 +113,13 @@ func GetInstance() *Config {
 		instance = &Config{}
 	})
 	return instance
+}
+
+func ResetInstance() {
+	instanceMu.Lock()
+	defer instanceMu.Unlock()
+	instance = nil
+	once = sync.Once{}
 }
 
 func (c *Config) RegisterListener(listener func(*Config)) {

@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Upcoming changes...
 
+## [0.7.4] 2025-05-20
+### Fixed
+- Normalize paths when adding/removing skip patterns
+
 ## [0.7.3] 2025-05-01
 ### Fixed
 - Fix splitting paths on Windows

@@ -17,17 +17,17 @@ func (_m *MockScanossSettingsService) EXPECT() *MockScanossSettingsService_Expec
 	return &MockScanossSettingsService_Expecter{mock: &_m.Mock}
 }
 
-// AddStagedScanningSkipPattern provides a mock function with given fields: path, pattern
-func (_m *MockScanossSettingsService) AddStagedScanningSkipPattern(path string, pattern string) error {
-	ret := _m.Called(path, pattern)
+// AddStagedScanningSkipPattern provides a mock function with given fields: pattern
+func (_m *MockScanossSettingsService) AddStagedScanningSkipPattern(pattern string) error {
+	ret := _m.Called(pattern)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddStagedScanningSkipPattern")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(path, pattern)
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pattern)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -41,15 +41,14 @@ type MockScanossSettingsService_AddStagedScanningSkipPattern_Call struct {
 }
 
 // AddStagedScanningSkipPattern is a helper method to define mock.On call
-//   - path string
 //   - pattern string
-func (_e *MockScanossSettingsService_Expecter) AddStagedScanningSkipPattern(path interface{}, pattern interface{}) *MockScanossSettingsService_AddStagedScanningSkipPattern_Call {
-	return &MockScanossSettingsService_AddStagedScanningSkipPattern_Call{Call: _e.mock.On("AddStagedScanningSkipPattern", path, pattern)}
+func (_e *MockScanossSettingsService_Expecter) AddStagedScanningSkipPattern(pattern interface{}) *MockScanossSettingsService_AddStagedScanningSkipPattern_Call {
+	return &MockScanossSettingsService_AddStagedScanningSkipPattern_Call{Call: _e.mock.On("AddStagedScanningSkipPattern", pattern)}
 }
 
-func (_c *MockScanossSettingsService_AddStagedScanningSkipPattern_Call) Run(run func(path string, pattern string)) *MockScanossSettingsService_AddStagedScanningSkipPattern_Call {
+func (_c *MockScanossSettingsService_AddStagedScanningSkipPattern_Call) Run(run func(pattern string)) *MockScanossSettingsService_AddStagedScanningSkipPattern_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string))
+		run(args[0].(string))
 	})
 	return _c
 }
@@ -59,7 +58,7 @@ func (_c *MockScanossSettingsService_AddStagedScanningSkipPattern_Call) Return(_
 	return _c
 }
 
-func (_c *MockScanossSettingsService_AddStagedScanningSkipPattern_Call) RunAndReturn(run func(string, string) error) *MockScanossSettingsService_AddStagedScanningSkipPattern_Call {
+func (_c *MockScanossSettingsService_AddStagedScanningSkipPattern_Call) RunAndReturn(run func(string) error) *MockScanossSettingsService_AddStagedScanningSkipPattern_Call {
 	_c.Call.Return(run)
 	return _c
 }

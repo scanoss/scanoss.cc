@@ -27,6 +27,7 @@ import (
 	"testing"
 
 	"github.com/go-playground/validator"
+	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/scanoss/scanoss.cc/internal/utils"
 	"github.com/stretchr/testify/mock"
@@ -47,7 +48,12 @@ func InitializeTestEnvironment(t *testing.T) func() {
 	cfg.SetScanRoot(t.TempDir())
 
 	return func() {
-		cfg = nil
+		// Reset the config instance and clear any listeners
+		config.ResetInstance()
+		// Reset validator
+		utils.SetValidator(nil)
+		// Reset global settings
+		entities.ScanossSettingsJson = nil
 	}
 }
 

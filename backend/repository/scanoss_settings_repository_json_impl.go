@@ -338,20 +338,23 @@ func (r *ScanossSettingsJsonRepository) compileEffectivePatterns() {
 func (r *ScanossSettingsJsonRepository) MatchesEffectiveScanningSkipPattern(path string) bool {
 	r.compileEffectivePatterns()
 
+	normalizedPath := utils.NormalizePathToSlash(path)
+
 	isDir := false
-	fileInfo, err := os.Stat(path)
+	fileInfo, err := os.Stat(normalizedPath)
 	if err != nil {
-		log.Debug().Err(err).Msgf("Error checking if path is directory: %s", path)
+		log.Debug().Err(err).Msgf("Error checking if path is directory: %s (normalized from %s)", normalizedPath, path)
 	} else {
 		isDir = fileInfo.IsDir()
 	}
 
-	pathParts := utils.FullySplitPath(path)
+	pathParts := utils.FullySplitPath(normalizedPath)
 	return r.compiledMatcher.Match(pathParts, isDir)
 }
 
 func (r *ScanossSettingsJsonRepository) findMatchingPatterns(path string, patterns []string) []string {
 	var matchingPatterns []string
+	normalizedPath := utils.NormalizePathToSlash(path)
 
 	for _, pattern := range patterns {
 		if strings.HasPrefix(pattern, "!") {
@@ -362,42 +365,44 @@ func (r *ScanossSettingsJsonRepository) findMatchingPatterns(path string, patter
 		ps := gitignore.NewMatcher([]gitignore.Pattern{matcher})
 
 		isDir := false
-		fileInfo, err := os.Stat(path)
+		fileInfo, err := os.Stat(normalizedPath)
 		if err == nil {
 			isDir = fileInfo.IsDir()
 		}
 
-		pathParts := strings.Split(path, "/")
+		pathParts := utils.FullySplitPath(normalizedPath)
 
 		if ps.Match(pathParts, isDir) {
 			matchingPatterns = append(matchingPatterns, pattern)
-			log.Debug().Str("path", path).Str("matchingPattern", pattern).Msg("Found matching pattern")
+			log.Debug().Str("path", path).Str("normalizedPath", normalizedPath).Str("matchingPattern", pattern).Msg("Found matching pattern")
 		}
 	}
 
 	return matchingPatterns
 }
 
-func (r *ScanossSettingsJsonRepository) AddStagedScanningSkipPattern(path string, pattern string) error {
+func (r *ScanossSettingsJsonRepository) AddStagedScanningSkipPattern(pattern string) error {
+	normalizedPattern := utils.NormalizePathToSlash(pattern)
+
 	// If pattern is already in stagedAddPatterns, nothing to do
-	if slices.Contains(r.stagedAddPatterns, pattern) {
+	if slices.Contains(r.stagedAddPatterns, normalizedPattern) {
 		return nil
 	}
 
 	// If pattern is in stagedRemovePatterns, just unstage it
-	if index := slices.Index(r.stagedRemovePatterns, pattern); index >= 0 {
+	if index := slices.Index(r.stagedRemovePatterns, normalizedPattern); index >= 0 {
 		r.stagedRemovePatterns = slices.Delete(r.stagedRemovePatterns, index, index+1)
 		return nil
 	}
 
 	// Check for negation pattern first
-	negationPattern := "!" + pattern
+	negationPattern := "!" + normalizedPattern
 	if slices.Contains(r.GetEffectiveScanningSkipPatterns(), negationPattern) {
 		// Remove the negation pattern
 		r.stagedRemovePatterns = append(r.stagedRemovePatterns, negationPattern)
 	}
 
-	r.stagedAddPatterns = append(r.stagedAddPatterns, pattern)
+	r.stagedAddPatterns = append(r.stagedAddPatterns, normalizedPattern)
 
 	// Reset effective patterns cache
 	r.effectiveScanningSkipPatterns = nil
@@ -405,20 +410,23 @@ func (r *ScanossSettingsJsonRepository) AddStagedScanningSkipPattern(path string
 }
 
 func (r *ScanossSettingsJsonRepository) RemoveStagedScanningSkipPattern(path string, pattern string) error {
+	normalizedPath := utils.NormalizePathToSlash(path)
+	normalizedPattern := utils.NormalizePathToSlash(pattern)
+
 	// If pattern is already in stagedRemovePatterns, nothing to do
-	if slices.Contains(r.stagedRemovePatterns, pattern) {
+	if slices.Contains(r.stagedRemovePatterns, normalizedPattern) {
 		return nil
 	}
 
 	// If pattern is in stagedAddPatterns, just unstage it
-	if index := slices.Index(r.stagedAddPatterns, pattern); index >= 0 {
+	if index := slices.Index(r.stagedAddPatterns, normalizedPattern); index >= 0 {
 		r.stagedAddPatterns = slices.Delete(r.stagedAddPatterns, index, index+1)
 		return nil
 	}
 
 	// Find matching patterns to determine what we need to negate or remove
 	effectivePatterns := r.GetEffectiveScanningSkipPatterns()
-	matchingPatterns := r.findMatchingPatterns(path, effectivePatterns)
+	matchingPatterns := r.findMatchingPatterns(normalizedPath, effectivePatterns)
 
 	// If no patterns match, nothing to do
 	if len(matchingPatterns) == 0 {

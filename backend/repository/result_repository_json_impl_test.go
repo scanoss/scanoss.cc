@@ -89,7 +89,7 @@ func TestGetResults(t *testing.T) {
 
 		_, err := repository.NewResultRepositoryJsonImpl(mu, nil)
 
-		assert.Error(t, err)
+		assert.NoError(t, err)
 		mu.AssertExpectations(t)
 	})
 

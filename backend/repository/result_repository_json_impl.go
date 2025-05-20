@@ -136,6 +136,10 @@ func (r *ResultRepositoryJsonImpl) refreshCache() error {
 
 	scanResults, err := r.parseScanResults(resultByte)
 	if err != nil {
+		if os.IsNotExist(err) {
+			r.cache = []entities.Result{}
+			return nil
+		}
 		return entities.ErrParsingResultFile
 	}
 
@@ -154,7 +158,13 @@ func (r *ResultRepositoryJsonImpl) refreshCache() error {
 
 func (r *ResultRepositoryJsonImpl) parseScanResults(resultByte []byte) ([]entities.Result, error) {
 	var intermediateMap map[string][]entities.Component
-	if err := json.Unmarshal(resultByte, &intermediateMap); err != nil {
+	err := json.Unmarshal(resultByte, &intermediateMap)
+	if err != nil {
+		// Gracefully handle JSON syntax errors
+		if typeError, ok := err.(*json.SyntaxError); ok {
+			log.Error().Err(typeError).Msgf("JSON file %s syntax error: offset %d", config.GetInstance().GetResultFilePath(), typeError.Offset)
+			return []entities.Result{}, nil
+		}
 		log.Error().Err(err).Msg("Error parsing scan results")
 		return []entities.Result{}, err
 	}

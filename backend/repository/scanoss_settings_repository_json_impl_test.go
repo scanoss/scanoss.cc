@@ -38,29 +38,13 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/backend/repository"
+	internal_test "github.com/scanoss/scanoss.cc/internal"
 	"github.com/scanoss/scanoss.cc/internal/config"
-	utilsMocks "github.com/scanoss/scanoss.cc/internal/utils/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var SCANOSS_SETTINGS_PATH = "scanoss.json"
-
-// setupTest initializes the testing environment and returns a cleanup function
-func setupTest(t *testing.T) (*utilsMocks.MockFileReader, func()) {
-	t.Helper()
-
-	// Create a mock file reader
-	mockFileReader := new(utilsMocks.MockFileReader)
-
-	// Initialize the test environment
-	cleanup := func() {
-		// Reset global state
-		entities.ScanossSettingsJson = nil
-	}
-
-	return mockFileReader, cleanup
-}
 
 // setupConfig creates a temporary configuration for testing
 func setupConfig(t *testing.T, settingsPath string) {
@@ -96,54 +80,51 @@ func createMockSettingsFile() entities.SettingsFile {
 }
 
 func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
+	// Helper function to setup test environment and mock utils
+	setupTest := func(t *testing.T) (*internal_test.MockUtils, string, repository.ScanossSettingsRepository, func()) {
+		t.Helper()
+		cleanup := internal_test.InitializeTestEnvironment(t)
+		mu := internal_test.NewMockUtils()
+		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
+		setupConfig(t, settingsPath)
+		repo := repository.NewScanossSettingsJsonRepository(mu)
+		return mu, settingsPath, repo, cleanup
+	}
+
 	// TestNewScanossSettingsJsonRepository tests creation of the repository
 	t.Run("TestNewScanossSettingsJsonRepository", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		_, _, repo, cleanup := setupTest(t)
 		defer cleanup()
 
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		assert.NotNil(t, repo, "Repository should not be nil")
 	})
 
 	t.Run("TestInit", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		// Setup config
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		// Setup mock for Read operation
 		settingsContent, _ := json.Marshal(createMockSettingsFile())
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
-
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 
 		// Verify that the settings were loaded
 		assert.NotNil(t, entities.ScanossSettingsJson, "ScanossSettingsJson should not be nil after initialization")
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestRead tests reading settings from a file
 	t.Run("TestRead", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		// Setup config
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		// Create test settings
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
 
 		// Setup mock
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
-
-		// Create repository
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 		settings, err := repo.Read()
 
 		// Verify results
@@ -153,23 +134,20 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 		assert.Equal(t, mockSettings.Bom.Replace[0].Purl, settings.Bom.Replace[0].Purl, "Replace purls should match")
 		assert.Equal(t, mockSettings.Settings.Skip.Patterns.Scanning, settings.Settings.Skip.Patterns.Scanning, "Scanning patterns should match")
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestReadFileNotFound tests reading when file doesn't exist
 	t.Run("TestReadFileNotFound", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
 
-		// Setup config
-		settingsPath := filepath.Join(t.TempDir(), "nonexistent.json")
+		// Override settings path for this specific test
+		settingsPath = filepath.Join(t.TempDir(), "nonexistent.json")
 		setupConfig(t, settingsPath)
 
 		// Setup mock to return a file not found error
-		mockFileReader.On("ReadFile", settingsPath).Return([]byte{}, os.ErrNotExist)
-
-		// Create repository
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
+		mu.On("ReadFile", settingsPath).Return([]byte{}, os.ErrNotExist)
 		settings, err := repo.Read()
 
 		// Verify results - should return empty settings without error
@@ -178,69 +156,56 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 		assert.Empty(t, settings.Bom.Remove, "Remove list should be empty")
 		assert.Empty(t, settings.Bom.Replace, "Replace list should be empty")
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestReadInvalidJSON tests reading invalid JSON content
 	t.Run("TestReadInvalidJSON", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
 
-		// Setup config
-		settingsPath := filepath.Join(t.TempDir(), "invalid.json")
+		// Override settings path for this specific test
+		settingsPath = filepath.Join(t.TempDir(), "invalid.json")
 		setupConfig(t, settingsPath)
 
 		// Setup mock to return invalid JSON
-		mockFileReader.On("ReadFile", settingsPath).Return([]byte("{invalid json}"), nil)
-
-		// Create repository
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
+		mu.On("ReadFile", settingsPath).Return([]byte("{invalid json}"), nil)
 		_, err := repo.Read()
 
 		// Verify results
 		assert.Error(t, err, "Read should return an error for invalid JSON")
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestSave tests saving settings to a file
 	t.Run("TestSave", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		// Setup config
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 
 		assert.NotPanics(t, func() { repo.Save() }, "Save should not panic")
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestGetDeclaredPurls tests getting all declared PURLs
 	t.Run("TestGetDeclaredPurls", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		// Setup config
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 
@@ -251,23 +216,19 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 		assert.Contains(t, purls, "pkg:npm/test3@1.0.0", "Should contain replace PURL")
 		assert.Len(t, purls, 3, "Should have 3 PURLs total")
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestAddBomEntry tests adding a BOM entry
 	t.Run("TestAddBomEntry", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 		newEntry := entities.ComponentFilter{
@@ -313,23 +274,19 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 		err = repo.AddBomEntry(newEntry, "invalid")
 		assert.Error(t, err, "AddBomEntry should return an error for invalid action")
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestClearAllFilters tests clearing all BOM filters
 	t.Run("TestClearAllFilters", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 
@@ -341,23 +298,19 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 		assert.Empty(t, settings.Bom.Remove, "Remove list should be empty")
 		assert.Empty(t, settings.Bom.Replace, "Replace list should be empty")
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestAddStagedScanningSkipPattern tests adding a staged scanning skip pattern
 	t.Run("TestAddStagedScanningSkipPattern", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 
@@ -395,23 +348,19 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 			})
 		}
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestRemoveStagedScanningSkipPattern tests removing a staged scanning skip pattern
 	t.Run("TestRemoveStagedScanningSkipPattern", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 
@@ -438,23 +387,19 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 			})
 		}
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestCommitStagedScanningSkipPatterns tests committing staged patterns
 	t.Run("TestCommitStagedScanningSkipPatterns", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 
@@ -468,23 +413,19 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 		assert.False(t, repo.HasStagedScanningSkipPatternChanges(), "Should not have staged changes after commit")
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestDiscardStagedScanningSkipPatterns tests discarding staged patterns
 	t.Run("TestDiscardStagedScanningSkipPatterns", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 
@@ -497,16 +438,13 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 		assert.False(t, repo.HasStagedScanningSkipPatternChanges(), "Should not have staged changes after discard")
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestMatchesEffectiveScanningSkipPattern tests pattern matching with different path formats
 	t.Run("TestMatchesEffectiveScanningSkipPattern", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		settingsPath := filepath.Join(t.TempDir(), "settings.json")
-		setupConfig(t, settingsPath)
 
 		mockSettings := createMockSettingsFile()
 		mockSettings.Settings.Skip.Patterns.Scanning = append(
@@ -517,10 +455,8 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 		)
 		settingsContent, _ := json.Marshal(mockSettings)
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 
-		// Create repository and initialize
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 
@@ -671,23 +607,19 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 			assert.True(t, matches, "Mixed slash path should match node_modules pattern")
 		})
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestCrossOSPathHandling tests specific cross-OS path handling
 	t.Run("TestCrossOSPathHandling", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil)
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil)
 
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 
@@ -740,23 +672,19 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 			}
 		})
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestHasUnsavedChanges tests checking for unsaved changes
 	t.Run("TestHasUnsavedChanges", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil).Once()
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil).Once()
 
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
 		err := repo.Init()
 		assert.NoError(t, err, "Init should not return an error")
 
@@ -767,36 +695,29 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 		err = repo.AddBomEntry(newEntry, "include")
 		assert.NoError(t, err, "AddBomEntry should not return an error")
 
-		mockFileReader.On("ReadFile", settingsPath).Return(settingsContent, nil).Once()
+		mu.On("ReadFile", settingsPath).Return(settingsContent, nil).Once()
 
 		_, err = repo.HasUnsavedChanges()
 		assert.NoError(t, err, "HasUnsavedChanges should not return an error")
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 	// TestReadError tests handling read errors
 	t.Run("TestReadError", func(t *testing.T) {
-		mockFileReader, cleanup := setupTest(t)
+		mu, settingsPath, repo, cleanup := setupTest(t)
 		defer cleanup()
-
-		// Setup config
-		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
-		setupConfig(t, settingsPath)
 
 		// Setup mock to return an error
 		mockErr := errors.New("read error")
-		mockFileReader.On("ReadFile", settingsPath).Return([]byte{}, mockErr)
-
-		// Create repository
-		repo := repository.NewScanossSettingsJsonRepository(mockFileReader)
+		mu.On("ReadFile", settingsPath).Return([]byte{}, mockErr)
 		_, err := repo.Read()
 
 		// Verify results
 		assert.Error(t, err, "Read should return an error when ReadFile fails")
 		assert.Equal(t, mockErr, err, "Error should be the same as the mock error")
 
-		mockFileReader.AssertExpectations(t)
+		mu.AssertExpectations(t)
 	})
 
 }

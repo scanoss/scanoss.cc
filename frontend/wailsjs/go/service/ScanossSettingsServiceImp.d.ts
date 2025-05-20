@@ -14,6 +14,6 @@ export function HasStagedScanningSkipPatternChanges():Promise<boolean>;
 
 export function HasUnsavedChanges():Promise<boolean>;
 
-export function RemoveStagedScanningSkipPattern(arg1:string):Promise<void>;
+export function RemoveStagedScanningSkipPattern(arg1:string,arg2:string):Promise<void>;
 
 export function Save():Promise<void>;

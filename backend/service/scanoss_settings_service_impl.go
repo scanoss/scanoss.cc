@@ -54,8 +54,8 @@ func (s *ScanossSettingsServiceImp) AddStagedScanningSkipPattern(pattern string)
 	return s.repository.AddStagedScanningSkipPattern(pattern)
 }
 
-func (s *ScanossSettingsServiceImp) RemoveStagedScanningSkipPattern(pattern string) error {
-	return s.repository.RemoveStagedScanningSkipPattern(pattern)
+func (s *ScanossSettingsServiceImp) RemoveStagedScanningSkipPattern(path string, pattern string) error {
+	return s.repository.RemoveStagedScanningSkipPattern(path, pattern)
 }
 
 func (s *ScanossSettingsServiceImp) CommitStagedScanningSkipPatterns() error {

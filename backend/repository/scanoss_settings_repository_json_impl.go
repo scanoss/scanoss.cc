@@ -409,7 +409,8 @@ func (r *ScanossSettingsJsonRepository) AddStagedScanningSkipPattern(pattern str
 	return nil
 }
 
-func (r *ScanossSettingsJsonRepository) RemoveStagedScanningSkipPattern(pattern string) error {
+func (r *ScanossSettingsJsonRepository) RemoveStagedScanningSkipPattern(path string, pattern string) error {
+	normalizedPath := utils.NormalizePathToSlash(path)
 	normalizedPattern := utils.NormalizePathToSlash(pattern)
 
 	// If pattern is already in stagedRemovePatterns, nothing to do
@@ -425,7 +426,7 @@ func (r *ScanossSettingsJsonRepository) RemoveStagedScanningSkipPattern(pattern 
 
 	// Find matching patterns to determine what we need to negate or remove
 	effectivePatterns := r.GetEffectiveScanningSkipPatterns()
-	matchingPatterns := r.findMatchingPatterns(normalizedPattern, effectivePatterns)
+	matchingPatterns := r.findMatchingPatterns(normalizedPath, effectivePatterns)
 
 	// If no patterns match, nothing to do
 	if len(matchingPatterns) == 0 {

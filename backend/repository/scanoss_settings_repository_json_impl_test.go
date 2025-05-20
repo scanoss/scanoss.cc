@@ -372,7 +372,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				err = repo.RemoveStagedScanningSkipPattern(tc.patternToRemove)
+				err = repo.RemoveStagedScanningSkipPattern(tc.patternToRemove, tc.patternToRemove)
 				assert.NoError(t, err, "RemoveStagedScanningSkipPattern should not return an error")
 
 				assert.True(t, repo.HasStagedScanningSkipPatternChanges(), "Should have staged changes")

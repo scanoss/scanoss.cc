@@ -26,8 +26,8 @@ export function HasUnsavedChanges() {
   return window['go']['service']['ScanossSettingsServiceImp']['HasUnsavedChanges']();
 }
 
-export function RemoveStagedScanningSkipPattern(arg1) {
-  return window['go']['service']['ScanossSettingsServiceImp']['RemoveStagedScanningSkipPattern'](arg1);
+export function RemoveStagedScanningSkipPattern(arg1, arg2) {
+  return window['go']['service']['ScanossSettingsServiceImp']['RemoveStagedScanningSkipPattern'](arg1, arg2);
 }
 
 export function Save() {

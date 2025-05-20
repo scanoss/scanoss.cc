@@ -44,7 +44,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var SCANOSS_SETTINGS_PATH = "scanoss.json"
+const SCANOSS_SETTINGS_PATH = "scanoss.json"
 
 // setupConfig creates a temporary configuration for testing
 func setupConfig(t *testing.T, settingsPath string) {
@@ -81,27 +81,28 @@ func createMockSettingsFile() entities.SettingsFile {
 
 func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 	// Helper function to setup test environment and mock utils
-	setupTest := func(t *testing.T) (*internal_test.MockUtils, string, repository.ScanossSettingsRepository, func()) {
+	setupTest := func(t *testing.T) (*internal_test.MockUtils, string, repository.ScanossSettingsRepository) {
 		t.Helper()
 		cleanup := internal_test.InitializeTestEnvironment(t)
 		mu := internal_test.NewMockUtils()
 		settingsPath := filepath.Join(t.TempDir(), SCANOSS_SETTINGS_PATH)
 		setupConfig(t, settingsPath)
 		repo := repository.NewScanossSettingsJsonRepository(mu)
-		return mu, settingsPath, repo, cleanup
+
+		t.Cleanup(cleanup)
+
+		return mu, settingsPath, repo
 	}
 
 	// TestNewScanossSettingsJsonRepository tests creation of the repository
 	t.Run("TestNewScanossSettingsJsonRepository", func(t *testing.T) {
-		_, _, repo, cleanup := setupTest(t)
-		defer cleanup()
+		_, _, repo := setupTest(t)
 
 		assert.NotNil(t, repo, "Repository should not be nil")
 	})
 
 	t.Run("TestInit", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		// Setup mock for Read operation
 		settingsContent, _ := json.Marshal(createMockSettingsFile())
@@ -116,8 +117,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestRead tests reading settings from a file
 	t.Run("TestRead", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		// Create test settings
 		mockSettings := createMockSettingsFile()
@@ -139,11 +139,10 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestReadFileNotFound tests reading when file doesn't exist
 	t.Run("TestReadFileNotFound", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, _, repo := setupTest(t)
 
 		// Override settings path for this specific test
-		settingsPath = filepath.Join(t.TempDir(), "nonexistent.json")
+		settingsPath := filepath.Join(t.TempDir(), "nonexistent.json")
 		setupConfig(t, settingsPath)
 
 		// Setup mock to return a file not found error
@@ -161,11 +160,10 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestReadInvalidJSON tests reading invalid JSON content
 	t.Run("TestReadInvalidJSON", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, _, repo := setupTest(t)
 
 		// Override settings path for this specific test
-		settingsPath = filepath.Join(t.TempDir(), "invalid.json")
+		settingsPath := filepath.Join(t.TempDir(), "invalid.json")
 		setupConfig(t, settingsPath)
 
 		// Setup mock to return invalid JSON
@@ -180,8 +178,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestSave tests saving settings to a file
 	t.Run("TestSave", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
@@ -198,8 +195,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestGetDeclaredPurls tests getting all declared PURLs
 	t.Run("TestGetDeclaredPurls", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
@@ -221,8 +217,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestAddBomEntry tests adding a BOM entry
 	t.Run("TestAddBomEntry", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
@@ -279,8 +274,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestClearAllFilters tests clearing all BOM filters
 	t.Run("TestClearAllFilters", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
@@ -303,8 +297,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestAddStagedScanningSkipPattern tests adding a staged scanning skip pattern
 	t.Run("TestAddStagedScanningSkipPattern", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
@@ -353,8 +346,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestRemoveStagedScanningSkipPattern tests removing a staged scanning skip pattern
 	t.Run("TestRemoveStagedScanningSkipPattern", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
@@ -392,8 +384,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestCommitStagedScanningSkipPatterns tests committing staged patterns
 	t.Run("TestCommitStagedScanningSkipPatterns", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
@@ -418,8 +409,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestDiscardStagedScanningSkipPatterns tests discarding staged patterns
 	t.Run("TestDiscardStagedScanningSkipPatterns", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
@@ -443,8 +433,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestMatchesEffectiveScanningSkipPattern tests pattern matching with different path formats
 	t.Run("TestMatchesEffectiveScanningSkipPattern", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		mockSettings := createMockSettingsFile()
 		mockSettings.Settings.Skip.Patterns.Scanning = append(
@@ -612,8 +601,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestCrossOSPathHandling tests specific cross-OS path handling
 	t.Run("TestCrossOSPathHandling", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
@@ -677,8 +665,7 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 	// TestHasUnsavedChanges tests checking for unsaved changes
 	t.Run("TestHasUnsavedChanges", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		mockSettings := createMockSettingsFile()
 		settingsContent, _ := json.Marshal(mockSettings)
@@ -697,16 +684,16 @@ func TestScanossSettingsRepositoryJsonImpl(t *testing.T) {
 
 		mu.On("ReadFile", settingsPath).Return(settingsContent, nil).Once()
 
-		_, err = repo.HasUnsavedChanges()
+		hasChanges, err := repo.HasUnsavedChanges()
 		assert.NoError(t, err, "HasUnsavedChanges should not return an error")
+		assert.True(t, hasChanges, "Should have unsaved changes")
 
 		mu.AssertExpectations(t)
 	})
 
 	// TestReadError tests handling read errors
 	t.Run("TestReadError", func(t *testing.T) {
-		mu, settingsPath, repo, cleanup := setupTest(t)
-		defer cleanup()
+		mu, settingsPath, repo := setupTest(t)
 
 		// Setup mock to return an error
 		mockErr := errors.New("read error")

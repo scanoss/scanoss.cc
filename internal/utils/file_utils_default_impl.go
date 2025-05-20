@@ -183,7 +183,9 @@ func FullySplitPath(path string) (split []string) {
 	return
 }
 
-// We use this function to normalize paths on windows/unix systems, converting all separators to forward slashes and removing "." and ".."
+// NormalizePathToSlash converts OS-specific separators to `/` and runs
+// `path.Clean` to collapse “…/.” or “…/..” segments. For empty input it
+// returns ".", mimicking `path.Clean`.
 func NormalizePathToSlash(p string) string {
 	if p == "" {
 		return p

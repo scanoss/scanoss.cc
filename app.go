@@ -119,16 +119,30 @@ func (a *App) initializeMenu() {
 	actionShortcuts := groupedShortcuts[entities.GroupActions]
 	globalShortcuts := groupedShortcuts[entities.GroupGlobal]
 	viewShortcuts := groupedShortcuts[entities.GroupView]
-	// Global edit menu
-	EditMenu := AppMenu.AddSubmenu("Edit")
+
+	AppMenu.Append(menu.EditMenu())
+
+	// Add custom global shortcuts to File menu
+	FileMenu := AppMenu.AddSubmenu("File")
 	for _, shortcut := range globalShortcuts {
-		EditMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {})
+		if shortcut.Action == entities.ActionUndo ||
+			shortcut.Action == entities.ActionRedo ||
+			shortcut.Action == entities.ActionSelectAll {
+			continue
+		}
+		sc := shortcut
+		FileMenu.AddText(sc.Name, sc.Accelerator, func(cd *menu.CallbackData) {
+			runtime.EventsEmit(a.ctx, string(sc.Action))
+		})
 	}
 
 	// Actions menu
 	ActionsMenu := AppMenu.AddSubmenu("Actions")
 	for _, shortcut := range actionShortcuts {
-		ActionsMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {})
+		sc := shortcut
+		ActionsMenu.AddText(sc.Name, sc.Accelerator, func(cd *menu.CallbackData) {
+			runtime.EventsEmit(a.ctx, string(sc.Action))
+		})
 	}
 
 	// View menu

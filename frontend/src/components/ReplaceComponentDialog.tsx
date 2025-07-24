@@ -85,7 +85,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
 
   const selectedPurl = form.watch('purl');
 
-  const { data } = useQuery({
+  const { data, error } = useQuery({
     queryKey: ['declaredComponents'],
     queryFn: GetDeclaredComponents,
   });
@@ -127,6 +127,16 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
       setDeclaredComponents(data);
     }
   }, [data]);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Error',
+        description: 'Error fetching declared components',
+        variant: 'destructive',
+      });
+    }
+  }, [error]);
 
   const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => submitButtonRef.current?.click(), {
     enableOnFormTags: true,
@@ -181,7 +191,6 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                               <ScrollArea className="h-52">
                                 {declaredComponents?.map((component) => (
                                   <CommandItem
-                                    value={component.purl}
                                     key={component.purl}
                                     onSelect={() => {
                                       form.setValue('purl', component.purl);

@@ -49,7 +49,7 @@ func NewResultMapper(scanossSettings *entities.ScanossSettings) ResultMapper {
 	}
 }
 
-func (m ResultMapperImpl) generateCacheKey(result entities.Result, bomEntry entities.ComponentFilter) string {
+func (m *ResultMapperImpl) generateCacheKey(result entities.Result, bomEntry entities.ComponentFilter) string {
 	return fmt.Sprintf("%s-%s-%s-%s-%s-%s-%s",
 		result.Path,
 		strings.Join(*result.Purl, ","),
@@ -61,7 +61,7 @@ func (m ResultMapperImpl) generateCacheKey(result entities.Result, bomEntry enti
 	)
 }
 
-func (m ResultMapperImpl) MapToResultDTO(result entities.Result) entities.ResultDTO {
+func (m *ResultMapperImpl) MapToResultDTO(result entities.Result) entities.ResultDTO {
 	bomEntry := m.scanossSettings.SettingsFile.GetBomEntryFromResult(result)
 	cacheKey := m.generateCacheKey(result, bomEntry)
 
@@ -91,11 +91,11 @@ func (m ResultMapperImpl) MapToResultDTO(result entities.Result) entities.Result
 	return dto
 }
 
-func (m ResultMapperImpl) mapConcludedPurl(result entities.Result) string {
+func (m *ResultMapperImpl) mapConcludedPurl(result entities.Result) string {
 	return m.scanossSettings.SettingsFile.GetBomEntryFromResult(result).ReplaceWith
 }
 
-func (m ResultMapperImpl) MapToResultDTOList(results []entities.Result) []entities.ResultDTO {
+func (m *ResultMapperImpl) MapToResultDTOList(results []entities.Result) []entities.ResultDTO {
 	output := make([]entities.ResultDTO, len(results))
 	numWorkers := runtime.NumCPU()
 	jobChan := make(chan int, len(results))
@@ -151,7 +151,7 @@ func (m *ResultMapperImpl) mapConcludedPurlUrl(result entities.Result) string {
 	})
 }
 
-func (m ResultMapperImpl) getProjectURL(purl string, compute func() (string, error)) string {
+func (m *ResultMapperImpl) getProjectURL(purl string, compute func() (string, error)) string {
 	if cached, ok := purlCache.Load(purl); ok {
 		return cached.(string)
 	}
@@ -164,7 +164,7 @@ func (m ResultMapperImpl) getProjectURL(purl string, compute func() (string, err
 	return url
 }
 
-func (m ResultMapperImpl) mapDetectedPurlUrl(result entities.Result) string {
+func (m *ResultMapperImpl) mapDetectedPurlUrl(result entities.Result) string {
 	if result.Purl == nil || len(*result.Purl) == 0 {
 		return ""
 	}
@@ -186,7 +186,7 @@ func (m ResultMapperImpl) mapDetectedPurlUrl(result entities.Result) string {
 	})
 }
 
-func (m ResultMapperImpl) mapConcludedName(result entities.Result) string {
+func (m *ResultMapperImpl) mapConcludedName(result entities.Result) string {
 	replacedPurl := m.scanossSettings.SettingsFile.GetBomEntryFromResult(result).ReplaceWith
 	if replacedPurl == "" {
 		return ""

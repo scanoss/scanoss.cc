@@ -24,6 +24,9 @@
 import { Options, useHotkeys } from 'react-hotkeys-hook';
 import { HotkeysEvent } from 'react-hotkeys-hook/dist/types';
 
+// System shortcuts that should not be intercepted
+const SYSTEM_SHORTCUTS = ['mod+a', 'mod+c', 'mod+v', 'mod+x'];
+
 // We re export this to use it always with default configurations already setup
 export default function useKeyboardShortcut(
   keys: string | string[],
@@ -31,11 +34,17 @@ export default function useKeyboardShortcut(
   options?: Options,
   deps: unknown[] = []
 ) {
+  const keysArray = Array.isArray(keys) ? keys : [keys];
+  const hasSystemShortcut = keysArray.some((key) => SYSTEM_SHORTCUTS.includes(key.toLowerCase().trim()));
+
+  // Don't prevent default for system shortcuts to allow copy, paste, cut, etc.
+  const shouldPreventDefault = hasSystemShortcut ? false : true;
+
   return useHotkeys(
     keys,
     callback,
     {
-      preventDefault: true,
+      preventDefault: shouldPreventDefault,
       ...options,
     },
     deps

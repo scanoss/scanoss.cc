@@ -34,7 +34,6 @@ export default function ResultSearchBar({ searchInputRef }: { searchInputRef: Re
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
 
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.focusSearch.keys, () => searchInputRef.current?.focus());
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.selectAll.keys, () => searchInputRef.current?.select());
 
   return (
     <div className="relative grid w-full items-center gap-1.5">
@@ -44,7 +43,6 @@ export default function ResultSearchBar({ searchInputRef }: { searchInputRef: Re
         className="pl-7"
         name="q"
         onChange={(e) => {
-          e.preventDefault();
           setSelectedResults([]);
           setQuery(e.target.value);
         }}

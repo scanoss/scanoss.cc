@@ -40,17 +40,19 @@ type ComponentServiceImpl struct {
 	repo                repository.ComponentRepository
 	scanossSettingsRepo repository.ScanossSettingsRepository
 	resultRepo          repository.ResultRepository
+	scanossApiService   ScanossApiService
 	mapper              mappers.ComponentMapper
 	initialFilters      []entities.ComponentFilterDTO
 	undoStack           [][]entities.ComponentFilterDTO
 	redoStack           [][]entities.ComponentFilterDTO
 }
 
-func NewComponentServiceImpl(repo repository.ComponentRepository, scanossSettingsRepo repository.ScanossSettingsRepository, resultRepo repository.ResultRepository, mapper mappers.ComponentMapper) ComponentService {
+func NewComponentServiceImpl(repo repository.ComponentRepository, scanossSettingsRepo repository.ScanossSettingsRepository, resultRepo repository.ResultRepository, scanossApiService ScanossApiService, mapper mappers.ComponentMapper) ComponentService {
 	service := &ComponentServiceImpl{
 		repo:                repo,
 		scanossSettingsRepo: scanossSettingsRepo,
 		resultRepo:          resultRepo,
+		scanossApiService:   scanossApiService,
 		initialFilters:      []entities.ComponentFilterDTO{},
 		undoStack:           [][]entities.ComponentFilterDTO{},
 		redoStack:           [][]entities.ComponentFilterDTO{},
@@ -279,4 +281,15 @@ func (s *ComponentServiceImpl) reapplyActions() error {
 	}
 
 	return nil
+}
+
+// Searches for components using the SCANOSS API
+func (s *ComponentServiceImpl) SearchComponents(request entities.ComponentSearchRequest) (entities.ComponentSearchResponse, error) {
+	log.Debug().
+		Str("search", request.Search).
+		Str("vendor", request.Vendor).
+		Str("component", request.Component).
+		Msg("Delegating component search to SCANOSS API service")
+
+	return s.scanossApiService.SearchComponents(request)
 }

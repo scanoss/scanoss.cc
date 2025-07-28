@@ -87,9 +87,11 @@ func run() error {
 	// Mappers
 	resultMapper := mappers.NewResultMapper(entities.ScanossSettingsJson)
 	componentMapper := mappers.NewComponentMapper()
+	scanossApiMapper := mappers.NewScanossApiMapper()
 
 	// Services
-	componentService := service.NewComponentServiceImpl(componentRepository, scanossSettingsRepository, resultRepository, componentMapper)
+	scanossApiService := service.NewScanossApiServiceGrpcImpl(scanossApiMapper)
+	componentService := service.NewComponentServiceImpl(componentRepository, scanossSettingsRepository, resultRepository, scanossApiService, componentMapper)
 	fileService := service.NewFileService(fileRepository, componentRepository)
 	keyboardService := service.NewKeyboardServiceInMemoryImpl()
 	resultService := service.NewResultServiceImpl(resultRepository, resultMapper)

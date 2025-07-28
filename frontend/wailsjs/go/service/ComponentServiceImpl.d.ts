@@ -18,4 +18,6 @@ export function GetInitialFilters():Promise<entities.InitialFilters>;
 
 export function Redo():Promise<void>;
 
+export function SearchComponents(arg1:entities.ComponentSearchRequest):Promise<entities.ComponentSearchResponse>;
+
 export function Undo():Promise<void>;

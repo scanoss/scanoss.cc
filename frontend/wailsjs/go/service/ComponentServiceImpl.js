@@ -34,6 +34,10 @@ export function Redo() {
   return window['go']['service']['ComponentServiceImpl']['Redo']();
 }
 
+export function SearchComponents(arg1) {
+  return window['go']['service']['ComponentServiceImpl']['SearchComponents'](arg1);
+}
+
 export function Undo() {
   return window['go']['service']['ComponentServiceImpl']['Undo']();
 }

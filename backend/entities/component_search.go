@@ -21,17 +21,33 @@
  * SOFTWARE.
  */
 
-package service
+package entities
 
-import "github.com/scanoss/scanoss.cc/backend/entities"
+// ComponentSearchRequest represents the request for searching components online
+type ComponentSearchRequest struct {
+	Search    string `json:"search" validate:"required,min=1"`
+	Vendor    string `json:"vendor,omitempty"`
+	Component string `json:"component,omitempty"`
+	Package   string `json:"package,omitempty"`
+	Limit     int32  `json:"limit,omitempty"`
+	Offset    int32  `json:"offset,omitempty"`
+}
 
-type ComponentService interface {
-	GetComponentByPath(filePath string) (entities.ComponentDTO, error)
-	FilterComponents(dto []entities.ComponentFilterDTO) error
-	Undo() error
-	Redo() error
-	CanUndo() bool
-	CanRedo() bool
-	GetDeclaredComponents() ([]entities.DeclaredComponent, error)
-	SearchComponents(request entities.ComponentSearchRequest) (entities.ComponentSearchResponse, error)
+// ComponentSearchResponse represents the response from component search
+type ComponentSearchResponse struct {
+	Components []SearchedComponent `json:"components"`
+	Status     StatusResponse      `json:"status"`
+}
+
+// SearchedComponent represents a component found in the search results
+type SearchedComponent struct {
+	Component string `json:"component"`
+	Purl      string `json:"purl"`
+	URL       string `json:"url"`
+}
+
+// StatusResponse represents the status information from the API
+type StatusResponse struct {
+	Code    int32  `json:"code,omitempty"`
+	Message string `json:"message,omitempty"`
 }

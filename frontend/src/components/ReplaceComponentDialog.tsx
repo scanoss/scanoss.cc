@@ -23,7 +23,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
-import { Check, ChevronsUpDown, CircleAlert, Plus } from 'lucide-react';
+import { Check, ChevronsUpDown, CircleAlert, Plus, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -38,6 +38,7 @@ import { entities } from '../../wailsjs/go/models';
 import { GetDeclaredComponents } from '../../wailsjs/go/service/ComponentServiceImpl';
 import FilterByPurlList from './FilterByPurlList';
 import NewComponentDialog from './NewComponentDialog';
+import OnlineComponentSearchDialog from './OnlineComponentSearchDialog';
 import SelectLicenseList from './SelectLicenseList';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
@@ -70,6 +71,9 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   const submitButtonRef = useRef<HTMLButtonElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
+  const [onlineSearchDialogOpen, setOnlineSearchDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchValue, setSearchValue] = useState('');
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
   const [licenseKey, setLicenseKey] = useState(0);
 
@@ -122,6 +126,26 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     setNewComponentDialogOpen(false);
   };
 
+  const onOnlineComponentSelected = (component: { component: string; purl: string; url: string }) => {
+    // Create a new declared component from the online search result
+    const newComponent: entities.DeclaredComponent = {
+      name: component.component,
+      purl: component.purl,
+    };
+
+    // Add to declared components if not already exists
+    const alreadyExists = declaredComponents.some((c) => c.purl === component.purl);
+    if (!alreadyExists) {
+      setDeclaredComponents((prevState) => [...prevState, newComponent]);
+    }
+
+    // Set form values
+    form.setValue('purl', component.purl);
+    form.setValue('name', component.component);
+    resetLicense();
+    setOnlineSearchDialogOpen(false);
+  };
+
   useEffect(() => {
     if (data) {
       setDeclaredComponents(data);
@@ -170,7 +194,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                       </PopoverTrigger>
                       <PopoverContent className="p-0">
                         <Command>
-                          <CommandInput placeholder="Search component..." />
+                          <CommandInput placeholder="Search component..." value={searchValue} onValueChange={setSearchValue} />
                           <CommandList>
                             <CommandEmpty>No components found.</CommandEmpty>
                             <CommandGroup>
@@ -185,6 +209,20 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                                   Add new component
                                 </div>
                               </CommandItem>
+                              {searchValue ? (
+                                <CommandItem asChild>
+                                  <div
+                                    onClick={() => {
+                                      setSearchQuery(searchValue);
+                                      setOnlineSearchDialogOpen(true);
+                                      setPopoverOpen(false);
+                                    }}
+                                  >
+                                    <Search className="mr-2 h-3 w-3" />
+                                    Search &ldquo;{searchValue}&rdquo; online
+                                  </div>
+                                </CommandItem>
+                              ) : null}
                             </CommandGroup>
                             <CommandSeparator />
                             <CommandGroup>
@@ -271,6 +309,13 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
       </Form>
       {newComponentDialogOpen && (
         <NewComponentDialog onOpenChange={() => setNewComponentDialogOpen((prev) => !prev)} onCreated={onComponentCreated} />
+      )}
+      {onlineSearchDialogOpen && (
+        <OnlineComponentSearchDialog
+          onOpenChange={() => setOnlineSearchDialogOpen(false)}
+          searchTerm={searchQuery}
+          onComponentSelect={onOnlineComponentSelected}
+        />
       )}
     </>
   );

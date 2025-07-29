@@ -15,7 +15,7 @@ export function ComponentSearchTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[100px]">Component</TableHead>
+          <TableHead>Component</TableHead>
           <TableHead>Purl</TableHead>
           <TableHead>URL</TableHead>
         </TableRow>

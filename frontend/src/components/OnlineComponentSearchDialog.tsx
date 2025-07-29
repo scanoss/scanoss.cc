@@ -22,7 +22,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import useDebounce from '@/hooks/useDebounce';
@@ -30,12 +30,58 @@ import useDebounce from '@/hooks/useDebounce';
 import { entities } from '../../wailsjs/go/models';
 import { SearchComponents } from '../../wailsjs/go/service/ComponentServiceImpl';
 import { ComponentSearchTable } from './ComponentSearchTable';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandList } from './ui/command';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { ScrollArea } from './ui/scroll-area';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from './ui/use-toast';
 
 const DEBOUNCE_QUERY_MS = 500;
 const STATUS_CODE_OK = 1;
+
+const catalogPackages = [
+  'angular',
+  'apache',
+  'apple',
+  'bitbucket',
+  'cargo',
+  'composer',
+  'cpan',
+  'deb',
+  'drupal',
+  'eclipse',
+  'gem',
+  'gitee',
+  'github',
+  'gitlab',
+  'gnome',
+  'gnu',
+  'golang',
+  'googlesource',
+  'isc',
+  'java2s',
+  'jquery',
+  'kernel',
+  'maven',
+  'mozilla',
+  'nasm',
+  'nmap',
+  'npm',
+  'nuget',
+  'postgresql',
+  'pypi',
+  'rpm',
+  'slf4j',
+  'sourceforge',
+  'stackoverflow',
+  'sudo',
+  'videolan',
+  'wordpress',
+  'zlib',
+];
+
+const DEFAULT_PACKAGE = 'github';
 
 interface OnlineComponentSearchDialogProps {
   onOpenChange: (open: boolean) => void;
@@ -46,6 +92,7 @@ interface OnlineComponentSearchDialogProps {
 export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, onComponentSelect }: OnlineComponentSearchDialogProps) {
   const { toast } = useToast();
   const [currentSearch, setCurrentSearch] = useState<string>(searchTerm);
+  const [selectedPackage, setSelectedPackage] = useState<string>(DEFAULT_PACKAGE);
   const debouncedSearchTerm = useDebounce<string>(currentSearch, DEBOUNCE_QUERY_MS);
 
   const {
@@ -53,15 +100,11 @@ export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, 
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['components', debouncedSearchTerm],
+    queryKey: ['components', debouncedSearchTerm, selectedPackage],
     queryFn: async () => {
       const request: entities.ComponentSearchRequest = {
         search: debouncedSearchTerm.trim(),
-        vendor: '',
-        component: '',
-        package: '',
-        limit: 20,
-        offset: 0,
+        package: selectedPackage,
       };
 
       if (!request.search) {
@@ -98,45 +141,82 @@ export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, 
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="p-4">
+      <DialogContent className="max-h-[calc(80dvh)] max-w-[calc(60dvw)] p-4">
         <DialogHeader>
-          <DialogTitle>Search Components Online</DialogTitle>
-          <DialogDescription>Search for components in the SCANOSS database and select one to replace with</DialogDescription>
+          <DialogTitle>Online Component Search</DialogTitle>
         </DialogHeader>
 
-        <Command shouldFilter={false}>
-          <CommandInput placeholder="Search for components..." defaultValue={searchTerm} onValueChange={(newValue) => setCurrentSearch(newValue)} />
-          <CommandList>
-            {isLoading && (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="ml-2 text-sm text-muted-foreground">Searching for &ldquo;{currentSearch}&rdquo;...</span>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="search">Search</Label>
+              <div className="relative">
+                <Input
+                  className="pl-8"
+                  id="search"
+                  onChange={(e) => setCurrentSearch(e.target.value)}
+                  placeholder="Search for components..."
+                  value={currentSearch}
+                />
+                <Search className="absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 transform text-muted-foreground" />
               </div>
-            )}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="package">Package</Label>
+                <Select value={selectedPackage} onValueChange={(value) => setSelectedPackage(value)}>
+                  <SelectTrigger className="w-[220px] capitalize">
+                    <SelectValue placeholder="Select a package" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {catalogPackages.map((catalogPackage) => (
+                        <SelectItem key={catalogPackage} value={catalogPackage} className="capitalize">
+                          {catalogPackage}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          {isLoading && (
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2 text-sm text-muted-foreground">Searching for &ldquo;{currentSearch}&rdquo;...</span>
+            </div>
+          )}
 
-            {!isLoading && error && (
-              <CommandEmpty>
-                <div className="text-center text-destructive">
-                  <p className="font-medium">Search Failed</p>
-                  <p className="text-sm text-muted-foreground">{errorMessage}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Please check your connection and try again.</p>
-                </div>
-              </CommandEmpty>
-            )}
+          {!isLoading && error && (
+            <div className="flex items-center justify-center">
+              <div className="text-center text-destructive">
+                <p className="font-medium">Search Failed</p>
+                <p className="text-sm text-muted-foreground">{errorMessage}</p>
+                <p className="mt-1 text-xs text-muted-foreground">Please check your connection and try again.</p>
+              </div>
+            </div>
+          )}
 
-            {!isLoading && !error && debouncedSearchTerm && searchResults?.length === 0 && (
-              <CommandEmpty>No components found for &ldquo;{debouncedSearchTerm}&rdquo;. Try a different search term.</CommandEmpty>
-            )}
+          {!isLoading && !error && debouncedSearchTerm && searchResults?.length === 0 && (
+            <div className="flex items-center justify-center text-muted-foreground">
+              <p>No components found for &ldquo;{debouncedSearchTerm}&rdquo;. Try a different search term.</p>
+            </div>
+          )}
 
-            {!isLoading && !error && !debouncedSearchTerm && <CommandEmpty>Enter a search term to find components online.</CommandEmpty>}
+          {!isLoading && !error && !debouncedSearchTerm && (
+            <div className="flex items-center justify-center text-muted-foreground">Enter a search term to find components online.</div>
+          )}
 
-            {!isLoading && searchResults && searchResults.length > 0 && (
-              <CommandGroup heading={`Found ${searchResults.length} components`}>
+          {!isLoading && searchResults && searchResults.length > 0 && (
+            <div className="flex flex-col gap-4 overflow-auto">
+              <p className="text-sm text-muted-foreground">Found {searchResults.length} components</p>
+              <ScrollArea className="max-h-[300px]">
                 <ComponentSearchTable components={searchResults} onComponentSelect={handleComponentSelect} />
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
+              </ScrollArea>
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

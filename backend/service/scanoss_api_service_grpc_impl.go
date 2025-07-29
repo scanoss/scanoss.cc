@@ -74,7 +74,7 @@ func (s *ScanossApiServiceGrpcImpl) SearchComponents(request entities.ComponentS
 		return entities.ComponentSearchResponse{}, fmt.Errorf("invalid search request: %w", err)
 	}
 
-	log.Info().
+	log.Debug().
 		Str("search", request.Search).
 		Str("vendor", request.Vendor).
 		Str("component", request.Component).
@@ -100,7 +100,7 @@ func (s *ScanossApiServiceGrpcImpl) SearchComponents(request entities.ComponentS
 
 	response := s.mapper.MapFromGrpcSearchResponse(*grpcResponse)
 
-	log.Info().
+	log.Debug().
 		Int("componentCount", len(response.Components)).
 		Msg("Successfully retrieved component search results")
 
@@ -133,7 +133,7 @@ func (s *ScanossApiServiceGrpcImpl) initializeGrpcClient() error {
 	s.conn = conn
 	s.client = componentsv2.NewComponentsClient(conn)
 
-	log.Info().Str("endpoint", s.endpoint).Msg("Successfully initialized SCANOSS gRPC client")
+	log.Debug().Str("endpoint", s.endpoint).Msg("Successfully initialized SCANOSS gRPC client")
 	return nil
 }
 
@@ -147,7 +147,7 @@ func (s *ScanossApiServiceGrpcImpl) createAuthContext(ctx context.Context) conte
 // Close closes the gRPC connection
 func (s *ScanossApiServiceGrpcImpl) Close() error {
 	if s.conn != nil {
-		log.Info().Msg("Closing SCANOSS gRPC client connection")
+		log.Debug().Msg("Closing SCANOSS gRPC client connection")
 		return s.conn.Close()
 	}
 	return nil

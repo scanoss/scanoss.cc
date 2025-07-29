@@ -127,19 +127,16 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   };
 
   const onOnlineComponentSelected = (component: { component: string; purl: string; url: string }) => {
-    // Create a new declared component from the online search result
     const newComponent: entities.DeclaredComponent = {
       name: component.component,
       purl: component.purl,
     };
 
-    // Add to declared components if not already exists
     const alreadyExists = declaredComponents.some((c) => c.purl === component.purl);
     if (!alreadyExists) {
       setDeclaredComponents((prevState) => [...prevState, newComponent]);
     }
 
-    // Set form values
     form.setValue('purl', component.purl);
     form.setValue('name', component.component);
     resetLicense();

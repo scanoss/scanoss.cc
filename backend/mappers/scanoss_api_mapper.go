@@ -68,16 +68,9 @@ func (m *ScanossApiMapperImpl) MapFromGrpcSearchResponse(response componentsv2.C
 	result := entities.ComponentSearchResponse{
 		Components: components,
 		Status: entities.StatusResponse{
-			Code:    200,
-			Message: "Success",
-		},
-	}
-
-	if response.Status != nil {
-		result.Status = entities.StatusResponse{
 			Code:    int32(response.Status.Status),
 			Message: response.Status.Message,
-		}
+		},
 	}
 
 	return result

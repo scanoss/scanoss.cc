@@ -108,15 +108,12 @@ func (s *ScanossApiServiceGrpcImpl) SearchComponents(request entities.ComponentS
 }
 
 func (s *ScanossApiServiceGrpcImpl) initializeGrpcClient() error {
-	if s.endpoint == "" {
-		return fmt.Errorf("SCANOSS API endpoint not configured")
-	}
-
 	if s.apiKey == "" {
 		return fmt.Errorf("SCANOSS API key not configured")
 	}
 
-	if s.apiKey != "" && s.endpoint == "" {
+	// If api key is set but endpoint is not configured, we use paid api url
+	if s.endpoint == "" && s.apiKey != "" {
 		s.endpoint = config.SCANOSS_PREMIUM_API_URL
 	}
 

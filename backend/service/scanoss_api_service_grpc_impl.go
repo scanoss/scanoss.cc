@@ -51,7 +51,7 @@ type ScanossApiServiceGrpcImpl struct {
 
 func NewScanossApiServiceGrpcImpl(
 	mapper mappers.ScanossApiMapper,
-) ScanossApiService {
+) (ScanossApiService, error) {
 	cfg := config.GetInstance()
 	service := &ScanossApiServiceGrpcImpl{
 		mapper:   mapper,
@@ -62,9 +62,10 @@ func NewScanossApiServiceGrpcImpl(
 
 	if err := service.initializeGrpcClient(); err != nil {
 		log.Error().Err(err).Msg("Failed to initialize gRPC client")
+		return nil, err
 	}
 
-	return service
+	return service, nil
 }
 
 // SearchComponents searches for components using the SCANOSS gRPC API
@@ -114,7 +115,7 @@ func (s *ScanossApiServiceGrpcImpl) initializeGrpcClient() error {
 
 	// If api key is set but endpoint is not configured, we use paid api url
 	if s.endpoint == "" && s.apiKey != "" {
-		s.endpoint = config.SCANOSS_PREMIUM_API_URL
+		s.endpoint = utils.RemoveProtocolFromURL(config.SCANOSS_PREMIUM_API_URL)
 	}
 
 	config := &tls.Config{

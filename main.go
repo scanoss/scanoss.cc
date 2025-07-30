@@ -90,7 +90,10 @@ func run() error {
 	scanossApiMapper := mappers.NewScanossApiMapper()
 
 	// Services
-	scanossApiService := service.NewScanossApiServiceGrpcImpl(scanossApiMapper)
+	scanossApiService, err := service.NewScanossApiServiceGrpcImpl(scanossApiMapper)
+	if err != nil {
+		return fmt.Errorf("error initializing scanoss api service: %v", err)
+	}
 	componentService := service.NewComponentServiceImpl(componentRepository, scanossSettingsRepository, resultRepository, scanossApiService, componentMapper)
 	fileService := service.NewFileService(fileRepository, componentRepository)
 	keyboardService := service.NewKeyboardServiceInMemoryImpl()

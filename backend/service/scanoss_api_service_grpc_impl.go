@@ -56,7 +56,7 @@ func NewScanossApiServiceGrpcImpl(
 	service := &ScanossApiServiceGrpcImpl{
 		mapper:   mapper,
 		timeout:  30 * time.Second,
-		endpoint: utils.RemoveProtocolFromUrl(cfg.GetApiUrl()),
+		endpoint: utils.RemoveProtocolFromURL(cfg.GetApiUrl()),
 		apiKey:   cfg.GetApiToken(),
 	}
 

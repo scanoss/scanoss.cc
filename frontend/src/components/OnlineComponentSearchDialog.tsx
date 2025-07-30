@@ -141,7 +141,7 @@ export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, 
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[calc(80dvh)] max-w-[calc(60dvw)] p-4">
+      <DialogContent className="max-h-[calc(80dvh)] max-w-[calc(60dvw)] p-4 sm:max-w-[calc(90vw)] md:max-w-[calc(60dvw)]">
         <DialogHeader>
           <DialogTitle>Online Component Search</DialogTitle>
         </DialogHeader>

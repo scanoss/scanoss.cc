@@ -37,7 +37,7 @@ jobs:
         run: |
           mkdir build
           cp -r assets build/assets
-          wails build
+          wails build APPARGS="--key test"
         shell: bash
 
       - name: Upload build artifacts
@@ -99,3 +99,4 @@ jobs:
         env:
           SCANOSS_API_KEY: ${{ secrets.SCANOSS_API_KEY }}
         run: go test -v ./... -tags=integration
+

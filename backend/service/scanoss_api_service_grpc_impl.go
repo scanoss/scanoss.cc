@@ -61,7 +61,6 @@ func NewScanossApiServiceGrpcImpl(
 	}
 
 	if err := service.initializeGrpcClient(); err != nil {
-		log.Error().Err(err).Msg("Failed to initialize gRPC client")
 		return nil, err
 	}
 
@@ -84,8 +83,8 @@ func (s *ScanossApiServiceGrpcImpl) SearchComponents(request entities.ComponentS
 
 	// Check if client is initialized
 	if s.client == nil {
-		log.Error().Msg("gRPC client not initialized")
-		return entities.ComponentSearchResponse{}, fmt.Errorf("gRPC client not initialized")
+		log.Error().Msg("gRPC client not initialized - API key may not be configured")
+		return entities.ComponentSearchResponse{}, fmt.Errorf("SCANOSS API key not configured")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
@@ -110,7 +109,8 @@ func (s *ScanossApiServiceGrpcImpl) SearchComponents(request entities.ComponentS
 
 func (s *ScanossApiServiceGrpcImpl) initializeGrpcClient() error {
 	if s.apiKey == "" {
-		return fmt.Errorf("SCANOSS API key not configured")
+		log.Warn().Msg("SCANOSS API key not configured - API calls will fail until key is set")
+		return nil
 	}
 
 	// If api key is set but endpoint is not configured, we use paid api url

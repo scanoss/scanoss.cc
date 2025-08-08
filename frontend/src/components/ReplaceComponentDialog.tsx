@@ -143,6 +143,12 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     setOnlineSearchDialogOpen(false);
   };
 
+  const handleSearchOnline = () => {
+    setSearchQuery(searchValue);
+    setOnlineSearchDialogOpen(true);
+    setPopoverOpen(false);
+  };
+
   useEffect(() => {
     if (data) {
       setDeclaredComponents(data);
@@ -160,6 +166,10 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   }, [error]);
 
   const ref = useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => submitButtonRef.current?.click(), {
+    enableOnFormTags: true,
+  });
+
+  useKeyboardShortcut('enter', handleSearchOnline, {
     enableOnFormTags: true,
   });
 
@@ -208,13 +218,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                               </CommandItem>
                               {searchValue ? (
                                 <CommandItem asChild>
-                                  <div
-                                    onClick={() => {
-                                      setSearchQuery(searchValue);
-                                      setOnlineSearchDialogOpen(true);
-                                      setPopoverOpen(false);
-                                    }}
-                                  >
+                                  <div onClick={handleSearchOnline}>
                                     <Search className="mr-2 h-3 w-3" />
                                     Search &ldquo;{searchValue}&rdquo; online
                                   </div>

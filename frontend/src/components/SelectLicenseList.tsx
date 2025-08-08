@@ -57,7 +57,7 @@ export default function SelectLicenseList({ onSelect }: SelectLicenseListProps) 
   }, []);
 
   return (
-    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen} modal>
       <div className="flex w-full gap-2">
         <PopoverTrigger asChild className="flex-1">
           <Button variant="outline" role="combobox" className={cn('justify-between', !value && 'text-muted-foreground')}>

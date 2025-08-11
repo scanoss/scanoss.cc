@@ -40,6 +40,7 @@ import FilterByPurlList from './FilterByPurlList';
 import NewComponentDialog from './NewComponentDialog';
 import OnlineComponentSearchDialog from './OnlineComponentSearchDialog';
 import SelectLicenseList from './SelectLicenseList';
+import ShortcutBadge from './ShortcutBadge';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from './ui/command';
@@ -72,7 +73,6 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
   const [onlineSearchDialogOpen, setOnlineSearchDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
   const [licenseKey, setLicenseKey] = useState(0);
@@ -144,7 +144,6 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   };
 
   const handleSearchOnline = () => {
-    setSearchQuery(searchValue);
     setOnlineSearchDialogOpen(true);
     setPopoverOpen(false);
   };
@@ -169,8 +168,9 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     enableOnFormTags: true,
   });
 
-  useKeyboardShortcut('enter', handleSearchOnline, {
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => handleSearchOnline(), {
     enableOnFormTags: true,
+    enabled: popoverOpen,
   });
 
   return (
@@ -218,9 +218,12 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                               </CommandItem>
                               {searchValue ? (
                                 <CommandItem asChild>
-                                  <div onClick={handleSearchOnline}>
-                                    <Search className="mr-2 h-3 w-3" />
-                                    Search &ldquo;{searchValue}&rdquo; online
+                                  <div onClick={handleSearchOnline} className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <Search className="h-3 w-3" />
+                                      Search &ldquo;{searchValue}&rdquo; online
+                                    </div>
+                                    <ShortcutBadge shortcut="⌘ + Enter" />
                                   </div>
                                 </CommandItem>
                               ) : null}
@@ -301,7 +304,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                   Cancel
                 </Button>
                 <Button ref={submitButtonRef} type="submit" onClick={form.handleSubmit(onSubmit)}>
-                  Confirm <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
+                  Confirm <ShortcutBadge shortcut="⌘ + Enter" />
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -314,7 +317,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
       {onlineSearchDialogOpen && (
         <OnlineComponentSearchDialog
           onOpenChange={() => setOnlineSearchDialogOpen(false)}
-          searchTerm={searchQuery}
+          searchTerm={searchValue}
           onComponentSelect={onOnlineComponentSelected}
         />
       )}

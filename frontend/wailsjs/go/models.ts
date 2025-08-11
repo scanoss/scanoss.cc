@@ -202,7 +202,7 @@ export namespace entities {
 	    }
 	}
 	export class StatusResponse {
-	    code?: number;
+	    status?: string;
 	    message?: string;
 	
 	    static createFrom(source: any = {}) {
@@ -211,7 +211,7 @@ export namespace entities {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.code = source["code"];
+	        this.status = source["status"];
 	        this.message = source["message"];
 	    }
 	}

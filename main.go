@@ -87,10 +87,9 @@ func run() error {
 	// Mappers
 	resultMapper := mappers.NewResultMapper(entities.ScanossSettingsJson)
 	componentMapper := mappers.NewComponentMapper()
-	scanossApiMapper := mappers.NewScanossApiMapper()
 
 	// Services
-	scanossApiService, err := service.NewScanossApiServiceGrpcImpl(scanossApiMapper)
+	scanossApiService, err := service.NewScanossApiServiceHttpImpl()
 	if err != nil {
 		return fmt.Errorf("error initializing scanoss api service: %v", err)
 	}

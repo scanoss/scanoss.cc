@@ -113,10 +113,6 @@ export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, 
 
       const response = await SearchComponents(request);
 
-      if (response.status.code !== STATUS_CODE_OK) {
-        throw new Error(response.status.message);
-      }
-
       return response.components;
     },
   });
@@ -138,6 +134,8 @@ export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, 
       });
     }
   }, [error]);
+
+  console.log({ error });
 
   return (
     <Dialog open onOpenChange={onOpenChange}>

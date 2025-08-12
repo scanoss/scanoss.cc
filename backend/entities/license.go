@@ -40,11 +40,11 @@ type LicenseInfo struct {
 }
 
 type ComponentLicenseInfo struct {
-	Purl      string      `json:"purl"`
-	License   string      `json:"license"`
-	Version   string      `json:"version"`
-	Statement string      `json:"statement"`
-	Licenses  LicenseInfo `json:"licenses"`
+	Purl      string        `json:"purl"`
+	License   string        `json:"license"`
+	Version   string        `json:"version"`
+	Statement string        `json:"statement"`
+	Licenses  []LicenseInfo `json:"licenses"`
 }
 
 type GetLicensesByPurlResponse struct {

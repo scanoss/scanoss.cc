@@ -198,7 +198,7 @@ export namespace entities {
 	    license: string;
 	    version: string;
 	    statement: string;
-	    licenses: LicenseInfo;
+	    licenses: LicenseInfo[];
 	
 	    static createFrom(source: any = {}) {
 	        return new ComponentLicenseInfo(source);

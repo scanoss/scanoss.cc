@@ -36,6 +36,7 @@ import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentF
 
 import { entities } from '../../wailsjs/go/models';
 import { GetDeclaredComponents } from '../../wailsjs/go/service/ComponentServiceImpl';
+import { GetLicensesByPurl } from '../../wailsjs/go/service/LicenseServiceImpl';
 import FilterByPurlList from './FilterByPurlList';
 import NewComponentDialog from './NewComponentDialog';
 import OnlineComponentSearchDialog from './OnlineComponentSearchDialog';
@@ -76,6 +77,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   const [searchValue, setSearchValue] = useState('');
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
   const [licenseKey, setLicenseKey] = useState(0);
+  const [matchedLicenses, setMatchedLicenses] = useState<entities.License[]>([]);
 
   const form = useForm<z.infer<typeof ReplaceComponentFormSchema>>({
     resolver: zodResolver(ReplaceComponentFormSchema),
@@ -111,7 +113,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     });
   };
 
-  const onComponentCreated = (component: entities.DeclaredComponent) => {
+  const onComponentSelected = (component: entities.DeclaredComponent) => {
     const alreadyExists = declaredComponents.some((c) => c.purl === component.purl);
     if (alreadyExists) {
       return toast({
@@ -126,21 +128,25 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     setNewComponentDialogOpen(false);
   };
 
-  const onOnlineComponentSelected = (component: { component: string; purl: string; url: string }) => {
-    const newComponent: entities.DeclaredComponent = {
-      name: component.component,
-      purl: component.purl,
-    };
+  const getMatchedLicenses = async (purl: string) => {
+    try {
+      const { component } = await GetLicensesByPurl({ purl });
 
-    const alreadyExists = declaredComponents.some((c) => c.purl === component.purl);
-    if (!alreadyExists) {
-      setDeclaredComponents((prevState) => [...prevState, newComponent]);
+      if (!component || !component.licenses) return;
+
+      const matchedLicenses: entities.License[] = component.licenses.map((license) => ({
+        name: license.full_name,
+        licenseId: license.id,
+        reference: `https://spdx.org/licenses/${license.id}.html`, // This is a workaround for the fact that the reference is not available in the response
+      }));
+      setMatchedLicenses(matchedLicenses);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Error fetching matched licenses',
+        variant: 'destructive',
+      });
     }
-
-    form.setValue('purl', component.purl);
-    form.setValue('name', component.component);
-    resetLicense();
-    setOnlineSearchDialogOpen(false);
   };
 
   const handleSearchOnline = () => {
@@ -312,13 +318,16 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
         </Dialog>
       </Form>
       {newComponentDialogOpen && (
-        <NewComponentDialog onOpenChange={() => setNewComponentDialogOpen((prev) => !prev)} onCreated={onComponentCreated} />
+        <NewComponentDialog onOpenChange={() => setNewComponentDialogOpen((prev) => !prev)} onCreated={onComponentSelected} />
       )}
       {onlineSearchDialogOpen && (
         <OnlineComponentSearchDialog
           onOpenChange={() => setOnlineSearchDialogOpen(false)}
           searchTerm={searchValue}
-          onComponentSelect={onOnlineComponentSelected}
+          onComponentSelect={async (c) => {
+            onComponentSelected(c);
+            await getMatchedLicenses(c.purl);
+          }}
         />
       )}
     </>

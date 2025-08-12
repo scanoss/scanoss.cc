@@ -86,7 +86,7 @@ const DEFAULT_PACKAGE = 'github';
 interface OnlineComponentSearchDialogProps {
   onOpenChange: (open: boolean) => void;
   searchTerm: string;
-  onComponentSelect: (component: entities.SearchedComponent) => void;
+  onComponentSelect: (component: entities.DeclaredComponent) => void;
 }
 
 export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, onComponentSelect }: OnlineComponentSearchDialogProps) {
@@ -118,7 +118,11 @@ export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, 
   });
 
   const handleComponentSelect = (component: entities.SearchedComponent) => {
-    onComponentSelect(component);
+    const newComponent: entities.DeclaredComponent = {
+      name: component.component,
+      purl: component.purl,
+    };
+    onComponentSelect(newComponent);
     onOpenChange(false);
   };
 
@@ -134,8 +138,6 @@ export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, 
       });
     }
   }, [error]);
-
-  console.log({ error });
 
   return (
     <Dialog open onOpenChange={onOpenChange}>

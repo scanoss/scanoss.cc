@@ -31,12 +31,14 @@ import (
 )
 
 type LicenseServiceImpl struct {
-	repo repository.LicenseRepository
+	repo              repository.LicenseRepository
+	scanossApiService ScanossApiService
 }
 
-func NewLicenseServiceImpl(repo repository.LicenseRepository) LicenseService {
+func NewLicenseServiceImpl(repo repository.LicenseRepository, scanossApiService ScanossApiService) LicenseService {
 	return &LicenseServiceImpl{
-		repo: repo,
+		repo:              repo,
+		scanossApiService: scanossApiService,
 	}
 }
 
@@ -51,4 +53,8 @@ func (s *LicenseServiceImpl) GetAll() ([]entities.License, error) {
 	})
 
 	return licenses, nil
+}
+
+func (s *LicenseServiceImpl) GetLicensesByPurl(request entities.ComponentRequest) (entities.GetLicensesByPurlResponse, error) {
+	return s.scanossApiService.GetLicensesByPurl(request)
 }

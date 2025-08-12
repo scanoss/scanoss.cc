@@ -33,12 +33,6 @@ type ComponentSearchRequest struct {
 	Offset    int32  `json:"offset,omitempty"`
 }
 
-// ComponentSearchResponse represents the response from component search
-type ComponentSearchResponse struct {
-	Components []SearchedComponent `json:"components"`
-	Status     StatusResponse      `json:"status"`
-}
-
 // SearchedComponent represents a component found in the search results
 type SearchedComponent struct {
 	Component string `json:"component"`
@@ -46,8 +40,8 @@ type SearchedComponent struct {
 	URL       string `json:"url"`
 }
 
-// StatusResponse represents the status information from the API
-type StatusResponse struct {
-	Status  string `json:"status,omitempty"`
-	Message string `json:"message,omitempty"`
+// ComponentSearchResponse represents the response from component search
+type ComponentSearchResponse struct {
+	Components []SearchedComponent `json:"components"`
+	Status     StatusResponse      `json:"status"`
 }

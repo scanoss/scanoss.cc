@@ -33,3 +33,21 @@ type License struct {
 	LicenseId string `json:"licenseId"`
 	Reference string `json:"reference"`
 }
+
+type LicenseInfo struct {
+	Id       string `json:"id"`
+	FullName string `json:"full_name"`
+}
+
+type ComponentLicenseInfo struct {
+	Purl      string      `json:"purl"`
+	License   string      `json:"license"`
+	Version   string      `json:"version"`
+	Statement string      `json:"statement"`
+	Licenses  LicenseInfo `json:"licenses"`
+}
+
+type GetLicensesByPurlResponse struct {
+	Status    StatusResponse       `json:"status"`
+	Component ComponentLicenseInfo `json:"component"`
+}

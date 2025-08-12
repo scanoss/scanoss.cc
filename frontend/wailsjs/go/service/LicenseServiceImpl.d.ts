@@ -3,3 +3,5 @@
 import {entities} from '../models';
 
 export function GetAll():Promise<Array<entities.License>>;
+
+export function GetLicensesByPurl(arg1:entities.ComponentRequest):Promise<entities.GetLicensesByPurlResponse>;

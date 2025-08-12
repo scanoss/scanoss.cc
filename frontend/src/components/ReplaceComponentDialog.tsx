@@ -190,7 +190,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Component</FormLabel>
-                    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                    <Popover open={popoverOpen} onOpenChange={setPopoverOpen} modal>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button variant="outline" role="combobox" className={cn('justify-between', !field.value && 'text-muted-foreground')}>

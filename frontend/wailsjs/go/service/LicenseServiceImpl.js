@@ -5,3 +5,7 @@
 export function GetAll() {
   return window['go']['service']['LicenseServiceImpl']['GetAll']();
 }
+
+export function GetLicensesByPurl(arg1) {
+  return window['go']['service']['LicenseServiceImpl']['GetLicensesByPurl'](arg1);
+}

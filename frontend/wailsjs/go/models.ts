@@ -179,6 +179,72 @@ export namespace entities {
 	        this.license = source["license"];
 	    }
 	}
+	export class LicenseInfo {
+	    id: string;
+	    full_name: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new LicenseInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.full_name = source["full_name"];
+	    }
+	}
+	export class ComponentLicenseInfo {
+	    purl: string;
+	    license: string;
+	    version: string;
+	    statement: string;
+	    licenses: LicenseInfo;
+	
+	    static createFrom(source: any = {}) {
+	        return new ComponentLicenseInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.purl = source["purl"];
+	        this.license = source["license"];
+	        this.version = source["version"];
+	        this.statement = source["statement"];
+	        this.licenses = this.convertValues(source["licenses"], LicenseInfo);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class ComponentRequest {
+	    purl: string;
+	    requirement?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ComponentRequest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.purl = source["purl"];
+	        this.requirement = source["requirement"];
+	    }
+	}
 	export class ComponentSearchRequest {
 	    search: string;
 	    vendor?: string;
@@ -309,6 +375,38 @@ export namespace entities {
 	        this.type = source["type"];
 	    }
 	}
+	export class GetLicensesByPurlResponse {
+	    status: StatusResponse;
+	    component: ComponentLicenseInfo;
+	
+	    static createFrom(source: any = {}) {
+	        return new GetLicensesByPurlResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.status = this.convertValues(source["status"], StatusResponse);
+	        this.component = this.convertValues(source["component"], ComponentLicenseInfo);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class InitialFilters {
 	    Include: ComponentFilter[];
 	    Remove: ComponentFilter[];
@@ -359,6 +457,7 @@ export namespace entities {
 	        this.reference = source["reference"];
 	    }
 	}
+	
 	export class SortConfig {
 	    option: string;
 	    order: string;

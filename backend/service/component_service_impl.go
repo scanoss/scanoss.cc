@@ -285,11 +285,5 @@ func (s *ComponentServiceImpl) reapplyActions() error {
 
 // Searches for components using the SCANOSS API
 func (s *ComponentServiceImpl) SearchComponents(request entities.ComponentSearchRequest) (entities.ComponentSearchResponse, error) {
-	log.Debug().
-		Str("search", request.Search).
-		Str("vendor", request.Vendor).
-		Str("component", request.Component).
-		Msg("Delegating component search to SCANOSS API service")
-
 	return s.scanossApiService.SearchComponents(request)
 }

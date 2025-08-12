@@ -98,7 +98,7 @@ func run() error {
 	keyboardService := service.NewKeyboardServiceInMemoryImpl()
 	resultService := service.NewResultServiceImpl(resultRepository, resultMapper)
 	scanossSettingsService := service.NewScanossSettingsServiceImpl(scanossSettingsRepository)
-	licenseService := service.NewLicenseServiceImpl(licenseRepository)
+	licenseService := service.NewLicenseServiceImpl(licenseRepository, scanossApiService)
 	scanService := service.NewScanServicePythonImpl()
 	treeService := service.NewTreeServiceImpl(resultService, scanossSettingsRepository)
 
@@ -113,6 +113,7 @@ func run() error {
 			app.Init(ctx, scanossSettingsService, keyboardService)
 			scanService.SetContext(ctx)
 			resultService.SetContext(ctx)
+			scanossApiService.SetContext(ctx)
 		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
 			return app.BeforeClose(ctx)

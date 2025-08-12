@@ -23,8 +23,14 @@
 
 package service
 
-import "github.com/scanoss/scanoss.cc/backend/entities"
+import (
+	"context"
+
+	"github.com/scanoss/scanoss.cc/backend/entities"
+)
 
 type ScanossApiService interface {
 	SearchComponents(request entities.ComponentSearchRequest) (entities.ComponentSearchResponse, error)
+	GetLicensesByPurl(request entities.ComponentRequest) (entities.GetLicensesByPurlResponse, error)
+	SetContext(ctx context.Context)
 }

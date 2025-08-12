@@ -24,44 +24,97 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/internal/config"
-	"github.com/scanoss/scanoss.cc/internal/fetch"
 	"github.com/scanoss/scanoss.cc/internal/utils"
 )
 
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+type QueryParams map[string]string
+
 type ScanossApiServiceHttpImpl struct {
-	client   *http.Client
-	timeout  time.Duration
-	endpoint string
-	apiKey   string
+	ctx     context.Context
+	apiKey  string
+	baseURL string
+	client  HTTPClient
+	timeout time.Duration
 }
 
 func NewScanossApiServiceHttpImpl() (ScanossApiService, error) {
 	cfg := config.GetInstance()
+	baseURL := cfg.GetApiUrl()
+	apiKey := cfg.GetApiToken()
 
-	endpoint := cfg.GetApiUrl()
-	if endpoint == "" {
-		endpoint = config.SCANOSS_PREMIUM_API_URL
+	if baseURL == "" {
+		baseURL = config.SCANOSS_PREMIUM_API_URL
 	}
 
 	service := &ScanossApiServiceHttpImpl{
-		timeout:  30 * time.Second,
-		endpoint: endpoint,
-		apiKey:   cfg.GetApiToken(),
+		apiKey:  apiKey,
+		baseURL: baseURL,
 		client: &http.Client{
 			Timeout: 30 * time.Second,
 		},
+		timeout: 30 * time.Second,
 	}
 
 	return service, nil
+}
+
+func (s *ScanossApiServiceHttpImpl) SetContext(ctx context.Context) {
+	s.ctx = ctx
+}
+
+func (s *ScanossApiServiceHttpImpl) buildURL(endpoint string, params QueryParams) (string, error) {
+	u, err := url.Parse(s.baseURL + endpoint)
+	if err != nil {
+		return "", err
+	}
+
+	if len(params) > 0 {
+		q := u.Query()
+		for key, value := range params {
+			q.Add(key, value)
+		}
+
+		u.RawQuery = q.Encode()
+	}
+
+	return u.String(), nil
+}
+
+func (s *ScanossApiServiceHttpImpl) GetWithParams(endpoint string, params QueryParams) (*http.Response, error) {
+	fullURL, err := s.buildURL(endpoint, params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build URL: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(s.ctx, http.MethodGet, fullURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("x-api-key", s.apiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+
+	return resp, nil
 }
 
 // SearchComponents searches for components using the SCANOSS HTTP API
@@ -83,73 +136,74 @@ func (s *ScanossApiServiceHttpImpl) SearchComponents(request entities.ComponentS
 		return entities.ComponentSearchResponse{}, fmt.Errorf("SCANOSS API key not configured")
 	}
 
-	jsonBody, err := json.Marshal(request)
-	if err != nil {
-		log.Error().Err(err).Msg("Error marshaling request body")
-		return entities.ComponentSearchResponse{}, fmt.Errorf("failed to marshal request: %w", err)
+	params := QueryParams{
+		"search":    request.Search,
+		"vendor":    request.Vendor,
+		"component": request.Component,
+		"limit":     fmt.Sprintf("%d", request.Limit),
 	}
 
-	apiURL := fmt.Sprintf("%s/api/v2/components/search", s.endpoint)
-
-	options := fetch.Options{
-		Method: http.MethodPost,
-		Headers: map[string]string{
-			"x-api-key":    s.apiKey,
-			"Content-Type": "application/json",
-		},
-		Body: jsonBody,
-	}
-
-	resp, err := fetch.Fetch(apiURL, options)
+	resp, err := s.GetWithParams("/api/v2/components/search", params)
 	if err != nil {
 		log.Error().Err(err).Msg("Error calling SCANOSS component search API")
 		return entities.ComponentSearchResponse{}, fmt.Errorf("API call failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Error().Err(err).Msg("Error reading API response")
-		return entities.ComponentSearchResponse{}, fmt.Errorf("failed to read response: %w", err)
-	}
-
 	if resp.StatusCode != http.StatusOK {
-		log.Error().
-			Int("statusCode", resp.StatusCode).
-			Str("body", string(body)).
-			Msg("API returned non-200 status")
+		body, _ := io.ReadAll(resp.Body)
+		log.Error().Int("statusCode", resp.StatusCode).Str("body", string(body)).Msg("API returned non-200 status")
 		return entities.ComponentSearchResponse{}, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var apiResponse entities.ComponentSearchResponse
-
-	if err := json.Unmarshal(body, &apiResponse); err != nil {
-		log.Error().Err(err).Str("body", string(body)).Msg("Error parsing API response")
-		return entities.ComponentSearchResponse{}, fmt.Errorf("failed to parse response: %w", err)
-	}
-
-	components := make([]entities.SearchedComponent, len(apiResponse.Components))
-	for i, comp := range apiResponse.Components {
-		components[i] = entities.SearchedComponent{
-			Component: comp.Component,
-			Purl:      comp.Purl,
-			URL:       comp.URL,
-		}
-	}
-
-	response := entities.ComponentSearchResponse{
-		Components: components,
-		Status: entities.StatusResponse{
-			Status:  apiResponse.Status.Status,
-			Message: apiResponse.Status.Message,
-		},
+	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+		return entities.ComponentSearchResponse{}, fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	log.Debug().
-		Int("componentCount", len(response.Components)).
+		Int("componentCount", len(apiResponse.Components)).
 		Msg("Successfully retrieved component search results")
 
-	return response, nil
+	return apiResponse, nil
 }
 
-// Close closes the HTTP client (no-op for HTTP client)
+// GetLicenseByPurl fetches licenses for a given purl/component combination using the SCANOSS HTTP API
+func (s *ScanossApiServiceHttpImpl) GetLicensesByPurl(request entities.ComponentRequest) (entities.GetLicensesByPurlResponse, error) {
+	if err := utils.GetValidator().Struct(request); err != nil {
+		log.Error().Err(err).Msg("Invalid get license request")
+		return entities.GetLicensesByPurlResponse{}, fmt.Errorf("invalid get license request: %w", err)
+	}
+
+	log.Debug().Str("purl", request.Purl).Msg("Fetching license for purl via SCANOSS API")
+
+	if s.apiKey == "" {
+		log.Error().Msg("SCANOSS API key not configured")
+		return entities.GetLicensesByPurlResponse{}, fmt.Errorf("SCANOSS API key not configured")
+	}
+
+	params := QueryParams{
+		"purl":        request.Purl,
+		"requirement": request.Requirement,
+	}
+
+	resp, err := s.GetWithParams("/api/v2/licenses/component", params)
+	if err != nil {
+		log.Error().Err(err).Msg("Error calling SCANOSS component search API")
+		return entities.GetLicensesByPurlResponse{}, fmt.Errorf("API call failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.Error().Int("statusCode", resp.StatusCode).Str("body", string(body)).Msg("API returned non-200 status")
+		return entities.GetLicensesByPurlResponse{}, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var apiResponse entities.GetLicensesByPurlResponse
+	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+		return entities.GetLicensesByPurlResponse{}, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	return apiResponse, nil
+}

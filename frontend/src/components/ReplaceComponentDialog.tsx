@@ -30,11 +30,12 @@ import { z } from 'zod';
 
 import { useDialogRegistration } from '@/contexts/DialogStateContext';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
-import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
+import { getShortcutDisplay, KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { cn } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
+import useEnvironment from '@/hooks/useEnvironment';
 import { entities } from '../../wailsjs/go/models';
 import { GetDeclaredComponents } from '../../wailsjs/go/service/ComponentServiceImpl';
 import { GetLicensesByPurl } from '../../wailsjs/go/service/LicenseServiceImpl';
@@ -79,7 +80,9 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
   const [licenseKey, setLicenseKey] = useState(0);
   const [matchedLicenses, setMatchedLicenses] = useState<entities.License[]>([]);
-  
+
+  const { modifierKey } = useEnvironment();
+
   useDialogRegistration('replace-component', true);
 
   const form = useForm<z.infer<typeof ReplaceComponentFormSchema>>({
@@ -232,7 +235,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                                       <Search className="h-3 w-3" />
                                       Search &ldquo;{searchValue}&rdquo; online
                                     </div>
-                                    <ShortcutBadge shortcut="⌘ + Enter" />
+                                    <ShortcutBadge shortcut={getShortcutDisplay(KEYBOARD_SHORTCUTS.confirm.keys, modifierKey.label)[0]} />
                                   </div>
                                 </CommandItem>
                               ) : null}
@@ -277,7 +280,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 <Label>
                   License <span className="text-xs font-normal text-muted-foreground">(optional)</span>
                 </Label>
-                <SelectLicenseList key={licenseKey} onSelect={(value) => form.setValue('license', value)} />
+                <SelectLicenseList key={licenseKey} onSelect={(value) => form.setValue('license', value)} matchedLicenses={matchedLicenses} />
               </FormItem>
 
               {withComment && (
@@ -313,7 +316,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                   Cancel
                 </Button>
                 <Button ref={submitButtonRef} type="submit" onClick={form.handleSubmit(onSubmit)}>
-                  Confirm <ShortcutBadge shortcut="⌘ + Enter" />
+                  Confirm <ShortcutBadge shortcut={getShortcutDisplay(KEYBOARD_SHORTCUTS.confirm.keys, modifierKey.label)[0]} />
                 </Button>
               </DialogFooter>
             </DialogContent>

@@ -12,7 +12,7 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
   ARTIFACT_NAME_PREFIX: "SCANOSS Code Compare"
   ARTIFACT_NAME_PREFIX_WINDOWS: "scanoss-cc"
-  GOLANG_VERSION: "1.21"
+  GOLANG_VERSION: "1.23"
   NODE_VERSION: "16.x"
 
 jobs:

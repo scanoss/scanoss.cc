@@ -28,6 +28,7 @@ import { useEffect, useState } from 'react';
 import { useDialogRegistration } from '@/contexts/DialogStateContext';
 import useDebounce from '@/hooks/useDebounce';
 
+import { DEBOUNCE_QUERY_MS } from '@/modules/results/constants';
 import { entities } from '../../wailsjs/go/models';
 import { SearchComponents } from '../../wailsjs/go/service/ComponentServiceImpl';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
@@ -37,8 +38,6 @@ import { Label } from './ui/label';
 import { ScrollArea } from './ui/scroll-area';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from './ui/use-toast';
-
-const DEBOUNCE_QUERY_MS = 500;
 
 const catalogPackages = [
   'angular',
@@ -94,14 +93,14 @@ export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, 
   const [currentSearch, setCurrentSearch] = useState<string>(searchTerm);
   const [selectedPackage, setSelectedPackage] = useState<string>(DEFAULT_PACKAGE);
   const debouncedSearchTerm = useDebounce<string>(currentSearch, DEBOUNCE_QUERY_MS);
-  
+
   useDialogRegistration('online-component-search', true);
 
   const {
     data: searchResults,
     isLoading,
     error,
-  } = useQuery({
+  } = useQuery<entities.SearchedComponent[], Error>({
     queryKey: ['components', debouncedSearchTerm, selectedPackage],
     queryFn: async () => {
       const request: entities.ComponentSearchRequest = {
@@ -117,6 +116,8 @@ export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, 
 
       return response.components;
     },
+    enabled: Boolean(debouncedSearchTerm.trim()),
+    retry: false,
   });
 
   const handleComponentSelect = (component: entities.SearchedComponent) => {

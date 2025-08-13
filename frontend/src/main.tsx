@@ -31,6 +31,7 @@ import { createHashRouter, RouterProvider } from 'react-router-dom';
 import MatchComparison from './components/MatchComparison';
 import { Toaster } from './components/ui/toaster';
 import { TooltipProvider } from './components/ui/tooltip';
+import { DialogStateProvider } from './contexts/DialogStateContext';
 import { DialogProvider } from './providers/DialogProvider';
 import Root from './routes/root';
 
@@ -53,10 +54,12 @@ if (!rootElement.innerHTML) {
     <StrictMode>
       <TooltipProvider skipDelayDuration={0}>
         <QueryClientProvider client={queryClient}>
-          <DialogProvider>
-            <RouterProvider router={router} />
-            <Toaster />
-          </DialogProvider>
+          <DialogStateProvider>
+            <DialogProvider>
+              <RouterProvider router={router} />
+              <Toaster />
+            </DialogProvider>
+          </DialogStateProvider>
         </QueryClientProvider>
       </TooltipProvider>
     </StrictMode>

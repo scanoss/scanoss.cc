@@ -25,20 +25,20 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { useDialogRegistration } from '@/contexts/DialogStateContext';
 import useDebounce from '@/hooks/useDebounce';
 
 import { entities } from '../../wailsjs/go/models';
 import { SearchComponents } from '../../wailsjs/go/service/ComponentServiceImpl';
-import { ComponentSearchTable } from './ComponentSearchTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Input } from './ui/input';
+import { KeyboardTable } from './ui/keyboard-table';
 import { Label } from './ui/label';
 import { ScrollArea } from './ui/scroll-area';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from './ui/use-toast';
 
 const DEBOUNCE_QUERY_MS = 500;
-const STATUS_CODE_OK = 1;
 
 const catalogPackages = [
   'angular',
@@ -94,6 +94,8 @@ export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, 
   const [currentSearch, setCurrentSearch] = useState<string>(searchTerm);
   const [selectedPackage, setSelectedPackage] = useState<string>(DEFAULT_PACKAGE);
   const debouncedSearchTerm = useDebounce<string>(currentSearch, DEBOUNCE_QUERY_MS);
+  
+  useDialogRegistration('online-component-search', true);
 
   const {
     data: searchResults,
@@ -212,7 +214,15 @@ export default function OnlineComponentSearchDialog({ onOpenChange, searchTerm, 
             <div className="flex flex-col gap-4 overflow-auto">
               <p className="text-sm text-muted-foreground">Found {searchResults.length} components</p>
               <ScrollArea className="max-h-[300px]">
-                <ComponentSearchTable components={searchResults} onComponentSelect={handleComponentSelect} />
+                <KeyboardTable
+                  columns={[
+                    { key: 'component', label: 'Component' },
+                    { key: 'purl', label: 'PURL' },
+                    { key: 'url', label: 'URL' },
+                  ]}
+                  rows={searchResults ?? []}
+                  onRowSelect={handleComponentSelect}
+                />
               </ScrollArea>
             </div>
           )}

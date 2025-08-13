@@ -28,6 +28,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { useDialogRegistration } from '@/contexts/DialogStateContext';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { cn } from '@/lib/utils';
@@ -78,6 +79,8 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
   const [licenseKey, setLicenseKey] = useState(0);
   const [matchedLicenses, setMatchedLicenses] = useState<entities.License[]>([]);
+  
+  useDialogRegistration('replace-component', true);
 
   const form = useForm<z.infer<typeof ReplaceComponentFormSchema>>({
     resolver: zodResolver(ReplaceComponentFormSchema),

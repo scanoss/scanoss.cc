@@ -24,10 +24,13 @@
 package service
 
 import (
+	"fmt"
 	"sort"
 
+	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/backend/repository"
+	"github.com/scanoss/scanoss.cc/internal/utils"
 )
 
 type LicenseServiceImpl struct {
@@ -56,5 +59,9 @@ func (s *LicenseServiceImpl) GetAll() ([]entities.License, error) {
 }
 
 func (s *LicenseServiceImpl) GetLicensesByPurl(request entities.ComponentRequest) (entities.GetLicensesByPurlResponse, error) {
+	if err := utils.GetValidator().Struct(request); err != nil {
+		log.Error().Err(err).Msg("Invalid component request: validation failed")
+		return entities.GetLicensesByPurlResponse{}, fmt.Errorf("invalid component request: %w", err)
+	}
 	return s.scanossApiService.GetLicensesByPurl(request)
 }

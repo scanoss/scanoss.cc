@@ -135,10 +135,14 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   };
 
   const getMatchedLicenses = async (purl: string) => {
+    setMatchedLicenses([]);
     try {
       const { component } = await GetLicensesByPurl({ purl });
 
-      if (!component || !component.licenses) return;
+      if (!component || !component.licenses) {
+        setMatchedLicenses([]);
+        return;
+      }
 
       const matchedLicenses: entities.License[] = component.licenses.map((license) => ({
         name: license.full_name,
@@ -147,6 +151,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
       }));
       setMatchedLicenses(matchedLicenses);
     } catch (error) {
+      setMatchedLicenses([]);
       toast({
         title: 'Error',
         description: 'Error fetching matched licenses',

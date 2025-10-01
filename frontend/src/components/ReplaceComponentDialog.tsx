@@ -320,7 +320,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 <Button variant="ghost" onClick={onOpenChange}>
                   Cancel
                 </Button>
-                <Button ref={submitButtonRef} type="submit" onClick={form.handleSubmit(onSubmit)}>
+                <Button ref={submitButtonRef} onClick={form.handleSubmit(onSubmit)}>
                   Confirm <ShortcutBadge shortcut={getShortcutDisplay(KEYBOARD_SHORTCUTS.confirm.keys, modifierKey.label)[0]} />
                 </Button>
               </DialogFooter>

@@ -18,14 +18,7 @@ interface KeyboardTableProps<T> {
   initialFocusedIndex?: number;
 }
 
-export function KeyboardTable<T>({
-  columns,
-  rows,
-  onRowSelect,
-  getRowId,
-  rowClassName,
-  initialFocusedIndex = 0,
-}: KeyboardTableProps<T>) {
+export function KeyboardTable<T>({ columns, rows, onRowSelect, getRowId, rowClassName, initialFocusedIndex = 0 }: KeyboardTableProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [focusedIndex, setFocusedIndex] = useState<number>(initialFocusedIndex);
 
@@ -71,7 +64,9 @@ export function KeyboardTable<T>({
       case 'Enter': {
         e.preventDefault();
         e.stopPropagation();
-        onRowSelect(rows[focusedIndex]);
+        if (focusedIndex >= 0 && focusedIndex < rows.length) {
+          onRowSelect(rows[focusedIndex]);
+        }
         break;
       }
     }
@@ -98,7 +93,7 @@ export function KeyboardTable<T>({
             const isFocused = focusedIndex === i;
             const defaultClassName = clsx('cursor-pointer', isFocused && 'rounded bg-muted/60 ring-2 ring-ring');
             const customClassName = rowClassName ? rowClassName(row, i, isFocused) : defaultClassName;
-            
+
             return (
               <TableRow
                 key={getRowId ? getRowId(row, i) : i}

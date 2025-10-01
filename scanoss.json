@@ -19,11 +19,6 @@
         "purl": "pkg:github/scanoss/scanoss.cc"
       },
       {
-        "path": "frontend/src/components/ui/badge.tsx",
-        "purl": "pkg:github/shadcn-ui/ui"
-      },
-      {
-        "path": "frontend/src/components/ui/toast.tsx",
         "purl": "pkg:github/shadcn-ui/ui"
       }
     ],
@@ -67,11 +62,6 @@
       {
         "path": "frontend/src/components/ui/card.tsx",
         "purl": "pkg:npm/annotator-app",
-        "replace_with": "pkg:github/shadcn-ui/ui"
-      },
-      {
-        "path": "frontend/src/components/ui/checkbox.tsx",
-        "purl": "pkg:github/mienaiyami/ytdl-gui",
         "replace_with": "pkg:github/shadcn-ui/ui"
       },
       {
@@ -127,6 +117,37 @@
       {
         "path": "frontend/src/components/ui/toaster.tsx",
         "purl": "pkg:github/genesysgo/shadow-nft-standard",
+        "replace_with": "pkg:github/shadcn-ui/ui"
+      },
+      {
+        "purl": "pkg:github/yournextstore/yournextstore",
+        "replace_with": "pkg:github/shadcn-ui/ui"
+      },
+      {
+        "purl": "pkg:npm/create-tauri-ui",
+        "replace_with": "pkg:github/shadcn-ui/ui"
+      },
+      {
+        "purl": "pkg:github/mienaiyami/ytdl-gui",
+        "replace_with": "pkg:github/shadcn-ui/ui"
+      },
+      {
+        "purl": "pkg:npm/anvy",
+        "replace_with": "pkg:github/shadcn-ui/ui"
+      },
+      {
+        "path": "frontend/src/components/ui/popover.tsx",
+        "purl": "pkg:npm/%40alocite/ui",
+        "replace_with": "pkg:github/shadcn-ui/ui"
+      },
+      {
+        "path": "frontend/src/components/ui/skeleton.tsx",
+        "purl": "pkg:npm/create-shadcn-dashboard",
+        "replace_with": "pkg:github/shadcn-ui/ui"
+      },
+      {
+        "path": "frontend/src/components/ui/alert-dialog.tsx",
+        "purl": "pkg:github/substrate-asia/hackathon-2023-winter",
         "replace_with": "pkg:github/shadcn-ui/ui"
       }
     ]

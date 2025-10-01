@@ -101,13 +101,22 @@ func (s *ScanossApiServiceHttpImpl) GetWithParams(endpoint string, params QueryP
 		return nil, fmt.Errorf("failed to build URL: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(s.ctx, http.MethodGet, fullURL, nil)
+	ctx := s.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fullURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("x-api-key", s.apiKey)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -137,10 +146,27 @@ func (s *ScanossApiServiceHttpImpl) SearchComponents(request entities.ComponentS
 	}
 
 	params := QueryParams{
-		"search":    request.Search,
-		"vendor":    request.Vendor,
-		"component": request.Component,
-		"limit":     fmt.Sprintf("%d", request.Limit),
+		"search": request.Search,
+	}
+
+	if request.Vendor != "" {
+		params["vendor"] = request.Vendor
+	}
+
+	if request.Component != "" {
+		params["component"] = request.Component
+	}
+
+	if request.Package != "" {
+		params["package"] = request.Package
+	}
+
+	if request.Limit > 0 {
+		params["limit"] = fmt.Sprintf("%d", request.Limit)
+	}
+
+	if request.Offset > 0 {
+		params["offset"] = fmt.Sprintf("%d", request.Offset)
 	}
 
 	resp, err := s.GetWithParams("/api/v2/components/search", params)

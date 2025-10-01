@@ -97,6 +97,6 @@ jobs:
 
       - name: Run integration tests
         env:
-          SCANOSS_API_KEY: ${{ secrets.SCANOSS_API_KEY }}
+          SCANOSS_API_KEY: ${{ secrets.SC_API_KEY }}
         run: go test -v ./... -tags=integration
 

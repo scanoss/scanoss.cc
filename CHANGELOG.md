@@ -97,7 +97,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Remove "Scan Current Directory" menu option
 
-
+## [0.7.6] 2025-10-01
+### Added
+- Add keyboard navigation support to tables
+- Add capability to search online for component information when replacing a component
 
 ## [0.5.0] - 2024-01-24
 ### Added
@@ -125,4 +128,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.3]: https://github.com/scanoss/scanoss.cc/compare/v0.7.2...v0.7.3
 [0.7.4]: https://github.com/scanoss/scanoss.cc/compare/v0.7.3...v0.7.4
 [0.7.5]: https://github.com/scanoss/scanoss.cc/compare/v0.7.4...v0.7.5
+[0.7.6]: https://github.com/scanoss/scanoss.cc/compare/v0.7.5...v0.7.6
+
 

@@ -89,12 +89,16 @@ func run() error {
 	componentMapper := mappers.NewComponentMapper()
 
 	// Services
-	componentService := service.NewComponentServiceImpl(componentRepository, scanossSettingsRepository, resultRepository, componentMapper)
+	scanossApiService, err := service.NewScanossApiServiceHttpImpl()
+	if err != nil {
+		return fmt.Errorf("error initializing scanoss api service: %v", err)
+	}
+	componentService := service.NewComponentServiceImpl(componentRepository, scanossSettingsRepository, resultRepository, scanossApiService, componentMapper)
 	fileService := service.NewFileService(fileRepository, componentRepository)
 	keyboardService := service.NewKeyboardServiceInMemoryImpl()
 	resultService := service.NewResultServiceImpl(resultRepository, resultMapper)
 	scanossSettingsService := service.NewScanossSettingsServiceImpl(scanossSettingsRepository)
-	licenseService := service.NewLicenseServiceImpl(licenseRepository)
+	licenseService := service.NewLicenseServiceImpl(licenseRepository, scanossApiService)
 	scanService := service.NewScanServicePythonImpl()
 	treeService := service.NewTreeServiceImpl(resultService, scanossSettingsRepository)
 
@@ -109,6 +113,7 @@ func run() error {
 			app.Init(ctx, scanossSettingsService, keyboardService)
 			scanService.SetContext(ctx)
 			resultService.SetContext(ctx)
+			scanossApiService.SetContext(ctx)
 		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
 			return app.BeforeClose(ctx)

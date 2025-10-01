@@ -27,17 +27,30 @@ import { useCallback, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
+import { entities } from '../../wailsjs/go/models';
 import { GetAll as GetAllLicenses } from '../../wailsjs/go/service/LicenseServiceImpl';
 import { Button } from './ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { ScrollArea } from './ui/scroll-area';
 
 interface SelectLicenseListProps {
+  matchedLicenses?: entities.License[];
   onSelect: (value: string | undefined) => void;
 }
 
-export default function SelectLicenseList({ onSelect }: SelectLicenseListProps) {
+function LicenseItem({ license, value }: { license: entities.License; value: string }) {
+  return (
+    <>
+      <Check className={cn('mr-2 h-4 w-4', license.licenseId === value ? 'opacity-100' : 'opacity-0')} />
+      <div>
+        <p>{license.licenseId}</p>
+        <p className="text-xs text-muted-foreground">{license.name}</p>
+      </div>
+    </>
+  );
+}
+
+export default function SelectLicenseList({ matchedLicenses, onSelect }: SelectLicenseListProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [value, setValue] = useState<string>();
   const { data: licenses } = useQuery({
@@ -57,7 +70,7 @@ export default function SelectLicenseList({ onSelect }: SelectLicenseListProps) 
   }, []);
 
   return (
-    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen} modal>
       <div className="flex w-full gap-2">
         <PopoverTrigger asChild className="flex-1">
           <Button variant="outline" role="combobox" className={cn('justify-between', !value && 'text-muted-foreground')}>
@@ -76,18 +89,21 @@ export default function SelectLicenseList({ onSelect }: SelectLicenseListProps) 
           <CommandInput placeholder="Search license..." />
           <CommandList>
             <CommandEmpty>No licenses found.</CommandEmpty>
-            <CommandGroup>
-              <ScrollArea className="h-52">
-                {licenses?.map((license) => (
+            {matchedLicenses && matchedLicenses.length > 0 ? (
+              <CommandGroup heading="Matched">
+                {matchedLicenses.map((license) => (
                   <CommandItem value={license.licenseId} key={license.licenseId} onSelect={handleSelect}>
-                    <Check className={cn('mr-2 h-4 w-4', license.licenseId === value ? 'opacity-100' : 'opacity-0')} />
-                    <div>
-                      <p>{license.licenseId}</p>
-                      <p className="text-xs text-muted-foreground">{license.name}</p>
-                    </div>
+                    <LicenseItem license={license} value={value || ''} />
                   </CommandItem>
                 ))}
-              </ScrollArea>
+              </CommandGroup>
+            ) : null}
+            <CommandGroup heading="Catalogued">
+              {licenses?.map((license) => (
+                <CommandItem value={license.licenseId} key={license.licenseId} onSelect={handleSelect}>
+                  <LicenseItem license={license} value={value || ''} />
+                </CommandItem>
+              ))}
             </CommandGroup>
           </CommandList>
         </Command>

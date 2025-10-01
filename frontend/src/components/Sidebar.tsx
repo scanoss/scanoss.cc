@@ -28,6 +28,7 @@ import { ReactNode, useRef } from 'react';
 import { entities } from 'wailsjs/go/models';
 
 import ResultSearchBar from '@/components/ResultSearchBar';
+import { useDialogState } from '@/contexts/DialogStateContext';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { useResults } from '@/hooks/useResults';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
@@ -46,6 +47,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 export default function Sidebar() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsListRef = useRef<HTMLDivElement>(null);
+  const { isKeyboardNavigationBlocked } = useDialogState();
 
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
   const selectResultRange = useResultsStore((state) => state.selectResultRange);
@@ -89,12 +91,15 @@ export default function Sidebar() {
 
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveUp.keys, moveToPreviousResult, {
     enableOnFormTags: false,
+    enabled: !isKeyboardNavigationBlocked,
   });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveDown.keys, moveToNextResult, {
     enableOnFormTags: false,
+    enabled: !isKeyboardNavigationBlocked,
   });
   useKeyboardShortcut('enter', moveFocusToResults, {
     enableOnFormTags: true,
+    enabled: !isKeyboardNavigationBlocked,
   });
 
   return (

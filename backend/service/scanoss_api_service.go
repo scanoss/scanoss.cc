@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,34 +20,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package entities
 
-type LicenseFile struct {
-	LicenseListVersion string    `json:"licenseListVersion"`
-	Licenses           []License `json:"licenses"`
-	ReleaseDate        string    `json:"releaseDate"`
-}
+package service
 
-type License struct {
-	Name      string `json:"name"`
-	LicenseId string `json:"licenseId"`
-	Reference string `json:"reference"`
-}
+import (
+	"context"
 
-type LicenseInfo struct {
-	Id       string `json:"id"`
-	FullName string `json:"full_name"`
-}
+	"github.com/scanoss/scanoss.cc/backend/entities"
+)
 
-type ComponentLicenseInfo struct {
-	Purl      string        `json:"purl"`
-	License   string        `json:"license"`
-	Version   string        `json:"version"`
-	Statement string        `json:"statement"`
-	Licenses  []LicenseInfo `json:"licenses"`
-}
-
-type GetLicensesByPurlResponse struct {
-	Status    StatusResponse       `json:"status"`
-	Component ComponentLicenseInfo `json:"component"`
+type ScanossApiService interface {
+	SearchComponents(request entities.ComponentSearchRequest) (entities.ComponentSearchResponse, error)
+	GetLicensesByPurl(request entities.ComponentRequest) (entities.GetLicensesByPurlResponse, error)
+	SetContext(ctx context.Context)
 }

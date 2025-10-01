@@ -23,22 +23,27 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
-import { Check, ChevronsUpDown, CircleAlert, Plus } from 'lucide-react';
+import { Check, ChevronsUpDown, CircleAlert, Plus, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { useDialogRegistration } from '@/contexts/DialogStateContext';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
-import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
+import { getShortcutDisplay, KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { cn } from '@/lib/utils';
 import { FilterAction } from '@/modules/components/domain';
 import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
+import useEnvironment from '@/hooks/useEnvironment';
 import { entities } from '../../wailsjs/go/models';
 import { GetDeclaredComponents } from '../../wailsjs/go/service/ComponentServiceImpl';
+import { GetLicensesByPurl } from '../../wailsjs/go/service/LicenseServiceImpl';
 import FilterByPurlList from './FilterByPurlList';
 import NewComponentDialog from './NewComponentDialog';
+import OnlineComponentSearchDialog from './OnlineComponentSearchDialog';
 import SelectLicenseList from './SelectLicenseList';
+import ShortcutBadge from './ShortcutBadge';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from './ui/command';
@@ -70,8 +75,15 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
   const submitButtonRef = useRef<HTMLButtonElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
+  const [onlineSearchDialogOpen, setOnlineSearchDialogOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
   const [licenseKey, setLicenseKey] = useState(0);
+  const [matchedLicenses, setMatchedLicenses] = useState<entities.License[]>([]);
+
+  const { modifierKey } = useEnvironment();
+
+  useDialogRegistration('replace-component', true);
 
   const form = useForm<z.infer<typeof ReplaceComponentFormSchema>>({
     resolver: zodResolver(ReplaceComponentFormSchema),
@@ -107,7 +119,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     });
   };
 
-  const onComponentCreated = (component: entities.DeclaredComponent) => {
+  const onComponentSelected = (component: entities.DeclaredComponent) => {
     const alreadyExists = declaredComponents.some((c) => c.purl === component.purl);
     if (alreadyExists) {
       return toast({
@@ -120,6 +132,37 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     form.setValue('name', component.name);
     resetLicense();
     setNewComponentDialogOpen(false);
+  };
+
+  const getMatchedLicenses = async (purl: string) => {
+    setMatchedLicenses([]);
+    try {
+      const { component } = await GetLicensesByPurl({ purl });
+
+      if (!component || !component.licenses) {
+        setMatchedLicenses([]);
+        return;
+      }
+
+      const matchedLicenses: entities.License[] = component.licenses.map((license) => ({
+        name: license.full_name,
+        licenseId: license.id,
+        reference: `https://spdx.org/licenses/${license.id}.html`, // This is a workaround for the fact that the reference is not available in the response
+      }));
+      setMatchedLicenses(matchedLicenses);
+    } catch (error) {
+      setMatchedLicenses([]);
+      toast({
+        title: 'Error',
+        description: 'Error fetching matched licenses',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSearchOnline = () => {
+    setOnlineSearchDialogOpen(true);
+    setPopoverOpen(false);
   };
 
   useEffect(() => {
@@ -142,6 +185,11 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
     enableOnFormTags: true,
   });
 
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, () => handleSearchOnline(), {
+    enableOnFormTags: true,
+    enabled: popoverOpen,
+  });
+
   return (
     <>
       <Form {...form}>
@@ -159,7 +207,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Component</FormLabel>
-                    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                    <Popover open={popoverOpen} onOpenChange={setPopoverOpen} modal>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button variant="outline" role="combobox" className={cn('justify-between', !field.value && 'text-muted-foreground')}>
@@ -170,7 +218,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                       </PopoverTrigger>
                       <PopoverContent className="p-0">
                         <Command>
-                          <CommandInput placeholder="Search component..." />
+                          <CommandInput placeholder="Search component..." value={searchValue} onValueChange={setSearchValue} />
                           <CommandList>
                             <CommandEmpty>No components found.</CommandEmpty>
                             <CommandGroup>
@@ -185,6 +233,17 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                                   Add new component
                                 </div>
                               </CommandItem>
+                              {searchValue ? (
+                                <CommandItem asChild>
+                                  <div onClick={handleSearchOnline} className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <Search className="h-3 w-3" />
+                                      Search &ldquo;{searchValue}&rdquo; online
+                                    </div>
+                                    <ShortcutBadge shortcut={getShortcutDisplay(KEYBOARD_SHORTCUTS.confirm.keys, modifierKey.label)[0]} />
+                                  </div>
+                                </CommandItem>
+                              ) : null}
                             </CommandGroup>
                             <CommandSeparator />
                             <CommandGroup>
@@ -226,7 +285,7 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 <Label>
                   License <span className="text-xs font-normal text-muted-foreground">(optional)</span>
                 </Label>
-                <SelectLicenseList key={licenseKey} onSelect={(value) => form.setValue('license', value)} />
+                <SelectLicenseList key={licenseKey} onSelect={(value) => form.setValue('license', value)} matchedLicenses={matchedLicenses} />
               </FormItem>
 
               {withComment && (
@@ -261,8 +320,8 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
                 <Button variant="ghost" onClick={onOpenChange}>
                   Cancel
                 </Button>
-                <Button ref={submitButtonRef} type="submit" onClick={form.handleSubmit(onSubmit)}>
-                  Confirm <span className="ml-2 rounded-sm bg-card p-1 text-[8px] leading-none">⌘ + Enter</span>
+                <Button ref={submitButtonRef} onClick={form.handleSubmit(onSubmit)}>
+                  Confirm <ShortcutBadge shortcut={getShortcutDisplay(KEYBOARD_SHORTCUTS.confirm.keys, modifierKey.label)[0]} />
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -270,7 +329,17 @@ export default function ReplaceComponentDialog({ onOpenChange, onReplaceComponen
         </Dialog>
       </Form>
       {newComponentDialogOpen && (
-        <NewComponentDialog onOpenChange={() => setNewComponentDialogOpen((prev) => !prev)} onCreated={onComponentCreated} />
+        <NewComponentDialog onOpenChange={() => setNewComponentDialogOpen((prev) => !prev)} onCreated={onComponentSelected} />
+      )}
+      {onlineSearchDialogOpen && (
+        <OnlineComponentSearchDialog
+          onOpenChange={() => setOnlineSearchDialogOpen(false)}
+          searchTerm={searchValue}
+          onComponentSelect={async (c) => {
+            onComponentSelected(c);
+            await getMatchedLicenses(c.purl);
+          }}
+        />
       )}
     </>
   );

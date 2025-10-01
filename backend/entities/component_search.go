@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,34 +20,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package entities
 
-type LicenseFile struct {
-	LicenseListVersion string    `json:"licenseListVersion"`
-	Licenses           []License `json:"licenses"`
-	ReleaseDate        string    `json:"releaseDate"`
+// ComponentSearchRequest represents the request for searching components online
+type ComponentSearchRequest struct {
+	Search    string `json:"search" validate:"required,min=1"`
+	Vendor    string `json:"vendor,omitempty"`
+	Component string `json:"component,omitempty"`
+	Package   string `json:"package,omitempty"`
+	Limit     int32  `json:"limit,omitempty"`
+	Offset    int32  `json:"offset,omitempty"`
 }
 
-type License struct {
-	Name      string `json:"name"`
-	LicenseId string `json:"licenseId"`
-	Reference string `json:"reference"`
+// SearchedComponent represents a component found in the search results
+type SearchedComponent struct {
+	Component string `json:"component"`
+	Purl      string `json:"purl"`
+	URL       string `json:"url"`
 }
 
-type LicenseInfo struct {
-	Id       string `json:"id"`
-	FullName string `json:"full_name"`
-}
-
-type ComponentLicenseInfo struct {
-	Purl      string        `json:"purl"`
-	License   string        `json:"license"`
-	Version   string        `json:"version"`
-	Statement string        `json:"statement"`
-	Licenses  []LicenseInfo `json:"licenses"`
-}
-
-type GetLicensesByPurlResponse struct {
-	Status    StatusResponse       `json:"status"`
-	Component ComponentLicenseInfo `json:"component"`
+// ComponentSearchResponse represents the response from component search
+type ComponentSearchResponse struct {
+	Components []SearchedComponent `json:"components"`
+	Status     StatusResponse      `json:"status"`
 }

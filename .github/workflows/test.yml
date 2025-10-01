@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GOLANG_VERSION: "1.21"
+  GOLANG_VERSION: "1.23"
   NODE_VERSION: "16.x"
 
 jobs:
@@ -37,7 +37,7 @@ jobs:
         run: |
           mkdir build
           cp -r assets build/assets
-          wails build
+          wails build APPARGS="--key test"
         shell: bash
 
       - name: Upload build artifacts
@@ -97,5 +97,6 @@ jobs:
 
       - name: Run integration tests
         env:
-          SCANOSS_API_KEY: ${{ secrets.SCANOSS_API_KEY }}
+          SCANOSS_API_KEY: ${{ secrets.SC_API_KEY }}
         run: go test -v ./... -tags=integration
+

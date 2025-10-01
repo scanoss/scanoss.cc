@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2025 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,4 +33,5 @@ type ComponentService interface {
 	CanUndo() bool
 	CanRedo() bool
 	GetDeclaredComponents() ([]entities.DeclaredComponent, error)
+	SearchComponents(request entities.ComponentSearchRequest) (entities.ComponentSearchResponse, error)
 }

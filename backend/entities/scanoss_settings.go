@@ -199,9 +199,7 @@ var DefaultSkippedDirs = []string{
 	"example",
 	"examples",
 	"docs",
-	"tests",
 	"doc",
-	"test",
 }
 
 var DefaultSkippedFiles = []string{

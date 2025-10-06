@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Upcoming changes...
 
+## [0.8.1] 2025-10-06
+### Fixed
+- Remove `test` and `tests` from default skipped directories
+
+## [0.8.0] 2025-10-01
+### Added
+- Add keyboard navigation support to tables
+- Add capability to search online for component information when replacing a component
+
 ## [0.7.5] 2025-05-20
 ### Fixed
 - Handle malformed JSON in results file
@@ -97,11 +106,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Remove "Scan Current Directory" menu option
 
-## [0.8.0] 2025-10-01
-### Added
-- Add keyboard navigation support to tables
-- Add capability to search online for component information when replacing a component
-
 ## [0.5.0] - 2024-01-24
 ### Added
 - Initial open source release
@@ -130,5 +134,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.5]: https://github.com/scanoss/scanoss.cc/compare/v0.7.4...v0.7.5
 [0.7.6]: https://github.com/scanoss/scanoss.cc/compare/v0.7.5...v0.7.6
 [0.8.0]: https://github.com/scanoss/scanoss.cc/compare/v0.7.6...v0.8.0
-
-
+[0.8.1]: https://github.com/scanoss/scanoss.cc/compare/v0.8.0...v0.8.1

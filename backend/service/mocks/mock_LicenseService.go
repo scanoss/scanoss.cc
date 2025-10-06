@@ -77,6 +77,62 @@ func (_c *MockLicenseService_GetAll_Call) RunAndReturn(run func() ([]entities.Li
 	return _c
 }
 
+// GetLicensesByPurl provides a mock function with given fields: request
+func (_m *MockLicenseService) GetLicensesByPurl(request entities.ComponentRequest) (entities.GetLicensesByPurlResponse, error) {
+	ret := _m.Called(request)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLicensesByPurl")
+	}
+
+	var r0 entities.GetLicensesByPurlResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(entities.ComponentRequest) (entities.GetLicensesByPurlResponse, error)); ok {
+		return rf(request)
+	}
+	if rf, ok := ret.Get(0).(func(entities.ComponentRequest) entities.GetLicensesByPurlResponse); ok {
+		r0 = rf(request)
+	} else {
+		r0 = ret.Get(0).(entities.GetLicensesByPurlResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(entities.ComponentRequest) error); ok {
+		r1 = rf(request)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockLicenseService_GetLicensesByPurl_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLicensesByPurl'
+type MockLicenseService_GetLicensesByPurl_Call struct {
+	*mock.Call
+}
+
+// GetLicensesByPurl is a helper method to define mock.On call
+//   - request entities.ComponentRequest
+func (_e *MockLicenseService_Expecter) GetLicensesByPurl(request interface{}) *MockLicenseService_GetLicensesByPurl_Call {
+	return &MockLicenseService_GetLicensesByPurl_Call{Call: _e.mock.On("GetLicensesByPurl", request)}
+}
+
+func (_c *MockLicenseService_GetLicensesByPurl_Call) Run(run func(request entities.ComponentRequest)) *MockLicenseService_GetLicensesByPurl_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(entities.ComponentRequest))
+	})
+	return _c
+}
+
+func (_c *MockLicenseService_GetLicensesByPurl_Call) Return(_a0 entities.GetLicensesByPurlResponse, _a1 error) *MockLicenseService_GetLicensesByPurl_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockLicenseService_GetLicensesByPurl_Call) RunAndReturn(run func(entities.ComponentRequest) (entities.GetLicensesByPurlResponse, error)) *MockLicenseService_GetLicensesByPurl_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockLicenseService creates a new instance of MockLicenseService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockLicenseService(t interface {

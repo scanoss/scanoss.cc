@@ -24,24 +24,86 @@ SCANOSS Code Compare is a streamlined desktop application for managing open sour
 
 ## Installation
 
-### GUI Application
+### Quick Install (Recommended)
 
-1. Download the latest release for your platform from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
-2. Follow the platform-specific installation instructions:
-   - [macOS Installation Guide](INSTALL_MACOS.md)
-   - Windows and Linux guides coming soon
+Install SCANOSS Code Compare with a single command:
 
-### CLI Installation (macOS)
+**macOS / Linux:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install.sh | bash
+```
+
+**Windows (PowerShell as Administrator):**
+```powershell
+irm https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install-windows.ps1 | iex
+```
+
+### Security-Conscious Installation
+
+Download and inspect the script before running:
 
 ```bash
-# Option 1: Create a symlink (Recommended)
-sudo ln -s "/Applications/SCANOSS Code Compare.app/Contents/MacOS/SCANOSS Code Compare" /usr/local/bin/scanoss-cc
-
-# Option 2: Add to PATH
-echo 'export PATH="/Applications/SCANOSS Code Compare.app/Contents/MacOS:$PATH"' >> ~/.zshrc
-echo 'alias scanoss-cc="\"/Applications/SCANOSS Code Compare.app/Contents/MacOS/SCANOSS Code Compare\""' >> ~/.zshrc
-source ~/.zshrc
+curl -fsSL https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install.sh -o install.sh
+cat install.sh  # Review the script
+bash install.sh
 ```
+
+### Alternative Installation Methods
+
+<details>
+<summary><b>macOS</b></summary>
+
+#### Homebrew
+```bash
+brew install scanoss/dist/scanoss-code-compare
+```
+
+#### Direct Download
+1. Download `scanoss-cc-mac.zip` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
+2. Extract and open the DMG
+3. Drag the app to Applications
+
+See [INSTALL_MACOS.md](INSTALL_MACOS.md) for detailed instructions.
+</details>
+
+<details>
+<summary><b>Windows</b></summary>
+
+1. Download `scanoss-cc-win.zip` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
+2. Extract the ZIP file
+3. Run `scanoss-cc.exe`
+
+See [INSTALLATION.md](INSTALLATION.md) for PATH setup and installation to Program Files.
+</details>
+
+<details>
+<summary><b>Linux</b></summary>
+
+1. Download `scanoss-cc-linux.zip` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
+2. Extract and run:
+```bash
+unzip scanoss-cc-linux.zip
+chmod +x scanoss-cc-linux
+sudo mv scanoss-cc-linux /usr/local/bin/scanoss-cc
+```
+
+See [INSTALLATION.md](INSTALLATION.md) for detailed instructions.
+</details>
+
+### Verify Installation
+
+After installation, verify that the CLI is available:
+```bash
+scanoss-cc --version
+```
+
+### Auto-Updates
+
+SCANOSS Code Compare includes an automatic update system that notifies you when new versions are available:
+
+- **Status Bar Notification**: When an update is available, a button appears in the status bar at the bottom of the window
+- **One-Click Update**: Click the notification to download and install the update
+- **Seamless Restart**: After downloading, the app will restart to apply the update
 
 ## Usage
 

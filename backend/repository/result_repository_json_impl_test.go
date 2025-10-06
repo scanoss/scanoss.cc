@@ -45,7 +45,7 @@ func TestGetResults(t *testing.T) {
 		mu := internal_test.NewMockUtils()
 		mu.On("ReadFile", config.GetInstance().GetResultFilePath()).Return([]byte(`{"path/to/file": [{"ID": "file", "Purl": ["pkg:example/package"]}]}`), nil)
 
-		repo, err := repository.NewResultRepositoryJsonImpl(mu, nil)
+		repo, err := repository.NewResultRepositoryJsonImpl(mu)
 		results, err := repo.GetResults(nil)
 
 		assert.NoError(t, err)
@@ -62,7 +62,7 @@ func TestGetResults(t *testing.T) {
 		filter := mocks.MockResultFilter{}
 		filter.EXPECT().IsValid(mock.Anything).Return(true)
 
-		repo, err := repository.NewResultRepositoryJsonImpl(mu, nil)
+		repo, err := repository.NewResultRepositoryJsonImpl(mu)
 		results, err := repo.GetResults(&filter)
 
 		assert.NoError(t, err)
@@ -76,7 +76,7 @@ func TestGetResults(t *testing.T) {
 		mu := internal_test.NewMockUtils()
 		mu.On("ReadFile", config.GetInstance().GetResultFilePath()).Return([]byte{}, entities.ErrReadingResultFile)
 
-		_, err := repository.NewResultRepositoryJsonImpl(mu, nil)
+		_, err := repository.NewResultRepositoryJsonImpl(mu)
 
 		assert.Error(t, err)
 		assert.Equal(t, entities.ErrReadingResultFile, err)
@@ -87,7 +87,7 @@ func TestGetResults(t *testing.T) {
 		mu := internal_test.NewMockUtils()
 		mu.On("ReadFile", config.GetInstance().GetResultFilePath()).Return([]byte(`invalid json`), nil)
 
-		_, err := repository.NewResultRepositoryJsonImpl(mu, nil)
+		_, err := repository.NewResultRepositoryJsonImpl(mu)
 
 		assert.NoError(t, err)
 		mu.AssertExpectations(t)
@@ -100,7 +100,7 @@ func TestGetResults(t *testing.T) {
 		filter := mocks.MockResultFilter{}
 		filter.EXPECT().IsValid(mock.Anything).Return(false)
 
-		repo, err := repository.NewResultRepositoryJsonImpl(mu, nil)
+		repo, err := repository.NewResultRepositoryJsonImpl(mu)
 		results, err := repo.GetResults(&filter)
 
 		assert.NoError(t, err)

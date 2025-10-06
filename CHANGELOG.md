@@ -7,8 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] 2025-11-03
 ### Added
-- Upcoming changes...
+- Comprehensive installation guide (INSTALLATION.md) covering all platforms and distribution methods
+- Automated installation scripts for all platforms:
+  - Universal installer script (install.sh) with platform auto-detection
+  - macOS-specific installation script (install-macos.sh)
+  - Linux-specific installation script (install-linux.sh)
+  - Windows PowerShell installation script (install-windows.ps1)
+- Installation script features:
+  - Automatic latest version download
+  - SHA256 checksum verification for security
+  - Automatic dependency installation (Linux)
+  - PATH configuration
+  - Desktop shortcuts and application entries creation
+- Auto-update service with update notifications
+- Update notification component in UI
+- Semantic version validation
+- GitHub release checksum verification
+
+### Changed
+- Standardized binary names across platforms
+- Improved release workflow with enhanced distribution packaging
+- Updated README with new installation instructions
+- Updated macOS installation documentation (INSTALL_MACOS.md)
+
+### Fixed
+- Unit test mocks
 
 ## [0.8.1] 2025-10-06
 ### Fixed
@@ -135,3 +160,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.7.6]: https://github.com/scanoss/scanoss.cc/compare/v0.7.5...v0.7.6
 [0.8.0]: https://github.com/scanoss/scanoss.cc/compare/v0.7.6...v0.8.0
 [0.8.1]: https://github.com/scanoss/scanoss.cc/compare/v0.8.0...v0.8.1
+[0.9.0]: https://github.com/scanoss/scanoss.cc/compare/v0.8.1...v0.9.0

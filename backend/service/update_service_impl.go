@@ -262,13 +262,47 @@ func (u *UpdateServiceImpl) ApplyUpdate(updatePath string) error {
 }
 
 func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
-	// For macOS, the update is typically a .pkg or .dmg
-	// We'll open the installer and let the user complete the installation
-	log.Info().Msg("Opening macOS installer...")
+	// For macOS, the update is a .zip containing a .dmg file
+	// We need to extract the ZIP and open the DMG
+	log.Info().Msg("Extracting and opening macOS DMG...")
 
-	cmd := exec.Command("open", updatePath)
+	// Extract the ZIP file to a temporary directory
+	extractDir := filepath.Join(os.TempDir(), "scanoss-update-extract")
+	if err := os.MkdirAll(extractDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create extraction directory: %w", err)
+	}
+	defer os.RemoveAll(extractDir)
+
+	// Use unzip command to extract
+	cmd := exec.Command("unzip", "-o", updatePath, "-d", extractDir)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to extract ZIP: %w", err)
+	}
+
+	// Find the DMG file in the extracted directory
+	var dmgPath string
+	err := filepath.Walk(extractDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && strings.HasSuffix(strings.ToLower(info.Name()), ".dmg") {
+			dmgPath = path
+			return filepath.SkipAll
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to find DMG in ZIP: %w", err)
+	}
+
+	if dmgPath == "" {
+		return fmt.Errorf("no DMG file found in update ZIP")
+	}
+
+	// Open the DMG file
+	cmd = exec.Command("open", dmgPath)
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to open installer: %w", err)
+		return fmt.Errorf("failed to open DMG: %w", err)
 	}
 
 	// Quit the application to allow installation
@@ -292,12 +326,12 @@ func (u *UpdateServiceImpl) applyUpdateWindows(updatePath string) error {
 }
 
 func (u *UpdateServiceImpl) applyUpdateLinux(updatePath string) error {
-	// For Linux, we need to determine the update type (AppImage, .deb, etc.)
+	// For Linux, we support .zip and .deb packages
 	ext := filepath.Ext(updatePath)
 
 	switch ext {
-	case ".AppImage":
-		return u.applyAppImageUpdate(updatePath)
+	case ".zip":
+		return u.applyZipUpdate(updatePath)
 	case ".deb":
 		return u.applyDebUpdate(updatePath)
 	default:
@@ -305,8 +339,8 @@ func (u *UpdateServiceImpl) applyUpdateLinux(updatePath string) error {
 	}
 }
 
-func (u *UpdateServiceImpl) applyAppImageUpdate(updatePath string) error {
-	log.Info().Msg("Applying AppImage update...")
+func (u *UpdateServiceImpl) applyZipUpdate(updatePath string) error {
+	log.Info().Msg("Applying ZIP update...")
 
 	// Get the current executable path
 	currentExe, err := os.Executable()
@@ -314,9 +348,43 @@ func (u *UpdateServiceImpl) applyAppImageUpdate(updatePath string) error {
 		return fmt.Errorf("failed to get current executable: %w", err)
 	}
 
-	// Make the new AppImage executable
-	if err := os.Chmod(updatePath, 0o755); err != nil {
-		return fmt.Errorf("failed to make AppImage executable: %w", err)
+	// Extract the ZIP file to a temporary directory
+	extractDir := filepath.Join(os.TempDir(), "scanoss-update-extract")
+	if err := os.MkdirAll(extractDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create extraction directory: %w", err)
+	}
+	defer os.RemoveAll(extractDir)
+
+	// Use unzip command to extract
+	cmd := exec.Command("unzip", "-o", updatePath, "-d", extractDir)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to extract ZIP: %w", err)
+	}
+
+	// Find the binary in the extracted directory
+	var newBinaryPath string
+	err = filepath.Walk(extractDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		// Look for executable files that are not directories
+		if !info.IsDir() && (info.Mode()&0o111 != 0 || strings.Contains(info.Name(), "SCANOSS")) {
+			newBinaryPath = path
+			return filepath.SkipAll
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to find binary in ZIP: %w", err)
+	}
+
+	if newBinaryPath == "" {
+		return fmt.Errorf("no executable found in update ZIP")
+	}
+
+	// Make the new binary executable
+	if err := os.Chmod(newBinaryPath, 0o755); err != nil {
+		return fmt.Errorf("failed to make binary executable: %w", err)
 	}
 
 	// Replace the current executable
@@ -325,7 +393,7 @@ func (u *UpdateServiceImpl) applyAppImageUpdate(updatePath string) error {
 		return fmt.Errorf("failed to backup current executable: %w", err)
 	}
 
-	if err := os.Rename(updatePath, currentExe); err != nil {
+	if err := os.Rename(newBinaryPath, currentExe); err != nil {
 		// Restore backup on failure
 		os.Rename(backupPath, currentExe)
 		return fmt.Errorf("failed to replace executable: %w", err)
@@ -335,7 +403,7 @@ func (u *UpdateServiceImpl) applyAppImageUpdate(updatePath string) error {
 	os.Remove(backupPath)
 
 	// Restart the application
-	cmd := exec.Command(currentExe, os.Args[1:]...)
+	cmd = exec.Command(currentExe, os.Args[1:]...)
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to restart application after update: %w", err)
 	}
@@ -368,11 +436,11 @@ func (u *UpdateServiceImpl) GetCurrentVersion() string {
 func getAssetNameForPlatform() string {
 	switch runtime.GOOS {
 	case "darwin":
-		return "-Installer.pkg" // macOS .pkg installer
+		return "-mac.zip" // macOS DMG in a ZIP file
 	case "windows":
 		return "-Setup.exe" // Windows installer
 	case "linux":
-		return ".AppImage" // Linux AppImage
+		return "-linux.zip" // Linux binary in a ZIP file
 	default:
 		return ""
 	}

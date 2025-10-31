@@ -223,61 +223,6 @@ jobs:
         run: chmod +x "./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-linux"
         shell: bash
 
-      - name: Create AppImage
-        run: |
-          APP_VERSION=$(git tag --sort=-version:refname | head -n 1 | sed 's/^v//')
-
-          sudo add-apt-repository universe
-          sudo apt install libfuse2
-
-          # Create AppDir structure
-          mkdir -p AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/256x256/apps
-
-          # Copy binary
-          cp "./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-linux" "AppDir/usr/bin/scanoss-cc"
-          chmod +x "AppDir/usr/bin/scanoss-cc"
-
-          # Copy icon
-          cp build/assets/appicon.png "AppDir/usr/share/icons/hicolor/256x256/apps/scanoss-cc.png"
-          cp build/assets/appicon.png "AppDir/scanoss-cc.png"
-
-          # Create .desktop file
-          cat > AppDir/usr/share/applications/scanoss-cc.desktop << 'EOF'
-          [Desktop Entry]
-          Type=Application
-          Name=SCANOSS Code Compare
-          Comment=Open source code scanning and comparison tool
-          Exec=scanoss-cc
-          Icon=scanoss-cc
-          Categories=Development;
-          Terminal=false
-          EOF
-
-          # Create AppRun
-          cat > AppDir/AppRun << 'EOF'
-          #!/bin/bash
-          SELF=$(readlink -f "$0")
-          HERE=${SELF%/*}
-          export PATH="${HERE}/usr/bin/:${PATH}"
-          export LD_LIBRARY_PATH="${HERE}/usr/lib/:${LD_LIBRARY_PATH}"
-          exec "${HERE}/usr/bin/scanoss-cc" "$@"
-          EOF
-          chmod +x AppDir/AppRun
-
-          # Download appimagetool
-          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool-x86_64.AppImage
-
-          # Build AppImage
-          ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir "${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-x86_64.AppImage"
-        shell: bash
-
-      - name: Upload AppImage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifact_l_appimage
-          path: ./${{ env.ARTIFACT_NAME_PREFIX }}-*.AppImage
-
       - name: Create ZIP file
         run: |
           cd ./build/bin
@@ -336,7 +281,7 @@ jobs:
           choco install nsis -y
 
           makensis -DAPP_VERSION=$APP_VERSION build/windows/installer.nsi
-        shell: powershell
+        shell: bash
 
       - uses: actions/upload-artifact@v4
         with:
@@ -449,11 +394,6 @@ jobs:
         with:
           name: artifact_l
 
-      - name: Download artifact L AppImage
-        uses: actions/download-artifact@v4
-        with:
-          name: artifact_l_appimage
-
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -463,9 +403,6 @@ jobs:
           while IFS= read -r -d '' file; do
             release_files+=("$file")
           done < <(find . -name "*.zip" -print0)
-          while IFS= read -r -d '' file; do
-            release_files+=("$file")
-          done < <(find . -name "*.AppImage" -print0)
 
           # Create the release with all files
           gh release create "${{ github.ref_name }}" \

@@ -6,12 +6,10 @@ This guide provides detailed installation instructions for all supported platfor
 
 - [macOS](#macos)
   - [Homebrew](#homebrew-recommended)
-  - [PKG Installer](#pkg-installer)
   - [DMG](#dmg-manual-installation)
 - [Windows](#windows)
   - [NSIS Installer](#nsis-installer)
 - [Linux](#linux)
-  - [AppImage](#appimage-recommended)
   - [Distribution Packages](#distribution-packages)
 - [Troubleshooting](#troubleshooting)
 
@@ -39,32 +37,6 @@ brew install scanoss-code-compare
 **Verify Installation:**
 ```bash
 scanoss-cc --version
-```
-
-### PKG Installer
-
-The `.pkg` installer provides a native macOS installation experience with automatic CLI setup.
-
-1. Download `SCANOSS-Code-Compare-*-Installer.pkg` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
-2. Double-click the downloaded file
-3. Follow the installation wizard
-4. The app will be installed to `/Applications`
-5. A symlink will be automatically created at `/usr/local/bin/scanoss-cc`
-
-**What's Installed:**
-- Application: `/Applications/SCANOSS Code Compare.app`
-- CLI Symlink: `/usr/local/bin/scanoss-cc`
-
-**Verify Installation:**
-```bash
-scanoss-cc --version
-```
-
-**Uninstallation:**
-The PKG installer does not include an automatic uninstaller. To remove:
-```bash
-sudo rm -rf "/Applications/SCANOSS Code Compare.app"
-sudo rm /usr/local/bin/scanoss-cc
 ```
 
 ### DMG (Manual Installation)
@@ -131,34 +103,6 @@ scanoss-cc --version
 
 ## Linux
 
-### AppImage (Recommended)
-
-AppImage is a portable format that runs on most Linux distributions without installation.
-
-1. Download `SCANOSS-Code-Compare-*.AppImage` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
-
-2. Make it executable:
-```bash
-chmod +x SCANOSS-Code-Compare-*.AppImage
-```
-
-3. Run:
-```bash
-./SCANOSS-Code-Compare-*.AppImage
-```
-
-**Install to System** (Optional):
-```bash
-# Move to a location in PATH
-sudo mv SCANOSS-Code-Compare-*.AppImage /usr/local/bin/scanoss-cc
-
-# Now you can run from anywhere
-scanoss-cc
-```
-
-**Desktop Integration** (Optional):
-Use [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher) for automatic desktop integration.
-
 ### Distribution Packages
 
 #### Debian/Ubuntu (.deb)
@@ -206,7 +150,7 @@ Community-maintained AUR packages may be available. Check [AUR](https://aur.arch
 xattr -cr "/Applications/SCANOSS Code Compare.app"
 ```
 
-**Issue:** `scanoss-cc: command not found` after PKG installation
+**Issue:** `scanoss-cc: command not found`
 
 **Solution:** Make sure `/usr/local/bin` is in your PATH:
 ```bash
@@ -236,14 +180,6 @@ $env:Path -split ';' | Select-String SCANOSS
 **Solution:** The installer is signed, but SmartScreen may show a warning for new downloads. Click "More info" and then "Run anyway".
 
 ### Linux
-
-**Issue:** AppImage won't run on Ubuntu 24.04
-
-**Solution:** Ubuntu 24.04 ships with WebKit 4.1, but the AppImage expects 4.0. Create symlinks:
-```bash
-sudo ln -sf /usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.1.so.0 /usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.0.so.37
-sudo ln -sf /usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.1.so.0 /usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.0.so.18
-```
 
 **Issue:** Missing GTK/WebKit dependencies
 

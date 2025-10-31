@@ -34,12 +34,7 @@ brew install scanoss/dist/scanoss-code-compare
 ```
 The `scanoss-cc` command will be automatically available in your PATH.
 
-#### PKG Installer
-1. Download the `.pkg` installer from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
-2. Double-click to install
-3. The app will be installed to `/Applications` and `scanoss-cc` will be automatically added to your PATH
-
-#### DMG (Manual)
+#### DMG
 1. Download the `.dmg` file from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
 2. Open the DMG and drag the app to Applications
 3. See [INSTALL_MACOS.md](INSTALL_MACOS.md) for CLI setup instructions
@@ -53,24 +48,17 @@ The `scanoss-cc` command will be automatically available in your PATH.
 
 ### Linux
 
-#### AppImage (Recommended)
-1. Download the `.AppImage` file from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
-2. Make it executable and run:
+1. Download the `.zip` file from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
+2. Extract and run:
 ```bash
-chmod +x SCANOSS-Code-Compare-*.AppImage
-./SCANOSS-Code-Compare-*.AppImage
+unzip SCANOSS-Code-Compare-linux.zip
+./SCANOSS-Code-Compare-linux
 ```
 
 To add to PATH:
 ```bash
 # Move to a location in PATH
-sudo mv SCANOSS-Code-Compare-*.AppImage /usr/local/bin/scanoss-cc
-```
-
-#### Debian/Ubuntu (.deb)
-```bash
-# Download the .zip from releases, extract and install
-sudo dpkg -i path/to/scanoss-cc.deb
+sudo mv SCANOSS-Code-Compare-linux /usr/local/bin/scanoss-cc
 ```
 
 ### Verify Installation

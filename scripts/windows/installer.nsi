@@ -33,7 +33,7 @@ SilentInstall normal
 !insertmacro MUI_PAGE_DIRECTORY
 
 ; Custom page for PATH selection
-Page custom PathOptionsPage
+Page custom PathOptionsPage PathOptionsPageLeave
 
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH

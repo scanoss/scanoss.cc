@@ -7,6 +7,7 @@ toolchain go1.23.2
 // replace github.com/wailsapp/wails/v2 v2.9.1 => /home/ubuntu/go/pkg/mod
 
 require (
+	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-git/go-git/v5 v5.13.2
 	github.com/go-playground/validator v9.31.0+incompatible
@@ -19,7 +20,6 @@ require (
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect

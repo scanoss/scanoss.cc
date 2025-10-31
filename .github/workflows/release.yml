@@ -273,15 +273,23 @@ jobs:
           wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe" -windowsconsole
         shell: bash
 
+      - name: Install Scoop
+        run: |
+          irm get.scoop.sh -outfile 'install.ps1'
+          .\install.ps1 -RunAsAdmin
+        shell: powershell
+
+      - name: Install NSIS via Scoop
+        run: |
+          scoop bucket add extras
+          scoop install nsis
+        shell: powershell
+
       - name: Build NSIS Installer
         run: |
-          APP_VERSION=$(git tag --sort=-version:refname | head -n 1 | sed 's/^v//')
-          export APP_VERSION
-
-          choco install nsis -y
-
+          $APP_VERSION = (git tag --sort=-version:refname | Select-Object -First 1) -replace '^v', ''
           makensis -DAPP_VERSION=$APP_VERSION build/windows/installer.nsi
-        shell: bash
+        shell: powershell
 
       - uses: actions/upload-artifact@v4
         with:

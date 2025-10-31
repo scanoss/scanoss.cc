@@ -273,20 +273,20 @@ jobs:
           wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe" -windowsconsole
         shell: bash
 
-      - name: Install Scoop
+      - name: Install NSIS and Build Installer
         run: |
+          # Install Scoop
           irm get.scoop.sh -outfile 'install.ps1'
           .\install.ps1 -RunAsAdmin
-        shell: powershell
 
-      - name: Install NSIS via Scoop
-        run: |
+          # Add Scoop to PATH for this session
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","User") + ";" + [System.Environment]::GetEnvironmentVariable("Path","Machine")
+
+          # Install NSIS
           scoop bucket add extras
           scoop install nsis
-        shell: powershell
 
-      - name: Build NSIS Installer
-        run: |
+          # Build installer
           $APP_VERSION = (git tag --sort=-version:refname | Select-Object -First 1) -replace '^v', ''
           makensis -DAPP_VERSION=$APP_VERSION build/windows/installer.nsi
         shell: powershell

@@ -101,8 +101,9 @@ func run() error {
 	licenseService := service.NewLicenseServiceImpl(licenseRepository, scanossApiService)
 	scanService := service.NewScanServicePythonImpl()
 	treeService := service.NewTreeServiceImpl(resultService, scanossSettingsRepository)
+	updateService := service.NewUpdateService()
 
-	//Create application with options
+	// Create application with options
 	err = wails.Run(&options.App{
 		Title: "Scanoss Code Compare",
 		AssetServer: &assetserver.Options{
@@ -114,11 +115,12 @@ func run() error {
 			scanService.SetContext(ctx)
 			resultService.SetContext(ctx)
 			scanossApiService.SetContext(ctx)
+			updateService.SetContext(ctx)
 		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
 			return app.BeforeClose(ctx)
 		},
-		Bind: []interface{}{
+		Bind: []any{
 			app,
 			componentService,
 			fileService,
@@ -128,8 +130,9 @@ func run() error {
 			licenseService,
 			scanService,
 			treeService,
+			updateService,
 		},
-		EnumBind: []interface{}{
+		EnumBind: []any{
 			entities.AllShortcutActions,
 		},
 		Linux: &linux.Options{
@@ -144,7 +147,6 @@ func run() error {
 			},
 		},
 	})
-
 	if err != nil {
 		return fmt.Errorf("error: %v", err)
 	}

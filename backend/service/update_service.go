@@ -21,19 +21,28 @@
  * SOFTWARE.
  */
 
-package entities
+package service
 
-import "time"
+import (
+	"context"
 
-// Gets updated build time using -ldflags
-var AppVersion = ""
+	"github.com/scanoss/scanoss.cc/backend/entities"
+)
 
-// UpdateInfo contains information about an available update
-type UpdateInfo struct {
-	Version      string    `json:"version"`
-	DownloadURL  string    `json:"download_url"`
-	ReleaseNotes string    `json:"release_notes"`
-	PublishedAt  time.Time `json:"published_at"`
-	Size         int64     `json:"size"`
-	Available    bool      `json:"available"`
+// UpdateService handles checking for and applying application updates
+type UpdateService interface {
+	// CheckForUpdate checks if a new version is available
+	CheckForUpdate() (*entities.UpdateInfo, error)
+
+	// DownloadUpdate downloads the new version to a temporary location
+	DownloadUpdate(updateInfo *entities.UpdateInfo) (string, error)
+
+	// ApplyUpdate applies the downloaded update and restarts the application
+	ApplyUpdate(updatePath string) error
+
+	// GetCurrentVersion returns the current application version
+	GetCurrentVersion() string
+
+	// SetContext sets the context for the service
+	SetContext(ctx context.Context)
 }

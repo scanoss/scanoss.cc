@@ -49,9 +49,7 @@ jobs:
       # Build
       - name: Build App
         run: |
-          mkdir -p build
-          cp -r assets build/assets
-          cp assets/appicon.png build
+          make cp_assets
           wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal" -o "${{ env.ARTIFACT_NAME_PREFIX }}"
         shell: bash
 
@@ -134,10 +132,78 @@ jobs:
           echo "Verifying staple"
           stapler validate "$DMG_PATH"
 
+      - name: Create .pkg Installer
+        env:
+          APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
+        run: |
+          APP_VERSION=$(git tag --sort=-version:refname | head -n 1 | sed 's/^v//')
+          APP_PATH="build/bin/${{ env.ARTIFACT_NAME_PREFIX }}.app"
+
+          # Copy scripts to build directory
+          make cp_scripts
+
+          # Make scripts executable
+          chmod +x build/macos/scripts/preinstall
+          chmod +x build/macos/scripts/postinstall
+
+          # Create temporary directory for package root
+          mkdir -p pkg_root/Applications
+          cp -R "$APP_PATH" pkg_root/Applications/
+
+          # Build component package
+          pkgbuild --root pkg_root \
+            --scripts build/macos/scripts \
+            --identifier com.scanoss.code-compare \
+            --version "$APP_VERSION" \
+            --install-location / \
+            "dist/SCANOSS_Code_Compare.pkg"
+
+          # Build product package with distribution
+          productbuild --distribution build/macos/distribution.xml \
+            --resources build/macos \
+            --package-path dist \
+            --version "$APP_VERSION" \
+            "dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer.pkg"
+
+          # Sign the installer
+          echo "Signing .pkg installer"
+          productsign --sign "$APP_CERTIFICATE" \
+            "dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer.pkg" \
+            "dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer-signed.pkg"
+
+          # Replace unsigned with signed
+          mv "dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer-signed.pkg" \
+            "dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer.pkg"
+
+          # Clean up temporary component package
+          rm "dist/SCANOSS_Code_Compare.pkg"
+
+      - name: Notarize .pkg Installer
+        env:
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_ID: apple@scanoss.com
+          APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
+        run: |
+          APP_VERSION=$(git tag --sort=-version:refname | head -n 1 | sed 's/^v//')
+          PKG_PATH="dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer.pkg"
+
+          echo "Submitting .pkg for notarization"
+          xcrun notarytool submit "$PKG_PATH" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_DEVELOPER_ID" \
+            --wait
+
+          echo "Stapling notarization ticket to .pkg"
+          xcrun stapler staple "$PKG_PATH"
+
+          echo "Verifying .pkg staple"
+          xcrun stapler validate "$PKG_PATH"
+
       - name: Build Mac zip file
         shell: bash
         run: |
-          cd dist && zip "${{env.ARTIFACT_NAME_PREFIX}}-mac.zip" *.dmg
+          cd dist && zip "${{env.ARTIFACT_NAME_PREFIX}}-mac.zip" *.dmg *.pkg
 
       - name: Calculate ZIP SHA256
         run: |
@@ -217,9 +283,7 @@ jobs:
       # Build
       - name: Build App
         run: |
-          mkdir -p build/bin
-          cp -r assets build/assets
-          cp assets/appicon.png build
+          make cp_assets
           wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform linux/amd64 -o "${{ env.ARTIFACT_NAME_PREFIX }}-linux"
         shell: bash
 
@@ -229,10 +293,55 @@ jobs:
 
       - name: Create AppImage
         run: |
-          mkdir -p AppDir/usr/bin
-          cp "./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-linux" "AppDir/usr/bin/${{ env.ARTIFACT_NAME_PREFIX }}"
-          cp build/appicon.png AppDir/
-          cp -r build/assets AppDir/
+          APP_VERSION=$(git tag --sort=-version:refname | head -n 1 | sed 's/^v//')
+
+          # Create AppDir structure
+          mkdir -p AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/256x256/apps
+
+          # Copy binary
+          cp "./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-linux" "AppDir/usr/bin/scanoss-cc"
+          chmod +x "AppDir/usr/bin/scanoss-cc"
+
+          # Copy icon
+          cp build/assets/appicon.png "AppDir/usr/share/icons/hicolor/256x256/apps/scanoss-cc.png"
+          cp build/assets/appicon.png "AppDir/scanoss-cc.png"
+
+          # Create .desktop file
+          cat > AppDir/usr/share/applications/scanoss-cc.desktop << 'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=SCANOSS Code Compare
+          Comment=Open source code scanning and comparison tool
+          Exec=scanoss-cc
+          Icon=scanoss-cc
+          Categories=Development;
+          Terminal=false
+          EOF
+
+          # Create AppRun
+          cat > AppDir/AppRun << 'EOF'
+          #!/bin/bash
+          SELF=$(readlink -f "$0")
+          HERE=${SELF%/*}
+          export PATH="${HERE}/usr/bin/:${PATH}"
+          export LD_LIBRARY_PATH="${HERE}/usr/lib/:${LD_LIBRARY_PATH}"
+          exec "${HERE}/usr/bin/scanoss-cc" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+
+          # Download appimagetool
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+          # Build AppImage
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir "${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-x86_64.AppImage"
+        shell: bash
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact_l_appimage
+          path: ./${{ env.ARTIFACT_NAME_PREFIX }}-*.AppImage
 
       - name: Create ZIP file
         run: |
@@ -279,10 +388,20 @@ jobs:
       # Build
       - name: Build App
         run: |
-          mkdir -p build/bin
-          cp -r assets build/assets
-          cp assets/appicon.png build
+          make cp_assets
           wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe" -windowsconsole
+        shell: bash
+
+      - name: Install NSIS
+        run: |
+          choco install nsis -y
+        shell: powershell
+
+      - name: Build NSIS Installer
+        run: |
+          APP_VERSION=$(git tag --sort=-version:refname | head -n 1 | sed 's/^v//')
+          export APP_VERSION
+          makensis -DAPP_VERSION=$APP_VERSION build/windows/installer.nsi
         shell: bash
 
       - uses: actions/upload-artifact@v4
@@ -290,6 +409,7 @@ jobs:
           name: artifact_w_unsigned
           path: |
             build/bin/${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}*.exe
+            dist/${{ env.ARTIFACT_NAME_PREFIX }}-Setup.exe
 
   build_w_sign:
     name: "Sign with CodeSignTool"
@@ -313,7 +433,7 @@ jobs:
           echo "ARTIFACT_WIN_PATH=win_unsigned/$(basename "$WIN_BINARY_FILEPATH")" >> "$GITHUB_OUTPUT"
         shell: bash
 
-      - name: Sign Windows Artifact with CodeSignTool
+      - name: Sign Windows Executable with CodeSignTool
         uses: sslcom/esigner-codesign@develop
         env:
           ARTIFACT_WIN_PATH: ${{ steps.win-path-artifact.outputs.ARTIFACT_WIN_PATH }}
@@ -326,13 +446,48 @@ jobs:
           file_path: ${GITHUB_WORKSPACE}/${{ env.ARTIFACT_WIN_PATH }}
           output_path: ${GITHUB_WORKSPACE}
 
-      - name: zip file
+      - name: Find and Sign Windows Installer
+        id: sign-installer
+        run: |
+          # Find the installer
+          INSTALLER_PATH=$(find . -name "*-Setup.exe" -type f)
+          if [ -n "$INSTALLER_PATH" ]; then
+            echo "Found installer at: $INSTALLER_PATH"
+            mkdir -p win_installer
+            mv "$INSTALLER_PATH" win_installer/
+            echo "INSTALLER_FOUND=true" >> "$GITHUB_OUTPUT"
+            echo "INSTALLER_NAME=$(basename "$INSTALLER_PATH")" >> "$GITHUB_OUTPUT"
+          else
+            echo "No installer found"
+            echo "INSTALLER_FOUND=false" >> "$GITHUB_OUTPUT"
+          fi
+        shell: bash
+
+      - name: Sign Windows Installer with CodeSignTool
+        if: steps.sign-installer.outputs.INSTALLER_FOUND == 'true'
+        uses: sslcom/esigner-codesign@develop
+        with:
+          command: sign
+          username: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_ES_USERNAME}}
+          password: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_ES_PASSWORD}}
+          credential_id: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_CREDENTIAL_ID}}
+          totp_secret: ${{secrets.WINDOWS_CODE_SIGNING_TOOL_ES_TOTP_SECRET}}
+          file_path: ${GITHUB_WORKSPACE}/win_installer/${{ steps.sign-installer.outputs.INSTALLER_NAME }}
+          output_path: ${GITHUB_WORKSPACE}/win_installer
+
+      - name: zip files
         shell: bash
         run: |
           mkdir -p build/bin
           cd win_unsigned
-          # Create zip from the current directory
+          # Create zip with exe
           zip -j "../build/bin/${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-win.zip" "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe"
+
+          # Add installer to zip if it exists
+          if [ "${{ steps.sign-installer.outputs.INSTALLER_FOUND }}" == "true" ]; then
+            cd ../win_installer
+            zip -j "../build/bin/${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-win.zip" "${{ steps.sign-installer.outputs.INSTALLER_NAME }}"
+          fi
 
       - uses: actions/upload-artifact@v4
         with:
@@ -360,21 +515,28 @@ jobs:
         with:
           name: artifact_l
 
+      - name: Download artifact L AppImage
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact_l_appimage
+
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Create an array of zip files
-          zip_files=()
+          # Create an array of release files
+          release_files=()
           while IFS= read -r -d '' file; do
-            zip_files+=("$file")
+            release_files+=("$file")
           done < <(find . -name "*.zip" -print0)
+          while IFS= read -r -d '' file; do
+            release_files+=("$file")
+          done < <(find . -name "*.AppImage" -print0)
 
-          # Create the release with all zip files
+          # Create the release with all files
           gh release create "${{ github.ref_name }}" \
             --repo "${{ github.repository }}" \
             --generate-notes \
             --draft \
-            "${zip_files[@]}"
+            "${release_files[@]}"
         shell: bash
-

@@ -26,6 +26,9 @@
       }
     ],
     "remove": [
+      {
+        "purl": "pkg:github/streed/ml-notes"
+      }
     ],
     "replace": [
       {

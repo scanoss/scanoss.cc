@@ -19,6 +19,7 @@ OutFile "..\..\dist\${APP_NAME}-Setup.exe"
 InstallDir "$PROGRAMFILES64\${INSTALL_DIR_NAME}"
 InstallDirRegKey HKLM "Software\${INSTALL_DIR_NAME}" "Install_Dir"
 RequestExecutionLevel admin
+SilentInstall normal
 
 ; Modern UI Configuration
 !define MUI_ABORTWARNING

@@ -281,7 +281,7 @@ func (u *UpdateServiceImpl) applyUpdateWindows(updatePath string) error {
 	// We'll run the installer and exit the current application
 	log.Info().Msg("Running Windows installer...")
 
-	cmd := exec.Command(updatePath, "/silent") // Adjust flags based on your installer
+	cmd := exec.Command(updatePath, "/S") // Silent NSIS installation
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("failed to run installer: %w", err)
 	}

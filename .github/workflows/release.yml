@@ -132,78 +132,10 @@ jobs:
           echo "Verifying staple"
           stapler validate "$DMG_PATH"
 
-      - name: Create .pkg Installer
-        env:
-          APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
-        run: |
-          APP_VERSION=$(git tag --sort=-version:refname | head -n 1 | sed 's/^v//')
-          APP_PATH="build/bin/${{ env.ARTIFACT_NAME_PREFIX }}.app"
-
-          # Copy scripts to build directory
-          make cp_scripts
-
-          # Make scripts executable
-          chmod +x build/macos/scripts/preinstall
-          chmod +x build/macos/scripts/postinstall
-
-          # Create temporary directory for package root
-          mkdir -p pkg_root/Applications
-          cp -R "$APP_PATH" pkg_root/Applications/
-
-          # Build component package
-          pkgbuild --root pkg_root \
-            --scripts build/macos/scripts \
-            --identifier com.scanoss.code-compare \
-            --version "$APP_VERSION" \
-            --install-location / \
-            "dist/SCANOSS_Code_Compare.pkg"
-
-          # Build product package with distribution
-          productbuild --distribution build/macos/distribution.xml \
-            --resources build/macos \
-            --package-path dist \
-            --version "$APP_VERSION" \
-            "dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer.pkg"
-
-          # Sign the installer
-          echo "Signing .pkg installer"
-          productsign --sign "$APP_CERTIFICATE" \
-            "dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer.pkg" \
-            "dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer-signed.pkg"
-
-          # Replace unsigned with signed
-          mv "dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer-signed.pkg" \
-            "dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer.pkg"
-
-          # Clean up temporary component package
-          rm "dist/SCANOSS_Code_Compare.pkg"
-
-      - name: Notarize .pkg Installer
-        env:
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_ID: apple@scanoss.com
-          APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
-        run: |
-          APP_VERSION=$(git tag --sort=-version:refname | head -n 1 | sed 's/^v//')
-          PKG_PATH="dist/${{ env.ARTIFACT_NAME_PREFIX }}-${APP_VERSION}-Installer.pkg"
-
-          echo "Submitting .pkg for notarization"
-          xcrun notarytool submit "$PKG_PATH" \
-            --apple-id "$APPLE_ID" \
-            --password "$APPLE_PASSWORD" \
-            --team-id "$APPLE_DEVELOPER_ID" \
-            --wait
-
-          echo "Stapling notarization ticket to .pkg"
-          xcrun stapler staple "$PKG_PATH"
-
-          echo "Verifying .pkg staple"
-          xcrun stapler validate "$PKG_PATH"
-
       - name: Build Mac zip file
         shell: bash
         run: |
-          cd dist && zip "${{env.ARTIFACT_NAME_PREFIX}}-mac.zip" *.dmg *.pkg
+          cd dist && zip "${{env.ARTIFACT_NAME_PREFIX}}-mac.zip" *.dmg
 
       - name: Calculate ZIP SHA256
         run: |
@@ -294,6 +226,9 @@ jobs:
       - name: Create AppImage
         run: |
           APP_VERSION=$(git tag --sort=-version:refname | head -n 1 | sed 's/^v//')
+
+          sudo add-apt-repository universe
+          sudo apt install libfuse2
 
           # Create AppDir structure
           mkdir -p AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/icons/hicolor/256x256/apps
@@ -393,17 +328,15 @@ jobs:
           wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe" -windowsconsole
         shell: bash
 
-      - name: Install NSIS
-        run: |
-          choco install nsis -y
-        shell: powershell
-
       - name: Build NSIS Installer
         run: |
           APP_VERSION=$(git tag --sort=-version:refname | head -n 1 | sed 's/^v//')
           export APP_VERSION
+
+          choco install nsis -y
+
           makensis -DAPP_VERSION=$APP_VERSION build/windows/installer.nsi
-        shell: bash
+        shell: powershell
 
       - uses: actions/upload-artifact@v4
         with:

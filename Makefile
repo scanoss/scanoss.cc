@@ -7,7 +7,7 @@ FRONTEND_DIR = frontend
 ASSETS_DIR = assets
 APP_BUNDLE = "$(BUILD_DIR)/bin/$(APP_NAME).app"
 
-export GOTOOLCHAIN=go1.23.2
+export GOTOOLCHAIN=go1.23.0
 
 # HELP
 # This will output the help for each task

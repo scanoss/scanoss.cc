@@ -26,6 +26,7 @@ package service
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -37,6 +38,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
@@ -69,9 +71,10 @@ type githubRelease struct {
 	Body        string    `json:"body"`
 	PublishedAt time.Time `json:"published_at"`
 	Assets      []struct {
-		Name               string `json:"name"`
-		BrowserDownloadURL string `json:"browser_download_url"`
-		Size               int64  `json:"size"`
+		Name               string  `json:"name"`
+		BrowserDownloadURL string  `json:"browser_download_url"`
+		Size               int64   `json:"size"`
+		Digest             *string `json:"digest"` // SHA256 digest in format "sha256:hash"
 	} `json:"assets"`
 }
 
@@ -136,11 +139,22 @@ func (u *UpdateServiceImpl) CheckForUpdate() (*entities.UpdateInfo, error) {
 	assetName := getAssetNameForPlatform()
 	var downloadURL string
 	var size int64
+	var expectedSHA256 string
 
 	for _, asset := range release.Assets {
 		if strings.Contains(asset.Name, assetName) {
 			downloadURL = asset.BrowserDownloadURL
 			size = asset.Size
+
+			// Extract SHA256 digest from GitHub's automatic checksum
+			if asset.Digest != nil && *asset.Digest != "" {
+				// Digest format is "sha256:hash", extract just the hash
+				digest := *asset.Digest
+				expectedSHA256, _ = strings.CutPrefix(digest, "sha256:")
+				log.Info().Msgf("Found SHA256 digest for asset: %s", expectedSHA256)
+			} else {
+				log.Warn().Msg("No digest found for release asset - update download will fail verification")
+			}
 			break
 		}
 	}
@@ -152,12 +166,13 @@ func (u *UpdateServiceImpl) CheckForUpdate() (*entities.UpdateInfo, error) {
 	log.Info().Msgf("Update available: %s", latestVersion)
 
 	return &entities.UpdateInfo{
-		Version:      latestVersion,
-		DownloadURL:  downloadURL,
-		ReleaseNotes: release.Body,
-		PublishedAt:  release.PublishedAt,
-		Size:         size,
-		Available:    true,
+		Version:        latestVersion,
+		DownloadURL:    downloadURL,
+		ReleaseNotes:   release.Body,
+		PublishedAt:    release.PublishedAt,
+		Size:           size,
+		Available:      true,
+		ExpectedSHA256: expectedSHA256,
 	}, nil
 }
 
@@ -207,7 +222,25 @@ func (u *UpdateServiceImpl) DownloadUpdate(updateInfo *entities.UpdateInfo) (str
 		return "", fmt.Errorf("failed to save update: %w", err)
 	}
 
-	log.Info().Msgf("Downloaded %d bytes (SHA256: %x)", written, hash.Sum(nil))
+	// Compute actual checksum as hex string
+	actualChecksum := hex.EncodeToString(hash.Sum(nil))
+	log.Info().Msgf("Downloaded %d bytes (SHA256: %s)", written, actualChecksum)
+
+	// Verify checksum - this is mandatory for security
+	if updateInfo.ExpectedSHA256 == "" {
+		os.Remove(tmpPath)
+		return "", fmt.Errorf("no expected checksum available for verification - cannot safely install update")
+	}
+
+	expectedChecksum := strings.ToLower(strings.TrimSpace(updateInfo.ExpectedSHA256))
+	actualChecksumLower := strings.ToLower(actualChecksum)
+
+	if expectedChecksum != actualChecksumLower {
+		os.Remove(tmpPath)
+		return "", fmt.Errorf("checksum verification failed: expected %s, got %s", expectedChecksum, actualChecksumLower)
+	}
+
+	log.Info().Msg("Checksum verification passed successfully")
 
 	return tmpPath, nil
 }
@@ -303,7 +336,9 @@ func (u *UpdateServiceImpl) applyAppImageUpdate(updatePath string) error {
 
 	// Restart the application
 	cmd := exec.Command(currentExe, os.Args[1:]...)
-	cmd.Start()
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to restart application after update: %w", err)
+	}
 
 	// Quit the current instance
 	wailsruntime.Quit(u.ctx)
@@ -345,31 +380,13 @@ func getAssetNameForPlatform() string {
 
 // isVersionNewer compares two semantic versions
 func isVersionNewer(current, latest string) (bool, error) {
-	currentParts := strings.Split(current, ".")
-	latestParts := strings.Split(latest, ".")
-
-	// Pad to ensure same length
-	maxLen := len(currentParts)
-	if len(latestParts) > maxLen {
-		maxLen = len(latestParts)
+	currentVersion, err := semver.NewVersion(current)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse current version: %w", err)
 	}
-
-	for i := 0; i < maxLen; i++ {
-		var currentPart, latestPart int
-
-		if i < len(currentParts) {
-			fmt.Sscanf(currentParts[i], "%d", &currentPart)
-		}
-		if i < len(latestParts) {
-			fmt.Sscanf(latestParts[i], "%d", &latestPart)
-		}
-
-		if latestPart > currentPart {
-			return true, nil
-		} else if latestPart < currentPart {
-			return false, nil
-		}
+	latestVersion, err := semver.NewVersion(latest)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse latest version: %w", err)
 	}
-
-	return false, nil
+	return latestVersion.GreaterThan(currentVersion), nil
 }

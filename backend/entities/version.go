@@ -30,10 +30,11 @@ var AppVersion = ""
 
 // UpdateInfo contains information about an available update
 type UpdateInfo struct {
-	Version      string    `json:"version"`
-	DownloadURL  string    `json:"download_url"`
-	ReleaseNotes string    `json:"release_notes"`
-	PublishedAt  time.Time `json:"published_at"`
-	Size         int64     `json:"size"`
-	Available    bool      `json:"available"`
+	Version        string    `json:"version"`
+	DownloadURL    string    `json:"download_url"`
+	ReleaseNotes   string    `json:"release_notes"`
+	PublishedAt    time.Time `json:"published_at"`
+	Size           int64     `json:"size"`
+	Available      bool      `json:"available"`
+	ExpectedSHA256 string    `json:"expected_sha256,omitempty"` // Expected SHA256 checksum for verification
 }

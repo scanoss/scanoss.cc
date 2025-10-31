@@ -389,6 +389,7 @@ jobs:
       - name: Build App
         run: |
           make cp_assets
+          make cp_scripts
           wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe" -windowsconsole
         shell: bash
 

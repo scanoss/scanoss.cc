@@ -17,7 +17,7 @@ readonly NC='\033[0m'
 
 # Simple logging (don't rely on common.sh yet)
 log_info() {
-    echo -e "${GREEN}==>${NC} $1"
+    echo -e "${GREEN}==>${NC} $1" >&2
 }
 
 log_warn() {
@@ -63,11 +63,11 @@ is_git_bash_windows() {
 
 # Show banner
 show_banner() {
-    echo ""
+    echo "" >&2
     log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     log_info "  SCANOSS Code Compare - Universal Installer"
     log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
+    echo "" >&2
 }
 
 # Download and execute platform-specific installer
@@ -78,7 +78,7 @@ install_for_platform() {
         macos)
             log_info "Detected: macOS"
             log_info "Downloading macOS installer..."
-            echo ""
+            echo "" >&2
 
             # Download and execute macOS installer
             if command -v curl >/dev/null 2>&1; then
@@ -93,7 +93,7 @@ install_for_platform() {
         linux)
             log_info "Detected: Linux"
             log_info "Downloading Linux installer..."
-            echo ""
+            echo "" >&2
 
             # Download and execute Linux installer
             if command -v curl >/dev/null 2>&1; then
@@ -107,16 +107,16 @@ install_for_platform() {
 
         windows)
             log_error "Windows detected"
-            echo ""
+            echo "" >&2
             log_info "Please use the PowerShell installer for Windows:"
-            echo ""
-            echo "  1. Open PowerShell as Administrator"
-            echo "  2. Run:"
-            echo ""
-            echo "     irm https://raw.githubusercontent.com/$REPO/main/scripts/install-windows.ps1 | iex"
-            echo ""
+            echo "" >&2
+            echo "  1. Open PowerShell as Administrator" >&2
+            echo "  2. Run:" >&2
+            echo "" >&2
+            echo "     irm https://raw.githubusercontent.com/$REPO/main/scripts/install-windows.ps1 | iex" >&2
+            echo "" >&2
             log_warn "If you're in Git Bash, please switch to PowerShell"
-            echo ""
+            echo "" >&2
             exit 1
             ;;
 

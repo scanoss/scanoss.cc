@@ -13,7 +13,7 @@ readonly NC='\033[0m' # No Color
 
 # Logging functions
 log_info() {
-    echo -e "${GREEN}==>${NC} $1"
+    echo -e "${GREEN}==>${NC} $1" >&2
 }
 
 log_warn() {
@@ -147,13 +147,12 @@ verify_checksum() {
 }
 
 # Create temporary directory and set trap for cleanup
+# NOTE: The caller should set up the cleanup trap after calling this function
+# Example: temp_dir=$(setup_temp_dir) && trap "cleanup_temp_dir '$temp_dir'" EXIT INT TERM
 setup_temp_dir() {
-    local temp_dir=$(mktemp -d -t scanoss-install.XXXXXXXXXX)
-
-    # Set trap to cleanup on exit
-    trap "cleanup_temp_dir '$temp_dir'" EXIT INT TERM
-
-    echo "$temp_dir"
+    # macOS and Linux have different mktemp behavior
+    # Use a portable approach that works on both
+    mktemp -d "${TMPDIR:-/tmp}/scanoss-install.XXXXXXXXXX"
 }
 
 # Cleanup temporary directory
@@ -228,20 +227,20 @@ get_latest_version() {
 
 # Show completion message
 show_completion() {
-    echo
+    echo >&2
     log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     log_info "✨ SCANOSS Code Compare has been successfully installed!"
     log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo
+    echo >&2
     log_info "Verify installation:"
-    echo "    scanoss-cc --version"
-    echo
+    echo "    scanoss-cc --version" >&2
+    echo >&2
     log_info "Get started:"
-    echo "    scanoss-cc --help"
-    echo
+    echo "    scanoss-cc --help" >&2
+    echo >&2
     log_info "Documentation:"
-    echo "    https://github.com/scanoss/scanoss.cc"
-    echo
+    echo "    https://github.com/scanoss/scanoss.cc" >&2
+    echo >&2
 }
 
 # Export functions for use in other scripts

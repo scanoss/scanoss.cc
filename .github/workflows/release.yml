@@ -95,13 +95,8 @@ jobs:
         run: |
           mkdir -p dist dmg_contents
           cp -R "build/bin/${{ env.ARTIFACT_NAME_PREFIX }}.app" dmg_contents/
-          cp INSTALL_MACOS.md "dmg_contents/Installation Guide.md"
           create-dmg \
             --volname "${{ env.ARTIFACT_NAME_PREFIX }} Installer" \
-            --window-size 600 400 \
-            --app-drop-link 450 200 \
-            --icon "${{ env.ARTIFACT_NAME_PREFIX }}.app" 150 200 \
-            --icon "Installation Guide.md" 300 200 \
             "dist/${{ env.ARTIFACT_NAME_PREFIX }}-$(git tag --sort=-version:refname | head -n 1).dmg" \
             dmg_contents/
           rm -rf dmg_contents

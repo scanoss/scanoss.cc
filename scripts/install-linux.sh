@@ -18,7 +18,7 @@ if [ -f "$SCRIPT_DIR/lib/common.sh" ]; then
     source "$SCRIPT_DIR/lib/github-api.sh"
 else
     # If running from curl, download the library
-    echo "Downloading installation libraries..."
+    echo "Downloading installation libraries..." >&2
     TEMP_LIB_DIR=$(mktemp -d)
     curl -fsSL "https://raw.githubusercontent.com/$REPO/main/scripts/lib/common.sh" -o "$TEMP_LIB_DIR/common.sh"
     curl -fsSL "https://raw.githubusercontent.com/$REPO/main/scripts/lib/github-api.sh" -o "$TEMP_LIB_DIR/github-api.sh"
@@ -49,7 +49,7 @@ install_dependencies() {
 
     log_info "Detected distribution: $distro"
     log_info "Installing dependencies..."
-    echo
+    echo >&2
 
     case "$distro" in
         ubuntu|debian|pop|linuxmint)
@@ -87,14 +87,14 @@ install_dependencies() {
             log_warn "Required packages:"
             log_warn "  - GTK 3.0"
             log_warn "  - WebKit2GTK 4.0"
-            echo
+            echo >&2
             if ! confirm "Continue anyway?" "y"; then
                 abort "Installation cancelled"
             fi
             ;;
     esac
 
-    echo
+    echo >&2
     log_info "✓ Dependencies installed"
 }
 
@@ -134,7 +134,7 @@ install_linux() {
     log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     log_info "  SCANOSS Code Compare - Linux Installation"
     log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo
+    echo >&2
 
     # Check if running on Linux
     if [ "$(uname -s)" != "Linux" ]; then
@@ -149,17 +149,18 @@ install_linux() {
     fi
 
     # Install dependencies
-    echo
+    echo >&2
     if confirm "Install required dependencies (GTK3, WebKit2GTK)?" "y"; then
         install_dependencies
     else
         log_warn "Skipping dependency installation"
         log_warn "Application may not work without required libraries"
-        echo
+        echo >&2
     fi
 
     # Setup temporary directory
     local temp_dir=$(setup_temp_dir)
+    trap "cleanup_temp_dir '$temp_dir'" EXIT INT TERM
 
     # Get latest version
     local version=$(get_latest_version "$REPO")
@@ -167,7 +168,7 @@ install_linux() {
     # Download the Linux binary
     local zip_path="$temp_dir/$APP_NAME-linux.zip"
 
-    echo
+    echo >&2
     log_info "Downloading SCANOSS Code Compare v$version..."
     download_and_verify_asset "$version" "linux" "$zip_path"
 
@@ -197,16 +198,16 @@ install_linux() {
         install -m 755 "$binary_path" "$INSTALL_DIR/$APP_NAME"
     fi
 
-    echo
+    echo >&2
     log_info "✓ Binary installed successfully"
 
     # Offer to create desktop entry
-    echo
+    echo >&2
     if confirm "Create desktop application entry?" "y"; then
         create_desktop_entry
     fi
 
-    echo
+    echo >&2
     log_info "✓ Installation complete!"
 }
 
@@ -216,34 +217,34 @@ main() {
     show_completion
 
     # Verify installation
-    echo
+    echo >&2
     log_info "Verifying installation..."
     if command_exists "$APP_NAME"; then
         "$APP_NAME" --version || log_warn "Could not get version"
-        echo
+        echo >&2
         log_info "Installation verified successfully!"
     else
         log_warn "Command '$APP_NAME' not found in PATH"
         log_warn "You may need to:"
         log_warn "  1. Open a new terminal window"
         log_warn "  2. Check that $INSTALL_DIR is in your PATH"
-        echo
+        echo >&2
         log_info "To add to PATH, run:"
-        echo "    export PATH=\"$INSTALL_DIR:\$PATH\""
-        echo
+        echo "    export PATH=\"$INSTALL_DIR:\$PATH\"" >&2
+        echo >&2
         log_info "To make it permanent, add the above line to your ~/.bashrc or ~/.zshrc"
     fi
 
     # Show post-installation notes
-    echo
+    echo >&2
     log_info "Post-Installation Notes:"
-    echo
-    echo "  • GUI Mode: Launch from application menu or run: $APP_NAME"
-    echo "  • CLI Mode: Run with arguments: $APP_NAME --help"
-    echo
-    echo "  • The app requires GTK3 and WebKit2GTK to display GUI dialogs"
-    echo "  • If you experience issues, ensure dependencies are installed"
-    echo
+    echo >&2
+    echo "  • GUI Mode: Launch from application menu or run: $APP_NAME" >&2
+    echo "  • CLI Mode: Run with arguments: $APP_NAME --help" >&2
+    echo >&2
+    echo "  • The app requires GTK3 and WebKit2GTK to display GUI dialogs" >&2
+    echo "  • If you experience issues, ensure dependencies are installed" >&2
+    echo >&2
 }
 
 # Prevent partial execution

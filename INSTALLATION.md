@@ -160,12 +160,14 @@ If you prefer manual installation:
 
 **Installation Options:**
 
-**Option 1: Portable Use**
+### Option 1: Portable Use
+
 - Run directly from Downloads or any location
 - No installation required
 - Ideal for USB drives or temporary usage
 
-**Option 2: Install to Program Files (Recommended)**
+### Option 2: Install to Program Files (Recommended)
+
 ```powershell
 # In PowerShell (Run as Administrator)
 New-Item -Path "C:\Program Files\SCANOSS" -ItemType Directory -Force
@@ -311,7 +313,7 @@ $env:Path -split ';' | Select-String SCANOSS
 **Issue:** Application won't start or crashes immediately
 
 **Solution:** SCANOSS Code Compare requires WebView2 runtime. It's typically pre-installed on Windows 11, but Windows 10 users may need to install it:
-- Download from: https://developer.microsoft.com/en-us/microsoft-edge/webview2/
+- Download from: [Microsoft WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
 - Or the app will prompt to download it automatically on first launch
 
 ### Linux

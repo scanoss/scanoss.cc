@@ -1,5 +1,25 @@
 # SCANOSS Code Compare - Windows Installer
 # This script installs SCANOSS Code Compare on Windows
+#
+# Parameters:
+#   -InstallPath  : Installation directory (default: C:\Program Files\SCANOSS)
+#   -NoPath       : Skip adding to system PATH
+#   -NoShortcuts  : Skip creating Start Menu shortcuts
+#   -NoVerify     : Skip SHA256 checksum verification (not recommended)
+#   -Version      : Specific version to install (default: latest)
+#
+# Examples:
+#   # Standard installation
+#   .\install-windows.ps1
+#
+#   # Install without PATH modification
+#   .\install-windows.ps1 -NoPath
+#
+#   # Install specific version
+#   .\install-windows.ps1 -Version "0.9.0"
+#
+#   # Skip checksum verification (not recommended)
+#   .\install-windows.ps1 -NoVerify
 
 #Requires -Version 5.1
 
@@ -8,6 +28,7 @@ param(
     [string]$InstallPath = "$env:ProgramFiles\SCANOSS",
     [switch]$NoPath,
     [switch]$NoShortcuts,
+    [switch]$NoVerify,
     [string]$Version
 )
 
@@ -132,6 +153,41 @@ function Get-AssetUrl {
     catch {
         Write-Err "Failed to get asset URL: $_"
         throw
+    }
+}
+
+# Get checksum for a specific asset from SHA256SUMS file
+function Get-AssetChecksum {
+    param(
+        [string]$Version,
+        [string]$AssetName
+    )
+
+    Write-Debug-Info "Fetching checksum for: $AssetName"
+
+    $checksumsUrl = "https://github.com/$Script:Repo/releases/download/v$Version/SHA256SUMS"
+
+    try {
+        $checksums = (Invoke-WebRequest -Uri $checksumsUrl -UseBasicParsing -ErrorAction SilentlyContinue).Content
+
+        if ($checksums) {
+            # Parse the SHA256SUMS file (format: "hash  filename")
+            $lines = $checksums -split "`n"
+            foreach ($line in $lines) {
+                if ($line -match "^\s*([a-fA-F0-9]+)\s+.*$AssetName") {
+                    $checksum = $matches[1]
+                    Write-Debug-Info "Found checksum: $checksum"
+                    return $checksum
+                }
+            }
+        }
+
+        Write-Warn "No checksum file found for this release"
+        return $null
+    }
+    catch {
+        Write-Debug-Info "Failed to fetch checksums: $_"
+        return $null
     }
 }
 
@@ -264,10 +320,33 @@ function Install-ScanossCodeCompare {
         # Download
         $downloadUrl = Get-AssetUrl -Version $Version
         $zipPath = "$tempDir\$Script:AppName.zip"
+        $assetName = "$Script:AppName-win.zip"
 
         Get-FileWithProgress -Url $downloadUrl -OutputPath $zipPath
 
+        # Verify checksum (unless -NoVerify is set)
+        if (-not $NoVerify) {
+            Write-Host ""
+            $expectedChecksum = Get-AssetChecksum -Version $Version -AssetName $assetName
+
+            if ($expectedChecksum) {
+                if (-not (Test-Checksum -FilePath $zipPath -ExpectedHash $expectedChecksum)) {
+                    # Checksum failed - clean up and abort
+                    Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue
+                    throw "Checksum verification failed! The downloaded file may be corrupted or tampered with."
+                }
+            }
+            else {
+                Write-Warn "No checksum available for verification"
+                Write-Warn "Installation will proceed without checksum verification"
+            }
+        }
+        else {
+            Write-Warn "Checksum verification skipped (--NoVerify flag set)"
+        }
+
         # Extract
+        Write-Host ""
         Write-Info "Extracting..."
         Expand-Archive -Path $zipPath -DestinationPath $tempDir -Force
 

@@ -66,11 +66,17 @@ get_asset_checksum() {
     local checksums_url="https://github.com/$GITHUB_REPO/releases/download/v$version/SHA256SUMS"
     local checksum=""
 
+    # Temporarily disable errexit to handle missing checksums gracefully
+    set +e
+
     if command_exists curl; then
-        checksum=$(curl -fsSL "$checksums_url" 2>/dev/null | grep "$asset_name" | awk '{print $1}')
+        checksum=$(curl -sSL "$checksums_url" 2>/dev/null | grep "$asset_name" | awk '{print $1}')
     elif command_exists wget; then
         checksum=$(wget -qO- "$checksums_url" 2>/dev/null | grep "$asset_name" | awk '{print $1}')
     fi
+
+    # Restore errexit
+    set -e
 
     if [ -z "$checksum" ]; then
         log_warn "No checksum file found for this release"
@@ -86,18 +92,28 @@ get_asset_checksum() {
 version_exists() {
     local version="$1"
     local release_url="$GITHUB_API_URL/releases/tags/v$version"
+    local http_code=""
+
+    # Temporarily disable errexit to handle HTTP errors gracefully
+    set +e
 
     if command_exists curl; then
-        if curl -fsSL -o /dev/null -w "%{http_code}" "$release_url" | grep -q "200"; then
-            return 0
-        fi
+        # Get HTTP status code without failing on 4xx/5xx
+        http_code=$(curl -sSL -o /dev/null -w "%{http_code}" "$release_url" 2>/dev/null)
     elif command_exists wget; then
-        if wget -q --spider "$release_url" 2>&1 | grep -q "200"; then
-            return 0
-        fi
+        # Get HTTP status code from wget
+        http_code=$(wget --spider -S "$release_url" 2>&1 | grep "HTTP/" | tail -n 1 | awk '{print $2}')
     fi
 
-    return 1
+    # Restore errexit
+    set -e
+
+    # Check if we got a 200 response
+    if [ "$http_code" = "200" ]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 # List available versions
@@ -158,8 +174,8 @@ download_and_verify_asset() {
     download_file "$download_url" "$output_path"
 
     # Try to verify checksum
-    local expected_checksum=$(get_asset_checksum "$version" "$asset_name")
-    if [ -n "$expected_checksum" ]; then
+    local expected_checksum=""
+    if expected_checksum=$(get_asset_checksum "$version" "$asset_name" 2>/dev/null); then
         if ! verify_checksum "$output_path" "$expected_checksum"; then
             abort "Checksum verification failed! The downloaded file may be corrupted or tampered with."
         fi

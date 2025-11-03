@@ -24,7 +24,7 @@ else
     curl -fsSL "https://raw.githubusercontent.com/$REPO/main/scripts/lib/github-api.sh" -o "$TEMP_LIB_DIR/github-api.sh"
     source "$TEMP_LIB_DIR/common.sh"
     source "$TEMP_LIB_DIR/github-api.sh"
-    trap "rm -rf '$TEMP_LIB_DIR'" EXIT
+    trap 'rm -rf "$TEMP_LIB_DIR"' EXIT
 fi
 
 # Check if Homebrew is installed

@@ -41,10 +41,11 @@ The `scanoss-cc` command will be automatically available in your PATH.
 
 ### Windows
 
-#### Installer
-1. Download the `SCANOSS-Code-Compare-Setup.exe` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
-2. Run the installer
-3. During installation, check "Add scanoss-cc to PATH" to access the CLI from anywhere
+1. Download `scanoss-cc-win.zip` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
+2. Extract the ZIP file
+3. Run `scanoss-cc-windows.exe`
+
+See [INSTALLATION.md](INSTALLATION.md) for optional PATH setup and installation to Program Files.
 
 ### Linux
 

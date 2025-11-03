@@ -70,34 +70,44 @@ For more details, see [INSTALL_MACOS.md](INSTALL_MACOS.md).
 
 ## Windows
 
-### NSIS Installer
+### Standalone Executable
 
-The NSIS installer provides a traditional Windows installation experience with customizable options.
+SCANOSS Code Compare for Windows is distributed as a portable, standalone executable.
 
-1. Download `SCANOSS-Code-Compare-Setup.exe` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
-2. Run the installer
-3. During installation:
-   - Choose installation directory (default: `C:\Program Files\SCANOSS`)
-   - ✅ **Check "Add scanoss-cc to PATH"** to enable CLI access from any command prompt
-4. Click Install
+1. Download `scanoss-cc-win.zip` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
+2. Extract the ZIP file
+3. Run `scanoss-cc-windows.exe`
 
-**What's Installed:**
-- Application files in `C:\Program Files\SCANOSS\`
-- Start Menu shortcuts
-- Desktop shortcut
-- Optional: Added to system PATH
+**Installation Options:**
 
-**Verify Installation:**
-Open a new Command Prompt or PowerShell window:
+**Option 1: Portable Use**
+- Run directly from Downloads or any location
+- No installation required
+- Ideal for USB drives or temporary usage
+
+**Option 2: Install to Program Files (Recommended)**
+```powershell
+# In PowerShell (Run as Administrator)
+New-Item -Path "C:\Program Files\SCANOSS" -ItemType Directory -Force
+Move-Item -Path ".\scanoss-cc-windows.exe" -Destination "C:\Program Files\SCANOSS\" -Force
+```
+
+**Add to PATH (Optional - for CLI access):**
+```powershell
+# In PowerShell (Run as Administrator)
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\SCANOSS", "Machine")
+```
+
+After adding to PATH, open a new terminal and verify:
 ```powershell
 scanoss-cc --version
 ```
 
-**Note:** You must open a new terminal window after installation for PATH changes to take effect.
+**Create Desktop Shortcut (Optional):**
+- Right-click `scanoss-cc-windows.exe` → Send to → Desktop (create shortcut)
 
 **Uninstallation:**
-- Use "Add or Remove Programs" in Windows Settings
-- Or run the uninstaller from the Start Menu
+- Simply delete the executable and any shortcuts you created
 
 ---
 
@@ -165,10 +175,10 @@ source ~/.zshrc
 
 ### Windows
 
-**Issue:** `scanoss-cc` not recognized after installer
+**Issue:** `scanoss-cc` not recognized in terminal
 
 **Solution:**
-1. Make sure you checked "Add to PATH" during installation
+1. Make sure you added the directory containing `scanoss-cc-windows.exe` to your PATH
 2. Open a new terminal window (PATH changes don't affect existing windows)
 3. Verify the installation directory is in your PATH:
 ```powershell
@@ -177,7 +187,13 @@ $env:Path -split ';' | Select-String SCANOSS
 
 **Issue:** Windows Defender SmartScreen warning
 
-**Solution:** The installer is signed, but SmartScreen may show a warning for new downloads. Click "More info" and then "Run anyway".
+**Solution:** The executable is code-signed, but SmartScreen may show a warning for new downloads. Click "More info" and then "Run anyway".
+
+**Issue:** Application won't start or crashes immediately
+
+**Solution:** SCANOSS Code Compare requires WebView2 runtime. It's typically pre-installed on Windows 11, but Windows 10 users may need to install it:
+- Download from: https://developer.microsoft.com/en-us/microsoft-edge/webview2/
+- Or the app will prompt to download it automatically on first launch
 
 ### Linux
 

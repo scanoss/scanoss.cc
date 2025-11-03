@@ -311,16 +311,71 @@ func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
 }
 
 func (u *UpdateServiceImpl) applyUpdateWindows(updatePath string) error {
-	// For Windows, the update is typically an .exe installer
-	// We'll run the installer and exit the current application
-	log.Info().Msg("Running Windows installer...")
+	// For Windows, the update is a ZIP file containing the new executable
+	log.Info().Msg("Applying Windows update from ZIP...")
 
-	cmd := exec.Command(updatePath, "/S") // Silent NSIS installation
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to run installer: %w", err)
+	// Get the current executable path
+	currentExe, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("failed to get current executable: %w", err)
 	}
 
-	// Quit the application to allow installation
+	// Extract the ZIP file to a temporary directory
+	extractDir := filepath.Join(os.TempDir(), "scanoss-update-extract")
+	if err := os.MkdirAll(extractDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create extraction directory: %w", err)
+	}
+	defer os.RemoveAll(extractDir)
+
+	// Extract using PowerShell Expand-Archive (available on all modern Windows)
+	cmd := exec.Command("powershell", "-Command", fmt.Sprintf("Expand-Archive -Path '%s' -DestinationPath '%s' -Force", updatePath, extractDir))
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to extract ZIP: %w", err)
+	}
+
+	// Find the .exe file in the extracted directory
+	var newBinaryPath string
+	err = filepath.Walk(extractDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		// Look for .exe files
+		if !info.IsDir() && strings.HasSuffix(strings.ToLower(info.Name()), ".exe") {
+			newBinaryPath = path
+			return filepath.SkipAll
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to find executable in ZIP: %w", err)
+	}
+
+	if newBinaryPath == "" {
+		return fmt.Errorf("no executable found in update ZIP")
+	}
+
+	// Replace the current executable
+	backupPath := currentExe + ".old"
+	if err := os.Rename(currentExe, backupPath); err != nil {
+		return fmt.Errorf("failed to backup current executable: %w", err)
+	}
+
+	if err := os.Rename(newBinaryPath, currentExe); err != nil {
+		// Restore backup on failure
+		os.Rename(backupPath, currentExe)
+		return fmt.Errorf("failed to replace executable: %w", err)
+	}
+
+	// Remove backup
+	os.Remove(backupPath)
+
+	// Restart the application
+	cmd = exec.Command(currentExe, os.Args[1:]...)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to restart application after update: %w", err)
+	}
+
+	// Quit the current instance
 	wailsruntime.Quit(u.ctx)
 	return nil
 }
@@ -438,7 +493,7 @@ func getAssetNameForPlatform() string {
 	case "darwin":
 		return "-mac.zip" // macOS DMG in a ZIP file
 	case "windows":
-		return "-Setup.exe" // Windows installer
+		return "-win.zip" // Windows executable in a ZIP file
 	case "linux":
 		return "-linux.zip" // Linux binary in a ZIP file
 	default:

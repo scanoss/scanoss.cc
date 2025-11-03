@@ -59,10 +59,6 @@ cp_assets: ## Copy the necessary assets to the build folder
 	@mkdir -p $(BUILD_DIR)/assets
 	@cp $(ASSETS_DIR)/* $(BUILD_DIR)/assets
 
-cp_scripts: ## Copy the necessary scripts to the build folder
-	@echo "Copying scripts to build directory..."
-	@cp -R $(SCRIPTS_DIR)/* $(BUILD_DIR)/
-
 build: clean cp_assets  ## Build the application image for the current platform
 	@echo "Building application image..."
 	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)"

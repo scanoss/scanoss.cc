@@ -41,13 +41,11 @@ type ResultRepositoryJsonImpl struct {
 	pathIndex    map[string]entities.Result
 	lastModified time.Time
 	mutex        sync.RWMutex
-	watcher      entities.FileWatcher
 }
 
-func NewResultRepositoryJsonImpl(fr utils.FileReader, watcher entities.FileWatcher) (*ResultRepositoryJsonImpl, error) {
+func NewResultRepositoryJsonImpl(fr utils.FileReader) (*ResultRepositoryJsonImpl, error) {
 	repo := &ResultRepositoryJsonImpl{
-		fr:      fr,
-		watcher: watcher,
+		fr: fr,
 	}
 
 	// Initial cache load
@@ -56,41 +54,9 @@ func NewResultRepositoryJsonImpl(fr utils.FileReader, watcher entities.FileWatch
 		return repo, err
 	}
 
-	if watcher != nil {
-		repo.watcher = watcher
-		if err := watcher.Start(); err != nil {
-			log.Error().Err(err).Msg("Error starting results watcher")
-			return repo, err
-		}
-	}
-
 	config.GetInstance().RegisterListener(repo.onConfigChange)
 
 	return repo, nil
-}
-
-func NewResultRepositoryJsonImplWithWatcher(fr utils.FileReader) (*ResultRepositoryJsonImpl, error) {
-	resultPath := config.GetInstance().GetResultFilePath()
-	repo := &ResultRepositoryJsonImpl{
-		fr:        fr,
-		pathIndex: make(map[string]entities.Result),
-	}
-
-	watcher, err := entities.NewFsNotifyWatcher(resultPath, func() {
-		repo.mutex.Lock()
-		defer repo.mutex.Unlock()
-		if err := repo.refreshCache(); err != nil {
-			log.Error().Err(err).Msg("Error refreshing cache after file change")
-
-		}
-	})
-
-	if err != nil {
-		log.Error().Err(err).Msg("Error creating watcher")
-		return repo, err
-	}
-
-	return NewResultRepositoryJsonImpl(fr, watcher)
 }
 
 func (r *ResultRepositoryJsonImpl) onConfigChange(newCfg *config.Config) {
@@ -200,8 +166,4 @@ func (r *ResultRepositoryJsonImpl) GetResultByPath(path string) *entities.Result
 	}
 
 	return &result
-}
-
-func (r *ResultRepositoryJsonImpl) Close() error {
-	return r.watcher.Close()
 }

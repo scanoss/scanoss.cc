@@ -8,7 +8,6 @@ toolchain go1.23.2
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
-	github.com/fsnotify/fsnotify v1.7.0
 	github.com/go-git/go-git/v5 v5.13.2
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/rs/zerolog v1.33.0
@@ -22,6 +21,7 @@ require (
 require (
 	github.com/bep/debounce v1.2.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.6.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect

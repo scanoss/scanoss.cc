@@ -835,6 +835,7 @@ export namespace entities {
 	    published_at: any;
 	    size: number;
 	    available: boolean;
+	    expected_sha256?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new UpdateInfo(source);
@@ -848,6 +849,7 @@ export namespace entities {
 	        this.published_at = this.convertValues(source["published_at"], null);
 	        this.size = source["size"];
 	        this.available = source["available"];
+	        this.expected_sha256 = source["expected_sha256"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

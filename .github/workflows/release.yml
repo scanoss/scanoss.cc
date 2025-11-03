@@ -10,8 +10,7 @@ on:
 env:
   # Necessary for most environments as build failure can occur due to OOM issues
   NODE_OPTIONS: "--max-old-space-size=4096"
-  ARTIFACT_NAME_PREFIX: "SCANOSS Code Compare"
-  ARTIFACT_NAME_PREFIX_WINDOWS: "scanoss-cc"
+  ARTIFACT_NAME_PREFIX: "scanoss-cc"
   GOLANG_VERSION: "1.23"
   NODE_VERSION: "20.x"
 
@@ -269,13 +268,13 @@ jobs:
       - name: Build App
         run: |
           make cp_assets
-          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe" -windowsconsole
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX }}.exe" -windowsconsole
         shell: bash
 
       - uses: actions/upload-artifact@v4
         with:
           name: artifact_w_unsigned
-          path: build/bin/${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}*.exe
+          path: build/bin/${{ env.ARTIFACT_NAME_PREFIX }}.exe
 
   build_w_sign:
     name: "Sign with CodeSignTool"
@@ -293,7 +292,7 @@ jobs:
         id: win-path-artifact
         run: |
           # Use find to locate the exe file
-          WIN_BINARY_FILEPATH=$(find . -name "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe")
+          WIN_BINARY_FILEPATH=$(find . -name "${{ env.ARTIFACT_NAME_PREFIX }}.exe")
           mkdir -p win_unsigned
           mv "$WIN_BINARY_FILEPATH" win_unsigned/
           echo "ARTIFACT_WIN_PATH=win_unsigned/$(basename "$WIN_BINARY_FILEPATH")" >> "$GITHUB_OUTPUT"
@@ -318,7 +317,7 @@ jobs:
           mkdir -p build/bin
           cd win_unsigned
           # Create zip with signed exe
-          zip -j "../build/bin/${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-win.zip" "${{ env.ARTIFACT_NAME_PREFIX_WINDOWS }}-windows.exe"
+          zip -j "../build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-win.zip" "${{ env.ARTIFACT_NAME_PREFIX }}.exe"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -346,6 +345,14 @@ jobs:
         with:
           name: artifact_l
 
+      - name: Generate SHA256 Checksums
+        run: |
+          echo "Generating SHA256 checksums for all release files..."
+          find . -name "*.zip" -type f -exec sha256sum {} \; > SHA256SUMS
+          echo "SHA256SUMS file contents:"
+          cat SHA256SUMS
+        shell: bash
+
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -355,6 +362,9 @@ jobs:
           while IFS= read -r -d '' file; do
             release_files+=("$file")
           done < <(find . -name "*.zip" -print0)
+
+          # Add SHA256SUMS file to release
+          release_files+=("SHA256SUMS")
 
           # Create the release with all files
           gh release create "${{ github.ref_name }}" \

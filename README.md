@@ -24,43 +24,71 @@ SCANOSS Code Compare is a streamlined desktop application for managing open sour
 
 ## Installation
 
-Choose the installation method that works best for your platform:
+### Quick Install (Recommended)
 
-### macOS
+Install SCANOSS Code Compare with a single command:
 
-#### Homebrew (Recommended)
+**macOS / Linux:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install.sh | bash
+```
+
+**Windows (PowerShell as Administrator):**
+```powershell
+irm https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install-windows.ps1 | iex
+```
+
+### Security-Conscious Installation
+
+Download and inspect the script before running:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install.sh -o install.sh
+cat install.sh  # Review the script
+bash install.sh
+```
+
+### Alternative Installation Methods
+
+<details>
+<summary><b>macOS</b></summary>
+
+#### Homebrew
 ```bash
 brew install scanoss/dist/scanoss-code-compare
 ```
-The `scanoss-cc` command will be automatically available in your PATH.
 
-#### DMG
-1. Download the `.dmg` file from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
-2. Open the DMG and drag the app to Applications
-3. See [INSTALL_MACOS.md](INSTALL_MACOS.md) for CLI setup instructions
+#### Direct Download
+1. Download `scanoss-cc-mac.zip` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
+2. Extract and open the DMG
+3. Drag the app to Applications
 
-### Windows
+See [INSTALL_MACOS.md](INSTALL_MACOS.md) for detailed instructions.
+</details>
+
+<details>
+<summary><b>Windows</b></summary>
 
 1. Download `scanoss-cc-win.zip` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
 2. Extract the ZIP file
-3. Run `scanoss-cc-windows.exe`
+3. Run `scanoss-cc.exe`
 
-See [INSTALLATION.md](INSTALLATION.md) for optional PATH setup and installation to Program Files.
+See [INSTALLATION.md](INSTALLATION.md) for PATH setup and installation to Program Files.
+</details>
 
-### Linux
+<details>
+<summary><b>Linux</b></summary>
 
-1. Download the `.zip` file from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
+1. Download `scanoss-cc-linux.zip` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
 2. Extract and run:
 ```bash
-unzip SCANOSS-Code-Compare-linux.zip
-./SCANOSS-Code-Compare-linux
+unzip scanoss-cc-linux.zip
+chmod +x scanoss-cc-linux
+sudo mv scanoss-cc-linux /usr/local/bin/scanoss-cc
 ```
 
-To add to PATH:
-```bash
-# Move to a location in PATH
-sudo mv SCANOSS-Code-Compare-linux /usr/local/bin/scanoss-cc
-```
+See [INSTALLATION.md](INSTALLATION.md) for detailed instructions.
+</details>
 
 ### Verify Installation
 

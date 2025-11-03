@@ -423,7 +423,7 @@ func (u *UpdateServiceImpl) applyZipUpdate(updatePath string) error {
 			return err
 		}
 		// Look for executable files that are not directories
-		if !info.IsDir() && (info.Mode()&0o111 != 0 || strings.Contains(info.Name(), "SCANOSS")) {
+		if !info.IsDir() && (info.Mode()&0o111 != 0 || strings.Contains(info.Name(), "scanoss-cc")) {
 			newBinaryPath = path
 			return filepath.SkipAll
 		}

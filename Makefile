@@ -1,5 +1,5 @@
 VERSION=$(shell git tag --sort=-version:refname | head -n 1)
-APP_NAME = SCANOSS Code Compare
+APP_NAME = scanoss-cc
 BUILD_DIR = build
 DIST_DIR = dist
 SCRIPTS_DIR = scripts
@@ -58,6 +58,7 @@ cp_assets: ## Copy the necessary assets to the build folder
 	@echo "Copying assets to build directory..."
 	@mkdir -p $(BUILD_DIR)/assets
 	@cp $(ASSETS_DIR)/* $(BUILD_DIR)/assets
+	@cp $(ASSETS_DIR)/appicon.png $(BUILD_DIR)
 
 build: clean cp_assets  ## Build the application image for the current platform
 	@echo "Building application image..."

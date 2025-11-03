@@ -75,11 +75,10 @@ func run() error {
 	// Repositories
 	scanossSettingsRepository := repository.NewScanossSettingsJsonRepository(fr)
 	scanossSettingsRepository.Init()
-	resultRepository, err := repository.NewResultRepositoryJsonImplWithWatcher(fr)
+	resultRepository, err := repository.NewResultRepositoryJsonImpl(fr)
 	if err != nil {
 		return fmt.Errorf("error initializing results repository")
 	}
-	defer resultRepository.Close()
 	componentRepository := repository.NewJSONComponentRepository(fr, resultRepository)
 	fileRepository := repository.NewFileRepositoryImpl()
 	licenseRepository := repository.NewLicenseJsonRepository(fr)

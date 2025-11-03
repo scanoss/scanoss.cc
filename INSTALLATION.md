@@ -2,20 +2,81 @@
 
 This guide provides detailed installation instructions for all supported platforms and distribution methods.
 
+## Quick Install
+
+The fastest way to install SCANOSS Code Compare is with our installation scripts:
+
+### macOS / Linux
+```bash
+curl -fsSL https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install.sh | bash
+```
+
+### Windows (PowerShell as Administrator)
+```powershell
+irm https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install-windows.ps1 | iex
+```
+
+### Security-Conscious Installation
+
+If you prefer to review the installation script before running:
+
+```bash
+# Download the script
+curl -fsSL https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install.sh -o install.sh
+
+# Review it
+cat install.sh
+
+# Run it
+bash install.sh
+```
+
+The installation scripts automatically:
+- ✅ Download the latest version
+- ✅ Verify SHA256 checksums
+- ✅ Install dependencies (Linux)
+- ✅ Set up PATH configuration
+- ✅ Create shortcuts/desktop entries
+
+---
+
 ## Table of Contents
 
+- [Quick Install](#quick-install) ⬆️
 - [macOS](#macos)
+  - [Automated Installation Script](#automated-installation-script)
   - [Homebrew](#homebrew-recommended)
   - [DMG](#dmg-manual-installation)
 - [Windows](#windows)
-  - [NSIS Installer](#nsis-installer)
+  - [Automated Installation Script](#automated-installation-script-1)
+  - [Manual Installation](#manual-installation)
 - [Linux](#linux)
-  - [Distribution Packages](#distribution-packages)
+  - [Automated Installation Script](#automated-installation-script-2)
+  - [Manual Installation](#manual-installation-1)
 - [Troubleshooting](#troubleshooting)
 
 ---
 
 ## macOS
+
+### Automated Installation Script
+
+The installation script provides an interactive menu to choose between Homebrew (recommended) or direct DMG installation:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install-macos.sh | bash
+```
+
+**Options:**
+- **Homebrew installation** - Installs via Homebrew (will install Homebrew first if needed)
+- **Direct installation** - Downloads DMG, installs to /Applications, creates CLI symlink
+
+The script handles everything automatically, including:
+- Installing Homebrew (if chosen and not present)
+- Downloading and verifying the DMG
+- Installing the full .app bundle to /Applications
+- Creating `/usr/local/bin/scanoss-cc` symlink for CLI access
+- Clearing macOS quarantine attributes
 
 ### Homebrew (Recommended)
 
@@ -43,10 +104,11 @@ scanoss-cc --version
 
 The DMG provides a traditional drag-and-drop installation for macOS.
 
-1. Download `SCANOSS-Code-Compare-*.dmg` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
-2. Open the DMG file
-3. Drag "SCANOSS Code Compare.app" to the Applications folder
-4. Eject the DMG
+1. Download `scanoss-cc-mac.zip` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
+2. Extract the ZIP to get the DMG file
+3. Open the DMG file
+4. Drag "scanoss-cc.app" to the Applications folder
+5. Eject the DMG
 
 **Setting Up CLI Access:**
 
@@ -54,15 +116,16 @@ After installing via DMG, you need to manually set up CLI access. Choose one of 
 
 **Option 1: Symlink (Recommended)**
 ```bash
-sudo ln -s "/Applications/SCANOSS Code Compare.app/Contents/MacOS/SCANOSS Code Compare" /usr/local/bin/scanoss-cc
+sudo ln -s "/Applications/scanoss-cc.app/Contents/MacOS/scanoss-cc" /usr/local/bin/scanoss-cc
 ```
 
 **Option 2: Add to PATH**
 ```bash
-echo 'export PATH="/Applications/SCANOSS Code Compare.app/Contents/MacOS:$PATH"' >> ~/.zshrc
-echo 'alias scanoss-cc="/Applications/SCANOSS Code Compare.app/Contents/MacOS/SCANOSS Code Compare"' >> ~/.zshrc
+echo 'export PATH="/Applications/scanoss-cc.app/Contents/MacOS:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
+
+**Note:** The full .app bundle must be in /Applications for GUI features (like folder picker dialogs) to work properly due to macOS bundle path resolution.
 
 For more details, see [INSTALL_MACOS.md](INSTALL_MACOS.md).
 
@@ -70,13 +133,30 @@ For more details, see [INSTALL_MACOS.md](INSTALL_MACOS.md).
 
 ## Windows
 
-### Standalone Executable
+### Automated Installation Script
 
-SCANOSS Code Compare for Windows is distributed as a portable, standalone executable.
+The PowerShell installation script handles everything automatically:
+
+```powershell
+# Run PowerShell as Administrator, then:
+irm https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install-windows.ps1 | iex
+```
+
+The script automatically:
+- Downloads the latest version
+- Verifies SHA256 checksum
+- Installs to `C:\Program Files\SCANOSS`
+- Adds to system PATH
+- Creates Start Menu shortcut
+- Checks/installs WebView2 Runtime if needed
+
+### Manual Installation
+
+If you prefer manual installation:
 
 1. Download `scanoss-cc-win.zip` from the [releases page](https://github.com/scanoss/scanoss.cc/releases)
 2. Extract the ZIP file
-3. Run `scanoss-cc-windows.exe`
+3. Run `scanoss-cc.exe`
 
 **Installation Options:**
 
@@ -89,7 +169,7 @@ SCANOSS Code Compare for Windows is distributed as a portable, standalone execut
 ```powershell
 # In PowerShell (Run as Administrator)
 New-Item -Path "C:\Program Files\SCANOSS" -ItemType Directory -Force
-Move-Item -Path ".\scanoss-cc-windows.exe" -Destination "C:\Program Files\SCANOSS\" -Force
+Move-Item -Path ".\scanoss-cc.exe" -Destination "C:\Program Files\SCANOSS\" -Force
 ```
 
 **Add to PATH (Optional - for CLI access):**
@@ -113,39 +193,78 @@ scanoss-cc --version
 
 ## Linux
 
-### Distribution Packages
+### Automated Installation Script
 
-#### Debian/Ubuntu (.deb)
+The Linux installation script automatically detects your distribution and installs dependencies:
 
-1. Download the Linux ZIP file from [releases](https://github.com/scanoss/scanoss.cc/releases)
-2. Extract the ZIP
-3. Install dependencies:
+```bash
+curl -fsSL https://raw.githubusercontent.com/scanoss/scanoss.cc/main/scripts/install-linux.sh | bash
+```
+
+The script automatically:
+- Detects your Linux distribution
+- Installs required dependencies (GTK3, WebKit2GTK)
+- Downloads and verifies the latest version
+- Installs to `/usr/local/bin/scanoss-cc`
+- Optionally creates a desktop application entry
+
+**Supported distributions:**
+- Debian/Ubuntu (apt)
+- Fedora/RHEL/CentOS (dnf)
+- Arch/Manjaro (pacman)
+- openSUSE (zypper)
+
+### Manual Installation
+
+#### All Distributions
+
+1. Download `scanoss-cc-linux.zip` from [releases](https://github.com/scanoss/scanoss.cc/releases)
+2. Extract and install:
+
+```bash
+unzip scanoss-cc-linux.zip
+chmod +x scanoss-cc-linux
+sudo mv scanoss-cc-linux /usr/local/bin/scanoss-cc
+```
+
+3. Install dependencies based on your distribution:
+
+**Debian/Ubuntu:**
 ```bash
 sudo apt install libgtk-3-0 libwebkit2gtk-4.0-37
 ```
-4. The binary is ready to use
 
-Move to PATH:
-```bash
-sudo mv scanoss-cc /usr/local/bin/
-```
-
-#### Fedora/RHEL (.rpm)
-
-1. Download the Linux ZIP file from [releases](https://github.com/scanoss/scanoss.cc/releases)
-2. Extract the ZIP
-3. Install dependencies:
+**Fedora/RHEL:**
 ```bash
 sudo dnf install gtk3 webkit2gtk4.0
 ```
-4. Move to PATH:
+
+**Arch Linux:**
 ```bash
-sudo mv scanoss-cc /usr/local/bin/
+sudo pacman -S gtk3 webkit2gtk
 ```
 
-#### Arch Linux (AUR)
+**openSUSE:**
+```bash
+sudo zypper install gtk3 webkit2gtk3
+```
 
-Community-maintained AUR packages may be available. Check [AUR](https://aur.archlinux.org/) for `scanoss-code-compare`.
+#### Optional: Desktop Entry
+
+Create a desktop application entry for launching from your application menu:
+
+```bash
+cat > ~/.local/share/applications/scanoss-code-compare.desktop <<EOF
+[Desktop Entry]
+Name=SCANOSS Code Compare
+Comment=Open source code comparison and analysis tool
+Exec=/usr/local/bin/scanoss-cc
+Icon=code
+Terminal=false
+Type=Application
+Categories=Development;Utility;
+EOF
+```
 
 ---
 

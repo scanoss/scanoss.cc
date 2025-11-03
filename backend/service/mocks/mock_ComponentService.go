@@ -314,6 +314,62 @@ func (_c *MockComponentService_Redo_Call) RunAndReturn(run func() error) *MockCo
 	return _c
 }
 
+// SearchComponents provides a mock function with given fields: request
+func (_m *MockComponentService) SearchComponents(request entities.ComponentSearchRequest) (entities.ComponentSearchResponse, error) {
+	ret := _m.Called(request)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchComponents")
+	}
+
+	var r0 entities.ComponentSearchResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(entities.ComponentSearchRequest) (entities.ComponentSearchResponse, error)); ok {
+		return rf(request)
+	}
+	if rf, ok := ret.Get(0).(func(entities.ComponentSearchRequest) entities.ComponentSearchResponse); ok {
+		r0 = rf(request)
+	} else {
+		r0 = ret.Get(0).(entities.ComponentSearchResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(entities.ComponentSearchRequest) error); ok {
+		r1 = rf(request)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// MockComponentService_SearchComponents_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SearchComponents'
+type MockComponentService_SearchComponents_Call struct {
+	*mock.Call
+}
+
+// SearchComponents is a helper method to define mock.On call
+//   - request entities.ComponentSearchRequest
+func (_e *MockComponentService_Expecter) SearchComponents(request interface{}) *MockComponentService_SearchComponents_Call {
+	return &MockComponentService_SearchComponents_Call{Call: _e.mock.On("SearchComponents", request)}
+}
+
+func (_c *MockComponentService_SearchComponents_Call) Run(run func(request entities.ComponentSearchRequest)) *MockComponentService_SearchComponents_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(entities.ComponentSearchRequest))
+	})
+	return _c
+}
+
+func (_c *MockComponentService_SearchComponents_Call) Return(_a0 entities.ComponentSearchResponse, _a1 error) *MockComponentService_SearchComponents_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *MockComponentService_SearchComponents_Call) RunAndReturn(run func(entities.ComponentSearchRequest) (entities.ComponentSearchResponse, error)) *MockComponentService_SearchComponents_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Undo provides a mock function with given fields:
 func (_m *MockComponentService) Undo() error {
 	ret := _m.Called()

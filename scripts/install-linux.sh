@@ -1,0 +1,253 @@
+#!/bin/bash
+# SCANOSS Code Compare - Linux Installer
+# This script installs SCANOSS Code Compare on Linux
+
+set -e
+
+# Repository and app details
+readonly REPO="scanoss/scanoss.cc"
+readonly APP_NAME="scanoss-cc"
+readonly BINARY_NAME="$APP_NAME-linux"
+readonly INSTALL_DIR="/usr/local/bin"
+readonly DESKTOP_DIR="/usr/share/applications"
+
+# Source common functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/lib/common.sh" ]; then
+    source "$SCRIPT_DIR/lib/common.sh"
+    source "$SCRIPT_DIR/lib/github-api.sh"
+else
+    # If running from curl, download the library
+    echo "Downloading installation libraries..." >&2
+    TEMP_LIB_DIR=$(mktemp -d)
+    curl -fsSL "https://raw.githubusercontent.com/$REPO/main/scripts/lib/common.sh" -o "$TEMP_LIB_DIR/common.sh"
+    curl -fsSL "https://raw.githubusercontent.com/$REPO/main/scripts/lib/github-api.sh" -o "$TEMP_LIB_DIR/github-api.sh"
+    source "$TEMP_LIB_DIR/common.sh"
+    source "$TEMP_LIB_DIR/github-api.sh"
+    trap 'rm -rf "$TEMP_LIB_DIR"' EXIT
+fi
+
+# Detect Linux distribution
+detect_distro() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo "$ID"
+    elif [ -f /etc/debian_version ]; then
+        echo "debian"
+    elif [ -f /etc/fedora-release ]; then
+        echo "fedora"
+    elif [ -f /etc/arch-release ]; then
+        echo "arch"
+    else
+        echo "unknown"
+    fi
+}
+
+# Install dependencies based on distribution
+install_dependencies() {
+    local distro=$(detect_distro)
+
+    log_info "Detected distribution: $distro"
+    log_info "Installing dependencies..."
+    echo >&2
+
+    case "$distro" in
+        ubuntu|debian|pop|linuxmint)
+            log_info "Using apt package manager..."
+            sudo apt-get update
+            sudo apt-get install -y libgtk-3-0 libwebkit2gtk-4.0-37 || {
+                log_warn "Some dependencies may not be available"
+                log_warn "The application may still work"
+            }
+            ;;
+        fedora|rhel|centos)
+            log_info "Using dnf package manager..."
+            sudo dnf install -y gtk3 webkit2gtk4.0 || {
+                log_warn "Some dependencies may not be available"
+                log_warn "The application may still work"
+            }
+            ;;
+        arch|manjaro)
+            log_info "Using pacman package manager..."
+            sudo pacman -S --noconfirm gtk3 webkit2gtk || {
+                log_warn "Some dependencies may not be available"
+                log_warn "The application may still work"
+            }
+            ;;
+        opensuse*|sles)
+            log_info "Using zypper package manager..."
+            sudo zypper install -y gtk3 webkit2gtk3 || {
+                log_warn "Some dependencies may not be available"
+                log_warn "The application may still work"
+            }
+            ;;
+        *)
+            log_warn "Unknown distribution: $distro"
+            log_warn "You may need to manually install GTK3 and WebKit2GTK"
+            log_warn "Required packages:"
+            log_warn "  - GTK 3.0"
+            log_warn "  - WebKit2GTK 4.0"
+            echo >&2
+            if ! confirm "Continue anyway?" "y"; then
+                abort "Installation cancelled"
+            fi
+            ;;
+    esac
+
+    echo >&2
+    log_info "✓ Dependencies installed"
+}
+
+# Create desktop entry
+create_desktop_entry() {
+    local desktop_file="$DESKTOP_DIR/scanoss-code-compare.desktop"
+
+    log_info "Creating desktop entry..."
+
+    # Create desktop entry content
+    local desktop_content="[Desktop Entry]
+Name=SCANOSS Code Compare
+Comment=Open source code comparison and analysis tool
+Exec=$INSTALL_DIR/$APP_NAME
+Icon=code
+Terminal=false
+Type=Application
+Categories=Development;Utility;
+Keywords=scanoss;code;compare;analysis;
+StartupNotify=true
+"
+
+    # Write desktop entry (needs sudo)
+    echo "$desktop_content" | sudo tee "$desktop_file" > /dev/null
+    sudo chmod 644 "$desktop_file"
+
+    # Update desktop database
+    if command_exists update-desktop-database; then
+        sudo update-desktop-database "$DESKTOP_DIR" 2>/dev/null || true
+    fi
+
+    log_info "✓ Desktop entry created"
+}
+
+# Main installation logic
+install_linux() {
+    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    log_info "  SCANOSS Code Compare - Linux Installation"
+    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo >&2
+
+    # Check if running on Linux
+    if [ "$(uname -s)" != "Linux" ]; then
+        abort "This installer is for Linux only. Please use the appropriate installer for your platform."
+    fi
+
+    # Check if we need sudo
+    local need_sudo=false
+    if [ ! -w "$INSTALL_DIR" ]; then
+        need_sudo=true
+        log_info "Installation requires administrator privileges (sudo)"
+    fi
+
+    # Install dependencies
+    echo >&2
+    if confirm "Install required dependencies (GTK3, WebKit2GTK)?" "y"; then
+        install_dependencies
+    else
+        log_warn "Skipping dependency installation"
+        log_warn "Application may not work without required libraries"
+        echo >&2
+    fi
+
+    # Setup temporary directory
+    local temp_dir=$(setup_temp_dir)
+    trap 'cleanup_temp_dir "$temp_dir"' EXIT INT TERM
+
+    # Get latest version
+    local version=$(get_latest_version "$REPO")
+
+    # Download the Linux binary
+    local zip_path="$temp_dir/$APP_NAME-linux.zip"
+
+    echo >&2
+    log_info "Downloading SCANOSS Code Compare v$version..."
+    download_and_verify_asset "$version" "linux" "$zip_path"
+
+    # Extract the archive
+    log_info "Extracting..."
+    if command_exists unzip; then
+        unzip -q "$zip_path" -d "$temp_dir"
+    else
+        abort "unzip command not found. Please install unzip and try again."
+    fi
+
+    # Find the binary
+    local binary_path="$temp_dir/$BINARY_NAME"
+    if [ ! -f "$binary_path" ]; then
+        abort "Binary not found in archive: $BINARY_NAME"
+    fi
+
+    # Make it executable
+    chmod +x "$binary_path"
+
+    # Install to system
+    log_info "Installing to $INSTALL_DIR..."
+
+    if [ "$need_sudo" = true ]; then
+        sudo install -m 755 "$binary_path" "$INSTALL_DIR/$APP_NAME"
+    else
+        install -m 755 "$binary_path" "$INSTALL_DIR/$APP_NAME"
+    fi
+
+    echo >&2
+    log_info "✓ Binary installed successfully"
+
+    # Offer to create desktop entry
+    echo >&2
+    if confirm "Create desktop application entry?" "y"; then
+        create_desktop_entry
+    fi
+
+    echo >&2
+    log_info "✓ Installation complete!"
+}
+
+# Main function
+main() {
+    install_linux
+    show_completion
+
+    # Verify installation
+    echo >&2
+    log_info "Verifying installation..."
+    if command_exists "$APP_NAME"; then
+        "$APP_NAME" --version || log_warn "Could not get version"
+        echo >&2
+        log_info "Installation verified successfully!"
+    else
+        log_warn "Command '$APP_NAME' not found in PATH"
+        log_warn "You may need to:"
+        log_warn "  1. Open a new terminal window"
+        log_warn "  2. Check that $INSTALL_DIR is in your PATH"
+        echo >&2
+        log_info "To add to PATH, run:"
+        echo "    export PATH=\"$INSTALL_DIR:\$PATH\"" >&2
+        echo >&2
+        log_info "To make it permanent, add the above line to your ~/.bashrc or ~/.zshrc"
+    fi
+
+    # Show post-installation notes
+    echo >&2
+    log_info "Post-Installation Notes:"
+    echo >&2
+    echo "  • GUI Mode: Launch from application menu or run: $APP_NAME" >&2
+    echo "  • CLI Mode: Run with arguments: $APP_NAME --help" >&2
+    echo >&2
+    echo "  • The app requires GTK3 and WebKit2GTK to display GUI dialogs" >&2
+    echo "  • If you experience issues, ensure dependencies are installed" >&2
+    echo >&2
+}
+
+# Prevent partial execution
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

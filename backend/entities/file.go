@@ -24,8 +24,6 @@
 package entities
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"errors"
 	"path/filepath"
 	"strings"
@@ -92,11 +90,6 @@ func (f *File) GetAbsolutePath() string {
 
 func (f *File) GetContent() []byte {
 	return f.content
-}
-
-func (f *File) GetMD5Sum() string {
-	hash := md5.Sum(f.content)
-	return hex.EncodeToString(hash[:])
 }
 
 func (f *File) GetLanguage() string {

@@ -1,0 +1,8 @@
+# Ensure shell scripts always use LF line endings
+*.sh text eol=lf
+
+# Ensure PowerShell scripts always use CRLF line endings
+*.ps1 text eol=crlf
+
+# Auto-detect text files and normalize line endings to LF in repository
+* text=auto

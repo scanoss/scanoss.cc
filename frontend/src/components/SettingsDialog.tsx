@@ -24,7 +24,6 @@
 import { useMemo, useState } from 'react';
 
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { SETTINGS_OPTIONS } from '@/lib/settings';
 
 import SettingsSidebar from './SettingsSidebar';
@@ -52,9 +51,7 @@ export default function SettingsDialog({ open, onOpenChange }: SettingsDialogPro
               <span className="text-sm">{activeSettingTitle}</span>
             </div>
             <div className="flex-1 overflow-hidden">
-              <ScrollArea className="h-full">
-                <div className="h-full p-4">{activeSettingComponent}</div>
-              </ScrollArea>
+              <div className="h-full p-4">{activeSettingComponent}</div>
             </div>
           </div>
         </div>

@@ -281,6 +281,7 @@ jobs:
         run: |
           APP_VERSION=$(git tag --sort=-version:refname | head -n 1)
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+        shell: bash
 
       - name: Build App
         run: |

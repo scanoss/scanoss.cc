@@ -141,6 +141,12 @@ install_linux() {
         abort "This installer is for Linux only. Please use the appropriate installer for your platform."
     fi
 
+    # Detect non-interactive mode
+    if [ ! -t 0 ]; then
+        log_info "Running in non-interactive mode (using default options)"
+        echo >&2
+    fi
+
     # Check if we need sudo
     local need_sudo=false
     if [ ! -w "$INSTALL_DIR" ]; then

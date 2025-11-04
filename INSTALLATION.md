@@ -53,6 +53,7 @@ The installation scripts automatically:
 - [Linux](#linux)
   - [Automated Installation Script](#automated-installation-script-2)
   - [Manual Installation](#manual-installation-1)
+- [Uninstalling](#uninstalling)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -126,8 +127,6 @@ source ~/.zshrc
 ```
 
 **Note:** The full .app bundle must be in /Applications for GUI features (like folder picker dialogs) to work properly due to macOS bundle path resolution.
-
-For more details, see [INSTALL_MACOS.md](INSTALL_MACOS.md).
 
 ---
 
@@ -266,6 +265,109 @@ Terminal=false
 Type=Application
 Categories=Development;Utility;
 EOF
+```
+
+---
+
+## Uninstalling
+
+### macOS
+
+#### If Installed via Homebrew
+
+Simply use Homebrew's uninstall command:
+```bash
+brew uninstall scanoss-code-compare
+```
+
+This will remove the application and all associated files managed by Homebrew.
+
+#### If Installed via DMG or Automated Script
+
+1. **Remove the application:**
+   ```bash
+   sudo rm -rf /Applications/scanoss-cc.app
+   ```
+
+2. **Remove the CLI symlink:**
+   ```bash
+   sudo rm /usr/local/bin/scanoss-cc
+   ```
+
+3. **Remove configuration files (optional):**
+   ```bash
+   rm -rf ~/.scanoss/
+   ```
+
+   This directory contains your settings and scan history. Skip this step if you plan to reinstall later and want to preserve your configuration.
+
+### Windows
+
+1. **Remove the application folder:**
+   - Navigate to `C:\Program Files\SCANOSS\`
+   - Delete the entire `SCANOSS` folder
+   - You may need administrator privileges
+
+2. **Remove from System PATH:**
+
+   **Option A: Using System Properties (GUI)**
+   - Open System Properties (Win + Pause/Break or search "Environment Variables")
+   - Click "Environment Variables"
+   - Under "System variables", find and select "Path"
+   - Click "Edit"
+   - Find and remove the entry: `C:\Program Files\SCANOSS`
+   - Click "OK" on all dialogs
+
+   **Option B: Using PowerShell (as Administrator)**
+   ```powershell
+   $path = [Environment]::GetEnvironmentVariable("Path", "Machine")
+   $newPath = ($path.Split(';') | Where-Object { $_ -ne "C:\Program Files\SCANOSS" }) -join ';'
+   [Environment]::SetEnvironmentVariable("Path", $newPath, "Machine")
+   ```
+
+3. **Remove Start Menu shortcut:**
+   - Navigate to: `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\`
+   - Delete: `SCANOSS Code Compare.lnk`
+
+4. **Remove configuration files (optional):**
+   - Navigate to: `%USERPROFILE%\.scanoss\`
+   - Delete the entire `.scanoss` folder
+   - This contains your settings and scan history. Skip if you want to preserve your configuration.
+
+### Linux
+
+1. **Remove the binary:**
+   ```bash
+   sudo rm /usr/local/bin/scanoss-cc
+   ```
+
+2. **Remove desktop entry (if created):**
+   ```bash
+   rm ~/.local/share/applications/scanoss-code-compare.desktop
+   # Or if installed system-wide:
+   sudo rm /usr/share/applications/scanoss-code-compare.desktop
+   ```
+
+3. **Remove configuration files (optional):**
+   ```bash
+   rm -rf ~/.scanoss/
+   ```
+
+   This directory contains your settings and scan history. Skip this step if you plan to reinstall later and want to preserve your configuration.
+
+**Note:** System dependencies (GTK3, WebKit2GTK) are not removed as they may be used by other applications. If you want to remove them:
+```bash
+# Ubuntu/Debian
+sudo apt-get remove libgtk-3-0 libwebkit2gtk-4.0-37
+
+# Fedora/RHEL
+sudo dnf remove gtk3 webkit2gtk4.0
+
+# Arch/Manjaro
+sudo pacman -R gtk3 webkit2gtk
+
+# openSUSE
+sudo zypper remove gtk3 webkit2gtk3
 ```
 
 ---

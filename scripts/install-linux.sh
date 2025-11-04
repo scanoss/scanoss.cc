@@ -54,29 +54,29 @@ install_dependencies() {
     case "$distro" in
         ubuntu|debian|pop|linuxmint)
             log_info "Using apt package manager..."
-            sudo apt-get update
-            sudo apt-get install -y libgtk-3-0 libwebkit2gtk-4.0-37 || {
+            $SUDO apt-get update
+            $SUDO apt-get install -y libgtk-3-0 libwebkit2gtk-4.0-37 || {
                 log_warn "Some dependencies may not be available"
                 log_warn "The application may still work"
             }
             ;;
         fedora|rhel|centos)
             log_info "Using dnf package manager..."
-            sudo dnf install -y gtk3 webkit2gtk4.0 || {
+            $SUDO dnf install -y gtk3 webkit2gtk4.0 || {
                 log_warn "Some dependencies may not be available"
                 log_warn "The application may still work"
             }
             ;;
         arch|manjaro)
             log_info "Using pacman package manager..."
-            sudo pacman -S --noconfirm gtk3 webkit2gtk || {
+            $SUDO pacman -S --noconfirm gtk3 webkit2gtk || {
                 log_warn "Some dependencies may not be available"
                 log_warn "The application may still work"
             }
             ;;
         opensuse*|sles)
             log_info "Using zypper package manager..."
-            sudo zypper install -y gtk3 webkit2gtk3 || {
+            $SUDO zypper install -y gtk3 webkit2gtk3 || {
                 log_warn "Some dependencies may not be available"
                 log_warn "The application may still work"
             }
@@ -87,47 +87,15 @@ install_dependencies() {
             log_warn "Required packages:"
             log_warn "  - GTK 3.0"
             log_warn "  - WebKit2GTK 4.0"
+            log_warn "Continuing with installation..."
             echo >&2
-            if ! confirm "Continue anyway?" "y"; then
-                abort "Installation cancelled"
-            fi
             ;;
     esac
 
     echo >&2
-    log_info "✓ Dependencies installed"
+    log_info "✓ Dependencies check complete"
 }
 
-# Create desktop entry
-create_desktop_entry() {
-    local desktop_file="$DESKTOP_DIR/scanoss-code-compare.desktop"
-
-    log_info "Creating desktop entry..."
-
-    # Create desktop entry content
-    local desktop_content="[Desktop Entry]
-Name=SCANOSS Code Compare
-Comment=Open source code comparison and analysis tool
-Exec=$INSTALL_DIR/$APP_NAME
-Icon=code
-Terminal=false
-Type=Application
-Categories=Development;Utility;
-Keywords=scanoss;code;compare;analysis;
-StartupNotify=true
-"
-
-    # Write desktop entry (needs sudo)
-    echo "$desktop_content" | sudo tee "$desktop_file" > /dev/null
-    sudo chmod 644 "$desktop_file"
-
-    # Update desktop database
-    if command_exists update-desktop-database; then
-        sudo update-desktop-database "$DESKTOP_DIR" 2>/dev/null || true
-    fi
-
-    log_info "✓ Desktop entry created"
-}
 
 # Main installation logic
 install_linux() {
@@ -141,28 +109,11 @@ install_linux() {
         abort "This installer is for Linux only. Please use the appropriate installer for your platform."
     fi
 
-    # Detect non-interactive mode
-    if [ ! -t 0 ]; then
-        log_info "Running in non-interactive mode (using default options)"
-        echo >&2
-    fi
-
-    # Check if we need sudo
-    local need_sudo=false
-    if [ ! -w "$INSTALL_DIR" ]; then
-        need_sudo=true
-        log_info "Installation requires administrator privileges (sudo)"
-    fi
-
-    # Install dependencies
+    setup_sudo
     echo >&2
-    if confirm "Install required dependencies (GTK3, WebKit2GTK)?" "y"; then
-        install_dependencies
-    else
-        log_warn "Skipping dependency installation"
-        log_warn "Application may not work without required libraries"
-        echo >&2
-    fi
+
+    # Install dependencies automatically
+    install_dependencies
 
     # Setup temporary directory
     local temp_dir=$(setup_temp_dir)
@@ -197,22 +148,10 @@ install_linux() {
 
     # Install to system
     log_info "Installing to $INSTALL_DIR..."
-
-    if [ "$need_sudo" = true ]; then
-        sudo install -m 755 "$binary_path" "$INSTALL_DIR/$APP_NAME"
-    else
-        install -m 755 "$binary_path" "$INSTALL_DIR/$APP_NAME"
-    fi
+    $SUDO install -m 755 "$binary_path" "$INSTALL_DIR/$APP_NAME"
 
     echo >&2
     log_info "✓ Binary installed successfully"
-
-    # Offer to create desktop entry
-    echo >&2
-    if confirm "Create desktop application entry?" "y"; then
-        create_desktop_entry
-    fi
-
     echo >&2
     log_info "✓ Installation complete!"
 }

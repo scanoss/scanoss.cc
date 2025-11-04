@@ -79,6 +79,29 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Sets the SUDO variable to use for privileged operations
+# Call this early in the script if you need elevated permissions
+setup_sudo() {
+    SUDO=""
+
+    # Check if already running as root
+    if [ "$(id -u)" -eq 0 ]; then
+        log_debug "Running as root, no sudo needed"
+        return 0
+    fi
+
+    # Not root, check if sudo is available
+    if ! command_exists sudo; then
+        log_error "This installation requires superuser permissions"
+        log_error "Please install 'sudo' or run this script as root"
+        abort "Installation failed: sudo not available"
+    fi
+
+    SUDO="sudo"
+    log_debug "Will use sudo for privileged operations"
+    return 0
+}
+
 # Download file with progress bar
 download_file() {
     local url="$1"
@@ -166,34 +189,16 @@ cleanup_temp_dir() {
 }
 
 # Confirm with user before proceeding
+# NOTE: This function now always returns the default for non-interactive installations
+# Kept for backward compatibility but effectively a no-op
 confirm() {
     local prompt="$1"
     local default="${2:-n}"
-    local response
 
-    # Check if running in non-interactive mode (stdin is not a terminal)
-    if [ ! -t 0 ]; then
-        # Non-interactive: use default value without prompting
-        response=$default
-    else
-        # Interactive mode: prompt user
-        if [ "$default" == "y" ]; then
-            prompt="$prompt [Y/n]: "
-        else
-            prompt="$prompt [y/N]: "
-        fi
+    # Always use default value for non-interactive curl | bash installations
+    log_debug "Using default value for: $prompt (default: $default)"
 
-        # Read from /dev/tty instead of stdin to avoid consuming piped script content
-        if [ -e /dev/tty ]; then
-            read -p "$prompt" response </dev/tty
-        else
-            # Fallback: if /dev/tty is not available, use default
-            response=$default
-        fi
-        response=${response:-$default}
-    fi
-
-    case "$response" in
+    case "$default" in
         [yY][eE][sS]|[yY])
             return 0
             ;;
@@ -204,12 +209,12 @@ confirm() {
 }
 
 # Check for required permissions
+# NOTE: This is now primarily informational - use setup_sudo() instead
 check_permissions() {
     local test_dir="$1"
 
     if [ ! -w "$test_dir" ]; then
-        log_error "No write permission for: $test_dir"
-        log_error "You may need to run this script with elevated permissions (sudo)"
+        log_debug "No write permission for: $test_dir (will use sudo)"
         return 1
     fi
 
@@ -260,7 +265,7 @@ show_completion() {
 # Export functions for use in other scripts
 export -f log_info log_warn log_error log_debug abort
 export -f detect_architecture detect_os command_exists
-export -f download_file verify_checksum
+export -f setup_sudo download_file verify_checksum
 export -f setup_temp_dir cleanup_temp_dir
 export -f confirm check_permissions
 export -f get_latest_version show_completion

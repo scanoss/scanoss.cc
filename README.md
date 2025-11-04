@@ -63,8 +63,7 @@ brew install scanoss/dist/scanoss-code-compare
 2. Extract and open the DMG
 3. Drag the app to Applications
 
-See [INSTALL_MACOS.md](INSTALL_MACOS.md) for detailed instructions.
-</details>
+See [INSTALLATION.md](INSTALLATION.md) for detailed instructions.
 
 <details>
 <summary><b>Windows</b></summary>
@@ -96,6 +95,10 @@ After installation, verify that the CLI is available:
 ```bash
 scanoss-cc --version
 ```
+
+### Uninstalling
+
+For complete uninstall instructions for all platforms, see [INSTALLATION.md](INSTALLATION.md#uninstalling).
 
 ### Auto-Updates
 

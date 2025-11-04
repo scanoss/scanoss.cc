@@ -27,74 +27,16 @@ else
     trap 'rm -rf "$TEMP_LIB_DIR"' EXIT
 fi
 
-# Check if Homebrew is installed
-check_homebrew() {
-    if command_exists brew; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Install via Homebrew
-install_via_homebrew() {
-    log_info "Installing via Homebrew..."
-    echo >&2
-
-    if ! check_homebrew; then
-        log_warn "Homebrew is not installed."
-        echo >&2
-        if confirm "Would you like to install Homebrew first?" "n"; then
-            log_info "Installing Homebrew..."
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || abort "Failed to install Homebrew"
-        else
-            log_error "Homebrew is required for this installation method."
-            return 1
-        fi
-    fi
-
-    log_info "Adding SCANOSS tap..."
-    brew tap scanoss/dist || log_warn "Tap might already exist"
-
-    log_info "Installing SCANOSS Code Compare..."
-    brew install scanoss-code-compare || abort "Failed to install via Homebrew"
-
-    echo >&2
-    log_info "✓ Installation complete via Homebrew!"
-    log_info "Homebrew will automatically keep SCANOSS Code Compare updated."
-    echo >&2
-
-    return 0
-}
 
 # Direct installation from DMG
 install_direct() {
-    log_info "Direct Installation"
+    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    log_info "  SCANOSS Code Compare - macOS Installation"
+    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo >&2
 
-    # Check if we have write permissions to /Applications and /usr/local/bin
-    local need_sudo=false
-    if [ ! -w "$INSTALL_DIR" ]; then
-        log_warn "No write permission to $INSTALL_DIR"
-        need_sudo=true
-    fi
-
-    # Check if /usr/local/bin exists and if we can write to it
-    if [ -d "$BIN_DIR" ] && [ ! -w "$BIN_DIR" ]; then
-        log_warn "No write permission to $BIN_DIR"
-        need_sudo=true
-    fi
-
-    if [ "$need_sudo" = true ]; then
-        log_error "This installation requires administrator privileges."
-        echo >&2
-        if confirm "Run installation with sudo?" "y"; then
-            # Re-run this script with sudo
-            exec sudo -E bash "$0" "$@"
-        else
-            abort "Installation cancelled"
-        fi
-    fi
+    setup_sudo
+    echo >&2
 
     # Setup temporary directory
     local temp_dir=$(setup_temp_dir)
@@ -152,12 +94,12 @@ install_direct() {
     # Remove existing installation if present
     if [ -d "$INSTALL_DIR/$APP_NAME.app" ]; then
         log_info "Removing existing installation..."
-        rm -rf "$INSTALL_DIR/$APP_NAME.app"
+        $SUDO rm -rf "$INSTALL_DIR/$APP_NAME.app"
     fi
 
     # Copy the app to Applications
     log_info "Installing to $INSTALL_DIR..."
-    cp -R "$app_path" "$INSTALL_DIR/"
+    $SUDO cp -R "$app_path" "$INSTALL_DIR/"
 
     # Unmount the DMG
     hdiutil detach "$mount_point" >/dev/null 2>&1
@@ -167,58 +109,30 @@ install_direct() {
 
     # Create bin directory if it doesn't exist
     if [ ! -d "$BIN_DIR" ]; then
-        sudo mkdir -p "$BIN_DIR" 2>/dev/null || mkdir -p "$BIN_DIR"
+        $SUDO mkdir -p "$BIN_DIR"
     fi
 
     # Remove existing symlink if present
     if [ -L "$BIN_DIR/$APP_NAME" ] || [ -f "$BIN_DIR/$APP_NAME" ]; then
-        sudo rm -f "$BIN_DIR/$APP_NAME" 2>/dev/null || rm -f "$BIN_DIR/$APP_NAME"
+        $SUDO rm -f "$BIN_DIR/$APP_NAME"
     fi
 
     # Create new symlink to the binary inside the .app bundle
-    if sudo ln -s "$INSTALL_DIR/$APP_NAME.app/Contents/MacOS/$APP_NAME" "$BIN_DIR/$APP_NAME" 2>/dev/null; then
-        log_info "Symlink created successfully"
-    elif ln -s "$INSTALL_DIR/$APP_NAME.app/Contents/MacOS/$APP_NAME" "$BIN_DIR/$APP_NAME" 2>/dev/null; then
-        log_info "Symlink created successfully"
-    else
-        log_warn "Failed to create symlink at $BIN_DIR/$APP_NAME"
-        log_warn "You can manually add to PATH or create the symlink later"
-    fi
+    $SUDO ln -s "$INSTALL_DIR/$APP_NAME.app/Contents/MacOS/$APP_NAME" "$BIN_DIR/$APP_NAME"
+    log_info "Symlink created successfully"
 
     # Set permissions
-    chmod +x "$INSTALL_DIR/$APP_NAME.app/Contents/MacOS/$APP_NAME"
+    $SUDO chmod +x "$INSTALL_DIR/$APP_NAME.app/Contents/MacOS/$APP_NAME"
 
     # Clear macOS quarantine attribute
     log_info "Clearing quarantine attributes..."
-    xattr -r -d com.apple.quarantine "$INSTALL_DIR/$APP_NAME.app" 2>/dev/null || true
+    $SUDO xattr -r -d com.apple.quarantine "$INSTALL_DIR/$APP_NAME.app" 2>/dev/null || true
 
     echo >&2
     log_info "✓ Installation complete!"
     echo >&2
 }
 
-# Show installation method selection
-show_installation_menu() {
-    echo >&2
-    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    log_info "  SCANOSS Code Compare - macOS Installation"
-    log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo >&2
-    echo "Choose installation method:" >&2
-    echo >&2
-    echo "  1) Homebrew (Recommended)" >&2
-    echo "     • Automatic updates" >&2
-    echo "     • Easy uninstallation" >&2
-    echo "     • Managed by package manager" >&2
-    echo >&2
-    echo "  2) Direct Installation" >&2
-    echo "     • Download and install DMG" >&2
-    echo "     • Manual updates" >&2
-    echo "     • Full app bundle in /Applications" >&2
-    echo >&2
-    echo "  3) Cancel" >&2
-    echo >&2
-}
 
 # Main installation logic
 main() {
@@ -234,57 +148,8 @@ main() {
         log_warn "This app is built for Intel (x86_64) and Apple Silicon (arm64)"
     fi
 
-    # If running non-interactively or with --homebrew flag, skip menu
-    if [ ! -t 0 ] || [ "$1" == "--homebrew" ]; then
-        log_info "Running in non-interactive mode (installing via Homebrew)"
-        echo >&2
-        install_via_homebrew
-        show_completion
-        return 0
-    fi
-
-    # If running with --direct flag, skip menu
-    if [ "$1" == "--direct" ]; then
-        install_direct
-        show_completion
-        return 0
-    fi
-
-    # Show menu
-    show_installation_menu
-
-    # Get user choice
-    local choice
-    while true; do
-        read -p "Enter your choice (1-3): " choice </dev/tty
-        case $choice in
-            1)
-                if install_via_homebrew; then
-                    break
-                else
-                    echo >&2
-                    log_error "Homebrew installation failed or was cancelled."
-                    if confirm "Try direct installation instead?" "y"; then
-                        install_direct
-                        break
-                    else
-                        abort "Installation cancelled"
-                    fi
-                fi
-                ;;
-            2)
-                install_direct
-                break
-                ;;
-            3)
-                log_info "Installation cancelled by user"
-                exit 0
-                ;;
-            *)
-                log_error "Invalid choice. Please enter 1, 2, or 3."
-                ;;
-        esac
-    done
+    # Always use direct installation
+    install_direct
 
     # Show completion message
     show_completion
@@ -294,16 +159,11 @@ main() {
     log_info "Verifying installation..."
     if command_exists "$APP_NAME"; then
         "$APP_NAME" --version || log_warn "Could not get version"
+        echo >&2
+        log_info "Installation verified successfully!"
     else
         log_warn "Command '$APP_NAME' not found in PATH"
         log_warn "You may need to open a new terminal window"
-    fi
-
-    # Offer to open the app
-    echo >&2
-    if confirm "Would you like to open SCANOSS Code Compare now?" "y"; then
-        log_info "Opening $APP_DISPLAY_NAME..."
-        open -a "$APP_NAME" 2>/dev/null || log_warn "Could not open app automatically"
     fi
 }
 

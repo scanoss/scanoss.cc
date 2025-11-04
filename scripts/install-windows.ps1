@@ -212,30 +212,25 @@ function Install-WebView2 {
     Write-Info "WebView2 Runtime is not installed."
     Write-Info "SCANOSS Code Compare requires WebView2 to function."
     Write-Host ""
+    Write-Info "Installing WebView2 Runtime automatically..."
 
-    $response = Read-Host "Download and install WebView2 Runtime? (Y/n)"
-    if ($response -match '^[Nn]') {
-        Write-Warn "Skipping WebView2 installation"
-        Write-Warn "The application may not work without it"
-        return
-    }
-
-    Write-Info "Downloading WebView2 Runtime..."
     $webView2Url = "https://go.microsoft.com/fwlink/p/?LinkId=2124703"
     $webView2Installer = "$env:TEMP\MicrosoftEdgeWebview2Setup.exe"
 
     try {
+        Write-Info "Downloading WebView2 Runtime..."
         (New-Object System.Net.WebClient).DownloadFile($webView2Url, $webView2Installer)
 
         Write-Info "Installing WebView2 Runtime..."
         Start-Process -FilePath $webView2Installer -ArgumentList "/silent", "/install" -Wait
 
         Remove-Item $webView2Installer -Force
-        Write-Info "WebView2 Runtime installed"
+        Write-Info "WebView2 Runtime installed successfully"
     }
     catch {
         Write-Err "Failed to install WebView2: $_"
         Write-Info "You can manually download it from: https://developer.microsoft.com/en-us/microsoft-edge/webview2/"
+        Write-Warn "The application may not work without WebView2"
     }
 }
 

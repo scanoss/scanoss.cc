@@ -64,6 +64,7 @@ brew install scanoss/dist/scanoss-code-compare
 3. Drag the app to Applications
 
 See [INSTALLATION.md](INSTALLATION.md) for detailed instructions.
+</details>
 
 <details>
 <summary><b>Windows</b></summary>

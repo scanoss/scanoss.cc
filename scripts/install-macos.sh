@@ -236,6 +236,8 @@ main() {
 
     # If running non-interactively or with --homebrew flag, skip menu
     if [ ! -t 0 ] || [ "$1" == "--homebrew" ]; then
+        log_info "Running in non-interactive mode (installing via Homebrew)"
+        echo >&2
         install_via_homebrew
         show_completion
         return 0
@@ -254,7 +256,7 @@ main() {
     # Get user choice
     local choice
     while true; do
-        read -p "Enter your choice (1-3): " choice
+        read -p "Enter your choice (1-3): " choice </dev/tty
         case $choice in
             1)
                 if install_via_homebrew; then

@@ -11,6 +11,7 @@ env:
   # Necessary for most environments as build failure can occur due to OOM issues
   NODE_OPTIONS: "--max-old-space-size=4096"
   ARTIFACT_NAME_PREFIX: "scanoss-cc"
+  APP_NAME: "SCANOSS Code Compare"
   GOLANG_VERSION: "1.23"
   NODE_VERSION: "20.x"
 
@@ -46,10 +47,15 @@ jobs:
         shell: bash
 
       # Build
+      - name: Set APP_VERSION
+        run: |
+          APP_VERSION=$(git tag --sort=-version:refname | head -n 1)
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+
       - name: Build App
         run: |
           make cp_assets
-          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "darwin/universal" -o "${{ env.ARTIFACT_NAME_PREFIX }}"
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=${{ env.APP_VERSION }}" --platform "darwin/universal" -o "${{ env.ARTIFACT_NAME_PREFIX }}"
         shell: bash
 
       # Make sure the .app exists
@@ -96,8 +102,14 @@ jobs:
           mkdir -p dist dmg_contents
           cp -R "build/bin/${{ env.ARTIFACT_NAME_PREFIX }}.app" dmg_contents/
           create-dmg \
-            --volname "${{ env.ARTIFACT_NAME_PREFIX }} Installer" \
-            "dist/${{ env.ARTIFACT_NAME_PREFIX }}-$(git tag --sort=-version:refname | head -n 1).dmg" \
+            --volname "${{ env.APP_NAME }} Installer" \
+            --window-pos 200 120 \
+            --window-size 800 400 \
+            --icon-size 100 \
+            --icon "${{ env.ARTIFACT_NAME_PREFIX }}.app" 200 190 \
+            --hide-extension "${{ env.ARTIFACT_NAME_PREFIX }}.app" \
+            --app-drop-link 600 185 \
+            "dist/${{ env.ARTIFACT_NAME_PREFIX }}-${{ env.APP_VERSION }}.dmg" \
             dmg_contents/
           rm -rf dmg_contents
 
@@ -108,7 +120,7 @@ jobs:
           APP_CERTIFICATE: ${{ secrets.MACOS_DEVELOPER_CERT_FULL_ID }}
           APPLE_DEVELOPER_ID: ${{ secrets.MACOS_DEVELOPER_CERT_ID }}
         run: |
-          DMG_PATH="dist/${{ env.ARTIFACT_NAME_PREFIX }}-$(git tag --sort=-version:refname | head -n 1).dmg"
+          DMG_PATH="dist/${{ env.ARTIFACT_NAME_PREFIX }}-${{ env.APP_VERSION }}.dmg"
 
           echo "Signing .dmg with Certificate"
           codesign --timestamp --deep --options runtime -s "$APP_CERTIFICATE" --force --verbose "$DMG_PATH"
@@ -149,7 +161,7 @@ jobs:
 
       - name: Update Cask Formula
         run: |
-          APP_VERSION=$(git tag --sort=-version:refname | head -n 1)
+          APP_VERSION=${{ env.APP_VERSION }}
           APP_VERSION=${APP_VERSION#v}  # Remove 'v' prefix if present
 
           sed -i '' \
@@ -207,10 +219,15 @@ jobs:
         shell: bash
 
       # Build
+      - name: Set APP_VERSION
+        run: |
+          APP_VERSION=$(git tag --sort=-version:refname | head -n 1)
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+
       - name: Build App
         run: |
           make cp_assets
-          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform linux/amd64 -o "${{ env.ARTIFACT_NAME_PREFIX }}-linux"
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=${{ env.APP_VERSION }}" --platform linux/amd64 -o "${{ env.ARTIFACT_NAME_PREFIX }}-linux"
         shell: bash
 
       - name: Make binary executable
@@ -260,10 +277,15 @@ jobs:
         shell: bash
 
       # Build
+      - name: Set APP_VERSION
+        run: |
+          APP_VERSION=$(git tag --sort=-version:refname | head -n 1)
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+
       - name: Build App
         run: |
           make cp_assets
-          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(git tag --sort=-version:refname | head -n 1)" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX }}.exe" -windowsconsole
+          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=${{ env.APP_VERSION }}" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX }}.exe" -windowsconsole
         shell: bash
 
       - uses: actions/upload-artifact@v4

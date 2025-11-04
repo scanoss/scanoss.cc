@@ -169,15 +169,29 @@ cleanup_temp_dir() {
 confirm() {
     local prompt="$1"
     local default="${2:-n}"
+    local response
 
-    if [ "$default" == "y" ]; then
-        prompt="$prompt [Y/n]: "
+    # Check if running in non-interactive mode (stdin is not a terminal)
+    if [ ! -t 0 ]; then
+        # Non-interactive: use default value without prompting
+        response=$default
     else
-        prompt="$prompt [y/N]: "
-    fi
+        # Interactive mode: prompt user
+        if [ "$default" == "y" ]; then
+            prompt="$prompt [Y/n]: "
+        else
+            prompt="$prompt [y/N]: "
+        fi
 
-    read -p "$prompt" response
-    response=${response:-$default}
+        # Read from /dev/tty instead of stdin to avoid consuming piped script content
+        if [ -e /dev/tty ]; then
+            read -p "$prompt" response </dev/tty
+        else
+            # Fallback: if /dev/tty is not available, use default
+            response=$default
+        fi
+        response=${response:-$default}
+    fi
 
     case "$response" in
         [yY][eE][sS]|[yY])

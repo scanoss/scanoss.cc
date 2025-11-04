@@ -104,22 +104,67 @@ install_direct() {
     # Unmount the DMG
     hdiutil detach "$mount_point" >/dev/null 2>&1
 
-    # Create symlink for CLI access
-    log_info "Creating command-line symlink..."
+    # Create wrapper script for CLI access
+    log_info "Creating command-line wrapper..."
 
     # Create bin directory if it doesn't exist
     if [ ! -d "$BIN_DIR" ]; then
         $SUDO mkdir -p "$BIN_DIR"
     fi
 
-    # Remove existing symlink if present
+    # Remove existing symlink or wrapper script if present
     if [ -L "$BIN_DIR/$APP_NAME" ] || [ -f "$BIN_DIR/$APP_NAME" ]; then
         $SUDO rm -f "$BIN_DIR/$APP_NAME"
     fi
 
-    # Create new symlink to the binary inside the .app bundle
-    $SUDO ln -s "$INSTALL_DIR/$APP_NAME.app/Contents/MacOS/$APP_NAME" "$BIN_DIR/$APP_NAME"
-    log_info "Symlink created successfully"
+    # Create wrapper script that launches the app with proper bundle context
+    # This ensures macOS GUI features (like file picker dialogs) work correctly
+    log_info "Creating wrapper script..."
+    WRAPPER_SCRIPT="$BIN_DIR/$APP_NAME"
+    $SUDO tee "$WRAPPER_SCRIPT" > /dev/null << 'EOF'
+#!/bin/bash
+
+APP_PATH="/Applications/scanoss-cc.app"
+CURRENT_DIR=$(pwd)
+
+# Handle version flag directly without launching GUI
+if [ "$1" = "--version" ] || [ "$1" = "-v" ]; then
+  exec "$APP_PATH/Contents/MacOS/scanoss-cc" "$@"
+  exit 0
+fi
+
+# If no arguments are provided, launch GUI application
+if [ "$#" -eq 0 ]; then
+  exec open -a "$APP_PATH"
+  exit 0
+fi
+
+# If the first argument starts with a dash, assume scanning options
+first_arg="$1"
+if [[ "$first_arg" == "-"* ]]; then
+  # Check if --scan-root is already provided
+  found=0
+  for arg in "$@"; do
+    if [ "$arg" = "--scan-root" ]; then
+      found=1
+      break
+    fi
+  done
+  if [ $found -eq 0 ]; then
+    # Add --scan-root with current directory if not present
+    exec open -a "$APP_PATH" --args --scan-root "$CURRENT_DIR" "$@"
+  else
+    exec open -a "$APP_PATH" --args "$@"
+  fi
+else
+  # Otherwise, assume subcommand mode and pass arguments as-is
+  exec open -a "$APP_PATH" --args "$@"
+fi
+EOF
+
+    # Make the wrapper script executable
+    $SUDO chmod +x "$WRAPPER_SCRIPT"
+    log_info "Wrapper script created successfully"
 
     # Set permissions
     $SUDO chmod +x "$INSTALL_DIR/$APP_NAME.app/Contents/MacOS/$APP_NAME"

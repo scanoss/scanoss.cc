@@ -154,7 +154,4 @@ main() {
     install_for_platform "$platform" "$@"
 }
 
-# Prevent partial execution if script is interrupted during download
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
-fi
+main "$@"

@@ -192,7 +192,4 @@ main() {
     echo >&2
 }
 
-# Prevent partial execution
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
-fi
+main "$@"

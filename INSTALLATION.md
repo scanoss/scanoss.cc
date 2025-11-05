@@ -246,7 +246,7 @@ sudo mv scanoss-cc-linux-amd64-webkit41 /usr/local/bin/scanoss-cc
 
 **Debian/Ubuntu (22.04 and older):**
 ```bash
-sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0
+sudo apt install libgtk-3-0 libwebkit2gtk-4.0-37
 ```
 
 **Debian/Ubuntu (24.04+ / Debian 13+):**

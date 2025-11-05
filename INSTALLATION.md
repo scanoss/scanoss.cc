@@ -217,22 +217,41 @@ The script automatically:
 
 ### Manual Installation
 
-#### All Distributions
+#### Choosing the Right Binary
 
-1. Download `scanoss-cc-linux.zip` from [releases](https://github.com/scanoss/scanoss.cc/releases)
+SCANOSS Code Compare provides two Linux binaries to support different WebKit versions:
+
+- **Ubuntu 24.04+ / Debian 13+**: Download `scanoss-cc-linux-amd64-webkit41.zip`
+- **All other systems**: Download `scanoss-cc-linux-amd64.zip`
+
+#### Installation Steps
+
+1. Download the appropriate binary for your system from [releases](https://github.com/scanoss/scanoss.cc/releases)
+
 2. Extract and install:
 
+**For Ubuntu 22.04 and older / Debian 12 and older:**
 ```bash
-unzip scanoss-cc-linux.zip
-chmod +x scanoss-cc-linux
-sudo mv scanoss-cc-linux /usr/local/bin/scanoss-cc
+unzip scanoss-cc-linux-amd64.zip
+sudo mv scanoss-cc-linux-amd64 /usr/local/bin/scanoss-cc
+```
+
+**For Ubuntu 24.04+ / Debian 13+:**
+```bash
+unzip scanoss-cc-linux-amd64-webkit41.zip
+sudo mv scanoss-cc-linux-amd64-webkit41 /usr/local/bin/scanoss-cc
 ```
 
 3. Install dependencies based on your distribution:
 
-**Debian/Ubuntu:**
+**Debian/Ubuntu (22.04 and older):**
 ```bash
-sudo apt install libgtk-3-0 libwebkit2gtk-4.0-37
+sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0
+```
+
+**Debian/Ubuntu (24.04+ / Debian 13+):**
+```bash
+sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0
 ```
 
 **Fedora/RHEL:**
@@ -422,10 +441,14 @@ $env:Path -split ';' | Select-String SCANOSS
 
 **Issue:** Missing GTK/WebKit dependencies
 
-**Solution:** Install required libraries:
+**Solution:** Install required libraries based on your OS version:
+
 ```bash
-# Debian/Ubuntu
+# Ubuntu 22.04 and older / Debian 12 and older
 sudo apt install libgtk-3-0 libwebkit2gtk-4.0-37
+
+# Ubuntu 24.04+ / Debian 13+
+sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0
 
 # Fedora
 sudo dnf install gtk3 webkit2gtk4.0

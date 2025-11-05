@@ -185,8 +185,21 @@ jobs:
             dist/*.zip
 
   build_linux:
-    name: Build for Linux
-    runs-on: ubuntu-22.04
+    name: Build for Linux (${{ matrix.variant }})
+    runs-on: ${{ matrix.runs_on }}
+    strategy:
+      matrix:
+        include:
+          - variant: webkit40
+            runs_on: ubuntu-22.04
+            build_target: build
+            output_suffix: linux-amd64
+            webkit_package: libwebkit2gtk-4.0-dev
+          - variant: webkit41
+            runs_on: ubuntu-24.04
+            build_target: build_webkit41
+            output_suffix: linux-amd64-webkit41
+            webkit_package: libwebkit2gtk-4.1-dev
 
     steps:
       - name: Checkout
@@ -215,7 +228,7 @@ jobs:
 
       # Install Linux Wails deps
       - name: Install Linux Wails deps
-        run: sudo apt-get update && sudo apt-get install libgtk-3-0 libwebkit2gtk-4.0-dev gcc-aarch64-linux-gnu
+        run: sudo apt-get update && sudo apt-get install libgtk-3-0 ${{ matrix.webkit_package }} gcc-aarch64-linux-gnu
         shell: bash
 
       # Build
@@ -226,25 +239,25 @@ jobs:
 
       - name: Build App
         run: |
-          make cp_assets
-          wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=${{ env.APP_VERSION }}" --platform linux/amd64 -o "${{ env.ARTIFACT_NAME_PREFIX }}-linux"
+          make ${{ matrix.build_target }}
+          mv build/bin/${{ env.ARTIFACT_NAME_PREFIX }} build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-${{ matrix.output_suffix }}
         shell: bash
 
       - name: Make binary executable
-        run: chmod +x "./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-linux"
+        run: chmod +x "./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-${{ matrix.output_suffix }}"
         shell: bash
 
       - name: Create ZIP file
         run: |
           cd ./build/bin
-          zip -r "${{ env.ARTIFACT_NAME_PREFIX }}-linux.zip" "${{ env.ARTIFACT_NAME_PREFIX }}-linux"
+          zip -r "${{ env.ARTIFACT_NAME_PREFIX }}-${{ matrix.output_suffix }}.zip" "${{ env.ARTIFACT_NAME_PREFIX }}-${{ matrix.output_suffix }}"
         shell: bash
 
       - name: Upload build assets
         uses: actions/upload-artifact@v4
         with:
-          name: artifact_l
-          path: ./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-linux.zip
+          name: artifact_l_${{ matrix.variant }}
+          path: ./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-${{ matrix.output_suffix }}.zip
 
   build_w:
     name: Build for Windows
@@ -358,10 +371,15 @@ jobs:
         with:
           name: artifact_m
 
-      - name: Download artifact L
+      - name: Download artifact L (webkit 4.0)
         uses: actions/download-artifact@v4
         with:
-          name: artifact_l
+          name: artifact_l_webkit40
+
+      - name: Download artifact L (webkit 4.1)
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact_l_webkit41
 
       - name: Generate SHA256 Checksums
         run: |

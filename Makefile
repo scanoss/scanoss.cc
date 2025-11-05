@@ -72,3 +72,7 @@ build_macos: clean cp_assets  ## Build the application image for macOS
 	@echo "Building application image for macOS..."
 	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" -platform darwin/universal -o "$(APP_NAME)"
 	@echo "Build completed. Result: $(APP_BUNDLE)"
+
+build_webkit41: clean cp_assets  ## Build the application image for Ubuntu 24.04+/Debian 13+ (webkit 4.1)
+	@echo "Building application image with webkit2_41 tags..."
+	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" -tags webkit2_41

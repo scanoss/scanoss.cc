@@ -120,8 +120,6 @@ func (a *App) initializeMenu() {
 	globalShortcuts := groupedShortcuts[entities.GroupGlobal]
 	viewShortcuts := groupedShortcuts[entities.GroupView]
 
-	AppMenu.Append(menu.EditMenu())
-
 	// Add custom global shortcuts to File menu
 	FileMenu := AppMenu.AddSubmenu("File")
 	for _, shortcut := range globalShortcuts {
@@ -167,6 +165,10 @@ func (a *App) initializeMenu() {
 	HelpMenu.AddText("Keyboard Shortcuts", keys.Combo("k", keys.ShiftKey, keys.CmdOrCtrlKey), func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionShowKeyboardShortcutsModal))
 	})
+
+	if env := runtime.Environment(a.ctx); env.Platform == "darwin" {
+		AppMenu.Append(menu.EditMenu())
+	}
 
 	runtime.MenuSetApplicationMenu(a.ctx, AppMenu)
 }

@@ -10,6 +10,7 @@ get_asset_url() {
     local version="$1"
     local platform="$2"  # macos, linux, windows
     local arch="${3:-amd64}"
+    local webkit="${4:-webkit40}"
 
     log_debug "Fetching asset URL for platform: $platform, arch: $arch, version: $version"
 
@@ -20,7 +21,7 @@ get_asset_url() {
             asset_pattern="scanoss-cc-mac.zip"
             ;;
         linux)
-            asset_pattern="scanoss-cc-linux.zip"
+            asset_pattern="scanoss-cc-linux-$arch-$webkit.zip"
             ;;
         windows)
             asset_pattern="scanoss-cc-win.zip"
@@ -165,9 +166,11 @@ download_and_verify_asset() {
     local platform="$2"
     local output_path="$3"
     local arch="${4:-amd64}"
+    local webkit="${5:-webkit40}"
 
     # Get download URL
-    local download_url=$(get_asset_url "$version" "$platform" "$arch")
+    local download_url
+    download_url=$(get_asset_url "$version" "$platform" "$arch" "$webkit")
     local asset_name=$(basename "$download_url")
 
     # Download the file

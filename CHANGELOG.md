@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.4] 2025-11-06
+### Changed
+- Modify `install-linux.sh` to handle webkit 4.0 and 4.1 depending on Ubuntu/Debian versions
+
 ## [0.9.3] 2025-11-05
 ### Added
 - Add `build_webkit41` Makefile target for Ubuntu 24.04+ and Debian 13+ support
@@ -187,3 +191,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.1]: https://github.com/scanoss/scanoss.cc/compare/v0.9.0...v0.9.1
 [0.9.2]: https://github.com/scanoss/scanoss.cc/compare/v0.9.1...v0.9.2
 [0.9.3]: https://github.com/scanoss/scanoss.cc/compare/v0.9.2...v0.9.3
+[0.9.4]: https://github.com/scanoss/scanoss.cc/compare/v0.9.3...v0.9.4

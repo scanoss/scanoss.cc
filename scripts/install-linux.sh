@@ -7,9 +7,8 @@ set -e
 # Repository and app details
 readonly REPO="scanoss/scanoss.cc"
 readonly APP_NAME="scanoss-cc"
-readonly BINARY_NAME="$APP_NAME-linux"
 readonly INSTALL_DIR="/usr/local/bin"
-readonly DESKTOP_DIR="/usr/share/applications"
+BINARY_NAME="$APP_NAME-linux-amd64"
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -43,19 +42,38 @@ detect_distro() {
     fi
 }
 
+detect_distro_version(){
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo "$VERSION_ID"
+    else
+        echo "unknown"
+    fi
+}
+
 # Install dependencies based on distribution
 install_dependencies() {
     local distro=$(detect_distro)
+    local distro_version=$(detect_distro_version)
 
-    log_info "Detected distribution: $distro"
+    log_info "Detected distribution: $distro $distro_version"
     log_info "Installing dependencies..."
     echo >&2
+
+    # As default we use webkit version for ubuntu <=22.04 and debian <=13
+    local webkit_package="libwebkit2gtk-4.0-dev"
+
+    # If it's either ubuntu >=24 or debian >=13 we use webkit 4.1
+    if [ "$distro" = "ubuntu" ] && [ "${distro_version%%.*}" -ge 24 ] || [ "$distro" = "debian" ] && [ "${distro_version%%.*}" -ge 13 ]; then
+        webkit_package="libwebkit2gtk-4.1-dev"
+        BINARY_NAME="$APP_NAME-linux-amd64-webkit41"
+    fi
 
     case "$distro" in
         ubuntu|debian|pop|linuxmint)
             log_info "Using apt package manager..."
             $SUDO apt-get update
-            $SUDO apt-get install -y libgtk-3-0 libwebkit2gtk-4.0-37 || {
+            $SUDO apt-get install -y libgtk-3-0 $webkit_package || {
                 log_warn "Some dependencies may not be available"
                 log_warn "The application may still work"
             }
@@ -123,7 +141,7 @@ install_linux() {
     local version=$(get_latest_version "$REPO")
 
     # Download the Linux binary
-    local zip_path="$temp_dir/$APP_NAME-linux.zip"
+    local zip_path="$temp_dir/$BINARY_NAME.zip"
 
     echo >&2
     log_info "Downloading SCANOSS Code Compare v$version..."

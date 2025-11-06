@@ -169,7 +169,8 @@ download_and_verify_asset() {
     local webkit="${5:-webkit40}"
 
     # Get download URL
-    local download_url=$(get_asset_url "$version" "$platform" "$arch" "$webkit")
+    local download_url
+    download_url=$(get_asset_url "$version" "$platform" "$arch" "$webkit")
     local asset_name=$(basename "$download_url")
 
     # Download the file

@@ -9,6 +9,7 @@ readonly REPO="scanoss/scanoss.cc"
 readonly APP_NAME="scanoss-cc"
 readonly INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="$APP_NAME-linux-amd64"
+WEBKIT="webkit40"
 
 # Source common functions
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -65,9 +66,14 @@ install_dependencies() {
 
     # If it's either ubuntu >=24 or debian >=13 we use webkit 4.1
     if [ "$distro_version" != "unknown" ] && { [ "$distro" = "ubuntu" ] && [ "${distro_version%%.*}" -ge 24 ] || [ "$distro" = "debian" ] && [ "${distro_version%%.*}" -ge 13 ]; }; then
-        webkit_package="libwebkit2gtk-4.1-dev"
-        BINARY_NAME="$APP_NAME-linux-amd64-webkit41"
+        WEBKIT="webkit41"
     fi
+
+    if [ "$WEBKIT" = "webkit41" ]; then
+        webkit_package="libwebkit2gtk-4.1-dev"
+    fi
+
+    BINARY_NAME="$APP_NAME-linux-amd64-$WEBKIT"
 
     case "$distro" in
         ubuntu|debian|pop|linuxmint)
@@ -145,7 +151,7 @@ install_linux() {
 
     echo >&2
     log_info "Downloading SCANOSS Code Compare v$version..."
-    download_and_verify_asset "$version" "linux" "$zip_path"
+    download_and_verify_asset "$version" "linux" "$zip_path" "amd64" "$WEBKIT"
 
     # Extract the archive
     log_info "Extracting..."

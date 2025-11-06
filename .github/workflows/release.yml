@@ -193,7 +193,7 @@ jobs:
           - variant: webkit40
             runs_on: ubuntu-22.04
             build_target: build
-            output_suffix: linux-amd64
+            output_suffix: linux-amd64-webkit40
             webkit_package: libwebkit2gtk-4.0-dev
           - variant: webkit41
             runs_on: ubuntu-24.04

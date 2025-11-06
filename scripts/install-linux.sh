@@ -64,7 +64,7 @@ install_dependencies() {
     local webkit_package="libwebkit2gtk-4.0-dev"
 
     # If it's either ubuntu >=24 or debian >=13 we use webkit 4.1
-    if [ "$distro" = "ubuntu" ] && [ "${distro_version%%.*}" -ge 24 ] || [ "$distro" = "debian" ] && [ "${distro_version%%.*}" -ge 13 ]; then
+    if [ "$distro_version" != "unknown" ] && { [ "$distro" = "ubuntu" ] && [ "${distro_version%%.*}" -ge 24 ] || [ "$distro" = "debian" ] && [ "${distro_version%%.*}" -ge 13 ]; }; then
         webkit_package="libwebkit2gtk-4.1-dev"
         BINARY_NAME="$APP_NAME-linux-amd64-webkit41"
     fi

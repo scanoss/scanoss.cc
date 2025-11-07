@@ -583,7 +583,12 @@ func (u *UpdateServiceImpl) applyUpdateWindows(updatePath string) error {
 	log.Info().Msg("Update applied successfully, restarting application...")
 
 	// Restart the application
-	cmd = exec.Command(currentExe, os.Args[1:]...)
+	currentScanRoot := config.GetInstance().GetScanRoot()
+	var args []string
+	if currentScanRoot != "" {
+		args = []string{"--scan-root", currentScanRoot}
+	}
+	cmd = exec.Command(currentExe, args...)
 	if err := cmd.Start(); err != nil {
 		log.Warn().Err(err).Msg("failed to restart application")
 	}
@@ -689,7 +694,12 @@ func (u *UpdateServiceImpl) applyZipUpdate(updatePath string) error {
 	log.Info().Msg("Update applied successfully, restarting application...")
 
 	// Restart the application
-	cmd = exec.Command(currentExe, os.Args[1:]...)
+	currentScanRoot := config.GetInstance().GetScanRoot()
+	var args []string
+	if currentScanRoot != "" {
+		args = []string{"--scan-root", currentScanRoot}
+	}
+	cmd = exec.Command(currentExe, args...)
 	if err := cmd.Start(); err != nil {
 		log.Warn().Err(err).Msg("failed to restart application")
 	}

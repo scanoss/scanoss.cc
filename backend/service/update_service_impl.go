@@ -747,13 +747,9 @@ func detectLinuxWebkitVersion() string {
 		// Parse version like "24.04"
 		parts := strings.Split(versionID, ".")
 		if len(parts) >= 1 {
-			major := parts[0]
-			if majorInt, err := fmt.Sscanf(major, "%d", new(int)); majorInt >= 24 || err == nil {
-				// Check if major version >= 24
-				var ver int
-				if _, err := fmt.Sscanf(major, "%d", &ver); err == nil && ver >= 24 {
-					return "webkit41"
-				}
+			var ver int
+			if _, err := fmt.Sscanf(parts[0], "%d", &ver); err == nil && ver >= 24 {
+				return "webkit41"
 			}
 		}
 	case "debian":

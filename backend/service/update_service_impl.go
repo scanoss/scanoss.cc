@@ -42,6 +42,7 @@ import (
 	"github.com/inconshreveable/go-update"
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
+	"github.com/scanoss/scanoss.cc/internal/config"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -302,6 +303,9 @@ func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
 
 	// Mount the DMG
 	mountPoint := filepath.Join(os.TempDir(), "scanoss-update-mount")
+	if err := os.MkdirAll(mountPoint, 0o755); err != nil {
+		return fmt.Errorf("failed to prepare mount point: %w", err)
+	}
 	log.Info().Msgf("Mounting DMG to %s...", mountPoint)
 	cmd = exec.Command("hdiutil", "attach", dmgPath, "-nobrowse", "-mountpoint", mountPoint)
 	if err := cmd.Run(); err != nil {
@@ -375,10 +379,15 @@ func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
 	log.Info().Msg("Update applied successfully, restarting application...")
 
 	// Get the path to the .app bundle to restart it
-	appBundlePath := "/Applications/scanoss-cc.app"
-	cmd = exec.Command("open", appBundlePath)
-	if err := cmd.Start(); err != nil {
-		log.Warn().Err(err).Msg("failed to restart application")
+	appBundlePath := filepath.Dir(filepath.Dir(filepath.Dir(currentExe)))
+	if _, err := os.Stat(appBundlePath); err != nil {
+		log.Warn().Err(err).Msg("failed to locate app bundle for restart")
+	} else {
+		currentScanRoot := config.GetInstance().GetScanRoot()
+		cmd = exec.Command("open", appBundlePath, "--args", "--scan-root", currentScanRoot)
+		if err := cmd.Start(); err != nil {
+			log.Warn().Err(err).Msg("failed to restart application")
+		}
 	}
 
 	// Quit the current instance

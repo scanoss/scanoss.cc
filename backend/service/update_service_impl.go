@@ -334,61 +334,55 @@ func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
 		return fmt.Errorf("no .app bundle found in DMG")
 	}
 
-	// Determine installation path
-	installPath := "/Applications/scanoss-cc.app"
-	log.Info().Msgf("Installing app to %s...", installPath)
-
-	// Try to use rsync for atomic copy
-	if _, err := exec.LookPath("rsync"); err == nil {
-		log.Info().Msg("Using rsync for atomic installation...")
-		cmd = exec.Command("rsync", "-a", "--delete", appPath+"/", installPath+"/")
-		if err := cmd.Run(); err != nil {
-			log.Warn().Err(err).Msg("rsync failed, falling back to cp")
-			// Fallback to cp if rsync fails
-			if err := u.copyAppWithCP(appPath, installPath); err != nil {
-				return err
-			}
-		}
-	} else {
-		// rsync not available, use cp
-		log.Info().Msg("rsync not available, using cp...")
-		if err := u.copyAppWithCP(appPath, installPath); err != nil {
-			return err
-		}
+	// Find the binary inside the new .app bundle
+	newBinaryPath := filepath.Join(appPath, "Contents", "MacOS", "scanoss-cc")
+	if _, err := os.Stat(newBinaryPath); err != nil {
+		return fmt.Errorf("could not find binary in app bundle: %w", err)
 	}
 
-	// Clear macOS quarantine attribute
+	log.Info().Msgf("Found new binary: %s", newBinaryPath)
+
+	// Get current executable path (inside our current .app bundle)
+	currentExe, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("failed to get current executable: %w", err)
+	}
+
+	log.Info().Msgf("Current executable: %s", currentExe)
+
+	// Open the new binary file
+	newBinary, err := os.Open(newBinaryPath)
+	if err != nil {
+		return fmt.Errorf("failed to open new binary: %w", err)
+	}
+	defer newBinary.Close()
+
+	// Apply the update using go-update library
+	// This handles file locking correctly on macOS too
+	log.Info().Msg("Applying update to binary...")
+	err = update.Apply(newBinary, update.Options{
+		TargetPath: currentExe,
+	})
+	if err != nil {
+		// Rollback is handled automatically by the library
+		return fmt.Errorf("failed to apply update: %w", err)
+	}
+
+	// Clear macOS quarantine attribute on the updated binary
 	log.Info().Msg("Clearing quarantine attributes...")
-	exec.Command("xattr", "-r", "-d", "com.apple.quarantine", installPath).Run()
+	exec.Command("xattr", "-d", "com.apple.quarantine", currentExe).Run()
 
-	log.Info().Msg("Installation complete, restarting application...")
+	log.Info().Msg("Update applied successfully, restarting application...")
 
-	// Restart the application
-	cmd = exec.Command("open", installPath)
+	// Get the path to the .app bundle to restart it
+	appBundlePath := "/Applications/scanoss-cc.app"
+	cmd = exec.Command("open", appBundlePath)
 	if err := cmd.Start(); err != nil {
 		log.Warn().Err(err).Msg("failed to restart application")
 	}
 
 	// Quit the current instance
 	wailsruntime.Quit(u.ctx)
-	return nil
-}
-
-// copyAppWithCP copies the .app bundle using cp command (fallback method)
-func (u *UpdateServiceImpl) copyAppWithCP(sourcePath, destPath string) error {
-	// Remove existing installation
-	log.Info().Msgf("Removing old installation at %s...", destPath)
-	if err := exec.Command("rm", "-rf", destPath).Run(); err != nil {
-		log.Warn().Err(err).Msg("failed to remove old installation, continuing anyway")
-	}
-
-	// Copy new app bundle
-	log.Info().Msgf("Copying new app from %s to %s...", sourcePath, destPath)
-	cmd := exec.Command("cp", "-R", sourcePath, destPath)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to copy app bundle: %w", err)
-	}
-
 	return nil
 }
 
@@ -543,31 +537,27 @@ func (u *UpdateServiceImpl) applyZipUpdate(updatePath string) error {
 		return fmt.Errorf("binary verification failed: %w", err)
 	}
 
-	// Make the new binary executable
-	if err := os.Chmod(newBinaryPath, 0o755); err != nil {
-		return fmt.Errorf("failed to make binary executable: %w", err)
+	// Open the new binary file
+	newBinary, err := os.Open(newBinaryPath)
+	if err != nil {
+		return fmt.Errorf("failed to open new binary: %w", err)
+	}
+	defer newBinary.Close()
+
+	// Apply the update using go-update library
+	// Linux allows replacing running executables, so this works directly
+	log.Info().Msg("Applying update to binary...")
+	err = update.Apply(newBinary, update.Options{
+		TargetPath: currentExe,
+	})
+	if err != nil {
+		// Rollback is handled automatically by the library
+		return fmt.Errorf("failed to apply update: %w", err)
 	}
 
-	// Use staging approach: copy to .next file for atomic swap
-	// This avoids issues with running executables on Linux
-	nextPath := currentExe + ".next"
-	log.Info().Msgf("Staging new binary to %s...", nextPath)
+	log.Info().Msg("Update applied successfully, restarting application...")
 
-	// Copy the new binary to .next location
-	if err := u.copyFile(newBinaryPath, nextPath); err != nil {
-		return fmt.Errorf("failed to stage new binary: %w", err)
-	}
-
-	// Make sure .next is executable
-	if err := os.Chmod(nextPath, 0o755); err != nil {
-		os.Remove(nextPath)
-		return fmt.Errorf("failed to make staged binary executable: %w", err)
-	}
-
-	log.Info().Msg("Update staged successfully, restarting application...")
-
-	// The actual swap will happen on application startup
-	// For now, just restart to trigger the swap
+	// Restart the application
 	cmd = exec.Command(currentExe, os.Args[1:]...)
 	if err := cmd.Start(); err != nil {
 		log.Warn().Err(err).Msg("failed to restart application")
@@ -609,89 +599,6 @@ func (u *UpdateServiceImpl) verifyLinuxBinary(path string) error {
 	}
 
 	return nil
-}
-
-// copyFile copies a file from src to dst
-func (u *UpdateServiceImpl) copyFile(src, dst string) error {
-	sourceFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer sourceFile.Close()
-
-	destFile, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-
-	if _, err := io.Copy(destFile, sourceFile); err != nil {
-		return err
-	}
-
-	return destFile.Sync()
-}
-
-// CheckPendingUpdate checks if there's a pending update and applies it
-// This should be called during application startup (Linux only)
-func CheckPendingUpdate() error {
-	if runtime.GOOS != "linux" {
-		return nil // Only applicable to Linux
-	}
-
-	currentExe, err := os.Executable()
-	if err != nil {
-		return nil // Silently ignore errors during startup check
-	}
-
-	nextPath := currentExe + ".next"
-	oldPath := currentExe + ".old"
-
-	// Check if there's a pending update
-	if _, err := os.Stat(nextPath); os.IsNotExist(err) {
-		// No pending update, check if we should cleanup old backup
-		if _, err := os.Stat(oldPath); err == nil {
-			// Remove old backup from previous successful update
-			log.Info().Msg("Removing old backup from previous update...")
-			os.Remove(oldPath)
-		}
-		return nil
-	}
-
-	log.Info().Msg("Pending update detected, performing atomic swap...")
-
-	// Backup current executable
-	if err := os.Rename(currentExe, oldPath); err != nil {
-		log.Error().Err(err).Msg("Failed to backup current executable")
-		return err
-	}
-
-	// Move .next to current
-	if err := os.Rename(nextPath, currentExe); err != nil {
-		// Rollback
-		log.Error().Err(err).Msg("Failed to swap binaries, rolling back...")
-		os.Rename(oldPath, currentExe)
-		return err
-	}
-
-	// Make sure it's executable
-	os.Chmod(currentExe, 0o755)
-
-	log.Info().Msg("Update applied successfully, restarting...")
-
-	// Re-exec into the new binary
-	if err := restartApplication(currentExe); err != nil {
-		log.Error().Err(err).Msg("Failed to restart after update")
-		return err
-	}
-
-	// This code should never be reached as we've re-exec'd
-	return nil
-}
-
-// restartApplication restarts the application by re-executing it
-func restartApplication(exePath string) error {
-	return exec.Command(exePath, os.Args[1:]...).Start()
 }
 
 // GetCurrentVersion returns the current application version

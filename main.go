@@ -63,9 +63,6 @@ func run() error {
 	validate.RegisterValidation("valid-purl", utils.ValidatePurl)
 	utils.SetValidator(validate)
 
-	// Check for pending updates (Linux only)
-	service.CheckPendingUpdate()
-
 	err := cmd.Execute()
 	if err != nil {
 		return fmt.Errorf("error: %v", err)

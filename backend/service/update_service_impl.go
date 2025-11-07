@@ -39,6 +39,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
+	"github.com/inconshreveable/go-update"
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
@@ -263,8 +264,8 @@ func (u *UpdateServiceImpl) ApplyUpdate(updatePath string) error {
 
 func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
 	// For macOS, the update is a .zip containing a .dmg file
-	// We need to extract the ZIP and open the DMG
-	log.Info().Msg("Extracting and opening macOS DMG...")
+	// We need to extract, mount, copy, and install the .app bundle
+	log.Info().Msg("Extracting and installing macOS DMG...")
 
 	// Extract the ZIP file to a temporary directory
 	extractDir := filepath.Join(os.TempDir(), "scanoss-update-extract")
@@ -299,19 +300,101 @@ func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
 		return fmt.Errorf("no DMG file found in update ZIP")
 	}
 
-	// Open the DMG file
-	cmd = exec.Command("open", dmgPath)
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to open DMG: %w", err)
+	// Mount the DMG
+	mountPoint := filepath.Join(os.TempDir(), "scanoss-update-mount")
+	log.Info().Msgf("Mounting DMG to %s...", mountPoint)
+	cmd = exec.Command("hdiutil", "attach", dmgPath, "-nobrowse", "-mountpoint", mountPoint)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to mount DMG: %w", err)
+	}
+	// Ensure DMG is unmounted on exit
+	defer func() {
+		log.Info().Msg("Unmounting DMG...")
+		exec.Command("hdiutil", "detach", mountPoint, "-force").Run()
+		os.RemoveAll(mountPoint)
+	}()
+
+	// Find the .app bundle in the mounted DMG
+	var appPath string
+	err = filepath.Walk(mountPoint, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() && strings.HasSuffix(strings.ToLower(info.Name()), ".app") {
+			appPath = path
+			return filepath.SkipAll
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to find .app bundle in DMG: %w", err)
 	}
 
-	// Quit the application to allow installation
+	if appPath == "" {
+		return fmt.Errorf("no .app bundle found in DMG")
+	}
+
+	// Determine installation path
+	installPath := "/Applications/scanoss-cc.app"
+	log.Info().Msgf("Installing app to %s...", installPath)
+
+	// Try to use rsync for atomic copy
+	if _, err := exec.LookPath("rsync"); err == nil {
+		log.Info().Msg("Using rsync for atomic installation...")
+		cmd = exec.Command("rsync", "-a", "--delete", appPath+"/", installPath+"/")
+		if err := cmd.Run(); err != nil {
+			log.Warn().Err(err).Msg("rsync failed, falling back to cp")
+			// Fallback to cp if rsync fails
+			if err := u.copyAppWithCP(appPath, installPath); err != nil {
+				return err
+			}
+		}
+	} else {
+		// rsync not available, use cp
+		log.Info().Msg("rsync not available, using cp...")
+		if err := u.copyAppWithCP(appPath, installPath); err != nil {
+			return err
+		}
+	}
+
+	// Clear macOS quarantine attribute
+	log.Info().Msg("Clearing quarantine attributes...")
+	exec.Command("xattr", "-r", "-d", "com.apple.quarantine", installPath).Run()
+
+	log.Info().Msg("Installation complete, restarting application...")
+
+	// Restart the application
+	cmd = exec.Command("open", installPath)
+	if err := cmd.Start(); err != nil {
+		log.Warn().Err(err).Msg("failed to restart application")
+	}
+
+	// Quit the current instance
 	wailsruntime.Quit(u.ctx)
+	return nil
+}
+
+// copyAppWithCP copies the .app bundle using cp command (fallback method)
+func (u *UpdateServiceImpl) copyAppWithCP(sourcePath, destPath string) error {
+	// Remove existing installation
+	log.Info().Msgf("Removing old installation at %s...", destPath)
+	if err := exec.Command("rm", "-rf", destPath).Run(); err != nil {
+		log.Warn().Err(err).Msg("failed to remove old installation, continuing anyway")
+	}
+
+	// Copy new app bundle
+	log.Info().Msgf("Copying new app from %s to %s...", sourcePath, destPath)
+	cmd := exec.Command("cp", "-R", sourcePath, destPath)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to copy app bundle: %w", err)
+	}
+
 	return nil
 }
 
 func (u *UpdateServiceImpl) applyUpdateWindows(updatePath string) error {
 	// For Windows, the update is a ZIP file containing the new executable
+	// We use go-update library which handles Windows file locking correctly
 	log.Info().Msg("Applying Windows update from ZIP...")
 
 	// Get the current executable path
@@ -328,6 +411,7 @@ func (u *UpdateServiceImpl) applyUpdateWindows(updatePath string) error {
 	defer os.RemoveAll(extractDir)
 
 	// Extract using PowerShell Expand-Archive (available on all modern Windows)
+	log.Info().Msg("Extracting update ZIP...")
 	cmd := exec.Command("powershell", "-Command", fmt.Sprintf("Expand-Archive -Path '%s' -DestinationPath '%s' -Force", updatePath, extractDir))
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to extract ZIP: %w", err)
@@ -354,25 +438,30 @@ func (u *UpdateServiceImpl) applyUpdateWindows(updatePath string) error {
 		return fmt.Errorf("no executable found in update ZIP")
 	}
 
-	// Replace the current executable
-	backupPath := currentExe + ".old"
-	if err := os.Rename(currentExe, backupPath); err != nil {
-		return fmt.Errorf("failed to backup current executable: %w", err)
+	log.Info().Msgf("Found new binary: %s", newBinaryPath)
+
+	// Open the new binary file
+	newBinary, err := os.Open(newBinaryPath)
+	if err != nil {
+		return fmt.Errorf("failed to open new binary: %w", err)
+	}
+	defer newBinary.Close()
+
+	// Apply the update using go-update
+	log.Info().Msg("Applying update...")
+	err = update.Apply(newBinary, update.Options{
+		TargetPath: currentExe,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to apply update: %w", err)
 	}
 
-	if err := os.Rename(newBinaryPath, currentExe); err != nil {
-		// Restore backup on failure
-		os.Rename(backupPath, currentExe)
-		return fmt.Errorf("failed to replace executable: %w", err)
-	}
-
-	// Remove backup
-	os.Remove(backupPath)
+	log.Info().Msg("Update applied successfully, restarting application...")
 
 	// Restart the application
 	cmd = exec.Command(currentExe, os.Args[1:]...)
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to restart application after update: %w", err)
+		log.Warn().Err(err).Msg("failed to restart application")
 	}
 
 	// Quit the current instance
@@ -387,8 +476,6 @@ func (u *UpdateServiceImpl) applyUpdateLinux(updatePath string) error {
 	switch ext {
 	case ".zip":
 		return u.applyZipUpdate(updatePath)
-	case ".deb":
-		return u.applyDebUpdate(updatePath)
 	default:
 		return fmt.Errorf("unsupported update format: %s", ext)
 	}
@@ -411,21 +498,28 @@ func (u *UpdateServiceImpl) applyZipUpdate(updatePath string) error {
 	defer os.RemoveAll(extractDir)
 
 	// Use unzip command to extract
+	log.Info().Msg("Extracting update ZIP...")
 	cmd := exec.Command("unzip", "-o", updatePath, "-d", extractDir)
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to extract ZIP: %w", err)
 	}
 
-	// Find the binary in the extracted directory
+	// Find the binary in the extracted directory with better detection
 	var newBinaryPath string
+	var candidates []string
 	err = filepath.Walk(extractDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		// Look for executable files that are not directories
-		if !info.IsDir() && (info.Mode()&0o111 != 0 || strings.Contains(info.Name(), "scanoss-cc")) {
-			newBinaryPath = path
-			return filepath.SkipAll
+		if !info.IsDir() && info.Mode()&0o111 != 0 {
+			// Prefer files with "scanoss" in the name
+			if strings.Contains(strings.ToLower(info.Name()), "scanoss") {
+				newBinaryPath = path
+				return filepath.SkipAll
+			}
+			// Otherwise collect as candidates
+			candidates = append(candidates, path)
 		}
 		return nil
 	})
@@ -433,8 +527,20 @@ func (u *UpdateServiceImpl) applyZipUpdate(updatePath string) error {
 		return fmt.Errorf("failed to find binary in ZIP: %w", err)
 	}
 
+	// If no scanoss binary found, use first candidate
+	if newBinaryPath == "" && len(candidates) > 0 {
+		newBinaryPath = candidates[0]
+	}
+
 	if newBinaryPath == "" {
 		return fmt.Errorf("no executable found in update ZIP")
+	}
+
+	log.Info().Msgf("Found new binary: %s", newBinaryPath)
+
+	// Verify the binary is valid
+	if err := u.verifyLinuxBinary(newBinaryPath); err != nil {
+		return fmt.Errorf("binary verification failed: %w", err)
 	}
 
 	// Make the new binary executable
@@ -442,25 +548,29 @@ func (u *UpdateServiceImpl) applyZipUpdate(updatePath string) error {
 		return fmt.Errorf("failed to make binary executable: %w", err)
 	}
 
-	// Replace the current executable
-	backupPath := currentExe + ".backup"
-	if err := os.Rename(currentExe, backupPath); err != nil {
-		return fmt.Errorf("failed to backup current executable: %w", err)
+	// Use staging approach: copy to .next file for atomic swap
+	// This avoids issues with running executables on Linux
+	nextPath := currentExe + ".next"
+	log.Info().Msgf("Staging new binary to %s...", nextPath)
+
+	// Copy the new binary to .next location
+	if err := u.copyFile(newBinaryPath, nextPath); err != nil {
+		return fmt.Errorf("failed to stage new binary: %w", err)
 	}
 
-	if err := os.Rename(newBinaryPath, currentExe); err != nil {
-		// Restore backup on failure
-		os.Rename(backupPath, currentExe)
-		return fmt.Errorf("failed to replace executable: %w", err)
+	// Make sure .next is executable
+	if err := os.Chmod(nextPath, 0o755); err != nil {
+		os.Remove(nextPath)
+		return fmt.Errorf("failed to make staged binary executable: %w", err)
 	}
 
-	// Remove backup
-	os.Remove(backupPath)
+	log.Info().Msg("Update staged successfully, restarting application...")
 
-	// Restart the application
+	// The actual swap will happen on application startup
+	// For now, just restart to trigger the swap
 	cmd = exec.Command(currentExe, os.Args[1:]...)
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to restart application after update: %w", err)
+		log.Warn().Err(err).Msg("failed to restart application")
 	}
 
 	// Quit the current instance
@@ -468,18 +578,120 @@ func (u *UpdateServiceImpl) applyZipUpdate(updatePath string) error {
 	return nil
 }
 
-func (u *UpdateServiceImpl) applyDebUpdate(updatePath string) error {
-	log.Info().Msg("Opening .deb package for installation...")
-
-	// Open with the default package manager
-	cmd := exec.Command("xdg-open", updatePath)
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to open .deb package: %w", err)
+// verifyLinuxBinary performs basic verification on a Linux binary
+func (u *UpdateServiceImpl) verifyLinuxBinary(path string) error {
+	// Check file exists
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("file does not exist: %w", err)
 	}
 
-	// Quit the application to allow installation
-	wailsruntime.Quit(u.ctx)
+	// Check minimum size (should be at least a few MB for a real binary)
+	if info.Size() < 1024*1024 {
+		return fmt.Errorf("binary too small: %d bytes", info.Size())
+	}
+
+	// Check if it's a valid ELF binary by reading magic bytes
+	file, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("cannot open file: %w", err)
+	}
+	defer file.Close()
+
+	magic := make([]byte, 4)
+	if _, err := file.Read(magic); err != nil {
+		return fmt.Errorf("cannot read file header: %w", err)
+	}
+
+	// ELF magic: 0x7f 'E' 'L' 'F'
+	if magic[0] != 0x7f || magic[1] != 'E' || magic[2] != 'L' || magic[3] != 'F' {
+		return fmt.Errorf("not a valid ELF binary")
+	}
+
 	return nil
+}
+
+// copyFile copies a file from src to dst
+func (u *UpdateServiceImpl) copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	if _, err := io.Copy(destFile, sourceFile); err != nil {
+		return err
+	}
+
+	return destFile.Sync()
+}
+
+// CheckPendingUpdate checks if there's a pending update and applies it
+// This should be called during application startup (Linux only)
+func CheckPendingUpdate() error {
+	if runtime.GOOS != "linux" {
+		return nil // Only applicable to Linux
+	}
+
+	currentExe, err := os.Executable()
+	if err != nil {
+		return nil // Silently ignore errors during startup check
+	}
+
+	nextPath := currentExe + ".next"
+	oldPath := currentExe + ".old"
+
+	// Check if there's a pending update
+	if _, err := os.Stat(nextPath); os.IsNotExist(err) {
+		// No pending update, check if we should cleanup old backup
+		if _, err := os.Stat(oldPath); err == nil {
+			// Remove old backup from previous successful update
+			log.Info().Msg("Removing old backup from previous update...")
+			os.Remove(oldPath)
+		}
+		return nil
+	}
+
+	log.Info().Msg("Pending update detected, performing atomic swap...")
+
+	// Backup current executable
+	if err := os.Rename(currentExe, oldPath); err != nil {
+		log.Error().Err(err).Msg("Failed to backup current executable")
+		return err
+	}
+
+	// Move .next to current
+	if err := os.Rename(nextPath, currentExe); err != nil {
+		// Rollback
+		log.Error().Err(err).Msg("Failed to swap binaries, rolling back...")
+		os.Rename(oldPath, currentExe)
+		return err
+	}
+
+	// Make sure it's executable
+	os.Chmod(currentExe, 0o755)
+
+	log.Info().Msg("Update applied successfully, restarting...")
+
+	// Re-exec into the new binary
+	if err := restartApplication(currentExe); err != nil {
+		log.Error().Err(err).Msg("Failed to restart after update")
+		return err
+	}
+
+	// This code should never be reached as we've re-exec'd
+	return nil
+}
+
+// restartApplication restarts the application by re-executing it
+func restartApplication(exePath string) error {
+	return exec.Command(exePath, os.Args[1:]...).Start()
 }
 
 // GetCurrentVersion returns the current application version
@@ -495,10 +707,68 @@ func getAssetNameForPlatform() string {
 	case "windows":
 		return "-win.zip" // Windows executable in a ZIP file
 	case "linux":
-		return "-linux.zip" // Linux binary in a ZIP file
+		// Detect webkit version for Linux. The resulting zip file will be named
+		// -linux-amd64-webkit40.zip or -linux-amd64-webkit41.zip
+		webkitVersion := detectLinuxWebkitVersion()
+		return fmt.Sprintf("-linux-amd64-%s.zip", webkitVersion)
 	default:
 		return ""
 	}
+}
+
+// detectLinuxWebkitVersion detects which webkit version to use
+// Returns "webkit40" or "webkit41" based on distro version
+func detectLinuxWebkitVersion() string {
+	// Read /etc/os-release to detect distribution
+	data, err := os.ReadFile("/etc/os-release")
+	if err != nil {
+		log.Warn().Err(err).Msg("Could not read /etc/os-release, defaulting to webkit40")
+		return "webkit40"
+	}
+
+	content := string(data)
+	lines := strings.Split(content, "\n")
+
+	var distroID string
+	var versionID string
+
+	for _, line := range lines {
+		if token, ok := strings.CutPrefix(line, "ID="); ok {
+			distroID = strings.Trim(token, "\"")
+		}
+		if token, ok := strings.CutPrefix(line, "VERSION_ID="); ok {
+			versionID = strings.Trim(token, "\"")
+		}
+	}
+
+	// Ubuntu >= 24.04 or Debian >= 13 uses webkit41
+	switch distroID {
+	case "ubuntu":
+		// Parse version like "24.04"
+		parts := strings.Split(versionID, ".")
+		if len(parts) >= 1 {
+			major := parts[0]
+			if majorInt, err := fmt.Sscanf(major, "%d", new(int)); majorInt >= 24 || err == nil {
+				// Check if major version >= 24
+				var ver int
+				if _, err := fmt.Sscanf(major, "%d", &ver); err == nil && ver >= 24 {
+					return "webkit41"
+				}
+			}
+		}
+	case "debian":
+		// Parse version like "13" or "13.1"
+		parts := strings.Split(versionID, ".")
+		if len(parts) >= 1 {
+			var ver int
+			if _, err := fmt.Sscanf(parts[0], "%d", &ver); err == nil && ver >= 13 {
+				return "webkit41"
+			}
+		}
+	}
+
+	// Default to webkit40 for older versions or other distros
+	return "webkit40"
 }
 
 // isVersionNewer compares two semantic versions

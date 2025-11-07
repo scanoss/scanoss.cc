@@ -145,7 +145,7 @@ if [[ "$first_arg" == "-"* ]]; then
   # Check if --scan-root is already provided
   found=0
   for arg in "$@"; do
-    if [ "$arg" = "--scan-root" ]; then
+    if [ "$arg" == "--scan-root"* ]; then
       found=1
       break
     fi

@@ -126,17 +126,17 @@ install_direct() {
 
 APP_PATH="/Applications/scanoss-cc.app"
 CURRENT_DIR=$(pwd)
+BINARY="${APP_PATH}/Contents/MacOS/scanoss-cc"
 
 # Handle version flag directly without launching GUI
 if [ "$1" = "--version" ] || [ "$1" = "-v" ]; then
-  exec "$APP_PATH/Contents/MacOS/scanoss-cc" "$@"
+  exec "$BINARY" "$@"
   exit 0
 fi
 
-# If no arguments are provided, launch GUI application
+# If no arguments are provided, assume scanning mode and add --scan-root.
 if [ "$#" -eq 0 ]; then
-  exec open -a "$APP_PATH"
-  exit 0
+  exec "$BINARY" --scan-root "$CURRENT_DIR"
 fi
 
 # If the first argument starts with a dash, assume scanning options
@@ -145,20 +145,20 @@ if [[ "$first_arg" == "-"* ]]; then
   # Check if --scan-root is already provided
   found=0
   for arg in "$@"; do
-    if [ "$arg" = "--scan-root" ]; then
+    if [ "$arg" == "--scan-root"* ]; then
       found=1
       break
     fi
   done
   if [ $found -eq 0 ]; then
     # Add --scan-root with current directory if not present
-    exec open -a "$APP_PATH" --args --scan-root "$CURRENT_DIR" "$@"
+    exec "$BINARY" --scan-root "$CURRENT_DIR" "$@"
   else
-    exec open -a "$APP_PATH" --args "$@"
+    exec "$BINARY" "$@"
   fi
 else
   # Otherwise, assume subcommand mode and pass arguments as-is
-  exec open -a "$APP_PATH" --args "$@"
+  exec "$BINARY" "$@"
 fi
 EOF
 

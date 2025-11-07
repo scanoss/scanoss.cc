@@ -364,11 +364,12 @@ func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
 	// Apply the update using go-update library
 	// This handles file locking correctly on macOS too
 	log.Info().Msg("Applying update to binary...")
-	err = update.Apply(newBinary, update.Options{
+	if err := update.Apply(newBinary, update.Options{
 		TargetPath: currentExe,
-	})
-	if err != nil {
-		// Rollback is handled automatically by the library
+	}); err != nil {
+		if rollbackErr := update.RollbackError(err); rollbackErr != nil {
+			log.Error().Err(rollbackErr).Msg("failed to rollback after macOS update error")
+		}
 		return fmt.Errorf("failed to apply update: %w", err)
 	}
 
@@ -556,11 +557,12 @@ func (u *UpdateServiceImpl) applyZipUpdate(updatePath string) error {
 	// Apply the update using go-update library
 	// Linux allows replacing running executables, so this works directly
 	log.Info().Msg("Applying update to binary...")
-	err = update.Apply(newBinary, update.Options{
+	if err := update.Apply(newBinary, update.Options{
 		TargetPath: currentExe,
-	})
-	if err != nil {
-		// Rollback is handled automatically by the library
+	}); err != nil {
+		if rollbackErr := update.RollbackError(err); rollbackErr != nil {
+			log.Error().Err(rollbackErr).Msg("failed to rollback after Linux update error")
+		}
 		return fmt.Errorf("failed to apply update: %w", err)
 	}
 

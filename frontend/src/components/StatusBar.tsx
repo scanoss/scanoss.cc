@@ -29,7 +29,6 @@ import AppSettings from './AppSettings';
 import SelectResultsFile from './SelectResultsFile';
 import SelectScanRoot from './SelectScanRoot';
 import SelectSettingsFile from './SelectSettingsFile';
-import UpdateNotification from './UpdateNotification';
 
 export default function StatusBar() {
   const getInitialConfig = useConfigStore((state) => state.getInitialConfig);
@@ -55,7 +54,6 @@ export default function StatusBar() {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <UpdateNotification />
         <AppSettings />
       </div>
     </div>

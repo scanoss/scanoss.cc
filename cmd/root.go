@@ -29,7 +29,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/scanoss/scanoss.cc/backend/entities"
-	"github.com/scanoss/scanoss.cc/backend/service"
 	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -44,7 +43,6 @@ var (
 	scanRoot                string
 	version                 bool
 	originalWorkDir         string
-	checkUpdateSuccess      bool
 )
 
 // This is a workaround to exit the process when the help command is called instead of spinning up the UI
@@ -87,7 +85,6 @@ func init() {
 	rootCmd.Flags().StringVarP(&apiKey, "key", "k", "", "SCANOSS API Key token (optional)")
 	rootCmd.Flags().StringVarP(&apiUrl, "apiUrl", "u", "", fmt.Sprintf("SCANOSS API URL (optional - default: %s)", config.DEFAULT_API_URL))
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable debug mode")
-	rootCmd.Flags().BoolVar(&checkUpdateSuccess, "check-update-success", false, "Internal flag to verify update success (do not use manually)")
 
 	rootCmd.Root().CompletionOptions.HiddenDefaultCmd = true
 
@@ -95,20 +92,6 @@ func init() {
 }
 
 func initConfig() {
-	// Check for failed updates first (before initializing config)
-	// This must happen early in the startup process
-	updateService := service.NewUpdateService()
-	if err := updateService.CheckForFailedUpdate(); err != nil {
-		log.Error().Err(err).Msg("Failed to check for failed update")
-	}
-
-	if checkUpdateSuccess {
-		log.Info().Msg("Verifying update success...")
-		if err := updateService.VerifyUpdateSuccess(); err != nil {
-			log.Error().Err(err).Msg("Failed to verify update success")
-		}
-	}
-
 	cfg := config.GetInstance()
 
 	if err := cfg.InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, scanossSettingsFilePath, originalWorkDir, debug); err != nil {

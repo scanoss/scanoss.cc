@@ -108,14 +108,6 @@ scanoss-cc --version
 
 For complete uninstall instructions for all platforms, see [INSTALLATION.md](INSTALLATION.md#uninstalling).
 
-### Auto-Updates
-
-SCANOSS Code Compare includes an automatic update system that notifies you when new versions are available:
-
-- **Status Bar Notification**: When an update is available, a button appears in the status bar at the bottom of the window
-- **One-Click Update**: Click the notification to download and install the update
-- **Seamless Restart**: After downloading, the app will restart to apply the update
-
 ## Usage
 
 ### CLI Parameters

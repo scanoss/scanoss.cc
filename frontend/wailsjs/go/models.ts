@@ -827,49 +827,6 @@ export namespace entities {
 		    return a;
 		}
 	}
-	export class UpdateInfo {
-	    version: string;
-	    download_url: string;
-	    release_notes: string;
-	    // Go type: time
-	    published_at: any;
-	    size: number;
-	    available: boolean;
-	    expected_sha256?: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new UpdateInfo(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.version = source["version"];
-	        this.download_url = source["download_url"];
-	        this.release_notes = source["release_notes"];
-	        this.published_at = this.convertValues(source["published_at"], null);
-	        this.size = source["size"];
-	        this.available = source["available"];
-	        this.expected_sha256 = source["expected_sha256"];
-	    }
-	
-		convertValues(a: any, classs: any, asMap: boolean = false): any {
-		    if (!a) {
-		        return a;
-		    }
-		    if (a.slice && a.map) {
-		        return (a as any[]).map(elem => this.convertValues(elem, classs));
-		    } else if ("object" === typeof a) {
-		        if (asMap) {
-		            for (const key of Object.keys(a)) {
-		                a[key] = new classs(a[key]);
-		            }
-		            return a;
-		        }
-		        return new classs(a);
-		    }
-		    return a;
-		}
-	}
 
 }
 

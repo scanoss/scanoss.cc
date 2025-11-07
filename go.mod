@@ -7,7 +7,6 @@ toolchain go1.23.2
 // replace github.com/wailsapp/wails/v2 v2.9.1 => /home/ubuntu/go/pkg/mod
 
 require (
-	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/go-git/go-git/v5 v5.13.2
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/rs/zerolog v1.33.0
@@ -31,7 +30,6 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jchv/go-winloader v0.0.0-20210711035445-715c2860da7e // indirect

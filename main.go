@@ -63,9 +63,6 @@ func run() error {
 	validate.RegisterValidation("valid-purl", utils.ValidatePurl)
 	utils.SetValidator(validate)
 
-	// Check for pending updates (Linux only)
-	service.CheckPendingUpdate()
-
 	err := cmd.Execute()
 	if err != nil {
 		return fmt.Errorf("error: %v", err)
@@ -103,7 +100,6 @@ func run() error {
 	licenseService := service.NewLicenseServiceImpl(licenseRepository, scanossApiService)
 	scanService := service.NewScanServicePythonImpl()
 	treeService := service.NewTreeServiceImpl(resultService, scanossSettingsRepository)
-	updateService := service.NewUpdateService()
 
 	// Create application with options
 	err = wails.Run(&options.App{
@@ -117,7 +113,6 @@ func run() error {
 			scanService.SetContext(ctx)
 			resultService.SetContext(ctx)
 			scanossApiService.SetContext(ctx)
-			updateService.SetContext(ctx)
 		},
 		OnBeforeClose: func(ctx context.Context) (prevent bool) {
 			return app.BeforeClose(ctx)
@@ -132,7 +127,6 @@ func run() error {
 			licenseService,
 			scanService,
 			treeService,
-			updateService,
 		},
 		EnumBind: []any{
 			entities.AllShortcutActions,

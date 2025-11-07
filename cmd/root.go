@@ -33,15 +33,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var apiKey string
-var apiUrl string
-var cfgFile string
-var debug bool
-var inputFile string
-var scanossSettingsFilePath string
-var scanRoot string
-var version bool
-var originalWorkDir string
+var (
+	apiKey                  string
+	apiUrl                  string
+	cfgFile                 string
+	debug                   bool
+	inputFile               string
+	scanossSettingsFilePath string
+	scanRoot                string
+	version                 bool
+	originalWorkDir         string
+)
 
 // This is a workaround to exit the process when the help command is called instead of spinning up the UI
 func setupHelpCommand(cmd *cobra.Command) {

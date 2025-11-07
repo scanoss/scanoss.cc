@@ -10,16 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.5] 2025-11-07
 ### Fixed
 - Fix macOS postinstall script where it was not properly handling the `--scan-root` argument.
-- **macOS**: Complete auto-update implementation - now properly mounts DMG, copies app bundle to /Applications, clears quarantine, and restarts
-- **Windows**: Fix critical file locking bug by integrating go-update library for proper binary replacement
-- **Linux**: Implement staging directory approach with atomic binary swap on startup
-- Add ELF binary verification for Linux updates to prevent corrupted downloads
-
-### Changed
-- macOS updates use rsync for atomic installation with fallback to cp
-- Windows updates properly handle running executable replacement
-- Linux updates use `.next` staging file with atomic swap on next launch
-- Improve error handling and logging throughout update process
 
 ## [0.9.4] 2025-11-06
 ### Changed

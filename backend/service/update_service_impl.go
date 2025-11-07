@@ -49,6 +49,106 @@ import (
 const (
 	githubAPIURL    = "https://api.github.com/repos/scanoss/scanoss.cc/releases/latest"
 	downloadTimeout = 10 * time.Minute
+
+	// updateHelperScript is the shell script that performs atomic .app bundle replacement
+	updateHelperScript = `#!/bin/bash
+# SCANOSS Update Helper Script
+# This script performs atomic .app bundle replacement for macOS updates
+
+set -e  # Exit on error
+set -u  # Exit on undefined variable
+
+OLD_APP_PATH="$1"
+NEW_APP_PATH="$2"
+BACKUP_PATH="$3"
+SCAN_ROOT="$4"
+OLD_PID="$5"
+
+LOG_FILE="/tmp/scanoss-update.log"
+
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"
+}
+
+log "Update helper started"
+log "Old app: $OLD_APP_PATH"
+log "New app: $NEW_APP_PATH"
+log "Backup: $BACKUP_PATH"
+log "Scan root: $SCAN_ROOT"
+log "Old PID: $OLD_PID"
+
+# Wait for old process to exit (max 30 seconds)
+log "Waiting for old process to exit..."
+WAIT_COUNT=0
+while kill -0 "$OLD_PID" 2>/dev/null; do
+    sleep 1
+    WAIT_COUNT=$((WAIT_COUNT + 1))
+    if [ $WAIT_COUNT -gt 30 ]; then
+        log "ERROR: Old process did not exit in time"
+        exit 1
+    fi
+done
+log "Old process exited"
+
+# Additional grace period for file locks to release
+sleep 2
+
+# Verify new app signature
+log "Verifying new app signature..."
+if ! codesign --verify --deep "$NEW_APP_PATH" 2>&1 | tee -a "$LOG_FILE"; then
+    log "ERROR: New app signature verification failed"
+    exit 1
+fi
+log "Signature verification passed"
+
+# Create backup of old app
+log "Creating backup..."
+if [ -d "$BACKUP_PATH" ]; then
+    rm -rf "$BACKUP_PATH"
+fi
+if ! mv "$OLD_APP_PATH" "$BACKUP_PATH" 2>&1 | tee -a "$LOG_FILE"; then
+    log "ERROR: Failed to create backup"
+    exit 1
+fi
+log "Backup created successfully"
+
+# Copy new app using ditto (preserves extended attributes)
+log "Installing new app..."
+if ! ditto --extattr "$NEW_APP_PATH" "$OLD_APP_PATH" 2>&1 | tee -a "$LOG_FILE"; then
+    log "ERROR: Failed to install new app, restoring backup..."
+    mv "$BACKUP_PATH" "$OLD_APP_PATH"
+    exit 1
+fi
+log "New app installed"
+
+# Remove quarantine attributes from entire bundle
+log "Removing quarantine attributes..."
+xattr -dr com.apple.quarantine "$OLD_APP_PATH" 2>&1 | tee -a "$LOG_FILE" || true
+log "Quarantine removed"
+
+# Launch new app
+log "Launching new app..."
+if [ -n "$SCAN_ROOT" ]; then
+    open "$OLD_APP_PATH" --args --scan-root "$SCAN_ROOT" --check-update-success 2>&1 | tee -a "$LOG_FILE" || {
+        log "ERROR: Failed to launch new app, restoring backup..."
+        rm -rf "$OLD_APP_PATH"
+        mv "$BACKUP_PATH" "$OLD_APP_PATH"
+        open "$OLD_APP_PATH" --args --scan-root "$SCAN_ROOT"
+        exit 1
+    }
+else
+    open "$OLD_APP_PATH" --args --check-update-success 2>&1 | tee -a "$LOG_FILE" || {
+        log "ERROR: Failed to launch new app, restoring backup..."
+        rm -rf "$OLD_APP_PATH"
+        mv "$BACKUP_PATH" "$OLD_APP_PATH"
+        open "$OLD_APP_PATH"
+        exit 1
+    }
+fi
+
+log "Update completed successfully"
+exit 0
+`
 )
 
 type UpdateServiceImpl struct {
@@ -264,9 +364,9 @@ func (u *UpdateServiceImpl) ApplyUpdate(updatePath string) error {
 }
 
 func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
-	// For macOS, the update is a .zip containing a .dmg file
-	// We need to extract, mount, copy, and install the .app bundle
-	log.Info().Msg("Extracting and installing macOS DMG...")
+	// For macOS, the update is a .zip containing a .dmg file with a signed .app bundle
+	// We use a helper script to atomically replace the entire .app bundle
+	log.Info().Msg("Extracting and installing macOS update...")
 
 	// Extract the ZIP file to a temporary directory
 	extractDir := filepath.Join(os.TempDir(), "scanoss-update-extract")
@@ -276,9 +376,10 @@ func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
 	defer os.RemoveAll(extractDir)
 
 	// Use unzip command to extract
+	log.Info().Msg("Extracting ZIP...")
 	cmd := exec.Command("unzip", "-o", updatePath, "-d", extractDir)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to extract ZIP: %w", err)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to extract ZIP: %w (output: %s)", err, string(output))
 	}
 
 	// Find the DMG file in the extracted directory
@@ -301,6 +402,16 @@ func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
 		return fmt.Errorf("no DMG file found in update ZIP")
 	}
 
+	log.Info().Msgf("Found DMG: %s", dmgPath)
+
+	// Verify DMG signature
+	log.Info().Msg("Verifying DMG signature...")
+	cmd = exec.Command("codesign", "--verify", "--deep", dmgPath)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("DMG signature verification failed: %w (output: %s)", err, string(output))
+	}
+	log.Info().Msg("DMG signature verification passed")
+
 	// Mount the DMG
 	mountPoint := filepath.Join(os.TempDir(), "scanoss-update-mount")
 	if err := os.MkdirAll(mountPoint, 0o755); err != nil {
@@ -308,13 +419,16 @@ func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
 	}
 	log.Info().Msgf("Mounting DMG to %s...", mountPoint)
 	cmd = exec.Command("hdiutil", "attach", dmgPath, "-nobrowse", "-mountpoint", mountPoint)
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to mount DMG: %w", err)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to mount DMG: %w (output: %s)", err, string(output))
 	}
 	// Ensure DMG is unmounted on exit
 	defer func() {
 		log.Info().Msg("Unmounting DMG...")
-		exec.Command("hdiutil", "detach", mountPoint, "-force").Run()
+		cmd := exec.Command("hdiutil", "detach", mountPoint, "-force")
+		if output, err := cmd.CombinedOutput(); err != nil {
+			log.Warn().Err(err).Msgf("Failed to unmount DMG (output: %s)", string(output))
+		}
 		os.RemoveAll(mountPoint)
 	}()
 
@@ -338,60 +452,66 @@ func (u *UpdateServiceImpl) applyUpdateMacOS(updatePath string) error {
 		return fmt.Errorf("no .app bundle found in DMG")
 	}
 
-	// Find the binary inside the new .app bundle
-	newBinaryPath := filepath.Join(appPath, "Contents", "MacOS", "scanoss-cc")
-	if _, err := os.Stat(newBinaryPath); err != nil {
-		return fmt.Errorf("could not find binary in app bundle: %w", err)
+	log.Info().Msgf("Found .app bundle: %s", appPath)
+
+	// Verify the .app bundle signature
+	log.Info().Msg("Verifying .app bundle signature...")
+	cmd = exec.Command("codesign", "--verify", "--deep", appPath)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf(".app bundle signature verification failed: %w (output: %s)", err, string(output))
+	}
+	log.Info().Msg(".app bundle signature verification passed")
+
+	// Copy the entire .app bundle to a staging location
+	stagingDir := filepath.Join(os.TempDir(), "scanoss-update-staging")
+	if err := os.MkdirAll(stagingDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create staging directory: %w", err)
+	}
+	defer os.RemoveAll(stagingDir)
+
+	newAppPath := filepath.Join(stagingDir, filepath.Base(appPath))
+	log.Info().Msgf("Copying .app bundle to staging location: %s", newAppPath)
+	cmd = exec.Command("ditto", "--extattr", appPath, newAppPath)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("failed to copy .app bundle: %w (output: %s)", err, string(output))
 	}
 
-	log.Info().Msgf("Found new binary: %s", newBinaryPath)
+	// Current app bundle path (assuming /Applications installation)
+	currentAppPath := "/Applications/scanoss-cc.app"
+	log.Info().Msgf("Current app bundle: %s", currentAppPath)
 
-	// Get current executable path (inside our current .app bundle)
-	currentExe, err := os.Executable()
-	if err != nil {
-		return fmt.Errorf("failed to get current executable: %w", err)
+	// Verify the current app exists
+	if _, err := os.Stat(currentAppPath); err != nil {
+		return fmt.Errorf("current app not found at %s: %w", currentAppPath, err)
 	}
 
-	log.Info().Msgf("Current executable: %s", currentExe)
+	// Backup path
+	backupPath := "/Applications/.scanoss-cc.app.backup"
 
-	// Open the new binary file
-	newBinary, err := os.Open(newBinaryPath)
-	if err != nil {
-		return fmt.Errorf("failed to open new binary: %w", err)
+	// Get current process PID
+	pid := os.Getpid()
+
+	// Get current scan root
+	currentScanRoot := config.GetInstance().GetScanRoot()
+
+	// Write the helper script to a temporary file
+	helperScriptPath := filepath.Join(os.TempDir(), "scanoss-update-helper.sh")
+	if err := os.WriteFile(helperScriptPath, []byte(updateHelperScript), 0o755); err != nil {
+		return fmt.Errorf("failed to write helper script: %w", err)
 	}
-	defer newBinary.Close()
+	defer os.Remove(helperScriptPath)
 
-	// Apply the update using go-update library
-	// This handles file locking correctly on macOS too
-	log.Info().Msg("Applying update to binary...")
-	if err := update.Apply(newBinary, update.Options{
-		TargetPath: currentExe,
-	}); err != nil {
-		if rollbackErr := update.RollbackError(err); rollbackErr != nil {
-			log.Error().Err(rollbackErr).Msg("failed to rollback after macOS update error")
-		}
-		return fmt.Errorf("failed to apply update: %w", err)
-	}
+	log.Info().Msg("Launching update helper script...")
 
-	// Clear macOS quarantine attribute on the updated binary
-	log.Info().Msg("Clearing quarantine attributes...")
-	exec.Command("xattr", "-d", "com.apple.quarantine", currentExe).Run()
-
-	log.Info().Msg("Update applied successfully, restarting application...")
-
-	// Get the path to the .app bundle to restart it
-	appBundlePath := filepath.Dir(filepath.Dir(filepath.Dir(currentExe)))
-	if _, err := os.Stat(appBundlePath); err != nil {
-		log.Warn().Err(err).Msg("failed to locate app bundle for restart")
-	} else {
-		currentScanRoot := config.GetInstance().GetScanRoot()
-		cmd = exec.Command("open", appBundlePath, "--args", "--scan-root", currentScanRoot)
-		if err := cmd.Start(); err != nil {
-			log.Warn().Err(err).Msg("failed to restart application")
-		}
+	// Launch the helper script in the background
+	cmd = exec.Command(helperScriptPath, currentAppPath, newAppPath, backupPath, currentScanRoot, fmt.Sprintf("%d", pid))
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to launch helper script: %w", err)
 	}
 
-	// Quit the current instance
+	log.Info().Msg("Helper script launched, quitting application...")
+
+	// Quit the current instance - the helper will wait for us to exit
 	wailsruntime.Quit(u.ctx)
 	return nil
 }
@@ -615,6 +735,86 @@ func (u *UpdateServiceImpl) verifyLinuxBinary(path string) error {
 // GetCurrentVersion returns the current application version
 func (u *UpdateServiceImpl) GetCurrentVersion() string {
 	return entities.AppVersion
+}
+
+// VerifyUpdateSuccess checks if an update completed successfully and cleans up backup
+// This should be called on app startup when --check-update-success flag is present
+func (u *UpdateServiceImpl) VerifyUpdateSuccess() error {
+	if runtime.GOOS != "darwin" {
+		return nil // Only implemented for macOS currently
+	}
+
+	backupPath := "/Applications/.scanoss-cc.app.backup"
+
+	// Check if backup exists
+	if _, err := os.Stat(backupPath); err != nil {
+		if os.IsNotExist(err) {
+			// No backup exists, nothing to clean up
+			return nil
+		}
+		return fmt.Errorf("failed to check backup status: %w", err)
+	}
+
+	// Backup exists - update was successful, clean it up
+	log.Info().Msg("Update completed successfully, removing backup...")
+	if err := os.RemoveAll(backupPath); err != nil {
+		log.Warn().Err(err).Msg("Failed to remove backup (non-fatal)")
+		return nil // Non-fatal error
+	}
+
+	log.Info().Msg("Update verification complete")
+	return nil
+}
+
+// CheckForFailedUpdate checks if the previous update failed and performs rollback if needed
+// This should be called on app startup before checking for update success
+func (u *UpdateServiceImpl) CheckForFailedUpdate() error {
+	if runtime.GOOS != "darwin" {
+		return nil // Only implemented for macOS currently
+	}
+
+	backupPath := "/Applications/.scanoss-cc.app.backup"
+	currentAppPath := "/Applications/scanoss-cc.app"
+
+	// Check if backup exists
+	if _, err := os.Stat(backupPath); err != nil {
+		if os.IsNotExist(err) {
+			// No backup exists, no failed update
+			return nil
+		}
+		return fmt.Errorf("failed to check backup status: %w", err)
+	}
+
+	// Backup exists - this means either:
+	// 1. Update is in progress (helper script is running)
+	// 2. Update failed and we need to rollback
+
+	// If we're here with a backup and no --check-update-success flag,
+	// it means the update failed (new version crashed before startup)
+
+	log.Warn().Msg("Detected failed update, attempting rollback...")
+
+	// Remove the current (failed) app
+	if err := os.RemoveAll(currentAppPath); err != nil {
+		return fmt.Errorf("failed to remove failed app during rollback: %w", err)
+	}
+
+	// Restore from backup
+	if err := os.Rename(backupPath, currentAppPath); err != nil {
+		return fmt.Errorf("failed to restore backup during rollback: %w", err)
+	}
+
+	log.Info().Msg("Rollback successful - previous version restored")
+
+	// Restart the app
+	cmd := exec.Command("open", currentAppPath)
+	if err := cmd.Start(); err != nil {
+		log.Error().Err(err).Msg("Failed to restart after rollback")
+	}
+
+	// Exit this (failed) instance
+	os.Exit(1)
+	return nil
 }
 
 // Helper function to get the appropriate asset name for the current platform

@@ -45,4 +45,10 @@ type UpdateService interface {
 
 	// SetContext sets the context for the service
 	SetContext(ctx context.Context)
+
+	// VerifyUpdateSuccess checks if an update completed successfully and cleans up backup
+	VerifyUpdateSuccess() error
+
+	// CheckForFailedUpdate checks if the previous update failed and performs rollback if needed
+	CheckForFailedUpdate() error
 }

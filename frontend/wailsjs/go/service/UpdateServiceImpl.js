@@ -6,6 +6,10 @@ export function ApplyUpdate(arg1) {
   return window['go']['service']['UpdateServiceImpl']['ApplyUpdate'](arg1);
 }
 
+export function CheckForFailedUpdate() {
+  return window['go']['service']['UpdateServiceImpl']['CheckForFailedUpdate']();
+}
+
 export function CheckForUpdate() {
   return window['go']['service']['UpdateServiceImpl']['CheckForUpdate']();
 }
@@ -20,4 +24,8 @@ export function GetCurrentVersion() {
 
 export function SetContext(arg1) {
   return window['go']['service']['UpdateServiceImpl']['SetContext'](arg1);
+}
+
+export function VerifyUpdateSuccess() {
+  return window['go']['service']['UpdateServiceImpl']['VerifyUpdateSuccess']();
 }

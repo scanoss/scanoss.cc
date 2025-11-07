@@ -5,6 +5,8 @@ import {context} from '../models';
 
 export function ApplyUpdate(arg1:string):Promise<void>;
 
+export function CheckForFailedUpdate():Promise<void>;
+
 export function CheckForUpdate():Promise<entities.UpdateInfo>;
 
 export function DownloadUpdate(arg1:entities.UpdateInfo):Promise<string>;
@@ -12,3 +14,5 @@ export function DownloadUpdate(arg1:entities.UpdateInfo):Promise<string>;
 export function GetCurrentVersion():Promise<string>;
 
 export function SetContext(arg1:context.Context):Promise<void>;
+
+export function VerifyUpdateSuccess():Promise<void>;

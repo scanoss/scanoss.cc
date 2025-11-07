@@ -123,7 +123,7 @@ export default function UpdateNotification() {
       </Button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl p-4">
           <DialogHeader>
             <DialogTitle>Update Available</DialogTitle>
             <DialogDescription>A new version of SCANOSS Code Compare is available.</DialogDescription>

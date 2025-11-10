@@ -61,7 +61,6 @@ func TestScanCommand(t *testing.T) {
 		cmd.SetArgs([]string{
 			"/test/path",
 			"--output=results.json",
-			"--no-wfp-output",
 			"--threads=10",
 			"--format=json",
 		})
@@ -76,6 +75,7 @@ func TestScanCommand(t *testing.T) {
 		mockService.EXPECT().CheckDependencies().Return(nil)
 		mockService.EXPECT().Scan(mock.MatchedBy(func(args []string) bool {
 			expectedArgs := []string{
+				"--no-wfp-output",
 				"/test/path",
 				"--quiet",
 			}
@@ -96,7 +96,7 @@ func TestScanCommand(t *testing.T) {
 		mockService.EXPECT().CheckDependencies().Return(nil)
 		mockService.EXPECT().Scan(mock.MatchedBy(func(args []string) bool {
 			expectedArgs := []string{
-				"--files", "file1.go,file2.go",
+				"--files", "--no-wfp-output", "file1.go,file2.go",
 				"--quiet",
 			}
 			sort.Strings(args)
@@ -147,7 +147,6 @@ func TestScanCommand(t *testing.T) {
 		cmd := cmd.NewScanCmd(mockService)
 		cmd.SetArgs([]string{
 			"/test/path",
-			"--no-wfp-output",
 			"--dependencies",
 			"--debug",
 			"--trace",

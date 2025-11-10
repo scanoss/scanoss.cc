@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.6] 2025-11-11
+### Changed
+- Add `--no-wfp-output` flag to default scan options to disable WFP output
+
 ## [0.9.5] 2025-11-07
 ### Fixed
 - Fix macOS postinstall script where it was not properly handling the `--scan-root` argument.
@@ -197,3 +201,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.3]: https://github.com/scanoss/scanoss.cc/compare/v0.9.2...v0.9.3
 [0.9.4]: https://github.com/scanoss/scanoss.cc/compare/v0.9.3...v0.9.4
 [0.9.5]: https://github.com/scanoss/scanoss.cc/compare/v0.9.4...v0.9.5
+[0.9.6]: https://github.com/scanoss/scanoss.cc/compare/v0.9.5...v0.9.6

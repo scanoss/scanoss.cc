@@ -90,6 +90,9 @@ func JSONSerialize(in any) ([]byte, error) {
 		return nil, err
 	}
 
+	// Append newline to comply with POSIX text file standards
+	out = append(out, '\n')
+
 	return out, nil
 }
 

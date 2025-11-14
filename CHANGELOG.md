@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.7] 2025-11-14
+### Fixed
+- Add trailing new line when saving a .json file to comply with POSIX text file standards, fixes issue [#127](https://github.com/scanoss/scanoss.cc/issues/127)
+
 ## [0.9.6] 2025-11-11
 ### Changed
 - Add `--no-wfp-output` flag to default scan options to disable WFP output

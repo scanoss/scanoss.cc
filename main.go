@@ -142,6 +142,7 @@ func run() error {
 				Icon:    icon,
 			},
 		},
+		Menu: app.BuildMenu(keyboardService),
 	})
 	if err != nil {
 		return fmt.Errorf("error: %v", err)

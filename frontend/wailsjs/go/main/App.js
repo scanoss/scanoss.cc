@@ -6,6 +6,10 @@ export function BeforeClose(arg1) {
   return window['go']['main']['App']['BeforeClose'](arg1);
 }
 
+export function BuildMenu(arg1) {
+  return window['go']['main']['App']['BuildMenu'](arg1);
+}
+
 export function GetRecentScanRoots() {
   return window['go']['main']['App']['GetRecentScanRoots']();
 }

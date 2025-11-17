@@ -27,6 +27,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	goRuntime "runtime"
 	"slices"
 
 	"github.com/rs/zerolog/log"
@@ -60,7 +61,6 @@ func (a *App) Init(ctx context.Context, scanossSettingsService service.ScanossSe
 
 func (a *App) startup() {
 	a.maybeSetWindowTitle()
-	a.initializeMenu()
 	log.Debug().Msgf("Scan Settings file path: %s", a.cfg.GetScanSettingsFilePath())
 	log.Debug().Msgf("Results file path: %s", a.cfg.GetResultFilePath())
 	log.Debug().Msgf("Scan Root file path: %s", a.cfg.GetScanRoot())
@@ -75,7 +75,6 @@ func (a *App) maybeSetWindowTitle() {
 
 func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 	hasUnsavedChanges, err := a.scanossSettingsService.HasUnsavedChanges()
-
 	if err != nil {
 		log.Error().Msg("Error checking for unsaved changes: " + err.Error())
 		return false
@@ -108,14 +107,14 @@ func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 	return false
 }
 
-func (a *App) initializeMenu() {
+func (a *App) BuildMenu(keyboardService service.KeyboardService) *menu.Menu {
 	AppMenu := menu.NewMenu()
 
-	if env := runtime.Environment(a.ctx); env.Platform == "darwin" {
+	if goRuntime.GOOS == "darwin" {
 		AppMenu.Append(menu.AppMenu())
 	}
 
-	groupedShortcuts := a.keyboardService.GetGroupedShortcuts()
+	groupedShortcuts := keyboardService.GetGroupedShortcuts()
 	actionShortcuts := groupedShortcuts[entities.GroupActions]
 	globalShortcuts := groupedShortcuts[entities.GroupGlobal]
 	viewShortcuts := groupedShortcuts[entities.GroupView]
@@ -166,11 +165,11 @@ func (a *App) initializeMenu() {
 		runtime.EventsEmit(a.ctx, string(entities.ActionShowKeyboardShortcutsModal))
 	})
 
-	if env := runtime.Environment(a.ctx); env.Platform == "darwin" {
+	if goRuntime.GOOS == "darwin" {
 		AppMenu.Append(menu.EditMenu())
 	}
 
-	runtime.MenuSetApplicationMenu(a.ctx, AppMenu)
+	return AppMenu
 }
 
 func (a *App) SelectDirectory() (string, error) {

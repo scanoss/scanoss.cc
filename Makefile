@@ -50,6 +50,10 @@ run: cp_assets ## Runs the application in development mode
 	$(eval APPARGS := $(ARGS))
 	@wails dev -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "--debug $(APPARGS)")
 
+run_webkit41: cp_assets ## Runs the application in development mode for Ubuntu 24.04+/Debian 13+
+	$(eval APPARGS := $(ARGS))
+	@wails dev -tags webkit2_41 -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "--debug $(APPARGS)")
+
 npm: ## Install NPM dependencies for the frontend
 	@echo "Running npm install for frontend..."
 	cd frontend && npm install

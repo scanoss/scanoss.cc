@@ -30,7 +30,8 @@ import (
 )
 
 const (
-	NoMatch = "none"
+	MatchTypeNone       = "none"
+	MatchTypeDependency = "dependency"
 )
 
 var (
@@ -51,7 +52,11 @@ func NewResult() *Result {
 }
 
 func (r *Result) IsEmpty() bool {
-	return r.MatchType == NoMatch
+	return r.MatchType == MatchTypeNone
+}
+
+func (r *Result) IsDependency() bool {
+	return r.MatchType == MatchTypeDependency
 }
 
 func (r *Result) IsValid() bool {

@@ -26,7 +26,6 @@ package repository
 import (
 	"encoding/json"
 	"os"
-	"slices"
 	"sync"
 	"time"
 
@@ -153,11 +152,6 @@ func (r *ResultRepositoryJsonImpl) parseScanResults(resultByte []byte) ([]entiti
 
 		scanResults = append(scanResults, result)
 	}
-
-	// We filter out "dependency" match type for now
-	scanResults = slices.DeleteFunc(scanResults, func(result entities.Result) bool {
-		return result.MatchType == "dependency"
-	})
 
 	return scanResults, nil
 }

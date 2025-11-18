@@ -78,7 +78,7 @@ func (r *ResultRepositoryJsonImpl) GetResults(filter entities.ResultFilter) ([]e
 
 	var filteredResults []entities.Result
 	for _, result := range r.cache {
-		if result.IsEmpty() {
+		if result.IsEmpty() || result.IsDependency() {
 			continue
 		}
 		if filter.IsValid(result) {

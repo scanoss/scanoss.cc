@@ -114,6 +114,10 @@
       {
         "purl": "pkg:github/substrate-asia/hackathon-2023-winter",
         "replace_with": "pkg:github/shadcn-ui/ui"
+      },
+      {
+        "purl": "pkg:github/littlehorse-enterprises/ui-library",
+        "replace_with": "pkg:github/shadcn-ui/ui"
       }
     ]
   }

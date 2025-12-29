@@ -145,8 +145,9 @@ func (a *App) BuildMenu(keyboardService service.KeyboardService) *menu.Menu {
 	// View menu
 	ViewMenu := AppMenu.AddSubmenu("View")
 	for _, shortcut := range viewShortcuts {
-		ViewMenu.AddText(shortcut.Name, shortcut.Accelerator, func(cd *menu.CallbackData) {
-			runtime.EventsEmit(a.ctx, string(shortcut.Action))
+		sc := shortcut
+		ViewMenu.AddText(sc.Name, sc.Accelerator, func(cd *menu.CallbackData) {
+			runtime.EventsEmit(a.ctx, string(sc.Action))
 		})
 	}
 

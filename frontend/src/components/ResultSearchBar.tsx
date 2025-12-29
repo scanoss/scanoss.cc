@@ -25,8 +25,11 @@ import { Search } from 'lucide-react';
 
 import { Input } from '@/components/ui/input';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { useMenuEvent } from '@/hooks/useMenuEvent';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
+
+import { entities } from '../../wailsjs/go/models';
 
 export default function ResultSearchBar({ searchInputRef }: { searchInputRef: React.RefObject<HTMLInputElement> }) {
   const query = useResultsStore((state) => state.query);
@@ -34,6 +37,8 @@ export default function ResultSearchBar({ searchInputRef }: { searchInputRef: Re
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
 
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.focusSearch.keys, () => searchInputRef.current?.focus());
+
+  useMenuEvent(entities.Action.FocusSearch, () => searchInputRef.current?.focus());
 
   return (
     <div className="relative grid w-full items-center gap-1.5">

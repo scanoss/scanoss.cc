@@ -92,7 +92,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     {
       enableOnFormTags: true,
     },
-    [isOpen]
+    [isOpen, handleConfirm]
   );
 
   return (

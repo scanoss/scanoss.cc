@@ -23,7 +23,7 @@
 
 import clsx from 'clsx';
 import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -42,12 +42,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { useMenuEvents } from '@/hooks/useMenuEvent';
 import useSelectedResult from '@/hooks/useSelectedResult';
 import { getShortcutDisplay } from '@/lib/shortcuts';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
 import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 import { useDialog } from '@/providers/DialogProvider';
 
+import { entities } from '../../wailsjs/go/models';
 import AddCommentTextarea from './AddCommentTextarea';
 import FilterByPurlList from './FilterByPurlList';
 import SelectLicenseList from './SelectLicenseList';
@@ -219,6 +221,35 @@ export default function FilterActionButton({
   useKeyboardShortcut(shortcutKeysByComponentWithComments, handleFilterByPurlWithComments, {
     enabled: !isCompletedResult,
   });
+
+  // Listen for menu bar events and map them to the appropriate handlers
+  const eventHandlerMap = useMemo(
+    () => ({
+      // Include actions
+      [entities.Action.IncludeFileWithoutComments]: action === FilterAction.Include ? handleFilterByFileWithoutComments : null,
+      [entities.Action.IncludeFileWithComments]: action === FilterAction.Include ? handleFilterByFileWithComments : null,
+      [entities.Action.IncludeComponentWithoutComments]: action === FilterAction.Include ? handleFilterByPurlWithoutComments : null,
+      [entities.Action.IncludeComponentWithComments]: action === FilterAction.Include ? handleFilterByPurlWithComments : null,
+      // Dismiss actions (mapped to FilterAction.Remove)
+      [entities.Action.DismissFileWithoutComments]: action === FilterAction.Remove ? handleFilterByFileWithoutComments : null,
+      [entities.Action.DismissFileWithComments]: action === FilterAction.Remove ? handleFilterByFileWithComments : null,
+      [entities.Action.DismissComponentWithoutComments]: action === FilterAction.Remove ? handleFilterByPurlWithoutComments : null,
+      [entities.Action.DismissComponentWithComments]: action === FilterAction.Remove ? handleFilterByPurlWithComments : null,
+      // Replace actions
+      [entities.Action.ReplaceFileWithoutComments]: action === FilterAction.Replace ? handleFilterByFileWithoutComments : null,
+      [entities.Action.ReplaceFileWithComments]: action === FilterAction.Replace ? handleFilterByFileWithComments : null,
+      [entities.Action.ReplaceComponentWithoutComments]: action === FilterAction.Replace ? handleFilterByPurlWithoutComments : null,
+      [entities.Action.ReplaceComponentWithComments]: action === FilterAction.Replace ? handleFilterByPurlWithComments : null,
+    }),
+    [
+      action,
+      handleFilterByFileWithoutComments,
+      handleFilterByFileWithComments,
+      handleFilterByPurlWithoutComments,
+      handleFilterByPurlWithComments,
+    ]
+  );
+  useMenuEvents(eventHandlerMap);
 
   return (
     <DropdownMenu onOpenChange={setDropdownOpen}>

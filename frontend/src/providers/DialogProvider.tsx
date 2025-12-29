@@ -25,8 +25,9 @@ import React, { createContext, useCallback, useContext, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
-import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
+import { useMenuEvent } from '@/hooks/useMenuEvent';
+
+import { entities } from '../../wailsjs/go/models';
 
 type DialogOptions = {
   title: string;
@@ -86,20 +87,13 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     [resolveRef]
   );
 
-  const ref = useKeyboardShortcut(
-    KEYBOARD_SHORTCUTS.confirm.keys,
-    handleConfirm,
-    {
-      enableOnFormTags: true,
-    },
-    [isOpen, handleConfirm]
-  );
+  useMenuEvent(entities.Action.Confirm, () => handleConfirm(true));
 
   return (
     <DialogContext.Provider value={{ showDialog }}>
       {children}
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent ref={ref} tabIndex={-1} className="p-4">
+        <DialogContent tabIndex={-1} className="p-4">
           <DialogHeader>
             <DialogTitle>{options.title}</DialogTitle>
             <DialogDescription>{options.description}</DialogDescription>

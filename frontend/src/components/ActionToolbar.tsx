@@ -26,11 +26,13 @@ import { useMutation } from '@tanstack/react-query';
 import { RotateCcw, RotateCw, Save } from 'lucide-react';
 
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
+import { useMenuEvent } from '@/hooks/useMenuEvent';
 import { useResults } from '@/hooks/useResults';
 import { withErrorHandling } from '@/lib/errors';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import useComponentFilterStore from '@/modules/components/stores/useComponentFilterStore';
 
+import { entities } from '../../wailsjs/go/models';
 import { Save as SaveBomChanges } from '../../wailsjs/go/service/ScanossSettingsServiceImp';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
@@ -96,6 +98,8 @@ export default function ActionToolbar() {
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.undo.keys, handleUndo);
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.redo.keys, handleRedo);
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.save.keys, () => saveChanges());
+
+  useMenuEvent(entities.Action.Save, () => saveChanges());
 
   return (
     <div className="flex justify-end gap-4">

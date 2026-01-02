@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] 2026-01-02
+### Fixed
+- Fix View menu closure capturing loop variable by reference
+- Fix menu bar Actions and File menu items not triggering UI actions
+- Fix Ctrl+Enter dialog confirm using Wails event instead of browser keyboard shortcut
+
+### Changed
+- Remove `--no-wfp-output` flag as scanoss.py 1.43.0+ no longer generates WFP files during scan
+
 ## [0.9.9] 2025-11-18
 ### Added
 - Filter dependency matches from results
@@ -217,3 +226,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.7]: https://github.com/scanoss/scanoss.cc/compare/v0.9.6...v0.9.7
 [0.9.8]: https://github.com/scanoss/scanoss.cc/compare/v0.9.7...v0.9.8
 [0.9.9]: https://github.com/scanoss/scanoss.cc/compare/v0.9.8...v0.9.9
+[0.10.0]: https://github.com/scanoss/scanoss.cc/compare/v0.9.9...v0.10.0

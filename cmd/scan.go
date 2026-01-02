@@ -52,7 +52,6 @@ func NewScanCmd(scanService service.ScanService) *cobra.Command {
 
 			scanOptions := make([]string, 0)
 			scanOptions = append(scanOptions, "--quiet")
-			scanOptions = append(scanOptions, "--no-wfp-output")
 
 			var scanDirPath string
 

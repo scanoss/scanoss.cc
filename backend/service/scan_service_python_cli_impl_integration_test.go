@@ -57,7 +57,7 @@ func TestScanServicePythonImpl_Integration(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		args := []string{"--files", tmpfile.Name(), "--no-wfp-output"}
+		args := []string{"--files", tmpfile.Name()}
 		err = scanService.Scan(args)
 		assert.NoError(t, err)
 	})
@@ -75,7 +75,7 @@ func TestScanServicePythonImpl_Integration(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		args := []string{"--files", testFile, "--no-wfp-output"}
+		args := []string{"--files", testFile}
 		err = scanService.ScanStream(args)
 		assert.NoError(t, err)
 	})

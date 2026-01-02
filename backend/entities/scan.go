@@ -55,7 +55,6 @@ var (
 		{"post-size", "P", 32, "Number of kilobytes to limit the post to while scanning (optional - default 32)", "Limits the size of each scan request to improve performance and reliability", "int", false, false},
 		{"timeout", "M", 180, "Timeout (in seconds) for API communication (optional - default 180)", "", "int", false, false},
 		{"retry", "R", 5, "Retry limit for API communication (optional - default 5)", "", "int", false, false},
-		{"no-wfp-output", "", true, "Skip WFP file generation", "", "bool", true, true},
 		{"dependencies", "D", false, "Add Dependency scanning", "", "bool", false, false},
 		{"dependencies-only", "", false, "Run Dependency scanning only", "", "bool", false, false},
 		{"sc-command", "", "", "Scancode command and path if required (optional - default scancode).", "", "string", false, false},

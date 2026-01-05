@@ -36,7 +36,7 @@ type ScanArgDef struct {
 	Usage          string
 	Tooltip        string
 	Type           string
-	IsCore         bool
+	IsCore         bool // true -> option is shown in ScanDialog UI
 	IsFileSelector bool
 }
 

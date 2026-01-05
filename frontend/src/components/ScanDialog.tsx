@@ -117,20 +117,27 @@ export default function ScanDialog({ open, onOpenChange }: ScanDialogProps) {
       setScanStatus('scanning');
       setOutput([]);
 
-      let cmdArgs: string[] = [directory];
+      const cmdArgs: string[] = [directory];
 
-      // We should only add options that have non-default values
+      // Build command arguments based on type:
+      // - bool: send if true (CLI flags are "enable only")
+      // - string: send if non-empty
+      // - int: always send
+      // - stringSlice: send if has items
+      // - unknown: send if differs from default
       Object.entries(options).forEach(([key, value]) => {
         const arg = scanArgs.find((a) => a.Name === key);
 
-        if (arg && value !== arg.Default) {
-          if (arg.Type === 'bool') {
-            if (value === true) {
-              cmdArgs.push(`--${key}`);
-            } else {
-              cmdArgs = cmdArgs.filter((arg) => arg !== `--${key}`);
-            }
-          } else {
+        if (arg) {
+          if (arg.Type === 'bool' && value === true) {
+            cmdArgs.push(`--${key}`);
+          } else if (arg.Type === 'string' && value) {
+            cmdArgs.push(`--${key}`, String(value));
+          } else if (arg.Type === 'int') {
+            cmdArgs.push(`--${key}`, String(value));
+          } else if (arg.Type === 'stringSlice' && Array.isArray(value) && value.length > 0) {
+            (value as string[]).forEach((v) => cmdArgs.push(`--${key}`, v));
+          } else if (value !== arg.Default) {
             cmdArgs.push(`--${key}`, String(value));
           }
         }

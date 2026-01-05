@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix View menu closure capturing loop variable by reference
 - Fix menu bar Actions and File menu items not triggering UI actions
 - Fix Ctrl+Enter dialog confirm using Wails event instead of browser keyboard shortcut
+- Fix --quiet checkbox not working in Scan Options dialog
 
 ### Changed
 - Remove `--no-wfp-output` flag as scanoss.py 1.43.0+ no longer generates WFP files during scan

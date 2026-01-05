@@ -152,12 +152,21 @@ jobs:
           echo "ZIP_SHA256=$SHA256" >> $GITHUB_ENV
           echo "ZIP SHA256: $SHA256"
 
+      - name: Generate GitHub App Token
+        uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: scanoss
+          repositories: homebrew-dist
+
       - name: Checkout Homebrew Tap
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: scanoss/homebrew-dist
           path: homebrew-dist
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Update Cask Formula
         run: |

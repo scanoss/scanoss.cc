@@ -36,7 +36,7 @@ type ScanArgDef struct {
 	Usage          string
 	Tooltip        string
 	Type           string
-	IsCore         bool
+	IsCore         bool // true -> option is shown in ScanDialog UI
 	IsFileSelector bool
 }
 
@@ -66,6 +66,6 @@ var (
 		{"skip-settings-file", "", false, "Skip default settings file (scanoss.json) if it exists", "", "", false, false},
 		{"debug", "d", false, "Enable debug messages", "Show detailed diagnostic information during scanning", "bool", true, false},
 		{"trace", "t", false, "Enable trace messages, including API posts", "Display all API communication and detailed execution steps", "bool", true, false},
-		{"quiet", "q", true, "Enable quiet mode", "Suppress non-essential output messages", "bool", true, false},
+		{"quiet", "q", false, "Enable quiet mode", "Suppress non-essential output messages", "bool", true, false},
 	}
 )

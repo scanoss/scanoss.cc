@@ -35,6 +35,9 @@ install_direct() {
     log_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo >&2
 
+    local CURRENT_USER=$(id -un)
+    local CURRENT_GROUP=$(id -gn)
+
     setup_sudo
     echo >&2
 
@@ -97,9 +100,13 @@ install_direct() {
         $SUDO rm -rf "$INSTALL_DIR/$APP_NAME.app"
     fi
 
-    # Copy the app to Applications
+    # Copy the app to Applications (try without sudo first)
     log_info "Installing to $INSTALL_DIR..."
-    $SUDO cp -R "$app_path" "$INSTALL_DIR/"
+    if ! cp -R "$app_path" "$INSTALL_DIR/"; then
+        log_warn "Permission denied. Trying with sudo..."
+        $SUDO cp -R "$app_path" "$INSTALL_DIR/"
+        $SUDO chown -R "$CURRENT_USER:$CURRENT_GROUP" "$INSTALL_DIR/$APP_NAME.app"
+    fi
 
     # Unmount the DMG
     hdiutil detach "$mount_point" >/dev/null 2>&1
@@ -169,9 +176,20 @@ EOF
     # Set permissions
     $SUDO chmod +x "$INSTALL_DIR/$APP_NAME.app/Contents/MacOS/$APP_NAME"
 
-    # Clear macOS quarantine attribute
+    # Clear macOS quarantine attribute with feedback
     log_info "Clearing quarantine attributes..."
-    $SUDO xattr -r -d com.apple.quarantine "$INSTALL_DIR/$APP_NAME.app" 2>/dev/null || true
+    if $SUDO xattr -r -d com.apple.quarantine "$INSTALL_DIR/$APP_NAME.app" 2>/dev/null; then
+        log_info "Quarantine removed (first launch will not show Gatekeeper prompt)"
+    else
+        log_info "First launch may show a security prompt, this is normal"
+    fi
+
+    # Verify and fix ownership if needed
+    local actual_owner=$(stat -f '%Su:%Sg' "$INSTALL_DIR/$APP_NAME.app")
+    if [ "$actual_owner" != "$CURRENT_USER:$CURRENT_GROUP" ]; then
+        log_info "Fixing app ownership..."
+        $SUDO chown -R "$CURRENT_USER:$CURRENT_GROUP" "$INSTALL_DIR/$APP_NAME.app"
+    fi
 
     echo >&2
     log_info "✓ Installation complete!"

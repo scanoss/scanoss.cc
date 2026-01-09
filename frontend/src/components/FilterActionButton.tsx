@@ -28,7 +28,6 @@ import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { useMenuEvents } from '@/hooks/useMenuEvent';
 import useSelectedResult from '@/hooks/useSelectedResult';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
-import useResultsStore from '@/modules/results/stores/useResultsStore';
 import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
 import { entities } from '../../wailsjs/go/models';
@@ -58,15 +57,6 @@ export default function FilterActionButton({
   const selectedResult = useSelectedResult();
   const isCompletedResult = selectedResult?.workflow_state === 'completed';
   const [modalOpen, setModalOpen] = useState(false);
-
-  // Get pending results to count files with same purl
-  const pendingResults = useResultsStore((state) => state.pendingResults);
-
-  // Count pending files affected by the selected component's purl
-  const affectedFilesCount = useMemo(() => {
-    if (!selectedResult?.detected_purl) return 0;
-    return pendingResults.filter((r) => r.detected_purl === selectedResult.detected_purl).length;
-  }, [selectedResult?.detected_purl, pendingResults]);
 
   const handleOpenModal = () => {
     if (!isCompletedResult) {
@@ -136,7 +126,6 @@ export default function FilterActionButton({
           action={action}
           filePath={selectedResult.path}
           purl={selectedResult.detected_purl ?? ''}
-          affectedFilesCount={affectedFilesCount}
           open={modalOpen}
           onOpenChange={setModalOpen}
           onConfirm={handleConfirm}

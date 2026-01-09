@@ -37,11 +37,13 @@ interface ComponentFilterState {
 
 export interface OnFilterComponentArgs {
   action: FilterAction;
-  filterBy: 'by_file' | 'by_purl';
+  filterBy: 'by_file' | 'by_purl' | 'by_folder';
   withComment?: boolean;
   comment?: string;
   license?: string;
   replaceWith?: string;
+  folderPath?: string;
+  purl?: string;
 }
 
 interface ComponentFilterActions {
@@ -59,13 +61,30 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
     canRedo: false,
 
     onFilterComponent: async (args: OnFilterComponentArgs) => {
-      const { replaceWith, filterBy, action, comment, license } = args;
+      const { replaceWith, filterBy, action, comment, license, folderPath, purl } = args;
 
       if (action === FilterAction.Replace && !replaceWith) {
         throw new Error('There was an error replacing the component. Please try again.');
       }
 
       const selectedResults = useResultsStore.getState().selectedResults;
+
+      // Handle folder-level filtering
+      if (filterBy === 'by_folder' && folderPath) {
+        const dto: entities.ComponentFilterDTO[] = [{
+          action,
+          comment,
+          license,
+          purl: purl ?? '',
+          path: folderPath,
+          ...(replaceWith && { replace_with: replaceWith }),
+        }];
+
+        useResultsStore.getState().moveToNextResult();
+        await FilterComponents(dto);
+        await get().updateUndoRedoState();
+        return;
+      }
 
       const dto: entities.ComponentFilterDTO[] = selectedResults.map((result) => ({
         action,

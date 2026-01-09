@@ -21,38 +21,17 @@
  * SOFTWARE.
  */
 
-import clsx from 'clsx';
-import { ChevronDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { useMenuEvents } from '@/hooks/useMenuEvent';
 import useSelectedResult from '@/hooks/useSelectedResult';
-import { getShortcutDisplay } from '@/lib/shortcuts';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
 import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
-import { useDialog } from '@/providers/DialogProvider';
 
 import { entities } from '../../wailsjs/go/models';
-import AddCommentTextarea from './AddCommentTextarea';
-import FilterByPurlList from './FilterByPurlList';
-import SelectLicenseList from './SelectLicenseList';
+import FilterActionModal from './FilterActionModal';
 
 interface FilterActionProps {
   action: FilterAction;
@@ -75,259 +54,83 @@ export default function FilterActionButton({
   shortcutKeysByComponentWithComments,
   shortcutKeysByComponentWithoutComments,
 }: FilterActionProps) {
-  const { showDialog } = useDialog();
   const selectedResult = useSelectedResult();
   const isCompletedResult = selectedResult?.workflow_state === 'completed';
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { modifierKey } = useEnvironment();
+  const [modalOpen, setModalOpen] = useState(false);
 
-  const isReplaceAction = action === FilterAction.Replace;
-  const isIncludeAction = action === FilterAction.Include;
-
-  const handleFilterByFileWithComments = async () => {
-    let comment: string | undefined;
-
-    if (!isReplaceAction) {
-      const confirm = await showDialog({
-        title: 'Add comments',
-        content: <AddCommentTextarea onChange={(value) => (comment = value)} />,
-      });
-
-      if (!confirm) return;
+  const handleOpenModal = () => {
+    if (!isCompletedResult) {
+      setModalOpen(true);
     }
-
-    return onAdd({
-      action,
-      comment,
-      withComment: true,
-      filterBy: 'by_file',
-    });
   };
 
-  const handleFilterByPurlWithComments = async () => {
-    let comment: string | undefined;
-
-    if (!isReplaceAction) {
-      const confirm = await showDialog({
-        title: 'Add comments',
-        content: (
-          <div className="flex flex-col gap-4">
-            <AddCommentTextarea onChange={(value) => (comment = value)} />
-            <FilterByPurlList action={action} />
-          </div>
-        ),
-      });
-
-      if (!confirm) return;
-    }
-
-    return onAdd({
-      action,
-      comment,
-      withComment: true,
-      filterBy: 'by_purl',
-    });
+  const handleConfirm = async (args: OnFilterComponentArgs) => {
+    await onAdd(args);
   };
 
-  const handleFilterByFileWithoutComments = async () => {
-    return onAdd({
-      action,
-      filterBy: 'by_file',
-    });
-  };
-
-  const handleFilterByPurlWithoutComments = async () => {
-    if (!isReplaceAction) {
-      const confirmed = await showDialog({
-        title: 'Are you sure?',
-        content: <FilterByPurlList action={action} />,
-      });
-
-      if (!confirmed) return;
-    }
-
-    return onAdd({
-      action,
-      filterBy: 'by_purl',
-    });
-  };
-
-  const handleFilterByFileAndDifferentLicense = async () => {
-    let license: string | undefined;
-    let comment: string | undefined;
-
-    if (!isReplaceAction) {
-      const confirmed = await showDialog({
-        title: 'Select License',
-        description: 'Select the license you want to apply to the selected files. You can also add a comment.',
-        content: (
-          <div className="flex flex-col gap-4">
-            <SelectLicenseList onSelect={(selectedLicense) => (license = selectedLicense)} />
-            <AddCommentTextarea onChange={(value) => (comment = value)} />
-          </div>
-        ),
-      });
-
-      if (!confirmed) return;
-    }
-
-    return onAdd({
-      action,
-      comment,
-      license,
-      withComment: !!comment,
-      filterBy: 'by_file',
-    });
-  };
-
-  const handleFilterByPurlAndDifferentLicense = async () => {
-    let license: string | undefined;
-    let comment: string | undefined;
-
-    if (!isReplaceAction) {
-      const confirmed = await showDialog({
-        title: 'Select License',
-        description: 'Select the license you want to apply to the selected files. You can also add a comment.',
-        content: (
-          <div className="flex flex-col gap-4">
-            <SelectLicenseList onSelect={(selectedLicense) => (license = selectedLicense)} />
-            <AddCommentTextarea onChange={(value) => (comment = value)} />
-            <FilterByPurlList action={action} />
-          </div>
-        ),
-      });
-
-      if (!confirmed) return;
-    }
-
-    return onAdd({
-      action,
-      comment,
-      license,
-      withComment: !!comment,
-      filterBy: 'by_purl',
-    });
-  };
-
-  useKeyboardShortcut(shortcutKeysByFileWithoutComments, handleFilterByFileWithoutComments, {
+  // Keyboard shortcuts all open the modal
+  useKeyboardShortcut(shortcutKeysByFileWithoutComments, handleOpenModal, {
     enabled: !isCompletedResult,
   });
-  useKeyboardShortcut(shortcutKeysByComponentWithoutComments, handleFilterByPurlWithoutComments, {
+  useKeyboardShortcut(shortcutKeysByComponentWithoutComments, handleOpenModal, {
     enabled: !isCompletedResult,
   });
-  useKeyboardShortcut(shortcutKeysByFileWithComments, handleFilterByFileWithComments, {
+  useKeyboardShortcut(shortcutKeysByFileWithComments, handleOpenModal, {
     enabled: !isCompletedResult,
   });
-  useKeyboardShortcut(shortcutKeysByComponentWithComments, handleFilterByPurlWithComments, {
+  useKeyboardShortcut(shortcutKeysByComponentWithComments, handleOpenModal, {
     enabled: !isCompletedResult,
   });
 
-  // Listen for menu bar events and map them to the appropriate handlers
+  // Listen for menu bar events and map them to open the modal
   const eventHandlerMap = useMemo(
     () => ({
       // Include actions
-      [entities.Action.IncludeFileWithoutComments]: action === FilterAction.Include ? handleFilterByFileWithoutComments : null,
-      [entities.Action.IncludeFileWithComments]: action === FilterAction.Include ? handleFilterByFileWithComments : null,
-      [entities.Action.IncludeComponentWithoutComments]: action === FilterAction.Include ? handleFilterByPurlWithoutComments : null,
-      [entities.Action.IncludeComponentWithComments]: action === FilterAction.Include ? handleFilterByPurlWithComments : null,
+      [entities.Action.IncludeFileWithoutComments]: action === FilterAction.Include ? handleOpenModal : null,
+      [entities.Action.IncludeFileWithComments]: action === FilterAction.Include ? handleOpenModal : null,
+      [entities.Action.IncludeComponentWithoutComments]: action === FilterAction.Include ? handleOpenModal : null,
+      [entities.Action.IncludeComponentWithComments]: action === FilterAction.Include ? handleOpenModal : null,
       // Dismiss actions (mapped to FilterAction.Remove)
-      [entities.Action.DismissFileWithoutComments]: action === FilterAction.Remove ? handleFilterByFileWithoutComments : null,
-      [entities.Action.DismissFileWithComments]: action === FilterAction.Remove ? handleFilterByFileWithComments : null,
-      [entities.Action.DismissComponentWithoutComments]: action === FilterAction.Remove ? handleFilterByPurlWithoutComments : null,
-      [entities.Action.DismissComponentWithComments]: action === FilterAction.Remove ? handleFilterByPurlWithComments : null,
+      [entities.Action.DismissFileWithoutComments]: action === FilterAction.Remove ? handleOpenModal : null,
+      [entities.Action.DismissFileWithComments]: action === FilterAction.Remove ? handleOpenModal : null,
+      [entities.Action.DismissComponentWithoutComments]: action === FilterAction.Remove ? handleOpenModal : null,
+      [entities.Action.DismissComponentWithComments]: action === FilterAction.Remove ? handleOpenModal : null,
       // Replace actions
-      [entities.Action.ReplaceFileWithoutComments]: action === FilterAction.Replace ? handleFilterByFileWithoutComments : null,
-      [entities.Action.ReplaceFileWithComments]: action === FilterAction.Replace ? handleFilterByFileWithComments : null,
-      [entities.Action.ReplaceComponentWithoutComments]: action === FilterAction.Replace ? handleFilterByPurlWithoutComments : null,
-      [entities.Action.ReplaceComponentWithComments]: action === FilterAction.Replace ? handleFilterByPurlWithComments : null,
+      [entities.Action.ReplaceFileWithoutComments]: action === FilterAction.Replace ? handleOpenModal : null,
+      [entities.Action.ReplaceFileWithComments]: action === FilterAction.Replace ? handleOpenModal : null,
+      [entities.Action.ReplaceComponentWithoutComments]: action === FilterAction.Replace ? handleOpenModal : null,
+      [entities.Action.ReplaceComponentWithComments]: action === FilterAction.Replace ? handleOpenModal : null,
     }),
-    [
-      action,
-      handleFilterByFileWithoutComments,
-      handleFilterByFileWithComments,
-      handleFilterByPurlWithoutComments,
-      handleFilterByPurlWithComments,
-    ]
+    [action, handleOpenModal]
   );
   useMenuEvents(eventHandlerMap);
 
   return (
-    <DropdownMenu onOpenChange={setDropdownOpen}>
-      <div className="group flex h-full">
-        <DropdownMenuTrigger asChild disabled={isCompletedResult}>
-          <Button
-            variant="ghost"
-            size="lg"
-            className="h-full w-14 rounded-none enabled:group-hover:bg-accent enabled:group-hover:text-accent-foreground"
-            disabled={isCompletedResult}
-          >
-            <div className="flex flex-col items-center justify-center gap-1">
-              <span className="text-xs">{filterActionLabelMap[action]}</span>
-              {icon}
-            </div>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuTrigger asChild disabled={isCompletedResult}>
-          <button className="flex h-full w-4 items-center outline-none transition-colors enabled:hover:bg-accent" disabled={isCompletedResult}>
-            <ChevronDown
-              className={clsx(
-                'h-4 w-4 stroke-muted-foreground transition-transform enabled:hover:stroke-accent-foreground',
-                dropdownOpen && 'rotate-180 transform'
-              )}
-            />
-          </button>
-        </DropdownMenuTrigger>
-      </div>
-      <DropdownMenuContent className="max-w-[400px]">
-        <DropdownMenuLabel>
-          <span className="text-xs font-normal text-muted-foreground">{description}</span>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-border" />
-        <DropdownMenuGroup>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>File</DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent className="min-w-[420px]">
-                <DropdownMenuItem onClick={handleFilterByFileWithoutComments}>
-                  <span className="first-letter:uppercase">{`${action} without comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithoutComments, modifierKey.label)[0]}</DropdownMenuShortcut>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleFilterByFileWithComments}>
-                  <span className="first-letter:uppercase">{`${action} with comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByFileWithComments, modifierKey.label)[0]}</DropdownMenuShortcut>
-                </DropdownMenuItem>
-                {isIncludeAction && (
-                  <DropdownMenuItem onClick={handleFilterByFileAndDifferentLicense}>
-                    <span className="first-letter:uppercase">{`${action} with a different license`}</span>
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-        </DropdownMenuGroup>
-        <DropdownMenuGroup>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>Component</DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent className="min-w-[420px]">
-                <DropdownMenuItem onClick={handleFilterByPurlWithoutComments}>
-                  <span className="first-letter:uppercase">{`${action} without comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByComponentWithoutComments, modifierKey.label)[0]}</DropdownMenuShortcut>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleFilterByPurlWithComments}>
-                  <span className="first-letter:uppercase">{`${action} with Comments`}</span>
-                  <DropdownMenuShortcut>{getShortcutDisplay(shortcutKeysByComponentWithComments, modifierKey.label)[0]}</DropdownMenuShortcut>
-                </DropdownMenuItem>
-                {isIncludeAction && (
-                  <DropdownMenuItem onClick={handleFilterByPurlAndDifferentLicense}>
-                    <span className="first-letter:uppercase">{`${action} with a different license`}</span>
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <Button
+        variant="ghost"
+        size="lg"
+        className="h-full w-14 rounded-none enabled:hover:bg-accent enabled:hover:text-accent-foreground"
+        disabled={isCompletedResult}
+        onClick={handleOpenModal}
+        title={description}
+      >
+        <div className="flex flex-col items-center justify-center gap-1">
+          <span className="text-xs">{filterActionLabelMap[action]}</span>
+          {icon}
+        </div>
+      </Button>
+
+      {selectedResult && (
+        <FilterActionModal
+          action={action}
+          filePath={selectedResult.path}
+          purl={selectedResult.detected_purl ?? ''}
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          onConfirm={handleConfirm}
+        />
+      )}
+    </>
   );
 }

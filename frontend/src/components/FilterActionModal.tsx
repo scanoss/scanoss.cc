@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2026 SCANOSS.COM
+ * Copyright (C) 2024 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,31 +22,28 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { Check, ChevronsUpDown, File, Folder, Package, Plus, Search } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useDialogRegistration } from '@/contexts/DialogStateContext';
 import useEnvironment from '@/hooks/useEnvironment';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { getShortcutDisplay, KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
-import { cn, getPathSegments } from '@/lib/utils';
+import { getPathSegments } from '@/lib/utils';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
 import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
 import { entities } from '../../wailsjs/go/models';
 import { GetDeclaredComponents } from '../../wailsjs/go/service/ComponentServiceImpl';
 import { GetLicensesByPurl } from '../../wailsjs/go/service/LicenseServiceImpl';
+import ComponentSelector from './ComponentSelector';
 import NewComponentDialog from './NewComponentDialog';
-import PathBreadcrumb from './PathBreadcrumb';
 import OnlineComponentSearchDialog from './OnlineComponentSearchDialog';
+import PathBreadcrumb from './PathBreadcrumb';
 import SelectLicenseList from './SelectLicenseList';
 import ShortcutBadge from './ShortcutBadge';
 import { Button } from './ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from './ui/command';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Label } from './ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { ScrollArea } from './ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Textarea } from './ui/textarea';
 import { useToast } from './ui/use-toast';
@@ -80,7 +77,7 @@ export default function FilterActionModal({
   const { modifierKey } = useEnvironment();
   const submitButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Tab state: 'path' or 'component'
+  // Tab state
   const [activeTab, setActiveTab] = useState<'path' | 'component'>('path');
 
   // Path selection state
@@ -90,15 +87,14 @@ export default function FilterActionModal({
   // Comment state
   const [comment, setComment] = useState('');
 
-  // License state (for Include action)
+  // License state
   const [license, setLicense] = useState<string>();
   const [licenseKey, setLicenseKey] = useState(0);
 
   // Replace component state
-  const [popoverOpen, setPopoverOpen] = useState(false);
   const [newComponentDialogOpen, setNewComponentDialogOpen] = useState(false);
   const [onlineSearchDialogOpen, setOnlineSearchDialogOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+  const [onlineSearchTerm, setOnlineSearchTerm] = useState('');
   const [declaredComponents, setDeclaredComponents] = useState<entities.DeclaredComponent[]>([]);
   const [selectedComponent, setSelectedComponent] = useState<entities.DeclaredComponent | null>(null);
   const [matchedLicenses, setMatchedLicenses] = useState<entities.License[]>([]);
@@ -147,7 +143,6 @@ export default function FilterActionModal({
       setLicense(undefined);
       setLicenseKey((k) => k + 1);
       setSelectedComponent(null);
-      setSearchValue('');
     }
   }, [open, segments.length]);
 
@@ -179,11 +174,6 @@ export default function FilterActionModal({
     setLicense(undefined);
     setLicenseKey((k) => k + 1);
     setNewComponentDialogOpen(false);
-  };
-
-  const handleSearchOnline = () => {
-    setOnlineSearchDialogOpen(true);
-    setPopoverOpen(false);
   };
 
   const handleConfirm = () => {
@@ -227,17 +217,12 @@ export default function FilterActionModal({
     enabled: open,
   });
 
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.confirm.keys, handleSearchOnline, {
-    enableOnFormTags: true,
-    enabled: popoverOpen,
-  });
-
   const actionLabel = filterActionLabelMap[action];
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent ref={ref} tabIndex={-1} className="p-4 max-w-lg">
+        <DialogContent ref={ref} tabIndex={-1} className="max-w-lg p-4">
           <DialogHeader>
             <DialogTitle>{actionLabel}</DialogTitle>
             <DialogDescription>
@@ -248,40 +233,18 @@ export default function FilterActionModal({
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'path' | 'component')}>
-            <TabsList className="self-start">
+            <TabsList className="mb-2 self-start">
               <TabsTrigger value="path">Path</TabsTrigger>
               <TabsTrigger value="component">Component</TabsTrigger>
             </TabsList>
-            <TabsContent value="path" className="min-h-[80px]">
-              <div className="flex flex-col gap-2">
-                <div className="rounded-md border bg-muted/30 px-3 py-2">
-                  <PathBreadcrumb filePath={filePath} selectedIndex={selectedPathIndex} onSelect={setSelectedPathIndex} />
-                </div>
-                <span className="inline-flex items-center gap-1 self-start rounded-md border bg-muted/50 px-2 py-1 text-xs text-muted-foreground">
-                  {selectedPathIndex < segments.length - 1 ? (
-                    <>
-                      <Folder className="h-3 w-3" />
-                      folder
-                    </>
-                  ) : (
-                    <>
-                      <File className="h-3 w-3" />
-                      file
-                    </>
-                  )}
-                </span>
+            <TabsContent value="path" className="mt-4">
+              <div className="flex min-h-[44px] items-center rounded-md border bg-muted/30 px-3 py-2">
+                <PathBreadcrumb filePath={filePath} selectedIndex={selectedPathIndex} onSelect={setSelectedPathIndex} />
               </div>
             </TabsContent>
-            <TabsContent value="component" className="min-h-[80px]">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 font-mono text-sm">
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                  <span>{purl}</span>
-                </div>
-                <span className="inline-flex items-center gap-1 self-start rounded-md border bg-muted/50 px-2 py-1 text-xs text-muted-foreground">
-                  <Package className="h-3 w-3" />
-                  {affectedFilesCount} pending {affectedFilesCount === 1 ? 'file' : 'files'}
-                </span>
+            <TabsContent value="component" className="mt-4">
+              <div className="flex min-h-[44px] items-center rounded-md border bg-muted/30 px-3 py-2 font-mono text-sm">
+                {purl}
               </div>
             </TabsContent>
           </Tabs>
@@ -300,79 +263,23 @@ export default function FilterActionModal({
           {isReplaceAction && (
             <div className="flex flex-col gap-2">
               <Label>Replace with</Label>
-              <Popover open={popoverOpen} onOpenChange={setPopoverOpen} modal>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className={cn('justify-between', !selectedComponent && 'text-muted-foreground')}
-                  >
-                    {selectedComponent ? selectedComponent.name : 'Select component'}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0">
-                  <Command>
-                    <CommandInput placeholder="Search component..." value={searchValue} onValueChange={setSearchValue} />
-                    <CommandList>
-                      <CommandEmpty>No components found.</CommandEmpty>
-                      <CommandGroup>
-                        <CommandItem
-                          onSelect={() => {
-                            setNewComponentDialogOpen(true);
-                            setPopoverOpen(false);
-                          }}
-                        >
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add new component
-                        </CommandItem>
-                        {searchValue && (
-                          <CommandItem onSelect={handleSearchOnline} className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              <Search className="h-3 w-3" />
-                              Search &ldquo;{searchValue}&rdquo; online
-                            </div>
-                            <ShortcutBadge shortcut={getShortcutDisplay(KEYBOARD_SHORTCUTS.confirm.keys, modifierKey.label)[0]} />
-                          </CommandItem>
-                        )}
-                      </CommandGroup>
-                      <CommandSeparator />
-                      <CommandGroup>
-                        <ScrollArea className="h-52">
-                          {declaredComponents?.map((component) => (
-                            <CommandItem
-                              key={component.purl}
-                              onSelect={() => {
-                                setSelectedComponent(component);
-                                setLicense(undefined);
-                                setLicenseKey((k) => k + 1);
-                                setPopoverOpen(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  'mr-2 h-4 w-4',
-                                  component.purl === selectedComponent?.purl ? 'opacity-100' : 'opacity-0'
-                                )}
-                              />
-                              <div>
-                                <p>{component.name}</p>
-                                <p className="text-xs text-muted-foreground">{component.purl}</p>
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </ScrollArea>
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              {selectedComponent && (
-                <p className="text-xs text-muted-foreground font-mono">{selectedComponent.purl}</p>
-              )}
+              <ComponentSelector
+                components={declaredComponents}
+                selectedComponent={selectedComponent}
+                onSelect={(component) => {
+                  handleComponentSelected(component);
+                  getMatchedLicenses(component.purl);
+                }}
+                onAddNew={() => setNewComponentDialogOpen(true)}
+                onSearchOnline={(term) => {
+                  setOnlineSearchTerm(term);
+                  setOnlineSearchDialogOpen(true);
+                }}
+              />
+              {selectedComponent && <p className="font-mono text-xs text-muted-foreground">{selectedComponent.purl}</p>}
 
               {/* License for replacement component */}
-              <div className="flex flex-col gap-2 mt-2">
+              <div className="mt-2 flex flex-col gap-2">
                 <Label>
                   License <span className="text-xs font-normal text-muted-foreground">(optional)</span>
                 </Label>
@@ -412,7 +319,7 @@ export default function FilterActionModal({
       {onlineSearchDialogOpen && (
         <OnlineComponentSearchDialog
           onOpenChange={() => setOnlineSearchDialogOpen(false)}
-          searchTerm={searchValue}
+          searchTerm={onlineSearchTerm}
           onComponentSelect={async (c) => {
             handleComponentSelected(c);
             await getMatchedLicenses(c.purl);

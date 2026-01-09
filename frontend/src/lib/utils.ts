@@ -28,6 +28,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function getPathSegments(filePath: string) {
+  return filePath.split('/').filter(Boolean);
+}
+
 export function getFileName(filePath: string) {
   const parts = filePath.split('/');
   return parts.pop() || '';

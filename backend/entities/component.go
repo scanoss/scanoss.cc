@@ -93,7 +93,7 @@ const (
 
 type ComponentFilterDTO struct {
 	Path        string       `json:"path,omitempty"`
-	Purl        string       `json:"purl" validate:"required"`
+	Purl        string       `json:"purl,omitempty"`
 	Usage       string       `json:"usage,omitempty"`
 	Action      FilterAction `json:"action" validate:"required,eq=include|eq=remove|eq=replace"`
 	Comment     string       `json:"comment,omitempty"`

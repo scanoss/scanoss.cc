@@ -27,6 +27,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strings"
 )
 
 type ComponentFilterUsage string
@@ -90,6 +91,92 @@ type InitialFilters struct {
 	Replace []ComponentFilter
 }
 
+// Priority returns the priority score for a ComponentFilter.
+// Higher score = higher priority.
+// Score 4: has both path and purl (most specific)
+// Score 2: has purl only
+// Score 1: has path only (folder rules)
+func (cf ComponentFilter) Priority() int {
+	hasPath := cf.Path != ""
+	hasPurl := cf.Purl != ""
+
+	if hasPath && hasPurl {
+		return 4
+	}
+	if hasPurl {
+		return 2
+	}
+	if hasPath {
+		return 1
+	}
+	return 0
+}
+
+// Compare compares this filter with another by priority.
+// Returns: negative if cf comes before other in sort order.
+//
+// Priority rules (consistent with scanoss.java):
+//  1. Higher score wins (score 4 > score 2 > score 1)
+//  2. Same score: longer path wins (more specific)
+//
+// The length comparison naturally handles file vs folder priority:
+// "src/main.c" (10 chars) beats "src/" (4 chars) at the same score level.
+func (cf ComponentFilter) Compare(other ComponentFilter) int {
+	score1 := cf.Priority()
+	score2 := other.Priority()
+
+	if score1 > score2 {
+		return -1
+	}
+	if score1 < score2 {
+		return 1
+	}
+
+	if len(cf.Path) > len(other.Path) {
+		return -1
+	}
+	if len(cf.Path) < len(other.Path) {
+		return 1
+	}
+
+	return 0
+}
+
+// MatchesPath checks if the path constraint is satisfied.
+func (cf ComponentFilter) MatchesPath(path string) bool {
+	if cf.Path == "" {
+		return true // No constraint
+	}
+
+	// Folder rule: prefix match
+	if strings.HasSuffix(cf.Path, "/") {
+		return strings.HasPrefix(path, cf.Path)
+	}
+
+	// File rule: exact match
+	return cf.Path == path
+}
+
+// MatchesAnyPurl checks if the purl constraint is satisfied.
+// Empty purl means no constraint (always satisfied).
+func (cf ComponentFilter) MatchesAnyPurl(purls []string) bool {
+	if cf.Purl == "" {
+		return true // No constraint
+	}
+	return slices.Contains(purls, cf.Purl)
+}
+
+// AppliesTo checks if all filter constraints are satisfied by the result.
+// A filter matches when both path and purl constraints are satisfied.
+// Empty constraints are always satisfied (act as wildcards).
+func (cf ComponentFilter) AppliesTo(result Result) bool {
+	purls := []string{}
+	if result.Purl != nil {
+		purls = *result.Purl
+	}
+	return cf.MatchesPath(result.Path) && cf.MatchesAnyPurl(purls)
+}
+
 func (sf *SettingsFile) Equal(other *SettingsFile) (bool, error) {
 	originalSettingsFileJson, err := json.Marshal(sf)
 	if err != nil {
@@ -131,14 +218,21 @@ func (sf *SettingsFile) IsResultReplaced(result Result) (bool, int) {
 }
 
 func (sf *SettingsFile) IsResultInList(result Result, list []ComponentFilter) (bool, int) {
-	i := slices.IndexFunc(list, func(cf ComponentFilter) bool {
-		if cf.Path != "" && cf.Purl != "" {
-			return cf.Path == result.Path && slices.Contains(*result.Purl, cf.Purl)
-		}
-		return slices.Contains(*result.Purl, cf.Purl)
-	})
+	matchedIndex := -1
+	var matchedFilter *ComponentFilter
 
-	return i != -1, i
+	for i, filter := range list {
+		if !filter.AppliesTo(result) {
+			continue
+		}
+		// Found a match, is it higher priority than current?
+		if matchedFilter == nil || filter.Compare(*matchedFilter) < 0 {
+			matchedIndex = i
+			matchedFilter = &list[i]
+		}
+	}
+
+	return matchedIndex != -1, matchedIndex
 }
 
 func (sf *SettingsFile) GetResultFilterConfig(result Result) FilterConfig {
@@ -163,9 +257,15 @@ func (sf *SettingsFile) GetResultFilterConfig(result Result) FilterConfig {
 }
 
 func getResultFilterType(cf ComponentFilter) FilterType {
+	// Folder rule: path ends with /
+	if strings.HasSuffix(cf.Path, "/") {
+		return ByFolder
+	}
+	// File rule: has both path and purl
 	if cf.Path != "" && cf.Purl != "" {
 		return ByFile
 	}
+	// Component rule: purl only
 	return ByPurl
 }
 

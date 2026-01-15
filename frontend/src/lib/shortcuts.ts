@@ -75,67 +75,30 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
   },
 
   // Actions
-  [entities.Action.IncludeFileWithoutComments]: {
-    name: 'Include File Without Comments',
-    description: 'Include the file without comments',
+  [entities.Action.Include]: {
+    name: 'Include',
+    description: 'Include file directly',
     keys: 'i, f1',
   },
-  [entities.Action.IncludeFileWithComments]: {
-    name: 'Include File With Comments',
-    description: 'Include the file with comments',
+  [entities.Action.IncludeWithModal]: {
+    name: 'Include (with options)',
+    description: 'Open include dialog for file/folder/component',
     keys: 'shift+i, shift+f1',
   },
-  [entities.Action.IncludeComponentWithoutComments]: {
-    name: 'Include Component Without Comments',
-    description: 'Include the component without comments',
-    keys: 'c, mod+f1',
-  },
-  [entities.Action.IncludeComponentWithComments]: {
-    name: 'Include Component With Comments',
-    description: 'Include the component with comments',
-    keys: 'shift+c, shift+mod+f1',
-  },
-
-  [entities.Action.DismissFileWithoutComments]: {
-    name: 'Dismiss File Without Comments',
-    description: 'Dismiss the file without comments',
+  [entities.Action.Dismiss]: {
+    name: 'Dismiss',
+    description: 'Dismiss file directly',
     keys: 'd, f2',
   },
-  [entities.Action.DismissFileWithComments]: {
-    name: 'Dismiss File With Comments',
-    description: 'Dismiss the file with comments',
+  [entities.Action.DismissWithModal]: {
+    name: 'Dismiss (with options)',
+    description: 'Open dismiss dialog for file/folder/component',
     keys: 'shift+d, shift+f2',
   },
-  [entities.Action.DismissComponentWithoutComments]: {
-    name: 'Dismiss Component Without Comments',
-    description: 'Dismiss the component without comments',
-    keys: 'x, mod+f2',
-  },
-  [entities.Action.DismissComponentWithComments]: {
-    name: 'Dismiss Component With Comments',
-    description: 'Dismiss the component with comments',
-    keys: 'shift+x, shift+mod+f2',
-  },
-
-  [entities.Action.ReplaceFileWithoutComments]: {
-    name: 'Replace File Without Comments',
-    description: 'Replace the file without comments',
+  [entities.Action.Replace]: {
+    name: 'Replace',
+    description: 'Open replace dialog to select replacement component',
     keys: 'r, f3',
-  },
-  [entities.Action.ReplaceFileWithComments]: {
-    name: 'Replace File With Comments',
-    description: 'Replace the file with comments',
-    keys: 'shift+r, shift+f3',
-  },
-  [entities.Action.ReplaceComponentWithoutComments]: {
-    name: 'Replace Component Without Comments',
-    description: 'Replace the component without comments',
-    keys: 'e, mod+f3',
-  },
-  [entities.Action.ReplaceComponentWithComments]: {
-    name: 'Replace Component With Comments',
-    description: 'Replace the component with comments',
-    keys: 'shift+e, shift+mod+f3',
   },
 
   // View

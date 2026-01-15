@@ -31,26 +31,21 @@ import (
 type Action string
 
 const (
-	ActionUndo                            Action = "undo"
-	ActionRedo                            Action = "redo"
-	ActionSave                            Action = "save"
-	ActionConfirm                         Action = "confirm"
-	ActionFocusSearch                     Action = "focusSearch"
-	ActionSelectAll                       Action = "selectAll"
-	ActionMoveUp                          Action = "moveUp"
-	ActionMoveDown                        Action = "moveDown"
-	ActionIncludeFileWithoutComments      Action = "includeFileWithoutComments"
-	ActionIncludeFileWithComments         Action = "includeFileWithComments"
-	ActionIncludeComponentWithoutComments Action = "includeComponentWithoutComments"
-	ActionIncludeComponentWithComments    Action = "includeComponentWithComments"
-	ActionDismissFileWithoutComments      Action = "dismissFileWithoutComments"
-	ActionDismissFileWithComments         Action = "dismissFileWithComments"
-	ActionDismissComponentWithoutComments Action = "dismissComponentWithoutComments"
-	ActionDismissComponentWithComments    Action = "dismissComponentWithComments"
-	ActionReplaceFileWithoutComments      Action = "replaceFileWithoutComments"
-	ActionReplaceFileWithComments         Action = "replaceFileWithComments"
-	ActionReplaceComponentWithoutComments Action = "replaceComponentWithoutComments"
-	ActionReplaceComponentWithComments    Action = "replaceComponentWithComments"
+	ActionUndo        Action = "undo"
+	ActionRedo        Action = "redo"
+	ActionSave        Action = "save"
+	ActionConfirm     Action = "confirm"
+	ActionFocusSearch Action = "focusSearch"
+	ActionSelectAll   Action = "selectAll"
+	ActionMoveUp      Action = "moveUp"
+	ActionMoveDown    Action = "moveDown"
+
+	// Filter actions
+	ActionInclude          Action = "include"
+	ActionIncludeWithModal Action = "includeWithModal"
+	ActionDismiss          Action = "dismiss"
+	ActionDismissWithModal Action = "dismissWithModal"
+	ActionReplace          Action = "replace"
 
 	// View
 	ActionToggleSyncScrollPosition   Action = "toggleSyncScrollPosition"
@@ -93,18 +88,11 @@ var AllShortcutActions = []struct {
 	{ActionSelectAll, "SelectAll"},
 	{ActionMoveUp, "MoveUp"},
 	{ActionMoveDown, "MoveDown"},
-	{ActionIncludeFileWithoutComments, "IncludeFileWithoutComments"},
-	{ActionIncludeFileWithComments, "IncludeFileWithComments"},
-	{ActionIncludeComponentWithoutComments, "IncludeComponentWithoutComments"},
-	{ActionIncludeComponentWithComments, "IncludeComponentWithComments"},
-	{ActionDismissFileWithoutComments, "DismissFileWithoutComments"},
-	{ActionDismissFileWithComments, "DismissFileWithComments"},
-	{ActionDismissComponentWithoutComments, "DismissComponentWithoutComments"},
-	{ActionDismissComponentWithComments, "DismissComponentWithComments"},
-	{ActionReplaceFileWithoutComments, "ReplaceFileWithoutComments"},
-	{ActionReplaceFileWithComments, "ReplaceFileWithComments"},
-	{ActionReplaceComponentWithoutComments, "ReplaceComponentWithoutComments"},
-	{ActionReplaceComponentWithComments, "ReplaceComponentWithComments"},
+	{ActionInclude, "Include"},
+	{ActionIncludeWithModal, "IncludeWithModal"},
+	{ActionDismiss, "Dismiss"},
+	{ActionDismissWithModal, "DismissWithModal"},
+	{ActionReplace, "Replace"},
 	{ActionToggleSyncScrollPosition, "ToggleSyncScrollPosition"},
 	{ActionShowKeyboardShortcutsModal, "ShowKeyboardShortcutsModal"},
 	{ActionScanWithOptions, "ScanWithOptions"},
@@ -184,112 +172,49 @@ var DefaultShortcuts = []Shortcut{
 
 	// Actions
 	{
-		Name:                   "Include File Without Comments",
-		Description:            "Include the file without comments",
+		Name:                   "Include",
+		Description:            "Include file directly",
 		Accelerator:            keys.Key("f1"),
 		AlternativeAccelerator: keys.Key("i"),
 		Keys:                   "i, f1",
 		Group:                  GroupActions,
-		Action:                 ActionIncludeFileWithoutComments,
+		Action:                 ActionInclude,
 	},
 	{
-		Name:                   "Include File With Comments",
-		Description:            "Include the file with comments",
+		Name:                   "Include (with options)",
+		Description:            "Open include dialog for file/folder/component",
 		Accelerator:            keys.Shift("f1"),
 		AlternativeAccelerator: keys.Shift("i"),
 		Keys:                   "shift+i, shift+f1",
 		Group:                  GroupActions,
-		Action:                 ActionIncludeFileWithComments,
+		Action:                 ActionIncludeWithModal,
 	},
 	{
-		Name:                   "Include Component Without Comments",
-		Description:            "Include the component without comments",
-		Accelerator:            keys.CmdOrCtrl("f1"),
-		AlternativeAccelerator: keys.Key("c"),
-		Keys:                   "c, mod+f1",
-		Group:                  GroupActions,
-		Action:                 ActionIncludeComponentWithoutComments,
-	},
-	{
-		Name:                   "Include Component With Comments",
-		Description:            "Include the component with comments",
-		Accelerator:            keys.Combo("f1", keys.ShiftKey, keys.CmdOrCtrlKey),
-		AlternativeAccelerator: keys.Shift("c"),
-		Keys:                   "shift+c, shift+mod+f1",
-		Group:                  GroupActions,
-		Action:                 ActionIncludeComponentWithComments,
-	},
-	{
-		Name:                   "Dismiss File Without Comments",
-		Description:            "Dismiss the file without comments",
+		Name:                   "Dismiss",
+		Description:            "Dismiss file directly",
 		Accelerator:            keys.Key("f2"),
 		AlternativeAccelerator: keys.Key("d"),
 		Keys:                   "d, f2",
 		Group:                  GroupActions,
-		Action:                 ActionDismissFileWithoutComments,
+		Action:                 ActionDismiss,
 	},
 	{
-		Name:                   "Dismiss File With Comments",
-		Description:            "Dismiss the file with comments",
+		Name:                   "Dismiss (with options)",
+		Description:            "Open dismiss dialog for file/folder/component",
 		Accelerator:            keys.Shift("f2"),
 		AlternativeAccelerator: keys.Shift("d"),
 		Keys:                   "shift+d, shift+f2",
 		Group:                  GroupActions,
-		Action:                 ActionDismissFileWithComments,
+		Action:                 ActionDismissWithModal,
 	},
 	{
-		Name:                   "Dismiss Component Without Comments",
-		Description:            "Dismiss the component without comments",
-		Accelerator:            keys.CmdOrCtrl("f2"),
-		AlternativeAccelerator: keys.Key("x"),
-		Keys:                   "x, mod+f2",
-		Group:                  GroupActions,
-		Action:                 ActionDismissComponentWithoutComments,
-	},
-	{
-		Name:                   "Dismiss Component With Comments",
-		Description:            "Dismiss the component with comments",
-		Accelerator:            keys.Combo("f2", keys.ShiftKey, keys.CmdOrCtrlKey),
-		AlternativeAccelerator: keys.Shift("x"),
-		Keys:                   "shift+x, shift+mod+f2",
-		Group:                  GroupActions,
-		Action:                 ActionDismissComponentWithComments,
-	},
-	{
-		Name:                   "Replace File Without Comments",
-		Description:            "Replace the file without comments",
+		Name:                   "Replace",
+		Description:            "Open replace dialog to select replacement component",
 		Accelerator:            keys.Key("f3"),
 		AlternativeAccelerator: keys.Key("r"),
 		Keys:                   "r, f3",
 		Group:                  GroupActions,
-		Action:                 ActionReplaceFileWithoutComments,
-	},
-	{
-		Name:                   "Replace File With Comments",
-		Description:            "Replace the file with comments",
-		Accelerator:            keys.Shift("f3"),
-		AlternativeAccelerator: keys.Shift("r"),
-		Keys:                   "shift+r, shift+f3",
-		Group:                  GroupActions,
-		Action:                 ActionReplaceFileWithComments,
-	},
-	{
-		Name:                   "Replace Component Without Comments",
-		Description:            "Replace the component without comments",
-		Accelerator:            keys.CmdOrCtrl("f3"),
-		AlternativeAccelerator: keys.Key("e"),
-		Keys:                   "e, mod+f3",
-		Group:                  GroupActions,
-		Action:                 ActionReplaceComponentWithoutComments,
-	},
-	{
-		Name:                   "Replace Component With Comments",
-		Description:            "Replace the component with comments",
-		Accelerator:            keys.Combo("f3", keys.ShiftKey, keys.CmdOrCtrlKey),
-		AlternativeAccelerator: keys.Shift("e"),
-		Keys:                   "shift+e, shift+mod+f3",
-		Group:                  GroupActions,
-		Action:                 ActionReplaceComponentWithComments,
+		Action:                 ActionReplace,
 	},
 
 	// View

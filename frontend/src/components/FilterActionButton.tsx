@@ -38,10 +38,8 @@ interface FilterActionProps {
   description: string;
   icon: React.ReactNode;
   onAdd: (args: OnFilterComponentArgs) => Promise<void> | void;
-  shortcutKeysByFileWithComments: string;
-  shortcutKeysByFileWithoutComments: string;
-  shortcutKeysByComponentWithComments: string;
-  shortcutKeysByComponentWithoutComments: string;
+  directShortcutKeys?: string;
+  modalShortcutKeys: string;
 }
 
 export default function FilterActionButton({
@@ -49,18 +47,26 @@ export default function FilterActionButton({
   description,
   icon,
   onAdd,
-  shortcutKeysByFileWithComments,
-  shortcutKeysByFileWithoutComments,
-  shortcutKeysByComponentWithComments,
-  shortcutKeysByComponentWithoutComments,
+  directShortcutKeys,
+  modalShortcutKeys,
 }: FilterActionProps) {
   const selectedResult = useSelectedResult();
   const isCompletedResult = selectedResult?.workflow_state === 'completed';
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleOpenModal = () => {
-    if (!isCompletedResult) {
+    if (!isCompletedResult && selectedResult) {
       setModalOpen(true);
+    }
+  };
+
+  const handleDirectAction = () => {
+    if (!isCompletedResult && selectedResult) {
+      onAdd({
+        action,
+        filterBy: 'by_file',
+        purl: selectedResult.detected_purl ?? '',
+      });
     }
   };
 
@@ -68,40 +74,29 @@ export default function FilterActionButton({
     await onAdd(args);
   };
 
-  // Keyboard shortcuts all open the modal
-  useKeyboardShortcut(shortcutKeysByFileWithoutComments, handleOpenModal, {
-    enabled: !isCompletedResult,
-  });
-  useKeyboardShortcut(shortcutKeysByComponentWithoutComments, handleOpenModal, {
-    enabled: !isCompletedResult,
-  });
-  useKeyboardShortcut(shortcutKeysByFileWithComments, handleOpenModal, {
-    enabled: !isCompletedResult,
-  });
-  useKeyboardShortcut(shortcutKeysByComponentWithComments, handleOpenModal, {
-    enabled: !isCompletedResult,
+  // Direct shortcut (F1/i, F2/d) - executes action immediately on file-level
+  useKeyboardShortcut(directShortcutKeys ?? '', handleDirectAction, {
+    enabled: !isCompletedResult && !!selectedResult && !!directShortcutKeys,
   });
 
-  // Listen for menu bar events and map them to open the modal
+  // Modal shortcut (shift+F1/shift+i, shift+F2/shift+d, F3/r) - opens modal
+  useKeyboardShortcut(modalShortcutKeys, handleOpenModal, {
+    enabled: !isCompletedResult && !!selectedResult,
+  });
+
+  // Listen for menu bar events
   const eventHandlerMap = useMemo(
     () => ({
       // Include actions
-      [entities.Action.IncludeFileWithoutComments]: action === FilterAction.Include ? handleOpenModal : null,
-      [entities.Action.IncludeFileWithComments]: action === FilterAction.Include ? handleOpenModal : null,
-      [entities.Action.IncludeComponentWithoutComments]: action === FilterAction.Include ? handleOpenModal : null,
-      [entities.Action.IncludeComponentWithComments]: action === FilterAction.Include ? handleOpenModal : null,
+      [entities.Action.Include]: action === FilterAction.Include ? handleDirectAction : null,
+      [entities.Action.IncludeWithModal]: action === FilterAction.Include ? handleOpenModal : null,
       // Dismiss actions (mapped to FilterAction.Remove)
-      [entities.Action.DismissFileWithoutComments]: action === FilterAction.Remove ? handleOpenModal : null,
-      [entities.Action.DismissFileWithComments]: action === FilterAction.Remove ? handleOpenModal : null,
-      [entities.Action.DismissComponentWithoutComments]: action === FilterAction.Remove ? handleOpenModal : null,
-      [entities.Action.DismissComponentWithComments]: action === FilterAction.Remove ? handleOpenModal : null,
-      // Replace actions
-      [entities.Action.ReplaceFileWithoutComments]: action === FilterAction.Replace ? handleOpenModal : null,
-      [entities.Action.ReplaceFileWithComments]: action === FilterAction.Replace ? handleOpenModal : null,
-      [entities.Action.ReplaceComponentWithoutComments]: action === FilterAction.Replace ? handleOpenModal : null,
-      [entities.Action.ReplaceComponentWithComments]: action === FilterAction.Replace ? handleOpenModal : null,
+      [entities.Action.Dismiss]: action === FilterAction.Remove ? handleDirectAction : null,
+      [entities.Action.DismissWithModal]: action === FilterAction.Remove ? handleOpenModal : null,
+      // Replace action (always opens modal)
+      [entities.Action.Replace]: action === FilterAction.Replace ? handleOpenModal : null,
     }),
-    [action, handleOpenModal]
+    [action, handleDirectAction, handleOpenModal]
   );
   useMenuEvents(eventHandlerMap);
 

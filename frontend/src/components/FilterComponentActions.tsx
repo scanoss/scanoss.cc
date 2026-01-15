@@ -59,30 +59,23 @@ export default function FilterComponentActions() {
         icon={<Check className="h-5 w-5 stroke-green-500" />}
         description="By including a file/component, you force the engine to consider it with priority in future scans."
         onAdd={handleFilterComponent}
-        shortcutKeysByFileWithComments={KEYBOARD_SHORTCUTS.includeFileWithComments.keys}
-        shortcutKeysByFileWithoutComments={KEYBOARD_SHORTCUTS.includeFileWithoutComments.keys}
-        shortcutKeysByComponentWithComments={KEYBOARD_SHORTCUTS.includeComponentWithComments.keys}
-        shortcutKeysByComponentWithoutComments={KEYBOARD_SHORTCUTS.includeComponentWithoutComments.keys}
+        directShortcutKeys={KEYBOARD_SHORTCUTS.include.keys}
+        modalShortcutKeys={KEYBOARD_SHORTCUTS.includeWithModal.keys}
       />
       <FilterActionButton
         action={FilterAction.Remove}
         description="Dismissing a file/component will exclude it from future scan results."
         icon={<PackageMinus className="h-5 w-5 stroke-red-500" />}
         onAdd={handleFilterComponent}
-        shortcutKeysByFileWithComments={KEYBOARD_SHORTCUTS.dismissFileWithComments.keys}
-        shortcutKeysByFileWithoutComments={KEYBOARD_SHORTCUTS.dismissFileWithoutComments.keys}
-        shortcutKeysByComponentWithComments={KEYBOARD_SHORTCUTS.dismissComponentWithComments.keys}
-        shortcutKeysByComponentWithoutComments={KEYBOARD_SHORTCUTS.dismissComponentWithoutComments.keys}
+        directShortcutKeys={KEYBOARD_SHORTCUTS.dismiss.keys}
+        modalShortcutKeys={KEYBOARD_SHORTCUTS.dismissWithModal.keys}
       />
       <FilterActionButton
         action={FilterAction.Replace}
         description="Replace detected components with another one."
         icon={<Replace className="h-5 w-5 stroke-yellow-500" />}
         onAdd={handleFilterComponent}
-        shortcutKeysByFileWithComments={KEYBOARD_SHORTCUTS.replaceFileWithComments.keys}
-        shortcutKeysByFileWithoutComments={KEYBOARD_SHORTCUTS.replaceFileWithoutComments.keys}
-        shortcutKeysByComponentWithComments={KEYBOARD_SHORTCUTS.replaceComponentWithComments.keys}
-        shortcutKeysByComponentWithoutComments={KEYBOARD_SHORTCUTS.replaceComponentWithoutComments.keys}
+        modalShortcutKeys={KEYBOARD_SHORTCUTS.replace.keys}
       />
     </div>
   );

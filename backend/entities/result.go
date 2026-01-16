@@ -42,6 +42,9 @@ var (
 type Result struct {
 	Path          string      `json:"path"`
 	MatchType     string      `json:"match_type"`
+	// TODO: Consider changing Purl from *[]string to []string.
+	// The pointer adds unnecessary complexity (nil checks everywhere).
+	// []string with omitempty already omits empty slices from JSON.
 	Purl          *[]string   `json:"purl,omitempty"`
 	ComponentName string      `json:"component"`
 	Matches       []Component `json:"matches,omitempty"`
@@ -124,8 +127,9 @@ type FilterConfig struct {
 type FilterType string
 
 const (
-	ByFile FilterType = "by_file"
-	ByPurl FilterType = "by_purl"
+	ByFile   FilterType = "by_file"
+	ByPurl   FilterType = "by_purl"
+	ByFolder FilterType = "by_folder"
 )
 
 type ResultDTO struct {

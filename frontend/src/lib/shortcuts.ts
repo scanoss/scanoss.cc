@@ -101,6 +101,18 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     keys: 'r, f3',
   },
 
+  // Skip (Scan settings)
+  [entities.Action.Skip]: {
+    name: 'Skip',
+    description: 'Skip file from scanning',
+    keys: 's, f4',
+  },
+  [entities.Action.SkipWithModal]: {
+    name: 'Skip (with options)',
+    description: 'Open skip dialog for file/folder/extension',
+    keys: 'shift+s, shift+f4',
+  },
+
   // View
   [entities.Action.ToggleSyncScrollPosition]: {
     name: 'Toggle Sync Scroll Position',

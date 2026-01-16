@@ -40,12 +40,16 @@ const (
 	ActionMoveUp      Action = "moveUp"
 	ActionMoveDown    Action = "moveDown"
 
-	// Filter actions
+	// Filter actions (BOM)
 	ActionInclude          Action = "include"
 	ActionIncludeWithModal Action = "includeWithModal"
 	ActionDismiss          Action = "dismiss"
 	ActionDismissWithModal Action = "dismissWithModal"
 	ActionReplace          Action = "replace"
+
+	// Skip actions (Scan settings)
+	ActionSkip          Action = "skip"          // Direct file skip (F4/s)
+	ActionSkipWithModal Action = "skipWithModal" // Opens modal (shift+F4/shift+s)
 
 	// View
 	ActionToggleSyncScrollPosition   Action = "toggleSyncScrollPosition"
@@ -93,6 +97,8 @@ var AllShortcutActions = []struct {
 	{ActionDismiss, "Dismiss"},
 	{ActionDismissWithModal, "DismissWithModal"},
 	{ActionReplace, "Replace"},
+	{ActionSkip, "Skip"},
+	{ActionSkipWithModal, "SkipWithModal"},
 	{ActionToggleSyncScrollPosition, "ToggleSyncScrollPosition"},
 	{ActionShowKeyboardShortcutsModal, "ShowKeyboardShortcutsModal"},
 	{ActionScanWithOptions, "ScanWithOptions"},
@@ -215,6 +221,24 @@ var DefaultShortcuts = []Shortcut{
 		Keys:                   "r, f3",
 		Group:                  GroupActions,
 		Action:                 ActionReplace,
+	},
+	{
+		Name:                   "Skip",
+		Description:            "Skip file from scanning",
+		Accelerator:            keys.Key("f4"),
+		AlternativeAccelerator: keys.Key("s"),
+		Keys:                   "s, f4",
+		Group:                  GroupActions,
+		Action:                 ActionSkip,
+	},
+	{
+		Name:                   "Skip (with options)",
+		Description:            "Open skip dialog for file/folder/extension",
+		Accelerator:            keys.Shift("f4"),
+		AlternativeAccelerator: keys.Shift("s"),
+		Keys:                   "shift+s, shift+f4",
+		Group:                  GroupActions,
+		Action:                 ActionSkipWithModal,
 	},
 
 	// View

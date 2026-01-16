@@ -9,18 +9,13 @@ export namespace entities {
 	    SelectAll = "selectAll",
 	    MoveUp = "moveUp",
 	    MoveDown = "moveDown",
-	    IncludeFileWithoutComments = "includeFileWithoutComments",
-	    IncludeFileWithComments = "includeFileWithComments",
-	    IncludeComponentWithoutComments = "includeComponentWithoutComments",
-	    IncludeComponentWithComments = "includeComponentWithComments",
-	    DismissFileWithoutComments = "dismissFileWithoutComments",
-	    DismissFileWithComments = "dismissFileWithComments",
-	    DismissComponentWithoutComments = "dismissComponentWithoutComments",
-	    DismissComponentWithComments = "dismissComponentWithComments",
-	    ReplaceFileWithoutComments = "replaceFileWithoutComments",
-	    ReplaceFileWithComments = "replaceFileWithComments",
-	    ReplaceComponentWithoutComments = "replaceComponentWithoutComments",
-	    ReplaceComponentWithComments = "replaceComponentWithComments",
+	    Include = "include",
+	    IncludeWithModal = "includeWithModal",
+	    Dismiss = "dismiss",
+	    DismissWithModal = "dismissWithModal",
+	    Replace = "replace",
+	    Skip = "skip",
+	    SkipWithModal = "skipWithModal",
 	    ToggleSyncScrollPosition = "toggleSyncScrollPosition",
 	    ShowKeyboardShortcutsModal = "showKeyboardShortcutsModal",
 	    ScanWithOptions = "scanWithOptions",
@@ -157,7 +152,7 @@ export namespace entities {
 	
 	export class ComponentFilterDTO {
 	    path?: string;
-	    purl: string;
+	    purl?: string;
 	    usage?: string;
 	    action: string;
 	    comment?: string;

@@ -30,6 +30,8 @@ import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
 import FilterActionButton from './FilterActionButton';
+import SkipActionButton from './SkipActionButton';
+import { Separator } from './ui/separator';
 import { useToast } from './ui/use-toast';
 
 export default function FilterComponentActions() {
@@ -54,6 +56,7 @@ export default function FilterComponentActions() {
 
   return (
     <div className="flex gap-2 md:justify-center">
+      {/* BOM Actions */}
       <FilterActionButton
         action={FilterAction.Include}
         icon={<Check className="h-5 w-5 stroke-green-500" />}
@@ -77,6 +80,12 @@ export default function FilterComponentActions() {
         onAdd={handleFilterComponent}
         modalShortcutKeys={KEYBOARD_SHORTCUTS.replace.keys}
       />
+
+      {/* Separator between BOM actions and Skip (scan setting) */}
+      <Separator orientation="vertical" className="h-auto" />
+
+      {/* Skip Action (Scan setting) */}
+      <SkipActionButton />
     </div>
   );
 }

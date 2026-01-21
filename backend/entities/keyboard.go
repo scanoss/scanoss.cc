@@ -138,14 +138,6 @@ var DefaultShortcuts = []Shortcut{
 		Action:      ActionSave,
 	},
 	{
-		Name:        "Confirm",
-		Description: "Confirm the current action",
-		Accelerator: keys.CmdOrCtrl("enter"),
-		Keys:        "mod+enter",
-		Group:       GroupGlobal,
-		Action:      ActionConfirm,
-	},
-	{
 		Name:        "Focus Search",
 		Description: "Focus the search bar",
 		Accelerator: keys.CmdOrCtrl("f"),

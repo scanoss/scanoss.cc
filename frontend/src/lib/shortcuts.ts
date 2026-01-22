@@ -85,6 +85,11 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     description: 'Open include dialog for file/folder/component',
     keys: 'shift+i, shift+f1',
   },
+  [entities.Action.IncludeFolder]: {
+    name: 'Include folder',
+    description: 'Open include dialog with folder selected',
+    keys: 'alt+shift+i',
+  },
   [entities.Action.Dismiss]: {
     name: 'Dismiss',
     description: 'Dismiss file directly',
@@ -95,22 +100,32 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     description: 'Open dismiss dialog for file/folder/component',
     keys: 'shift+d, shift+f2',
   },
+  [entities.Action.DismissFolder]: {
+    name: 'Dismiss folder',
+    description: 'Open dismiss dialog with folder selected',
+    keys: 'alt+shift+d',
+  },
   [entities.Action.Replace]: {
     name: 'Replace',
     description: 'Open replace dialog to select replacement component',
     keys: 'r, f3',
   },
+  [entities.Action.ReplaceFolder]: {
+    name: 'Replace folder',
+    description: 'Open replace dialog with folder selected',
+    keys: 'alt+shift+r',
+  },
 
-  // Skip (Scan settings)
+  // Skip (Scan settings) - always opens modal
   [entities.Action.Skip]: {
     name: 'Skip',
-    description: 'Skip file from scanning',
+    description: 'Open skip dialog for file/folder/extension',
     keys: 's, f4',
   },
-  [entities.Action.SkipWithModal]: {
-    name: 'Skip (with options)',
-    description: 'Open skip dialog for file/folder/extension',
-    keys: 'shift+s, shift+f4',
+  [entities.Action.SkipFolder]: {
+    name: 'Skip folder',
+    description: 'Open skip dialog with folder selected',
+    keys: 'alt+shift+s',
   },
 
   // View

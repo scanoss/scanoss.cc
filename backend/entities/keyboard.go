@@ -43,13 +43,16 @@ const (
 	// Filter actions (BOM)
 	ActionInclude          Action = "include"
 	ActionIncludeWithModal Action = "includeWithModal"
+	ActionIncludeFolder    Action = "includeFolder"
 	ActionDismiss          Action = "dismiss"
 	ActionDismissWithModal Action = "dismissWithModal"
+	ActionDismissFolder    Action = "dismissFolder"
 	ActionReplace          Action = "replace"
+	ActionReplaceFolder    Action = "replaceFolder"
 
-	// Skip actions (Scan settings)
-	ActionSkip          Action = "skip"          // Direct file skip (F4/s)
-	ActionSkipWithModal Action = "skipWithModal" // Opens modal (shift+F4/shift+s)
+	// Skip action (Scan settings) - always opens modal
+	ActionSkip       Action = "skip"
+	ActionSkipFolder Action = "skipFolder"
 
 	// View
 	ActionToggleSyncScrollPosition   Action = "toggleSyncScrollPosition"
@@ -94,11 +97,14 @@ var AllShortcutActions = []struct {
 	{ActionMoveDown, "MoveDown"},
 	{ActionInclude, "Include"},
 	{ActionIncludeWithModal, "IncludeWithModal"},
+	{ActionIncludeFolder, "IncludeFolder"},
 	{ActionDismiss, "Dismiss"},
 	{ActionDismissWithModal, "DismissWithModal"},
+	{ActionDismissFolder, "DismissFolder"},
 	{ActionReplace, "Replace"},
+	{ActionReplaceFolder, "ReplaceFolder"},
 	{ActionSkip, "Skip"},
-	{ActionSkipWithModal, "SkipWithModal"},
+	{ActionSkipFolder, "SkipFolder"},
 	{ActionToggleSyncScrollPosition, "ToggleSyncScrollPosition"},
 	{ActionShowKeyboardShortcutsModal, "ShowKeyboardShortcutsModal"},
 	{ActionScanWithOptions, "ScanWithOptions"},
@@ -196,6 +202,14 @@ var DefaultShortcuts = []Shortcut{
 		Action:                 ActionIncludeWithModal,
 	},
 	{
+		Name:        "Include folder",
+		Description: "Open include dialog with folder selected",
+		Accelerator: keys.Combo("i", keys.OptionOrAltKey, keys.ShiftKey),
+		Keys:        "alt+shift+i",
+		Group:       GroupActions,
+		Action:      ActionIncludeFolder,
+	},
+	{
 		Name:                   "Dismiss",
 		Description:            "Dismiss file directly",
 		Accelerator:            keys.Key("f2"),
@@ -214,6 +228,14 @@ var DefaultShortcuts = []Shortcut{
 		Action:                 ActionDismissWithModal,
 	},
 	{
+		Name:        "Dismiss folder",
+		Description: "Open dismiss dialog with folder selected",
+		Accelerator: keys.Combo("d", keys.OptionOrAltKey, keys.ShiftKey),
+		Keys:        "alt+shift+d",
+		Group:       GroupActions,
+		Action:      ActionDismissFolder,
+	},
+	{
 		Name:                   "Replace",
 		Description:            "Open replace dialog to select replacement component",
 		Accelerator:            keys.Key("f3"),
@@ -223,8 +245,16 @@ var DefaultShortcuts = []Shortcut{
 		Action:                 ActionReplace,
 	},
 	{
+		Name:        "Replace folder",
+		Description: "Open replace dialog with folder selected",
+		Accelerator: keys.Combo("r", keys.OptionOrAltKey, keys.ShiftKey),
+		Keys:        "alt+shift+r",
+		Group:       GroupActions,
+		Action:      ActionReplaceFolder,
+	},
+	{
 		Name:                   "Skip",
-		Description:            "Skip file from scanning",
+		Description:            "Open skip dialog for file/folder/extension",
 		Accelerator:            keys.Key("f4"),
 		AlternativeAccelerator: keys.Key("s"),
 		Keys:                   "s, f4",
@@ -232,13 +262,12 @@ var DefaultShortcuts = []Shortcut{
 		Action:                 ActionSkip,
 	},
 	{
-		Name:                   "Skip (with options)",
-		Description:            "Open skip dialog for file/folder/extension",
-		Accelerator:            keys.Shift("f4"),
-		AlternativeAccelerator: keys.Shift("s"),
-		Keys:                   "shift+s, shift+f4",
-		Group:                  GroupActions,
-		Action:                 ActionSkipWithModal,
+		Name:        "Skip folder",
+		Description: "Open skip dialog with folder selected",
+		Accelerator: keys.Combo("s", keys.OptionOrAltKey, keys.ShiftKey),
+		Keys:        "alt+shift+s",
+		Group:       GroupActions,
+		Action:      ActionSkipFolder,
 	},
 
 	// View

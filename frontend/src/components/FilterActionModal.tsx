@@ -49,6 +49,8 @@ function buildPath(segments: string[], index: number): string {
   return isFile ? path : path + '/';
 }
 
+type InitialSelection = 'file' | 'folder' | 'component';
+
 interface FilterActionModalProps {
   action: FilterAction;
   filePath: string;
@@ -56,6 +58,7 @@ interface FilterActionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: (args: OnFilterComponentArgs) => void;
+  initialSelection?: InitialSelection;
 }
 
 export default function FilterActionModal({
@@ -65,10 +68,12 @@ export default function FilterActionModal({
   open,
   onOpenChange,
   onConfirm,
+  initialSelection = 'file',
 }: FilterActionModalProps) {
   const { toast } = useToast();
   const { modifierKey } = useEnvironment();
   const submitButtonRef = useRef<HTMLButtonElement>(null);
+  const commentRef = useRef<HTMLTextAreaElement>(null);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'path' | 'component'>('path');
@@ -98,14 +103,24 @@ export default function FilterActionModal({
   // Reset state when modal opens
   useEffect(() => {
     if (open) {
-      setActiveTab('path');
-      setSelectedPathIndex(segments.length - 1);
+      // Set initial tab based on initialSelection
+      if (initialSelection === 'component') {
+        setActiveTab('component');
+        setSelectedPathIndex(segments.length - 1);
+      } else if (initialSelection === 'folder') {
+        setActiveTab('path');
+        // Select parent folder (one level up from file)
+        setSelectedPathIndex(Math.max(0, segments.length - 2));
+      } else {
+        setActiveTab('path');
+        setSelectedPathIndex(segments.length - 1);
+      }
       setComment('');
       setLicense(undefined);
       setLicenseKey((k) => k + 1);
       setSelectedComponent(null);
     }
-  }, [open, segments.length]);
+  }, [open, segments.length, initialSelection]);
 
   const handleConfirm = () => {
     const selectedPath = buildPath(segments, selectedPathIndex);
@@ -153,7 +168,15 @@ export default function FilterActionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent ref={ref} tabIndex={-1} className="max-w-lg p-4">
+      <DialogContent
+          ref={ref}
+          tabIndex={-1}
+          className="max-w-lg p-4"
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+            commentRef.current?.focus();
+          }}
+        >
         <DialogHeader>
           <DialogTitle>{actionLabel}</DialogTitle>
           <DialogDescription>
@@ -204,7 +227,12 @@ export default function FilterActionModal({
           <Label>
             Comment <span className="text-xs font-normal text-muted-foreground">(optional)</span>
           </Label>
-          <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Add a comment..." />
+          <Textarea
+            ref={commentRef}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Add a comment..."
+          />
         </div>
 
         <DialogFooter>

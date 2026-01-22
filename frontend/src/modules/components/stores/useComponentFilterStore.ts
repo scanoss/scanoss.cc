@@ -71,14 +71,28 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
 
       // Handle folder-level filtering
       if (filterBy === 'by_folder' && folderPath) {
-        const dto: entities.ComponentFilterDTO[] = [{
+        // Ensure folder path ends with /
+        const normalizedFolderPath = folderPath.endsWith('/') ? folderPath : folderPath + '/';
+
+        // Get all unique purls for files in this folder (from both pending and completed results)
+        const { pendingResults, completedResults } = useResultsStore.getState();
+        const allResults = [...pendingResults, ...completedResults];
+        const purlsInFolder = [...new Set(
+          allResults
+            .filter(r => r.path.startsWith(normalizedFolderPath))
+            .map(r => r.detected_purl)
+            .filter((p): p is string => Boolean(p))
+        )];
+
+        // Create one DTO per unique purl
+        const dto: entities.ComponentFilterDTO[] = purlsInFolder.map(folderPurl => ({
           action,
           comment,
           license,
-          purl: purl ?? '',
-          path: folderPath,
+          purl: folderPurl,
+          path: normalizedFolderPath,
           ...(replaceWith && { replace_with: replaceWith }),
-        }];
+        }));
 
         useResultsStore.getState().moveToNextResult();
         await FilterComponents(dto);

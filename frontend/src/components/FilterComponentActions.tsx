@@ -149,22 +149,22 @@ export default function FilterComponentActions() {
   // Include
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.include.keys, handlers.includeFile, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeWithModal.keys, handlers.includeWithModal, { enabled: filterEnabled });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFolder?.keys ?? '', handlers.includeFolder, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFolder.keys, handlers.includeFolder, { enabled: filterEnabled });
 
   // Dismiss
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismiss.keys, handlers.dismissFile, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissWithModal.keys, handlers.dismissWithModal, { enabled: filterEnabled });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissFolder?.keys ?? '', handlers.dismissFolder, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissFolder.keys, handlers.dismissFolder, { enabled: filterEnabled });
 
   // Replace
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.replace.keys, handlers.replaceFile, { enabled: filterEnabled });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replaceFolder?.keys ?? '', handlers.replaceFolder, { enabled: filterEnabled });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replaceComponent?.keys ?? '', handlers.replaceComponent, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replaceFolder.keys, handlers.replaceFolder, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replaceComponent.keys, handlers.replaceComponent, { enabled: filterEnabled });
 
   // Skip
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.skip.keys, handlers.skipFile, { enabled: skipEnabled });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipFolder?.keys ?? '', handlers.skipFolder, { enabled: skipEnabled });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipExtension?.keys ?? '', handlers.skipExtension, { enabled: skipEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipFolder.keys, handlers.skipFolder, { enabled: skipEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipExtension.keys, handlers.skipExtension, { enabled: skipEnabled });
 
   // === Menu bar events ===
   useMenuEvents({
@@ -185,10 +185,6 @@ export default function FilterComponentActions() {
     [entities.Action.SkipFolder]: handlers.skipFolder,
     [entities.Action.SkipExtension]: handlers.skipExtension,
   });
-
-  const handleFilterConfirm = async (args: OnFilterComponentArgs) => {
-    await handleFilterComponent(args);
-  };
 
   const isDisabled = isCompletedResult || !selectedResult;
 
@@ -307,7 +303,7 @@ export default function FilterComponentActions() {
           purl={selectedResult.detected_purl ?? ''}
           open={filterModalOpen}
           onOpenChange={setFilterModalOpen}
-          onConfirm={handleFilterConfirm}
+          onConfirm={handleFilterComponent}
           initialSelection={filterModalInitialSelection}
         />
       )}

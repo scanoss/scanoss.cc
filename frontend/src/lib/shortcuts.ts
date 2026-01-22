@@ -75,14 +75,14 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
   },
 
   // Actions
-  [entities.Action.Include]: {
-    name: 'Include',
+  [entities.Action.IncludeFile]: {
+    name: 'Include file',
     description: 'Include file directly',
     keys: 'i, f1',
   },
-  [entities.Action.IncludeWithModal]: {
-    name: 'Include (with options)',
-    description: 'Open include dialog for file/folder/component',
+  [entities.Action.IncludeComponent]: {
+    name: 'Include component',
+    description: 'Open include dialog with component selected',
     keys: 'shift+i, shift+f1',
   },
   [entities.Action.IncludeFolder]: {
@@ -90,14 +90,14 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     description: 'Open include dialog with folder selected',
     keys: 'alt+shift+i',
   },
-  [entities.Action.Dismiss]: {
-    name: 'Dismiss',
+  [entities.Action.DismissFile]: {
+    name: 'Dismiss file',
     description: 'Dismiss file directly',
     keys: 'd, f2',
   },
-  [entities.Action.DismissWithModal]: {
-    name: 'Dismiss (with options)',
-    description: 'Open dismiss dialog for file/folder/component',
+  [entities.Action.DismissComponent]: {
+    name: 'Dismiss component',
+    description: 'Open dismiss dialog with component selected',
     keys: 'shift+d, shift+f2',
   },
   [entities.Action.DismissFolder]: {
@@ -105,8 +105,8 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     description: 'Open dismiss dialog with folder selected',
     keys: 'alt+shift+d',
   },
-  [entities.Action.Replace]: {
-    name: 'Replace',
+  [entities.Action.ReplaceFile]: {
+    name: 'Replace file',
     description: 'Open replace dialog to select replacement component',
     keys: 'r, f3',
   },
@@ -122,9 +122,9 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
   },
 
   // Skip (Scan settings) - always opens modal
-  [entities.Action.Skip]: {
-    name: 'Skip',
-    description: 'Open skip dialog for file/folder/extension',
+  [entities.Action.SkipFile]: {
+    name: 'Skip file',
+    description: 'Open skip dialog for file',
     keys: 's, f4',
   },
   [entities.Action.SkipFolder]: {

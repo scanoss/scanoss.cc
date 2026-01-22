@@ -30,51 +30,37 @@ import useSelectedResult from '@/hooks/useSelectedResult';
 import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 
 import { entities } from '../../wailsjs/go/models';
-import {
-  AddStagedScanningSkipPattern,
-  CommitStagedScanningSkipPatterns,
-} from '../../wailsjs/go/service/ScanossSettingsServiceImp';
 import SkipActionModal from './SkipActionModal';
 import { Button } from './ui/button';
-import { useToast } from './ui/use-toast';
+
+type InitialSelection = 'file' | 'folder';
 
 export default function SkipActionButton() {
-  const { toast } = useToast();
   const selectedResult = useSelectedResult();
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalInitialSelection, setModalInitialSelection] = useState<InitialSelection>('file');
 
-  const handleOpenModal = useCallback(() => setModalOpen(true), []);
+  const handleOpenModal = useCallback((initialSelection: InitialSelection = 'file') => {
+    setModalInitialSelection(initialSelection);
+    setModalOpen(true);
+  }, []);
 
-  const handleDirectSkip = useCallback(async () => {
-    if (!selectedResult) return;
+  const handleOpenModalFile = useCallback(() => handleOpenModal('file'), [handleOpenModal]);
+  const handleOpenModalFolder = useCallback(() => handleOpenModal('folder'), [handleOpenModal]);
 
-    try {
-      await AddStagedScanningSkipPattern(selectedResult.path);
-      await CommitStagedScanningSkipPatterns();
-      toast({
-        title: 'File skipped',
-        description: `"${selectedResult.path}" will be skipped in future scans.`,
-      });
-    } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to add skip pattern. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  }, [selectedResult, toast]);
-
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skip.keys, handleDirectSkip, {
+  // Skip action always opens modal (like Replace)
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skip.keys, handleOpenModalFile, {
     enabled: !!selectedResult,
   });
 
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipWithModal.keys, handleOpenModal, {
+  // Folder shortcut (alt+shift+s) - opens modal with folder selected
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipFolder?.keys ?? '', handleOpenModalFolder, {
     enabled: !!selectedResult,
   });
 
   useMenuEvents({
-    [entities.Action.Skip]: handleDirectSkip,
-    [entities.Action.SkipWithModal]: handleOpenModal,
+    [entities.Action.Skip]: handleOpenModalFile,
+    [entities.Action.SkipFolder]: handleOpenModalFolder,
   });
 
   return (
@@ -84,7 +70,7 @@ export default function SkipActionButton() {
         size="lg"
         className="h-full w-14 rounded-none enabled:hover:bg-accent enabled:hover:text-accent-foreground"
         disabled={!selectedResult}
-        onClick={handleOpenModal}
+        onClick={handleOpenModalFile}
         title="Skip file/folder/extension from scanning"
       >
         <div className="flex flex-col items-center justify-center gap-1">
@@ -98,6 +84,7 @@ export default function SkipActionButton() {
           filePath={selectedResult.path}
           open={modalOpen}
           onOpenChange={setModalOpen}
+          initialSelection={modalInitialSelection}
         />
       )}
     </>

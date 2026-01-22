@@ -121,13 +121,11 @@ export default function FilterComponentActions() {
       includeFile: createDirectActionHandler(FilterAction.Include),
       includeFolder: createModalActionHandler(FilterAction.Include, 'folder'),
       includeComponent: createModalActionHandler(FilterAction.Include, 'component'),
-      includeWithModal: createModalActionHandler(FilterAction.Include, 'file'),
 
       // Dismiss: file applies directly, others open modal
       dismissFile: createDirectActionHandler(FilterAction.Remove),
       dismissFolder: createModalActionHandler(FilterAction.Remove, 'folder'),
       dismissComponent: createModalActionHandler(FilterAction.Remove, 'component'),
-      dismissWithModal: createModalActionHandler(FilterAction.Remove, 'file'),
 
       // Replace: always opens modal (needs PURL selection)
       replaceFile: createModalActionHandler(FilterAction.Replace, 'file'),
@@ -147,41 +145,41 @@ export default function FilterComponentActions() {
   const skipEnabled = !!selectedResult;
 
   // Include
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.include.keys, handlers.includeFile, { enabled: filterEnabled });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeWithModal.keys, handlers.includeWithModal, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFile.keys, handlers.includeFile, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeComponent.keys, handlers.includeComponent, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFolder.keys, handlers.includeFolder, { enabled: filterEnabled });
 
   // Dismiss
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismiss.keys, handlers.dismissFile, { enabled: filterEnabled });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissWithModal.keys, handlers.dismissWithModal, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissFile.keys, handlers.dismissFile, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissComponent.keys, handlers.dismissComponent, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissFolder.keys, handlers.dismissFolder, { enabled: filterEnabled });
 
   // Replace
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replace.keys, handlers.replaceFile, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replaceFile.keys, handlers.replaceFile, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.replaceFolder.keys, handlers.replaceFolder, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.replaceComponent.keys, handlers.replaceComponent, { enabled: filterEnabled });
 
   // Skip
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skip.keys, handlers.skipFile, { enabled: skipEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipFile.keys, handlers.skipFile, { enabled: skipEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipFolder.keys, handlers.skipFolder, { enabled: skipEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipExtension.keys, handlers.skipExtension, { enabled: skipEnabled });
 
   // === Menu bar events ===
   useMenuEvents({
     // Include
-    [entities.Action.Include]: handlers.includeFile,
-    [entities.Action.IncludeWithModal]: handlers.includeWithModal,
+    [entities.Action.IncludeFile]: handlers.includeFile,
+    [entities.Action.IncludeComponent]: handlers.includeComponent,
     [entities.Action.IncludeFolder]: handlers.includeFolder,
     // Dismiss
-    [entities.Action.Dismiss]: handlers.dismissFile,
-    [entities.Action.DismissWithModal]: handlers.dismissWithModal,
+    [entities.Action.DismissFile]: handlers.dismissFile,
+    [entities.Action.DismissComponent]: handlers.dismissComponent,
     [entities.Action.DismissFolder]: handlers.dismissFolder,
     // Replace
-    [entities.Action.Replace]: handlers.replaceFile,
+    [entities.Action.ReplaceFile]: handlers.replaceFile,
     [entities.Action.ReplaceFolder]: handlers.replaceFolder,
     [entities.Action.ReplaceComponent]: handlers.replaceComponent,
     // Skip
-    [entities.Action.Skip]: handlers.skipFile,
+    [entities.Action.SkipFile]: handlers.skipFile,
     [entities.Action.SkipFolder]: handlers.skipFolder,
     [entities.Action.SkipExtension]: handlers.skipExtension,
   });

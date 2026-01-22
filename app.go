@@ -138,31 +138,31 @@ func (a *App) BuildMenu(keyboardService service.KeyboardService) *menu.Menu {
 	// Include submenu
 	IncludeMenu := ActionsMenu.AddSubmenu("Include")
 	IncludeMenu.AddText("Include file", nil, func(cd *menu.CallbackData) {
-		runtime.EventsEmit(a.ctx, string(entities.ActionInclude))
+		runtime.EventsEmit(a.ctx, string(entities.ActionIncludeFile))
 	})
 	IncludeMenu.AddText("Include folder", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionIncludeFolder))
 	})
 	IncludeMenu.AddText("Include component", nil, func(cd *menu.CallbackData) {
-		runtime.EventsEmit(a.ctx, string(entities.ActionIncludeWithModal))
+		runtime.EventsEmit(a.ctx, string(entities.ActionIncludeComponent))
 	})
 
 	// Dismiss submenu
 	DismissMenu := ActionsMenu.AddSubmenu("Dismiss")
 	DismissMenu.AddText("Dismiss file", nil, func(cd *menu.CallbackData) {
-		runtime.EventsEmit(a.ctx, string(entities.ActionDismiss))
+		runtime.EventsEmit(a.ctx, string(entities.ActionDismissFile))
 	})
 	DismissMenu.AddText("Dismiss folder", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionDismissFolder))
 	})
 	DismissMenu.AddText("Dismiss component", nil, func(cd *menu.CallbackData) {
-		runtime.EventsEmit(a.ctx, string(entities.ActionDismissWithModal))
+		runtime.EventsEmit(a.ctx, string(entities.ActionDismissComponent))
 	})
 
 	// Replace submenu
 	ReplaceMenu := ActionsMenu.AddSubmenu("Replace")
 	ReplaceMenu.AddText("Replace file", nil, func(cd *menu.CallbackData) {
-		runtime.EventsEmit(a.ctx, string(entities.ActionReplace))
+		runtime.EventsEmit(a.ctx, string(entities.ActionReplaceFile))
 	})
 	ReplaceMenu.AddText("Replace folder", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionReplaceFolder))
@@ -174,7 +174,7 @@ func (a *App) BuildMenu(keyboardService service.KeyboardService) *menu.Menu {
 	// Skip submenu
 	SkipMenu := ActionsMenu.AddSubmenu("Skip")
 	SkipMenu.AddText("Skip file", nil, func(cd *menu.CallbackData) {
-		runtime.EventsEmit(a.ctx, string(entities.ActionSkip))
+		runtime.EventsEmit(a.ctx, string(entities.ActionSkipFile))
 	})
 	SkipMenu.AddText("Skip folder", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionSkipFolder))

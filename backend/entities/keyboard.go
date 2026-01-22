@@ -41,18 +41,18 @@ const (
 	ActionMoveDown    Action = "moveDown"
 
 	// Filter actions (BOM)
-	ActionInclude          Action = "include"
-	ActionIncludeWithModal Action = "includeWithModal"
+	ActionIncludeFile      Action = "includeFile"
+	ActionIncludeComponent Action = "includeComponent"
 	ActionIncludeFolder    Action = "includeFolder"
-	ActionDismiss          Action = "dismiss"
-	ActionDismissWithModal Action = "dismissWithModal"
+	ActionDismissFile      Action = "dismissFile"
+	ActionDismissComponent Action = "dismissComponent"
 	ActionDismissFolder    Action = "dismissFolder"
-	ActionReplace          Action = "replace"
+	ActionReplaceFile      Action = "replaceFile"
 	ActionReplaceFolder    Action = "replaceFolder"
 	ActionReplaceComponent Action = "replaceComponent"
 
 	// Skip action (Scan settings) - always opens modal
-	ActionSkip          Action = "skip"
+	ActionSkipFile      Action = "skipFile"
 	ActionSkipFolder    Action = "skipFolder"
 	ActionSkipExtension Action = "skipExtension"
 
@@ -97,16 +97,16 @@ var AllShortcutActions = []struct {
 	{ActionSelectAll, "SelectAll"},
 	{ActionMoveUp, "MoveUp"},
 	{ActionMoveDown, "MoveDown"},
-	{ActionInclude, "Include"},
-	{ActionIncludeWithModal, "IncludeWithModal"},
+	{ActionIncludeFile, "IncludeFile"},
+	{ActionIncludeComponent, "IncludeComponent"},
 	{ActionIncludeFolder, "IncludeFolder"},
-	{ActionDismiss, "Dismiss"},
-	{ActionDismissWithModal, "DismissWithModal"},
+	{ActionDismissFile, "DismissFile"},
+	{ActionDismissComponent, "DismissComponent"},
 	{ActionDismissFolder, "DismissFolder"},
-	{ActionReplace, "Replace"},
+	{ActionReplaceFile, "ReplaceFile"},
 	{ActionReplaceFolder, "ReplaceFolder"},
 	{ActionReplaceComponent, "ReplaceComponent"},
-	{ActionSkip, "Skip"},
+	{ActionSkipFile, "SkipFile"},
 	{ActionSkipFolder, "SkipFolder"},
 	{ActionSkipExtension, "SkipExtension"},
 	{ActionToggleSyncScrollPosition, "ToggleSyncScrollPosition"},

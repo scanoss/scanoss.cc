@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-import { Info } from 'lucide-react';
+import { AlertTriangle, Info } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useDialogRegistration } from '@/contexts/DialogStateContext';
@@ -53,16 +53,20 @@ function buildPath(segments: string[], index: number): string {
   return isFile ? path : path + '/';
 }
 
+type InitialSelection = 'file' | 'folder';
+
 interface SkipActionModalProps {
   filePath: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialSelection?: InitialSelection;
 }
 
 export default function SkipActionModal({
   filePath,
   open,
   onOpenChange,
+  initialSelection = 'file',
 }: SkipActionModalProps) {
   const { toast } = useToast();
   const { modifierKey } = useEnvironment();
@@ -85,9 +89,14 @@ export default function SkipActionModal({
   useEffect(() => {
     if (open) {
       setActiveTab('path');
-      setSelectedPathIndex(segments.length - 1);
+      if (initialSelection === 'folder') {
+        // Select parent folder (one level up from file)
+        setSelectedPathIndex(Math.max(0, segments.length - 2));
+      } else {
+        setSelectedPathIndex(segments.length - 1);
+      }
     }
-  }, [open, segments.length]);
+  }, [open, segments.length, initialSelection]);
 
   // Determine target type for dynamic text
   const getTargetType = () => {
@@ -180,6 +189,12 @@ export default function SkipActionModal({
         <div className="flex items-start gap-2 rounded-lg border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
           <Info className="h-4 w-4 mt-0.5 shrink-0" />
           <span>{getWarningMessage()}</span>
+        </div>
+
+        {/* Re-scan required note */}
+        <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-600 dark:text-amber-500">
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          <span>Changes will take effect on the next scan. Trigger a new scan to see the updated results.</span>
         </div>
 
         <DialogFooter>

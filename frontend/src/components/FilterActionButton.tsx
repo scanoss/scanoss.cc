@@ -21,17 +21,20 @@
  * SOFTWARE.
  */
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { useMenuEvents } from '@/hooks/useMenuEvent';
 import useSelectedResult from '@/hooks/useSelectedResult';
+import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { FilterAction, filterActionLabelMap } from '@/modules/components/domain';
 import { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
 import { entities } from '../../wailsjs/go/models';
 import FilterActionModal from './FilterActionModal';
+
+type InitialSelection = 'file' | 'folder' | 'component';
 
 interface FilterActionProps {
   action: FilterAction;
@@ -53,14 +56,19 @@ export default function FilterActionButton({
   const selectedResult = useSelectedResult();
   const isCompletedResult = selectedResult?.workflow_state === 'completed';
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalInitialSelection, setModalInitialSelection] = useState<InitialSelection>('file');
 
-  const handleOpenModal = () => {
+  const handleOpenModal = useCallback((initialSelection: InitialSelection = 'file') => {
     if (!isCompletedResult && selectedResult) {
+      setModalInitialSelection(initialSelection);
       setModalOpen(true);
     }
-  };
+  }, [isCompletedResult, selectedResult]);
 
-  const handleDirectAction = () => {
+  const handleOpenModalFile = useCallback(() => handleOpenModal('file'), [handleOpenModal]);
+  const handleOpenModalFolder = useCallback(() => handleOpenModal('folder'), [handleOpenModal]);
+
+  const handleDirectAction = useCallback(() => {
     if (!isCompletedResult && selectedResult) {
       onAdd({
         action,
@@ -68,7 +76,7 @@ export default function FilterActionButton({
         purl: selectedResult.detected_purl ?? '',
       });
     }
-  };
+  }, [isCompletedResult, selectedResult, action, onAdd]);
 
   const handleConfirm = async (args: OnFilterComponentArgs) => {
     await onAdd(args);
@@ -79,9 +87,21 @@ export default function FilterActionButton({
     enabled: !isCompletedResult && !!selectedResult && !!directShortcutKeys,
   });
 
-  // Modal shortcut (shift+F1/shift+i, shift+F2/shift+d, F3/r) - opens modal
-  useKeyboardShortcut(modalShortcutKeys, handleOpenModal, {
+  // Modal shortcut (shift+F1/shift+i, shift+F2/shift+d, F3/r) - opens modal with file selected
+  useKeyboardShortcut(modalShortcutKeys, handleOpenModalFile, {
     enabled: !isCompletedResult && !!selectedResult,
+  });
+
+  // Folder shortcuts (alt+shift+i, alt+shift+d, alt+shift+r) - opens modal with folder selected
+  const folderShortcutKeys = useMemo(() => {
+    if (action === FilterAction.Include) return KEYBOARD_SHORTCUTS.includeFolder?.keys;
+    if (action === FilterAction.Remove) return KEYBOARD_SHORTCUTS.dismissFolder?.keys;
+    if (action === FilterAction.Replace) return KEYBOARD_SHORTCUTS.replaceFolder?.keys;
+    return undefined;
+  }, [action]);
+
+  useKeyboardShortcut(folderShortcutKeys ?? '', handleOpenModalFolder, {
+    enabled: !isCompletedResult && !!selectedResult && !!folderShortcutKeys,
   });
 
   // Listen for menu bar events
@@ -89,14 +109,17 @@ export default function FilterActionButton({
     () => ({
       // Include actions
       [entities.Action.Include]: action === FilterAction.Include ? handleDirectAction : null,
-      [entities.Action.IncludeWithModal]: action === FilterAction.Include ? handleOpenModal : null,
+      [entities.Action.IncludeWithModal]: action === FilterAction.Include ? handleOpenModalFile : null,
+      [entities.Action.IncludeFolder]: action === FilterAction.Include ? handleOpenModalFolder : null,
       // Dismiss actions (mapped to FilterAction.Remove)
       [entities.Action.Dismiss]: action === FilterAction.Remove ? handleDirectAction : null,
-      [entities.Action.DismissWithModal]: action === FilterAction.Remove ? handleOpenModal : null,
+      [entities.Action.DismissWithModal]: action === FilterAction.Remove ? handleOpenModalFile : null,
+      [entities.Action.DismissFolder]: action === FilterAction.Remove ? handleOpenModalFolder : null,
       // Replace action (always opens modal)
-      [entities.Action.Replace]: action === FilterAction.Replace ? handleOpenModal : null,
+      [entities.Action.Replace]: action === FilterAction.Replace ? handleOpenModalFile : null,
+      [entities.Action.ReplaceFolder]: action === FilterAction.Replace ? handleOpenModalFolder : null,
     }),
-    [action, handleDirectAction, handleOpenModal]
+    [action, handleDirectAction, handleOpenModalFile, handleOpenModalFolder]
   );
   useMenuEvents(eventHandlerMap);
 
@@ -107,7 +130,7 @@ export default function FilterActionButton({
         size="lg"
         className="h-full w-14 rounded-none enabled:hover:bg-accent enabled:hover:text-accent-foreground"
         disabled={isCompletedResult}
-        onClick={handleOpenModal}
+        onClick={handleOpenModalFile}
         title={description}
       >
         <div className="flex flex-col items-center justify-center gap-1">
@@ -124,6 +147,7 @@ export default function FilterActionButton({
           open={modalOpen}
           onOpenChange={setModalOpen}
           onConfirm={handleConfirm}
+          initialSelection={modalInitialSelection}
         />
       )}
     </>

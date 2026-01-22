@@ -115,7 +115,6 @@ func (a *App) BuildMenu(keyboardService service.KeyboardService) *menu.Menu {
 	}
 
 	groupedShortcuts := keyboardService.GetGroupedShortcuts()
-	actionShortcuts := groupedShortcuts[entities.GroupActions]
 	globalShortcuts := groupedShortcuts[entities.GroupGlobal]
 	viewShortcuts := groupedShortcuts[entities.GroupView]
 
@@ -133,14 +132,42 @@ func (a *App) BuildMenu(keyboardService service.KeyboardService) *menu.Menu {
 		})
 	}
 
-	// Actions menu
+	// Actions menu with submenus
 	ActionsMenu := AppMenu.AddSubmenu("Actions")
-	for _, shortcut := range actionShortcuts {
-		sc := shortcut
-		ActionsMenu.AddText(sc.Name, sc.Accelerator, func(cd *menu.CallbackData) {
-			runtime.EventsEmit(a.ctx, string(sc.Action))
-		})
-	}
+
+	// Include submenu
+	IncludeMenu := ActionsMenu.AddSubmenu("Include")
+	IncludeMenu.AddText("Include file", keys.Key("f1"), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionInclude))
+	})
+	IncludeMenu.AddText("Include folder", keys.Combo("i", keys.OptionOrAltKey, keys.ShiftKey), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionIncludeFolder))
+	})
+	IncludeMenu.AddText("Include component", keys.Shift("f1"), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionIncludeWithModal))
+	})
+
+	// Dismiss submenu
+	DismissMenu := ActionsMenu.AddSubmenu("Dismiss")
+	DismissMenu.AddText("Dismiss file", keys.Key("f2"), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionDismiss))
+	})
+	DismissMenu.AddText("Dismiss folder", keys.Combo("d", keys.OptionOrAltKey, keys.ShiftKey), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionDismissFolder))
+	})
+	DismissMenu.AddText("Dismiss component", keys.Shift("f2"), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionDismissWithModal))
+	})
+
+	// Replace (always opens modal)
+	ActionsMenu.AddText("Replace", keys.Key("f3"), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionReplace))
+	})
+
+	// Skip (always opens modal)
+	ActionsMenu.AddText("Skip", keys.Key("f4"), func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionSkip))
+	})
 
 	// View menu
 	ViewMenu := AppMenu.AddSubmenu("View")

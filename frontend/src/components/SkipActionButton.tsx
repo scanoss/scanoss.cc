@@ -32,8 +32,15 @@ import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { entities } from '../../wailsjs/go/models';
 import SkipActionModal from './SkipActionModal';
 import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
-type InitialSelection = 'file' | 'folder';
+type InitialSelection = 'file' | 'folder' | 'extension';
 
 export default function SkipActionButton() {
   const selectedResult = useSelectedResult();
@@ -47,6 +54,7 @@ export default function SkipActionButton() {
 
   const handleOpenModalFile = useCallback(() => handleOpenModal('file'), [handleOpenModal]);
   const handleOpenModalFolder = useCallback(() => handleOpenModal('folder'), [handleOpenModal]);
+  const handleOpenModalExtension = useCallback(() => handleOpenModal('extension'), [handleOpenModal]);
 
   // Skip action always opens modal (like Replace)
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.skip.keys, handleOpenModalFile, {
@@ -61,23 +69,40 @@ export default function SkipActionButton() {
   useMenuEvents({
     [entities.Action.Skip]: handleOpenModalFile,
     [entities.Action.SkipFolder]: handleOpenModalFolder,
+    [entities.Action.SkipExtension]: handleOpenModalExtension,
   });
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="lg"
-        className="h-full w-14 rounded-none enabled:hover:bg-accent enabled:hover:text-accent-foreground"
-        disabled={!selectedResult}
-        onClick={handleOpenModalFile}
-        title="Skip file/folder/extension from scanning"
-      >
-        <div className="flex flex-col items-center justify-center gap-1">
-          <span className="text-xs">Skip</span>
-          <EyeOff className="h-5 w-5 stroke-orange-500" />
-        </div>
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild disabled={!selectedResult}>
+          <Button
+            variant="ghost"
+            size="lg"
+            className="h-full w-14 rounded-none enabled:hover:bg-accent enabled:hover:text-accent-foreground data-[state=open]:bg-accent"
+            disabled={!selectedResult}
+          >
+            <div className="flex flex-col items-center justify-center gap-1">
+              <span className="text-xs">Skip</span>
+              <EyeOff className="h-5 w-5 stroke-orange-500" />
+            </div>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-[180px]">
+          <DropdownMenuItem onClick={handleOpenModalFile}>
+            File
+            <DropdownMenuShortcut>S</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleOpenModalFolder}>
+            Folder
+            <DropdownMenuShortcut>Alt+Shift+S</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleOpenModalExtension}>
+            Extension
+            <DropdownMenuShortcut>Shift+S</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {selectedResult && (
         <SkipActionModal

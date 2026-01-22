@@ -53,7 +53,7 @@ function buildPath(segments: string[], index: number): string {
   return isFile ? path : path + '/';
 }
 
-type InitialSelection = 'file' | 'folder';
+type InitialSelection = 'file' | 'folder' | 'extension';
 
 interface SkipActionModalProps {
   filePath: string;
@@ -88,12 +88,17 @@ export default function SkipActionModal({
   // Reset state when modal opens
   useEffect(() => {
     if (open) {
-      setActiveTab('path');
-      if (initialSelection === 'folder') {
-        // Select parent folder (one level up from file)
-        setSelectedPathIndex(Math.max(0, segments.length - 2));
-      } else {
+      if (initialSelection === 'extension') {
+        setActiveTab('extension');
         setSelectedPathIndex(segments.length - 1);
+      } else {
+        setActiveTab('path');
+        if (initialSelection === 'folder') {
+          // Select parent folder (one level up from file)
+          setSelectedPathIndex(Math.max(0, segments.length - 2));
+        } else {
+          setSelectedPathIndex(segments.length - 1);
+        }
       }
     }
   }, [open, segments.length, initialSelection]);

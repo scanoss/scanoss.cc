@@ -24,6 +24,13 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { useMenuEvents } from '@/hooks/useMenuEvent';
 import useSelectedResult from '@/hooks/useSelectedResult';
@@ -67,6 +74,7 @@ export default function FilterActionButton({
 
   const handleOpenModalFile = useCallback(() => handleOpenModal('file'), [handleOpenModal]);
   const handleOpenModalFolder = useCallback(() => handleOpenModal('folder'), [handleOpenModal]);
+  const handleOpenModalComponent = useCallback(() => handleOpenModal('component'), [handleOpenModal]);
 
   const handleDirectAction = useCallback(() => {
     if (!isCompletedResult && selectedResult) {
@@ -104,6 +112,20 @@ export default function FilterActionButton({
     enabled: !isCompletedResult && !!selectedResult && !!folderShortcutKeys,
   });
 
+  // Get shortcut keys based on action
+  const shortcuts = useMemo(() => {
+    switch (action) {
+      case FilterAction.Include:
+        return { file: 'I', folder: 'Alt+Shift+I', component: 'Shift+I' };
+      case FilterAction.Remove:
+        return { file: 'D', folder: 'Alt+Shift+D', component: 'Shift+D' };
+      case FilterAction.Replace:
+        return { file: 'R', folder: 'Alt+Shift+R', component: 'Shift+R' };
+      default:
+        return { file: '', folder: '', component: null };
+    }
+  }, [action]);
+
   // Listen for menu bar events
   const eventHandlerMap = useMemo(
     () => ({
@@ -118,26 +140,45 @@ export default function FilterActionButton({
       // Replace action (always opens modal)
       [entities.Action.Replace]: action === FilterAction.Replace ? handleOpenModalFile : null,
       [entities.Action.ReplaceFolder]: action === FilterAction.Replace ? handleOpenModalFolder : null,
+      [entities.Action.ReplaceComponent]: action === FilterAction.Replace ? handleOpenModalComponent : null,
     }),
-    [action, handleDirectAction, handleOpenModalFile, handleOpenModalFolder]
+    [action, handleDirectAction, handleOpenModalFile, handleOpenModalFolder, handleOpenModalComponent]
   );
   useMenuEvents(eventHandlerMap);
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="lg"
-        className="h-full w-14 rounded-none enabled:hover:bg-accent enabled:hover:text-accent-foreground"
-        disabled={isCompletedResult}
-        onClick={handleOpenModalFile}
-        title={description}
-      >
-        <div className="flex flex-col items-center justify-center gap-1">
-          <span className="text-xs">{filterActionLabelMap[action]}</span>
-          {icon}
-        </div>
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild disabled={isCompletedResult}>
+          <Button
+            variant="ghost"
+            size="lg"
+            className="h-full w-14 rounded-none enabled:hover:bg-accent enabled:hover:text-accent-foreground data-[state=open]:bg-accent"
+            disabled={isCompletedResult}
+          >
+            <div className="flex flex-col items-center justify-center gap-1">
+              <span className="text-xs">{filterActionLabelMap[action]}</span>
+              {icon}
+            </div>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-[180px]">
+          <DropdownMenuItem onClick={handleDirectAction}>
+            File
+            <DropdownMenuShortcut>{shortcuts.file}</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleOpenModalFolder}>
+            Folder
+            <DropdownMenuShortcut>{shortcuts.folder}</DropdownMenuShortcut>
+          </DropdownMenuItem>
+          {shortcuts.component && (
+            <DropdownMenuItem onClick={handleOpenModalComponent}>
+              Component
+              <DropdownMenuShortcut>{shortcuts.component}</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {selectedResult && (
         <FilterActionModal

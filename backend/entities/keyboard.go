@@ -49,10 +49,12 @@ const (
 	ActionDismissFolder    Action = "dismissFolder"
 	ActionReplace          Action = "replace"
 	ActionReplaceFolder    Action = "replaceFolder"
+	ActionReplaceComponent Action = "replaceComponent"
 
 	// Skip action (Scan settings) - always opens modal
-	ActionSkip       Action = "skip"
-	ActionSkipFolder Action = "skipFolder"
+	ActionSkip          Action = "skip"
+	ActionSkipFolder    Action = "skipFolder"
+	ActionSkipExtension Action = "skipExtension"
 
 	// View
 	ActionToggleSyncScrollPosition   Action = "toggleSyncScrollPosition"
@@ -103,8 +105,10 @@ var AllShortcutActions = []struct {
 	{ActionDismissFolder, "DismissFolder"},
 	{ActionReplace, "Replace"},
 	{ActionReplaceFolder, "ReplaceFolder"},
+	{ActionReplaceComponent, "ReplaceComponent"},
 	{ActionSkip, "Skip"},
 	{ActionSkipFolder, "SkipFolder"},
+	{ActionSkipExtension, "SkipExtension"},
 	{ActionToggleSyncScrollPosition, "ToggleSyncScrollPosition"},
 	{ActionShowKeyboardShortcutsModal, "ShowKeyboardShortcutsModal"},
 	{ActionScanWithOptions, "ScanWithOptions"},

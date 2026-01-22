@@ -137,36 +137,50 @@ func (a *App) BuildMenu(keyboardService service.KeyboardService) *menu.Menu {
 
 	// Include submenu
 	IncludeMenu := ActionsMenu.AddSubmenu("Include")
-	IncludeMenu.AddText("Include file", keys.Key("f1"), func(cd *menu.CallbackData) {
+	IncludeMenu.AddText("Include file", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionInclude))
 	})
-	IncludeMenu.AddText("Include folder", keys.Combo("i", keys.OptionOrAltKey, keys.ShiftKey), func(cd *menu.CallbackData) {
+	IncludeMenu.AddText("Include folder", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionIncludeFolder))
 	})
-	IncludeMenu.AddText("Include component", keys.Shift("f1"), func(cd *menu.CallbackData) {
+	IncludeMenu.AddText("Include component", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionIncludeWithModal))
 	})
 
 	// Dismiss submenu
 	DismissMenu := ActionsMenu.AddSubmenu("Dismiss")
-	DismissMenu.AddText("Dismiss file", keys.Key("f2"), func(cd *menu.CallbackData) {
+	DismissMenu.AddText("Dismiss file", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionDismiss))
 	})
-	DismissMenu.AddText("Dismiss folder", keys.Combo("d", keys.OptionOrAltKey, keys.ShiftKey), func(cd *menu.CallbackData) {
+	DismissMenu.AddText("Dismiss folder", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionDismissFolder))
 	})
-	DismissMenu.AddText("Dismiss component", keys.Shift("f2"), func(cd *menu.CallbackData) {
+	DismissMenu.AddText("Dismiss component", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionDismissWithModal))
 	})
 
-	// Replace (always opens modal)
-	ActionsMenu.AddText("Replace", keys.Key("f3"), func(cd *menu.CallbackData) {
+	// Replace submenu
+	ReplaceMenu := ActionsMenu.AddSubmenu("Replace")
+	ReplaceMenu.AddText("Replace file", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionReplace))
 	})
+	ReplaceMenu.AddText("Replace folder", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionReplaceFolder))
+	})
+	ReplaceMenu.AddText("Replace component", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionReplaceComponent))
+	})
 
-	// Skip (always opens modal)
-	ActionsMenu.AddText("Skip", keys.Key("f4"), func(cd *menu.CallbackData) {
+	// Skip submenu
+	SkipMenu := ActionsMenu.AddSubmenu("Skip")
+	SkipMenu.AddText("Skip file", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionSkip))
+	})
+	SkipMenu.AddText("Skip folder", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionSkipFolder))
+	})
+	SkipMenu.AddText("Skip extension", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionSkipExtension))
 	})
 
 	// View menu

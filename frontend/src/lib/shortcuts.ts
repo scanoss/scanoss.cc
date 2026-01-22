@@ -115,6 +115,11 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     description: 'Open replace dialog with folder selected',
     keys: 'alt+shift+r',
   },
+  [entities.Action.ReplaceComponent]: {
+    name: 'Replace component',
+    description: 'Open replace dialog with component selected',
+    keys: 'shift+r',
+  },
 
   // Skip (Scan settings) - always opens modal
   [entities.Action.Skip]: {
@@ -126,6 +131,11 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     name: 'Skip folder',
     description: 'Open skip dialog with folder selected',
     keys: 'alt+shift+s',
+  },
+  [entities.Action.SkipExtension]: {
+    name: 'Skip extension',
+    description: 'Open skip dialog with extension selected',
+    keys: 'shift+s',
   },
 
   // View

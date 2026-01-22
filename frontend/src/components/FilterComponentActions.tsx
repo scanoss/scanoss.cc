@@ -22,7 +22,7 @@
  */
 
 import { Check, EyeOff, PackageMinus, Replace } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
 import { useMenuEvents } from '@/hooks/useMenuEvent';
@@ -80,190 +80,110 @@ export default function FilterComponentActions() {
     },
   });
 
-  // === Include handlers ===
-  const handleIncludeFile = useCallback(() => {
-    if (!isCompletedResult && selectedResult) {
+  // Creates handler that opens filter modal with given action and selection
+  const createModalActionHandler = useCallback(
+    (action: FilterAction, selection: FilterInitialSelection) => () => {
+      if (!selectedResult || isCompletedResult) return;
+      setFilterModalAction(action);
+      setFilterModalInitialSelection(selection);
+      setFilterModalOpen(true);
+    },
+    [selectedResult, isCompletedResult]
+  );
+
+  // Creates handler that applies filter action directly to the current file (no modal)
+  const createDirectActionHandler = useCallback(
+    (action: FilterAction) => () => {
+      if (!selectedResult || isCompletedResult) return;
       handleFilterComponent({
-        action: FilterAction.Include,
+        action,
         filterBy: 'by_file',
         purl: selectedResult.detected_purl ?? '',
       });
-    }
-  }, [isCompletedResult, selectedResult, handleFilterComponent]);
+    },
+    [selectedResult, isCompletedResult, handleFilterComponent]
+  );
 
-  const handleIncludeFolder = useCallback(() => {
-    if (!isCompletedResult && selectedResult) {
-      setFilterModalAction(FilterAction.Include);
-      setFilterModalInitialSelection('folder');
-      setFilterModalOpen(true);
-    }
-  }, [isCompletedResult, selectedResult]);
-
-  const handleIncludeComponent = useCallback(() => {
-    if (!isCompletedResult && selectedResult) {
-      setFilterModalAction(FilterAction.Include);
-      setFilterModalInitialSelection('component');
-      setFilterModalOpen(true);
-    }
-  }, [isCompletedResult, selectedResult]);
-
-  // === Dismiss handlers ===
-  const handleDismissFile = useCallback(() => {
-    if (!isCompletedResult && selectedResult) {
-      handleFilterComponent({
-        action: FilterAction.Remove,
-        filterBy: 'by_file',
-        purl: selectedResult.detected_purl ?? '',
-      });
-    }
-  }, [isCompletedResult, selectedResult, handleFilterComponent]);
-
-  const handleDismissFolder = useCallback(() => {
-    if (!isCompletedResult && selectedResult) {
-      setFilterModalAction(FilterAction.Remove);
-      setFilterModalInitialSelection('folder');
-      setFilterModalOpen(true);
-    }
-  }, [isCompletedResult, selectedResult]);
-
-  const handleDismissComponent = useCallback(() => {
-    if (!isCompletedResult && selectedResult) {
-      setFilterModalAction(FilterAction.Remove);
-      setFilterModalInitialSelection('component');
-      setFilterModalOpen(true);
-    }
-  }, [isCompletedResult, selectedResult]);
-
-  // === Replace handlers ===
-  const handleReplaceFile = useCallback(() => {
-    if (!isCompletedResult && selectedResult) {
-      setFilterModalAction(FilterAction.Replace);
-      setFilterModalInitialSelection('file');
-      setFilterModalOpen(true);
-    }
-  }, [isCompletedResult, selectedResult]);
-
-  const handleReplaceFolder = useCallback(() => {
-    if (!isCompletedResult && selectedResult) {
-      setFilterModalAction(FilterAction.Replace);
-      setFilterModalInitialSelection('folder');
-      setFilterModalOpen(true);
-    }
-  }, [isCompletedResult, selectedResult]);
-
-  const handleReplaceComponent = useCallback(() => {
-    if (!isCompletedResult && selectedResult) {
-      setFilterModalAction(FilterAction.Replace);
-      setFilterModalInitialSelection('component');
-      setFilterModalOpen(true);
-    }
-  }, [isCompletedResult, selectedResult]);
-
-  // === Skip handlers ===
-  const handleSkipFile = useCallback(() => {
-    if (selectedResult) {
-      setSkipModalInitialSelection('file');
+  // Creates handler that opens skip modal with given selection
+  const createModalSkipHandler = useCallback(
+    (selection: SkipInitialSelection) => () => {
+      if (!selectedResult) return;
+      setSkipModalInitialSelection(selection);
       setSkipModalOpen(true);
-    }
-  }, [selectedResult]);
+    },
+    [selectedResult]
+  );
 
-  const handleSkipFolder = useCallback(() => {
-    if (selectedResult) {
-      setSkipModalInitialSelection('folder');
-      setSkipModalOpen(true);
-    }
-  }, [selectedResult]);
+  // Generate all handlers
+  const handlers = useMemo(
+    () => ({
+      // Include: file applies directly, others open modal
+      includeFile: createDirectActionHandler(FilterAction.Include),
+      includeFolder: createModalActionHandler(FilterAction.Include, 'folder'),
+      includeComponent: createModalActionHandler(FilterAction.Include, 'component'),
+      includeWithModal: createModalActionHandler(FilterAction.Include, 'file'),
 
-  const handleSkipExtension = useCallback(() => {
-    if (selectedResult) {
-      setSkipModalInitialSelection('extension');
-      setSkipModalOpen(true);
-    }
-  }, [selectedResult]);
+      // Dismiss: file applies directly, others open modal
+      dismissFile: createDirectActionHandler(FilterAction.Remove),
+      dismissFolder: createModalActionHandler(FilterAction.Remove, 'folder'),
+      dismissComponent: createModalActionHandler(FilterAction.Remove, 'component'),
+      dismissWithModal: createModalActionHandler(FilterAction.Remove, 'file'),
+
+      // Replace: always opens modal (needs PURL selection)
+      replaceFile: createModalActionHandler(FilterAction.Replace, 'file'),
+      replaceFolder: createModalActionHandler(FilterAction.Replace, 'folder'),
+      replaceComponent: createModalActionHandler(FilterAction.Replace, 'component'),
+
+      // Skip: always opens modal
+      skipFile: createModalSkipHandler('file'),
+      skipFolder: createModalSkipHandler('folder'),
+      skipExtension: createModalSkipHandler('extension'),
+    }),
+    [createDirectActionHandler, createModalActionHandler, createModalSkipHandler]
+  );
 
   // === Keyboard shortcuts ===
+  const filterEnabled = !isCompletedResult && !!selectedResult;
+  const skipEnabled = !!selectedResult;
+
   // Include
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.include.keys, handleIncludeFile, {
-    enabled: !isCompletedResult && !!selectedResult,
-  });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeWithModal.keys, () => {
-    if (!isCompletedResult && selectedResult) {
-      setFilterModalAction(FilterAction.Include);
-      setFilterModalInitialSelection('file');
-      setFilterModalOpen(true);
-    }
-  }, { enabled: !isCompletedResult && !!selectedResult });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFolder?.keys ?? '', handleIncludeFolder, {
-    enabled: !isCompletedResult && !!selectedResult,
-  });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.include.keys, handlers.includeFile, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeWithModal.keys, handlers.includeWithModal, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFolder?.keys ?? '', handlers.includeFolder, { enabled: filterEnabled });
 
   // Dismiss
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismiss.keys, handleDismissFile, {
-    enabled: !isCompletedResult && !!selectedResult,
-  });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissWithModal.keys, () => {
-    if (!isCompletedResult && selectedResult) {
-      setFilterModalAction(FilterAction.Remove);
-      setFilterModalInitialSelection('file');
-      setFilterModalOpen(true);
-    }
-  }, { enabled: !isCompletedResult && !!selectedResult });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissFolder?.keys ?? '', handleDismissFolder, {
-    enabled: !isCompletedResult && !!selectedResult,
-  });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismiss.keys, handlers.dismissFile, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissWithModal.keys, handlers.dismissWithModal, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissFolder?.keys ?? '', handlers.dismissFolder, { enabled: filterEnabled });
 
   // Replace
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replace.keys, handleReplaceFile, {
-    enabled: !isCompletedResult && !!selectedResult,
-  });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replaceFolder?.keys ?? '', handleReplaceFolder, {
-    enabled: !isCompletedResult && !!selectedResult,
-  });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replaceComponent?.keys ?? '', handleReplaceComponent, {
-    enabled: !isCompletedResult && !!selectedResult,
-  });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replace.keys, handlers.replaceFile, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replaceFolder?.keys ?? '', handlers.replaceFolder, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.replaceComponent?.keys ?? '', handlers.replaceComponent, { enabled: filterEnabled });
 
   // Skip
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skip.keys, handleSkipFile, {
-    enabled: !!selectedResult,
-  });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipFolder?.keys ?? '', handleSkipFolder, {
-    enabled: !!selectedResult,
-  });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipExtension?.keys ?? '', handleSkipExtension, {
-    enabled: !!selectedResult,
-  });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skip.keys, handlers.skipFile, { enabled: skipEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipFolder?.keys ?? '', handlers.skipFolder, { enabled: skipEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipExtension?.keys ?? '', handlers.skipExtension, { enabled: skipEnabled });
 
   // === Menu bar events ===
   useMenuEvents({
     // Include
-    [entities.Action.Include]: handleIncludeFile,
-    [entities.Action.IncludeWithModal]: () => {
-      if (!isCompletedResult && selectedResult) {
-        setFilterModalAction(FilterAction.Include);
-        setFilterModalInitialSelection('file');
-        setFilterModalOpen(true);
-      }
-    },
-    [entities.Action.IncludeFolder]: handleIncludeFolder,
+    [entities.Action.Include]: handlers.includeFile,
+    [entities.Action.IncludeWithModal]: handlers.includeWithModal,
+    [entities.Action.IncludeFolder]: handlers.includeFolder,
     // Dismiss
-    [entities.Action.Dismiss]: handleDismissFile,
-    [entities.Action.DismissWithModal]: () => {
-      if (!isCompletedResult && selectedResult) {
-        setFilterModalAction(FilterAction.Remove);
-        setFilterModalInitialSelection('file');
-        setFilterModalOpen(true);
-      }
-    },
-    [entities.Action.DismissFolder]: handleDismissFolder,
+    [entities.Action.Dismiss]: handlers.dismissFile,
+    [entities.Action.DismissWithModal]: handlers.dismissWithModal,
+    [entities.Action.DismissFolder]: handlers.dismissFolder,
     // Replace
-    [entities.Action.Replace]: handleReplaceFile,
-    [entities.Action.ReplaceFolder]: handleReplaceFolder,
-    [entities.Action.ReplaceComponent]: handleReplaceComponent,
+    [entities.Action.Replace]: handlers.replaceFile,
+    [entities.Action.ReplaceFolder]: handlers.replaceFolder,
+    [entities.Action.ReplaceComponent]: handlers.replaceComponent,
     // Skip
-    [entities.Action.Skip]: handleSkipFile,
-    [entities.Action.SkipFolder]: handleSkipFolder,
-    [entities.Action.SkipExtension]: handleSkipExtension,
+    [entities.Action.Skip]: handlers.skipFile,
+    [entities.Action.SkipFolder]: handlers.skipFolder,
+    [entities.Action.SkipExtension]: handlers.skipExtension,
   });
 
   const handleFilterConfirm = async (args: OnFilterComponentArgs) => {
@@ -285,15 +205,15 @@ export default function FilterComponentActions() {
             <Check className="h-5 w-5 stroke-green-500" />
           </MenubarTrigger>
           <MenubarContent align="start" className="min-w-[180px]">
-            <MenubarItem onSelect={handleIncludeFile}>
+            <MenubarItem onSelect={handlers.includeFile}>
               File
               <MenubarShortcut>I</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem onSelect={handleIncludeFolder}>
+            <MenubarItem onSelect={handlers.includeFolder}>
               Folder
               <MenubarShortcut>Alt+Shift+I</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem onSelect={handleIncludeComponent}>
+            <MenubarItem onSelect={handlers.includeComponent}>
               Component
               <MenubarShortcut>Shift+I</MenubarShortcut>
             </MenubarItem>
@@ -310,15 +230,15 @@ export default function FilterComponentActions() {
             <PackageMinus className="h-5 w-5 stroke-red-500" />
           </MenubarTrigger>
           <MenubarContent align="start" className="min-w-[180px]">
-            <MenubarItem onSelect={handleDismissFile}>
+            <MenubarItem onSelect={handlers.dismissFile}>
               File
               <MenubarShortcut>D</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem onSelect={handleDismissFolder}>
+            <MenubarItem onSelect={handlers.dismissFolder}>
               Folder
               <MenubarShortcut>Alt+Shift+D</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem onSelect={handleDismissComponent}>
+            <MenubarItem onSelect={handlers.dismissComponent}>
               Component
               <MenubarShortcut>Shift+D</MenubarShortcut>
             </MenubarItem>
@@ -335,15 +255,15 @@ export default function FilterComponentActions() {
             <Replace className="h-5 w-5 stroke-yellow-500" />
           </MenubarTrigger>
           <MenubarContent align="start" className="min-w-[180px]">
-            <MenubarItem onSelect={handleReplaceFile}>
+            <MenubarItem onSelect={handlers.replaceFile}>
               File
               <MenubarShortcut>R</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem onSelect={handleReplaceFolder}>
+            <MenubarItem onSelect={handlers.replaceFolder}>
               Folder
               <MenubarShortcut>Alt+Shift+R</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem onSelect={handleReplaceComponent}>
+            <MenubarItem onSelect={handlers.replaceComponent}>
               Component
               <MenubarShortcut>Shift+R</MenubarShortcut>
             </MenubarItem>
@@ -363,15 +283,15 @@ export default function FilterComponentActions() {
             <EyeOff className="h-5 w-5 stroke-orange-500" />
           </MenubarTrigger>
           <MenubarContent align="start" className="min-w-[180px]">
-            <MenubarItem onSelect={handleSkipFile}>
+            <MenubarItem onSelect={handlers.skipFile}>
               File
               <MenubarShortcut>S</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem onSelect={handleSkipFolder}>
+            <MenubarItem onSelect={handlers.skipFolder}>
               Folder
               <MenubarShortcut>Alt+Shift+S</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem onSelect={handleSkipExtension}>
+            <MenubarItem onSelect={handlers.skipExtension}>
               Extension
               <MenubarShortcut>Shift+S</MenubarShortcut>
             </MenubarItem>

@@ -123,13 +123,11 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
 
     undo: async () => {
       await Undo();
-      useResultsStore.getState().setSelectedResults([]);
       await get().updateUndoRedoState();
     },
 
     redo: async () => {
       await Redo();
-      useResultsStore.getState().setSelectedResults([]);
       await get().updateUndoRedoState();
     },
 

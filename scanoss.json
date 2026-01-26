@@ -121,6 +121,11 @@
       {
         "purl": "pkg:github/littlehorse-enterprises/ui-library",
         "replace_with": "pkg:github/shadcn-ui/ui"
+      },
+      {
+        "path": "frontend/src/components/ui/menubar.tsx",
+        "purl": "pkg:npm/ui-arreya-components",
+        "replace_with": "pkg:github/scanoss/scanoss.cc"
       }
     ]
   }

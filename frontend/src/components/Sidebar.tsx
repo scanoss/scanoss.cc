@@ -93,7 +93,7 @@ export default function Sidebar() {
     enableOnFormTags: false,
     enabled: !isKeyboardNavigationBlocked,
   });
-  useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveDown.keys, moveToNextResult, {
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.moveDown.keys, () => moveToNextResult(), {
     enableOnFormTags: false,
     enabled: !isKeyboardNavigationBlocked,
   });

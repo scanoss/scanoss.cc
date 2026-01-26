@@ -44,7 +44,7 @@ interface ResultsState {
 
 interface ResultsActions {
   fetchResults: () => Promise<{ pendingResults: entities.ResultDTO[]; completedResults: entities.ResultDTO[] }>;
-  moveToNextResult: () => void;
+  moveToNextResult: (skip?: (r: entities.ResultDTO) => boolean) => void;
   moveToPreviousResult: () => void;
   selectResultRange: (endResult: entities.ResultDTO, selectionType: 'pending' | 'completed') => void;
   setLastSelectedIndex: (index: number) => void;
@@ -167,34 +167,40 @@ const useResultsStore = create<ResultsStore>()(
         };
       }),
 
-    moveToNextResult: () => {
+    moveToNextResult: (skip?: (r: entities.ResultDTO) => boolean) => {
       const { pendingResults, completedResults, lastSelectionType, selectedResults } = get();
 
       const resultsOfType = lastSelectionType === 'pending' ? pendingResults : completedResults;
       const lastResultInSelection = selectedResults[selectedResults.length - 1]; // To handle multi select as well
       const currentResultIndex = resultsOfType.findIndex((r) => r.path === lastResultInSelection.path);
-      let nextResult: entities.ResultDTO = lastResultInSelection;
-      let nextSelectionType = lastSelectionType;
-      let newResultIndex = currentResultIndex + 1;
 
-      // If we are at the end of the results, go to the opposite type
-      if (currentResultIndex === resultsOfType.length - 1) {
-        const oppositeResults = lastSelectionType === 'pending' ? completedResults : pendingResults;
-        nextResult = oppositeResults[0];
-        nextSelectionType = lastSelectionType === 'pending' ? 'completed' : 'pending';
-        newResultIndex = 0;
-
-        // If there are no opposite results, do nothing, just keep the current selection
-        if (oppositeResults.length === 0) return;
-      } else {
-        nextResult = resultsOfType[newResultIndex];
+      // Find next result that passes the skip filter
+      let nextIndex = currentResultIndex + 1;
+      while (nextIndex < resultsOfType.length && skip?.(resultsOfType[nextIndex])) {
+        nextIndex++;
       }
 
-      set({
-        selectedResults: [nextResult],
-        lastSelectedIndex: newResultIndex,
-        lastSelectionType: nextSelectionType,
-      });
+      if (nextIndex < resultsOfType.length) {
+        set({
+          selectedResults: [resultsOfType[nextIndex]],
+          lastSelectedIndex: nextIndex,
+          lastSelectionType,
+        });
+        return;
+      }
+
+      // Reached end of current list — try opposite type
+      const oppositeResults = lastSelectionType === 'pending' ? completedResults : pendingResults;
+      const nextSelectionType = lastSelectionType === 'pending' ? 'completed' : 'pending';
+      const nextResult = skip ? oppositeResults.find((r) => !skip(r)) : oppositeResults[0];
+
+      if (nextResult) {
+        set({
+          selectedResults: [nextResult],
+          lastSelectedIndex: oppositeResults.indexOf(nextResult),
+          lastSelectionType: nextSelectionType,
+        });
+      }
     },
 
     moveToPreviousResult: () => {

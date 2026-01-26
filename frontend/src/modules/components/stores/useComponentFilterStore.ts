@@ -94,7 +94,9 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
           ...(replaceWith && { replace_with: replaceWith }),
         }));
 
-        useResultsStore.getState().moveToNextResult();
+        useResultsStore.getState().moveToNextResult(
+          (r) => r.path.startsWith(normalizedFolderPath)
+        );
         await FilterComponents(dto);
         await get().updateUndoRedoState();
         return;
@@ -111,7 +113,8 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
         }),
       }));
 
-      useResultsStore.getState().moveToNextResult();
+      const skipPurl = filterBy === 'by_purl' ? (r: entities.ResultDTO) => r.detected_purl === purl : undefined;
+      useResultsStore.getState().moveToNextResult(skipPurl);
 
       await FilterComponents(dto);
 
@@ -120,11 +123,13 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
 
     undo: async () => {
       await Undo();
+      useResultsStore.getState().setSelectedResults([]);
       await get().updateUndoRedoState();
     },
 
     redo: async () => {
       await Redo();
+      useResultsStore.getState().setSelectedResults([]);
       await get().updateUndoRedoState();
     },
 

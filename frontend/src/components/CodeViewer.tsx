@@ -26,6 +26,7 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import { HighlightRange, MonacoManager } from '@/lib/editor';
 import { getHighlightLineRanges } from '@/modules/results/utils';
+import useEditorFocusStore from '@/stores/useEditorFocusStore';
 
 const EDITOR_DEFAULT_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
   readOnly: true,
@@ -58,8 +59,10 @@ export default function CodeViewer({
 }: CodeViewerProps) {
   const highlightAll = highlightLines === 'all';
   const editor = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const focusListeners = useRef<monaco.IDisposable[]>([]);
   const editorContainer = useRef<HTMLDivElement>(null);
   const monacoManager = MonacoManager.getInstance();
+  const setEditorFocus = useEditorFocusStore((s) => s.setFocus);
 
   const decorationOptions = useMemo<monaco.editor.IModelDecorationOptions>(
     () => ({
@@ -79,11 +82,18 @@ export default function CodeViewer({
       });
 
       monacoManager.addEditor(editorId, editor.current);
+
+      focusListeners.current = [
+        editor.current.onDidFocusEditorWidget(() => setEditorFocus(true)),
+        editor.current.onDidBlurEditorWidget(() => setEditorFocus(false)),
+      ];
     }
   };
 
   const destroyMonaco = () => {
     if (editor.current) {
+      focusListeners.current.forEach((d) => d.dispose());
+      focusListeners.current = [];
       editor.current.dispose();
       monacoManager.removeEditor(editorId);
     }

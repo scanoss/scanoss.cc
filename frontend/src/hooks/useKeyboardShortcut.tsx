@@ -24,6 +24,8 @@
 import { Options, useHotkeys } from 'react-hotkeys-hook';
 import { HotkeysEvent } from 'react-hotkeys-hook/dist/types';
 
+import useEditorFocusStore from '@/stores/useEditorFocusStore';
+
 // System shortcuts that should not be intercepted
 const SYSTEM_SHORTCUTS = ['mod+a', 'mod+c', 'mod+v', 'mod+x'];
 
@@ -40,13 +42,18 @@ export default function useKeyboardShortcut(
   // Don't prevent default for system shortcuts to allow copy, paste, cut, etc.
   const shouldPreventDefault = hasSystemShortcut ? false : true;
 
+  // Allow shortcuts on form elements when the Monaco editor has focus,
+  // since Monaco uses an internal textarea for keyboard capture
+  const editorHasFocus = useEditorFocusStore((s) => s.hasFocus);
+
   return useHotkeys(
     keys,
     callback,
     {
       preventDefault: shouldPreventDefault,
       ...options,
+      enableOnFormTags: options?.enableOnFormTags || editorHasFocus || false,
     },
-    deps
+    [...deps, editorHasFocus]
   );
 }

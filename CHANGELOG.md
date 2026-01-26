@@ -6,11 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.11.0] 2026-01-26
 ### Added
-- Add support for applying filters to specific folders
+- Folder actions: Include, dismiss, replace, or skip all files within a folder in a single action
+- Skip action: New option to skip files, folders, or components, deferring them for later review
+- Keyboard shortcuts for actions — Quickly trigger actions without leaving the keyboard:
+- I / D / R / S - Include, dismiss, replace, or skip the current file
+- Alt + Shift + I / D / R / S — Include, dismiss, replace, or skip the parent folder of the selected file 
+- Menubar integration: All file, folder, and component actions are accessible from the application menu
 
 ### Changed
-- Replace dropdown menu with modal for filter actions, improving usability
+- Replace Include, dismiss, replace dropdown menu with modal
+
+### Fixed
+- Keyboard shortcuts now work while viewing source code in the diff viewer
+- After applying an action to a folder or component, the next unaffected file is now automatically selected
+- Undo and redo now preserve the current file selection
+- Folder actions now correctly apply to all detected components within the folder, not just the first one
 
 ## [0.10.0] 2026-01-07
 ### Fixed
@@ -233,3 +246,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.8]: https://github.com/scanoss/scanoss.cc/compare/v0.9.7...v0.9.8
 [0.9.9]: https://github.com/scanoss/scanoss.cc/compare/v0.9.8...v0.9.9
 [0.10.0]: https://github.com/scanoss/scanoss.cc/compare/v0.9.9...v0.10.0
+[0.11.0]: https://github.com/scanoss/scanoss.cc/compare/v0.10.0...v0.11.0

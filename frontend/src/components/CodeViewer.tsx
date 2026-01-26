@@ -28,6 +28,16 @@ import { HighlightRange, MonacoManager } from '@/lib/editor';
 import { getHighlightLineRanges } from '@/modules/results/utils';
 import useEditorFocusStore from '@/stores/useEditorFocusStore';
 
+// Unbind Monaco keybindings that conflict with app shortcuts.
+// Our read-only editor doesn't need these, and they prevent
+// Alt+Shift+* events from propagating to react-hotkeys-hook.
+monaco.editor.addKeybindingRules([
+  { keybinding: monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyI, command: null },
+  { keybinding: monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyD, command: null },
+  { keybinding: monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyR, command: null },
+  { keybinding: monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyS, command: null },
+]);
+
 const EDITOR_DEFAULT_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
   readOnly: true,
   theme: 'vs-dark',

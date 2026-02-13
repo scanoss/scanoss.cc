@@ -38,6 +38,7 @@ import (
 	"github.com/scanoss/scanoss.cc/backend/repository"
 	"github.com/scanoss/scanoss.cc/backend/service"
 	"github.com/scanoss/scanoss.cc/cmd"
+	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/scanoss/scanoss.cc/internal/utils"
 
 	"github.com/wailsapp/wails/v2"
@@ -101,13 +102,32 @@ func run() error {
 	scanService := service.NewScanServicePythonImpl()
 	treeService := service.NewTreeServiceImpl(resultService, scanossSettingsRepository)
 
+	// Determine window start state and size from saved config
+	cfg := config.GetInstance()
+	windowStartState := options.Maximised
+	windowWidth := 1280
+	windowHeight := 800
+	if savedWidth := cfg.GetWindowWidth(); savedWidth > 0 {
+		windowWidth = savedWidth
+	}
+	if savedHeight := cfg.GetWindowHeight(); savedHeight > 0 {
+		windowHeight = savedHeight
+	}
+	if cfg.GetWindowWidth() > 0 || cfg.GetWindowHeight() > 0 {
+		if !cfg.GetWindowMaximised() {
+			windowStartState = options.Normal
+		}
+	}
+
 	// Create application with options
 	err = wails.Run(&options.App{
-		Title: "Scanoss Code Compare",
+		Title:  "Scanoss Code Compare",
+		Width:  windowWidth,
+		Height: windowHeight,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		WindowStartState: options.Maximised,
+		WindowStartState: windowStartState,
 		OnStartup: func(ctx context.Context) {
 			app.Init(ctx, scanossSettingsService, keyboardService)
 			scanService.SetContext(ctx)

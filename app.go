@@ -74,6 +74,9 @@ func (a *App) maybeSetWindowTitle() {
 }
 
 func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
+	// Save window state before closing
+	a.saveWindowState(ctx)
+
 	hasUnsavedChanges, err := a.scanossSettingsService.HasUnsavedChanges()
 	if err != nil {
 		log.Error().Msg("Error checking for unsaved changes: " + err.Error())
@@ -105,6 +108,16 @@ func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
 	}
 
 	return false
+}
+
+func (a *App) saveWindowState(ctx context.Context) {
+	isMaximised := runtime.WindowIsMaximised(ctx)
+	width, height := runtime.WindowGetSize(ctx)
+	x, y := runtime.WindowGetPosition(ctx)
+
+	if err := a.cfg.SaveWindowState(width, height, x, y, isMaximised); err != nil {
+		log.Error().Err(err).Msg("Error saving window state")
+	}
 }
 
 func (a *App) BuildMenu(keyboardService service.KeyboardService) *menu.Menu {
@@ -169,6 +182,18 @@ func (a *App) BuildMenu(keyboardService service.KeyboardService) *menu.Menu {
 	})
 	ReplaceMenu.AddText("Replace component", nil, func(cd *menu.CallbackData) {
 		runtime.EventsEmit(a.ctx, string(entities.ActionReplaceComponent))
+	})
+
+	// Ignore submenu
+	IgnoreMenu := ActionsMenu.AddSubmenu("Ignore")
+	IgnoreMenu.AddText("Ignore file", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionIgnoreFile))
+	})
+	IgnoreMenu.AddText("Ignore folder", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionIgnoreFolder))
+	})
+	IgnoreMenu.AddText("Ignore component", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionIgnoreComponent))
 	})
 
 	// Skip submenu

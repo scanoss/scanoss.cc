@@ -21,6 +21,9 @@ export namespace entities {
 	    SkipFile = "skipFile",
 	    SkipFolder = "skipFolder",
 	    SkipExtension = "skipExtension",
+	    IgnoreFile = "ignoreFile",
+	    IgnoreFolder = "ignoreFolder",
+	    IgnoreComponent = "ignoreComponent",
 	    ToggleSyncScrollPosition = "toggleSyncScrollPosition",
 	    ShowKeyboardShortcutsModal = "showKeyboardShortcutsModal",
 	    ScanWithOptions = "scanWithOptions",
@@ -52,16 +55,18 @@ export namespace entities {
 	    include?: ComponentFilter[];
 	    remove?: ComponentFilter[];
 	    replace?: ComponentFilter[];
-	
+	    ignore?: ComponentFilter[];
+
 	    static createFrom(source: any = {}) {
 	        return new Bom(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.include = this.convertValues(source["include"], ComponentFilter);
 	        this.remove = this.convertValues(source["remove"], ComponentFilter);
 	        this.replace = this.convertValues(source["replace"], ComponentFilter);
+	        this.ignore = this.convertValues(source["ignore"], ComponentFilter);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -411,16 +416,18 @@ export namespace entities {
 	    Include: ComponentFilter[];
 	    Remove: ComponentFilter[];
 	    Replace: ComponentFilter[];
-	
+	    Ignore: ComponentFilter[];
+
 	    static createFrom(source: any = {}) {
 	        return new InitialFilters(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.Include = this.convertValues(source["Include"], ComponentFilter);
 	        this.Remove = this.convertValues(source["Remove"], ComponentFilter);
 	        this.Replace = this.convertValues(source["Replace"], ComponentFilter);
+	        this.Ignore = this.convertValues(source["Ignore"], ComponentFilter);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

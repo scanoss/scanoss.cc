@@ -63,6 +63,11 @@ type Config struct {
 	scanSettingsFilePath string
 	recentScanRoots      []string
 	debug                bool
+	windowWidth          int
+	windowHeight         int
+	windowX              int
+	windowY              int
+	windowMaximised      bool
 	mu                   sync.RWMutex
 	listeners            []func(*Config)
 }
@@ -75,6 +80,11 @@ type ConfigDTO struct {
 	ScanSettingsFilePath string   `json:"scansettingsfilepath,omitempty"`
 	RecentScanRoots      []string `json:"recentscanroots,omitempty"`
 	Debug                bool     `json:"debug,omitempty"`
+	WindowWidth          int      `json:"windowwidth,omitempty"`
+	WindowHeight         int      `json:"windowheight,omitempty"`
+	WindowX              int      `json:"windowx,omitempty"`
+	WindowY              int      `json:"windowy,omitempty"`
+	WindowMaximised      bool     `json:"windowmaximised,omitempty"`
 }
 
 func (c *Config) MarshalJSON() ([]byte, error) {
@@ -86,6 +96,11 @@ func (c *Config) MarshalJSON() ([]byte, error) {
 		ScanSettingsFilePath: c.scanSettingsFilePath,
 		RecentScanRoots:      c.recentScanRoots,
 		Debug:                c.debug,
+		WindowWidth:          c.windowWidth,
+		WindowHeight:         c.windowHeight,
+		WindowX:              c.windowX,
+		WindowY:              c.windowY,
+		WindowMaximised:      c.windowMaximised,
 	})
 }
 
@@ -101,6 +116,11 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 	c.scanSettingsFilePath = j.ScanSettingsFilePath
 	c.recentScanRoots = j.RecentScanRoots
 	c.debug = j.Debug
+	c.windowWidth = j.WindowWidth
+	c.windowHeight = j.WindowHeight
+	c.windowX = j.WindowX
+	c.windowY = j.WindowY
+	c.windowMaximised = j.WindowMaximised
 	return nil
 }
 
@@ -271,6 +291,52 @@ func (c *Config) SetRecentScanRoots(roots []string) {
 	c.notifyListeners()
 }
 
+func (c *Config) GetWindowWidth() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.windowWidth
+}
+
+func (c *Config) GetWindowHeight() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.windowHeight
+}
+
+func (c *Config) GetWindowX() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.windowX
+}
+
+func (c *Config) GetWindowY() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.windowY
+}
+
+func (c *Config) GetWindowMaximised() bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.windowMaximised
+}
+
+func (c *Config) SaveWindowState(width, height, x, y int, maximised bool) error {
+	c.mu.Lock()
+	c.windowWidth = width
+	c.windowHeight = height
+	c.windowX = x
+	c.windowY = y
+	c.windowMaximised = maximised
+	viper.Set("windowwidth", width)
+	viper.Set("windowheight", height)
+	viper.Set("windowx", x)
+	viper.Set("windowy", y)
+	viper.Set("windowmaximised", maximised)
+	c.mu.Unlock()
+	return viper.WriteConfig()
+}
+
 func (c *Config) GetDefaultConfigFolder() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -418,6 +484,15 @@ func (c *Config) InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, 
 	if err := c.initializePathConfig(scanRoot, inputFile, scanossSettingsFilePath, originalWorkDir); err != nil {
 		return err
 	}
+
+	// Load window state from config
+	c.mu.Lock()
+	c.windowWidth = viper.GetInt("windowwidth")
+	c.windowHeight = viper.GetInt("windowheight")
+	c.windowX = viper.GetInt("windowx")
+	c.windowY = viper.GetInt("windowy")
+	c.windowMaximised = viper.GetBool("windowmaximised")
+	c.mu.Unlock()
 
 	return nil
 }

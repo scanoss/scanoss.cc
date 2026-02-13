@@ -74,6 +74,7 @@ type Bom struct {
 	Include []ComponentFilter `json:"include,omitempty"`
 	Remove  []ComponentFilter `json:"remove,omitempty"`
 	Replace []ComponentFilter `json:"replace,omitempty"`
+	Ignore  []ComponentFilter `json:"ignore,omitempty"`
 }
 
 type ComponentFilter struct {
@@ -89,6 +90,7 @@ type InitialFilters struct {
 	Include []ComponentFilter
 	Remove  []ComponentFilter
 	Replace []ComponentFilter
+	Ignore  []ComponentFilter
 }
 
 // Priority returns the priority score for a ComponentFilter.
@@ -197,8 +199,9 @@ func (sf *SettingsFile) GetResultWorkflowState(result Result) WorkflowState {
 	included, _ := sf.IsResultIncluded(result)
 	removed, _ := sf.IsResultRemoved(result)
 	replaced, _ := sf.IsResultReplaced(result)
+	ignored, _ := sf.IsResultIgnored(result)
 
-	if included || removed || replaced {
+	if included || removed || replaced || ignored {
 		return Completed
 	}
 
@@ -215,6 +218,10 @@ func (sf *SettingsFile) IsResultRemoved(result Result) (bool, int) {
 
 func (sf *SettingsFile) IsResultReplaced(result Result) (bool, int) {
 	return sf.IsResultInList(result, sf.Bom.Replace)
+}
+
+func (sf *SettingsFile) IsResultIgnored(result Result) (bool, int) {
+	return sf.IsResultInList(result, sf.Bom.Ignore)
 }
 
 func (sf *SettingsFile) IsResultInList(result Result, list []ComponentFilter) (bool, int) {
@@ -248,6 +255,9 @@ func (sf *SettingsFile) GetResultFilterConfig(result Result) FilterConfig {
 	} else if replaced, i := sf.IsResultReplaced(result); replaced {
 		filterAction = Replace
 		filterType = getResultFilterType(sf.Bom.Replace[i])
+	} else if ignored, i := sf.IsResultIgnored(result); ignored {
+		filterAction = Ignore
+		filterType = getResultFilterType(sf.Bom.Ignore[i])
 	}
 
 	return FilterConfig{
@@ -280,6 +290,10 @@ func (sf *SettingsFile) GetBomEntryFromResult(result Result) ComponentFilter {
 
 	if replaced, i := sf.IsResultReplaced(result); replaced {
 		return sf.Bom.Replace[i]
+	}
+
+	if ignored, i := sf.IsResultIgnored(result); ignored {
+		return sf.Bom.Ignore[i]
 	}
 
 	return ComponentFilter{}

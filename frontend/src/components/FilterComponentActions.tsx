@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-import { Check, EyeOff, PackageMinus, Replace } from 'lucide-react';
+import { Ban, Check, EyeOff, PackageMinus, Replace } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
@@ -136,6 +136,11 @@ export default function FilterComponentActions() {
       skipFile: createModalSkipHandler('file'),
       skipFolder: createModalSkipHandler('folder'),
       skipExtension: createModalSkipHandler('extension'),
+
+      // Ignore: file applies directly, others open modal
+      ignoreFile: createDirectActionHandler(FilterAction.Ignore),
+      ignoreFolder: createModalActionHandler(FilterAction.Ignore, 'folder'),
+      ignoreComponent: createModalActionHandler(FilterAction.Ignore, 'component'),
     }),
     [createDirectActionHandler, createModalActionHandler, createModalSkipHandler]
   );
@@ -164,6 +169,11 @@ export default function FilterComponentActions() {
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipFolder.keys, handlers.skipFolder, { enabled: skipEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipExtension.keys, handlers.skipExtension, { enabled: skipEnabled });
 
+  // Ignore
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.ignoreFile.keys, handlers.ignoreFile, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.ignoreFolder.keys, handlers.ignoreFolder, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.ignoreComponent.keys, handlers.ignoreComponent, { enabled: filterEnabled });
+
   // === Menu bar events ===
   useMenuEvents({
     // Include
@@ -182,6 +192,10 @@ export default function FilterComponentActions() {
     [entities.Action.SkipFile]: handlers.skipFile,
     [entities.Action.SkipFolder]: handlers.skipFolder,
     [entities.Action.SkipExtension]: handlers.skipExtension,
+    // Ignore
+    [entities.Action.IgnoreFile]: handlers.ignoreFile,
+    [entities.Action.IgnoreFolder]: handlers.ignoreFolder,
+    [entities.Action.IgnoreComponent]: handlers.ignoreComponent,
   });
 
   const isDisabled = isCompletedResult || !selectedResult;
@@ -260,6 +274,31 @@ export default function FilterComponentActions() {
             <MenubarItem onSelect={handlers.replaceComponent}>
               Component
               <MenubarShortcut>Shift+R</MenubarShortcut>
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+
+        {/* Ignore */}
+        <MenubarMenu>
+          <MenubarTrigger
+            disabled={isDisabled}
+            className="flex h-full w-14 flex-col items-center justify-center gap-1 rounded-none px-2 py-1 data-[state=open]:bg-accent"
+          >
+            <span className="text-xs">Ignore</span>
+            <Ban className="h-5 w-5 stroke-gray-500" />
+          </MenubarTrigger>
+          <MenubarContent align="start" className="min-w-[180px]">
+            <MenubarItem onSelect={handlers.ignoreFile}>
+              File
+              <MenubarShortcut>G</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onSelect={handlers.ignoreFolder}>
+              Folder
+              <MenubarShortcut>Alt+Shift+G</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onSelect={handlers.ignoreComponent}>
+              Component
+              <MenubarShortcut>Shift+G</MenubarShortcut>
             </MenubarItem>
           </MenubarContent>
         </MenubarMenu>

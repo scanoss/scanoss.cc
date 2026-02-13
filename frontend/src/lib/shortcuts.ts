@@ -138,6 +138,23 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     keys: 'shift+s',
   },
 
+  // Ignore (Component ignore) - opens filter modal
+  [entities.Action.IgnoreFile]: {
+    name: 'Ignore file',
+    description: 'Open ignore dialog for file',
+    keys: 'g',
+  },
+  [entities.Action.IgnoreFolder]: {
+    name: 'Ignore folder',
+    description: 'Open ignore dialog with folder selected',
+    keys: 'alt+shift+g',
+  },
+  [entities.Action.IgnoreComponent]: {
+    name: 'Ignore component',
+    description: 'Open ignore dialog with component selected',
+    keys: 'shift+g',
+  },
+
   // View
   [entities.Action.ToggleSyncScrollPosition]: {
     name: 'Toggle Sync Scroll Position',

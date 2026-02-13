@@ -33,7 +33,19 @@ import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
+import useResultsStore from '@/modules/results/stores/useResultsStore';
+
 import { entities } from '../../wailsjs/go/models';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog';
 import FilterActionModal from './FilterActionModal';
 import SkipActionModal from './SkipActionModal';
 import {
@@ -65,6 +77,9 @@ export default function FilterComponentActions() {
   // Skip action modal state
   const [skipModalOpen, setSkipModalOpen] = useState(false);
   const [skipModalInitialSelection, setSkipModalInitialSelection] = useState<SkipInitialSelection>('file');
+
+  // Restore confirmation dialog state
+  const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
 
   const handleFilterComponent = withErrorHandling({
     asyncFn: async (args: OnFilterComponentArgs) => {
@@ -114,6 +129,39 @@ export default function FilterComponentActions() {
     [selectedResult]
   );
 
+  const confirmRestore = useCallback(() => {
+    if (!selectedResult) return;
+    handleFilterComponent({
+      action: FilterAction.Restore,
+      filterBy: 'by_file',
+      purl: selectedResult.detected_purl ?? '',
+    });
+    setRestoreDialogOpen(false);
+  }, [selectedResult, handleFilterComponent]);
+
+  const restoreDescription = useMemo(() => {
+    if (!selectedResult?.filter_config) return '';
+    const { selectedResults } = useResultsStore.getState();
+
+    if (selectedResults.length > 1) {
+      return `You are about to restore ${selectedResults.length} selected files to pending.`;
+    }
+
+    const filterType = selectedResult.filter_config.type;
+    const purl = selectedResult.detected_purl ?? '';
+
+    if (filterType === 'by_purl') {
+      return `You are about to restore all files matched to component "${purl}" to pending.`;
+    }
+
+    if (filterType === 'by_folder') {
+      return `You are about to restore all files in the matching folder rule to pending.`;
+    }
+
+    // by_file
+    return `You are about to restore file "${selectedResult.path}" to pending.`;
+  }, [selectedResult]);
+
   // Generate all handlers
   const handlers = useMemo(
     () => ({
@@ -137,10 +185,13 @@ export default function FilterComponentActions() {
       skipFolder: createModalSkipHandler('folder'),
       skipExtension: createModalSkipHandler('extension'),
 
-      // Restore: applies directly (undo decision on completed result)
-      restoreFile: createDirectActionHandler(FilterAction.Restore),
+      // Restore: opens confirmation dialog before executing
+      restoreFile: () => {
+        if (!selectedResult) return;
+        setRestoreDialogOpen(true);
+      },
     }),
-    [createDirectActionHandler, createModalActionHandler, createModalSkipHandler]
+    [selectedResult, createDirectActionHandler, createModalActionHandler, createModalSkipHandler]
   );
 
   // === Keyboard shortcuts ===
@@ -338,6 +389,20 @@ export default function FilterComponentActions() {
           initialSelection={skipModalInitialSelection}
         />
       )}
+
+      {/* Restore Confirmation Dialog */}
+      <AlertDialog open={restoreDialogOpen} onOpenChange={setRestoreDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore to pending</AlertDialogTitle>
+            <AlertDialogDescription>{restoreDescription}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRestore}>Restore</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

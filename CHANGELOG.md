@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1] 2026-02-13
+### Added
+- Restore action: Undo a previous decision (include, dismiss, replace) on a completed result, returning it to pending state
+- Keyboard shortcut `U` to restore a file decision
+- Restore button in the action bar for completed results
+
+### Fixed
+- Fix component replacement displaying incorrect purl and component name when the scanner pre-applies the replacement
+- Fix result view not scrolling into view when navigating with keyboard shortcuts
+- Fix action bar buttons not being interactive on completed results that need to be re-evaluated
+
 ## [0.11.0] 2026-01-26
 ### Added
 - Folder actions: Include, dismiss, replace, or skip all files within a folder in a single action

@@ -51,6 +51,11 @@ const (
 	ActionReplaceFolder    Action = "replaceFolder"
 	ActionReplaceComponent Action = "replaceComponent"
 
+	// Ignore component actions
+	ActionIgnoreFile      Action = "ignoreFile"
+	ActionIgnoreFolder    Action = "ignoreFolder"
+	ActionIgnoreComponent Action = "ignoreComponent"
+
 	// Skip action (Scan settings) - always opens modal
 	ActionSkipFile      Action = "skipFile"
 	ActionSkipFolder    Action = "skipFolder"
@@ -106,6 +111,9 @@ var AllShortcutActions = []struct {
 	{ActionReplaceFile, "ReplaceFile"},
 	{ActionReplaceFolder, "ReplaceFolder"},
 	{ActionReplaceComponent, "ReplaceComponent"},
+	{ActionIgnoreFile, "IgnoreFile"},
+	{ActionIgnoreFolder, "IgnoreFolder"},
+	{ActionIgnoreComponent, "IgnoreComponent"},
 	{ActionSkipFile, "SkipFile"},
 	{ActionSkipFolder, "SkipFolder"},
 	{ActionSkipExtension, "SkipExtension"},

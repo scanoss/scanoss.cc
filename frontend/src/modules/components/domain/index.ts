@@ -31,7 +31,7 @@ export enum FilterAction {
 export type FilterBy = 'path' | 'purl';
 
 export const filterActionLabelMap: Record<FilterAction, string> = {
-  [FilterAction.Ignore]: 'Omit / Skip',
+  [FilterAction.Ignore]: 'Ignore',
   [FilterAction.Include]: 'Include',
   [FilterAction.Remove]: 'Dismiss',
   [FilterAction.Replace]: 'Replace',

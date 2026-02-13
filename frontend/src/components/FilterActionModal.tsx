@@ -37,6 +37,7 @@ import ReplaceComponentSection from './ReplaceComponentSection';
 import SelectLicenseList from './SelectLicenseList';
 import ShortcutBadge from './ShortcutBadge';
 import { Button } from './ui/button';
+import { Checkbox } from './ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -87,6 +88,7 @@ export default function FilterActionModal({
   const [license, setLicense] = useState<string>();
   const [licenseKey, setLicenseKey] = useState(0);
   const [selectedComponent, setSelectedComponent] = useState<entities.DeclaredComponent | null>(null);
+  const [replaceRegardlessOfMatch, setReplaceRegardlessOfMatch] = useState(false);
 
   const isIncludeAction = action === FilterAction.Include;
   const isReplaceAction = action === FilterAction.Replace;
@@ -119,6 +121,7 @@ export default function FilterActionModal({
       setLicense(undefined);
       setLicenseKey((k) => k + 1);
       setSelectedComponent(null);
+      setReplaceRegardlessOfMatch(false);
     }
   }, [open, segments.length, initialSelection]);
 
@@ -154,6 +157,7 @@ export default function FilterActionModal({
       replaceWith: selectedComponent?.purl,
       folderPath: filterBy === 'by_folder' ? selectedPath : undefined,
       purl,
+      replaceRegardlessOfMatch: isReplaceAction ? replaceRegardlessOfMatch : undefined,
     });
 
     onOpenChange(false);
@@ -220,6 +224,20 @@ export default function FilterActionModal({
             onComponentChange={setSelectedComponent}
             onLicenseChange={setLicense}
           />
+        )}
+
+        {/* Replace regardless of matched component - Replace action with path tab only */}
+        {isReplaceAction && activeTab === 'path' && (
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="replace-regardless"
+              checked={replaceRegardlessOfMatch}
+              onCheckedChange={(checked) => setReplaceRegardlessOfMatch(checked === true)}
+            />
+            <Label htmlFor="replace-regardless" className="cursor-pointer text-sm font-normal">
+              Apply regardless of matched component
+            </Label>
+          </div>
         )}
 
         {/* Comment textarea - always shown */}

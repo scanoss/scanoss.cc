@@ -121,6 +121,23 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     keys: 'shift+r',
   },
 
+  // Ignore component
+  [entities.Action.IgnoreFile]: {
+    name: 'Ignore file',
+    description: 'Ignore component for file',
+    keys: 'g',
+  },
+  [entities.Action.IgnoreFolder]: {
+    name: 'Ignore folder',
+    description: 'Open ignore dialog with folder selected',
+    keys: 'alt+shift+g',
+  },
+  [entities.Action.IgnoreComponent]: {
+    name: 'Ignore component',
+    description: 'Open ignore dialog with component selected',
+    keys: 'shift+g',
+  },
+
   // Skip (Scan settings) - always opens modal
   [entities.Action.SkipFile]: {
     name: 'Skip file',

@@ -24,7 +24,7 @@
 import { useVirtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
 import { Braces, File } from 'lucide-react';
-import { ReactNode, useRef } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { entities } from 'wailsjs/go/models';
 
 import ResultSearchBar from '@/components/ResultSearchBar';
@@ -164,6 +164,8 @@ interface ResultSectionProps {
 function ResultSection({ title, results, onSelect, selectionType, isLoading }: ResultSectionProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const ITEM_HEIGHT = 32;
+  const lastSelectedIndex = useResultsStore((state) => state.lastSelectedIndex);
+  const lastSelectionType = useResultsStore((state) => state.lastSelectionType);
 
   const virtualizer = useVirtualizer({
     count: results.length,
@@ -171,6 +173,12 @@ function ResultSection({ title, results, onSelect, selectionType, isLoading }: R
     estimateSize: () => ITEM_HEIGHT,
     overscan: 5,
   });
+
+  useEffect(() => {
+    if (lastSelectionType === selectionType && lastSelectedIndex >= 0 && lastSelectedIndex < results.length) {
+      virtualizer.scrollToIndex(lastSelectedIndex, { align: 'auto' });
+    }
+  }, [lastSelectedIndex, lastSelectionType, selectionType, results.length, virtualizer]);
 
   return (
     <div className="flex h-1/2 flex-col">

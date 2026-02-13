@@ -23,8 +23,8 @@
 
 import { useVirtualizer } from '@tanstack/react-virtual';
 import clsx from 'clsx';
-import { Braces, File } from 'lucide-react';
-import { ReactNode, useRef } from 'react';
+import { Braces, File, List, TreePine } from 'lucide-react';
+import { ReactNode, useRef, useState } from 'react';
 import { entities } from 'wailsjs/go/models';
 
 import ResultSearchBar from '@/components/ResultSearchBar';
@@ -40,6 +40,7 @@ import useResultsStore from '@/modules/results/stores/useResultsStore';
 import Loading from './Loading';
 import MatchTypeSelector from './MatchTypeSelector';
 import SelectScanRoot from './SelectScanRoot';
+import SidebarTreeView from './SidebarTreeView';
 import SortSelector from './SortSelector';
 import { ScrollArea } from './ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -48,6 +49,7 @@ export default function Sidebar() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const resultsListRef = useRef<HTMLDivElement>(null);
   const { isKeyboardNavigationBlocked } = useDialogState();
+  const [viewMode, setViewMode] = useState<'list' | 'tree'>('list');
 
   const setSelectedResults = useResultsStore((state) => state.setSelectedResults);
   const selectResultRange = useResultsStore((state) => state.selectResultRange);
@@ -122,32 +124,55 @@ export default function Sidebar() {
       </div>
 
       <div className="flex flex-col gap-4 px-4 py-6">
-        <div className="flex flex-col gap-2">
-          <MatchTypeSelector />
-          <SortSelector />
+        <div className="flex items-center gap-2">
+          <div className="flex flex-1 flex-col gap-2">
+            <MatchTypeSelector />
+            <SortSelector />
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className="flex h-8 w-8 items-center justify-center rounded-md border border-border hover:bg-accent"
+                onClick={() => setViewMode((prev) => (prev === 'list' ? 'tree' : 'list'))}
+              >
+                {viewMode === 'list' ? <TreePine className="h-4 w-4" /> : <List className="h-4 w-4" />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {viewMode === 'list' ? 'Switch to tree view' : 'Switch to list view'}
+            </TooltipContent>
+          </Tooltip>
         </div>
         <ResultSearchBar searchInputRef={searchInputRef} />
       </div>
 
       <div className="min-h-0 flex-1">
-        <div className="flex h-full min-h-0 flex-1 flex-col outline-none" tabIndex={-1} ref={resultsListRef}>
-          <div className="flex min-h-0 flex-1 flex-col gap-2">
-            <ResultSection
-              title="Pending files"
-              results={pendingResults}
-              onSelect={handleSelectFiles}
-              selectionType="pending"
-              isLoading={isLoadingResults}
-            />
-            <ResultSection
-              title="Completed files"
-              results={completedResults}
-              onSelect={handleSelectFiles}
-              selectionType="completed"
-              isLoading={isLoadingResults}
-            />
+        {viewMode === 'tree' ? (
+          <SidebarTreeView
+            pendingResults={pendingResults}
+            completedResults={completedResults}
+            onSelect={handleSelectFiles}
+          />
+        ) : (
+          <div className="flex h-full min-h-0 flex-1 flex-col outline-none" tabIndex={-1} ref={resultsListRef}>
+            <div className="flex min-h-0 flex-1 flex-col gap-2">
+              <ResultSection
+                title="Pending files"
+                results={pendingResults}
+                onSelect={handleSelectFiles}
+                selectionType="pending"
+                isLoading={isLoadingResults}
+              />
+              <ResultSection
+                title="Completed files"
+                results={completedResults}
+                onSelect={handleSelectFiles}
+                selectionType="completed"
+                isLoading={isLoadingResults}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </aside>
   );

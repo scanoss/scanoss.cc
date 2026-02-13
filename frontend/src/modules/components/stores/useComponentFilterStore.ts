@@ -44,6 +44,7 @@ export interface OnFilterComponentArgs {
   replaceWith?: string;
   folderPath?: string;
   purl?: string;
+  regardlessOfComponent?: boolean;
 }
 
 interface ComponentFilterActions {
@@ -61,7 +62,7 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
     canRedo: false,
 
     onFilterComponent: async (args: OnFilterComponentArgs) => {
-      const { replaceWith, filterBy, action, comment, license, folderPath, purl } = args;
+      const { replaceWith, filterBy, action, comment, license, folderPath, purl, regardlessOfComponent } = args;
 
       if (action === FilterAction.Replace && !replaceWith) {
         throw new Error('There was an error replacing the component. Please try again.');
@@ -73,6 +74,25 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
       if (filterBy === 'by_folder' && folderPath) {
         // Ensure folder path ends with /
         const normalizedFolderPath = folderPath.endsWith('/') ? folderPath : folderPath + '/';
+
+        if (regardlessOfComponent) {
+          // Apply to the folder regardless of matched component (path-only rule)
+          const dto: entities.ComponentFilterDTO[] = [{
+            action,
+            comment,
+            license,
+            purl: '',
+            path: normalizedFolderPath,
+            ...(replaceWith && { replace_with: replaceWith }),
+          }];
+
+          useResultsStore.getState().moveToNextResult(
+            (r) => r.path.startsWith(normalizedFolderPath)
+          );
+          await FilterComponents(dto);
+          await get().updateUndoRedoState();
+          return;
+        }
 
         // Get all unique purls for files in this folder (from both pending and completed results)
         const { pendingResults, completedResults } = useResultsStore.getState();
@@ -97,6 +117,23 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
         useResultsStore.getState().moveToNextResult(
           (r) => r.path.startsWith(normalizedFolderPath)
         );
+        await FilterComponents(dto);
+        await get().updateUndoRedoState();
+        return;
+      }
+
+      // Handle file-level "regardless of component" (path-only rule)
+      if (regardlessOfComponent && filterBy === 'by_file') {
+        const dto: entities.ComponentFilterDTO[] = selectedResults.map((result) => ({
+          action,
+          comment,
+          license,
+          purl: '',
+          path: result.path,
+          ...(replaceWith && { replace_with: replaceWith }),
+        }));
+
+        useResultsStore.getState().moveToNextResult();
         await FilterComponents(dto);
         await get().updateUndoRedoState();
         return;

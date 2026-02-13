@@ -56,6 +56,11 @@ const (
 	ActionSkipFolder    Action = "skipFolder"
 	ActionSkipExtension Action = "skipExtension"
 
+	// Ignore action (Component ignore)
+	ActionIgnoreFile      Action = "ignoreFile"
+	ActionIgnoreFolder    Action = "ignoreFolder"
+	ActionIgnoreComponent Action = "ignoreComponent"
+
 	// View
 	ActionToggleSyncScrollPosition   Action = "toggleSyncScrollPosition"
 	ActionShowKeyboardShortcutsModal Action = "showKeyboardShortcutsModal"
@@ -109,6 +114,9 @@ var AllShortcutActions = []struct {
 	{ActionSkipFile, "SkipFile"},
 	{ActionSkipFolder, "SkipFolder"},
 	{ActionSkipExtension, "SkipExtension"},
+	{ActionIgnoreFile, "IgnoreFile"},
+	{ActionIgnoreFolder, "IgnoreFolder"},
+	{ActionIgnoreComponent, "IgnoreComponent"},
 	{ActionToggleSyncScrollPosition, "ToggleSyncScrollPosition"},
 	{ActionShowKeyboardShortcutsModal, "ShowKeyboardShortcutsModal"},
 	{ActionScanWithOptions, "ScanWithOptions"},

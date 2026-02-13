@@ -51,6 +51,9 @@ const (
 	ActionReplaceFolder    Action = "replaceFolder"
 	ActionReplaceComponent Action = "replaceComponent"
 
+	// Restore action (undo decision on completed result)
+	ActionRestoreFile Action = "restoreFile"
+
 	// Skip action (Scan settings) - always opens modal
 	ActionSkipFile      Action = "skipFile"
 	ActionSkipFolder    Action = "skipFolder"
@@ -106,6 +109,7 @@ var AllShortcutActions = []struct {
 	{ActionReplaceFile, "ReplaceFile"},
 	{ActionReplaceFolder, "ReplaceFolder"},
 	{ActionReplaceComponent, "ReplaceComponent"},
+	{ActionRestoreFile, "RestoreFile"},
 	{ActionSkipFile, "SkipFile"},
 	{ActionSkipFolder, "SkipFolder"},
 	{ActionSkipExtension, "SkipExtension"},

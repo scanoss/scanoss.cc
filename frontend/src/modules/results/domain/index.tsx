@@ -107,4 +107,10 @@ export const stateInfoPresentation: Record<FilterAction, StateInfoPresentation> 
     stateInfoSidebarIndicatorStyles: 'bg-gray-600',
     stateInfoTextStyles: 'text-gray-600',
   },
+  [FilterAction.Restore]: {
+    label: 'Restored',
+    stateInfoContainerStyles: 'border-l-4 border-blue-600 border-l-blue-600 bg-blue-950',
+    stateInfoSidebarIndicatorStyles: 'bg-blue-600',
+    stateInfoTextStyles: 'text-blue-600',
+  },
 };

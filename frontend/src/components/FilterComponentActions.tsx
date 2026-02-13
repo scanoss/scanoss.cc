@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-import { Check, EyeOff, PackageMinus, Replace } from 'lucide-react';
+import { Check, EyeOff, PackageMinus, Replace, Undo2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
@@ -83,25 +83,25 @@ export default function FilterComponentActions() {
   // Creates handler that opens filter modal with given action and selection
   const createModalActionHandler = useCallback(
     (action: FilterAction, selection: FilterInitialSelection) => () => {
-      if (!selectedResult || isCompletedResult) return;
+      if (!selectedResult) return;
       setFilterModalAction(action);
       setFilterModalInitialSelection(selection);
       setFilterModalOpen(true);
     },
-    [selectedResult, isCompletedResult]
+    [selectedResult]
   );
 
   // Creates handler that applies filter action directly to the current file (no modal)
   const createDirectActionHandler = useCallback(
     (action: FilterAction) => () => {
-      if (!selectedResult || isCompletedResult) return;
+      if (!selectedResult) return;
       handleFilterComponent({
         action,
         filterBy: 'by_file',
         purl: selectedResult.detected_purl ?? '',
       });
     },
-    [selectedResult, isCompletedResult, handleFilterComponent]
+    [selectedResult, handleFilterComponent]
   );
 
   // Creates handler that opens skip modal with given selection
@@ -136,13 +136,17 @@ export default function FilterComponentActions() {
       skipFile: createModalSkipHandler('file'),
       skipFolder: createModalSkipHandler('folder'),
       skipExtension: createModalSkipHandler('extension'),
+
+      // Restore: applies directly (undo decision on completed result)
+      restoreFile: createDirectActionHandler(FilterAction.Restore),
     }),
     [createDirectActionHandler, createModalActionHandler, createModalSkipHandler]
   );
 
   // === Keyboard shortcuts ===
-  const filterEnabled = !isCompletedResult && !!selectedResult;
+  const filterEnabled = !!selectedResult;
   const skipEnabled = !!selectedResult;
+  const restoreEnabled = isCompletedResult && !!selectedResult;
 
   // Include
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFile.keys, handlers.includeFile, { enabled: filterEnabled });
@@ -164,6 +168,9 @@ export default function FilterComponentActions() {
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipFolder.keys, handlers.skipFolder, { enabled: skipEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipExtension.keys, handlers.skipExtension, { enabled: skipEnabled });
 
+  // Restore
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.restoreFile.keys, handlers.restoreFile, { enabled: restoreEnabled });
+
   // === Menu bar events ===
   useMenuEvents({
     // Include
@@ -182,9 +189,11 @@ export default function FilterComponentActions() {
     [entities.Action.SkipFile]: handlers.skipFile,
     [entities.Action.SkipFolder]: handlers.skipFolder,
     [entities.Action.SkipExtension]: handlers.skipExtension,
+    // Restore
+    [entities.Action.RestoreFile]: handlers.restoreFile,
   });
 
-  const isDisabled = isCompletedResult || !selectedResult;
+  const isDisabled = !selectedResult;
 
   return (
     <>
@@ -193,7 +202,7 @@ export default function FilterComponentActions() {
         <MenubarMenu>
           <MenubarTrigger
             disabled={isDisabled}
-            className="flex h-full w-14 flex-col items-center justify-center gap-1 rounded-none px-2 py-1 data-[state=open]:bg-accent"
+            className="flex h-full w-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-2 py-1 hover:bg-accent data-[disabled]:cursor-default data-[disabled]:hover:bg-transparent data-[state=open]:bg-accent"
           >
             <span className="text-xs">Include</span>
             <Check className="h-5 w-5 stroke-green-500" />
@@ -218,7 +227,7 @@ export default function FilterComponentActions() {
         <MenubarMenu>
           <MenubarTrigger
             disabled={isDisabled}
-            className="flex h-full w-14 flex-col items-center justify-center gap-1 rounded-none px-2 py-1 data-[state=open]:bg-accent"
+            className="flex h-full w-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-2 py-1 hover:bg-accent data-[disabled]:cursor-default data-[disabled]:hover:bg-transparent data-[state=open]:bg-accent"
           >
             <span className="text-xs">Dismiss</span>
             <PackageMinus className="h-5 w-5 stroke-red-500" />
@@ -243,7 +252,7 @@ export default function FilterComponentActions() {
         <MenubarMenu>
           <MenubarTrigger
             disabled={isDisabled}
-            className="flex h-full w-14 flex-col items-center justify-center gap-1 rounded-none px-2 py-1 data-[state=open]:bg-accent"
+            className="flex h-full w-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-2 py-1 hover:bg-accent data-[disabled]:cursor-default data-[disabled]:hover:bg-transparent data-[state=open]:bg-accent"
           >
             <span className="text-xs">Replace</span>
             <Replace className="h-5 w-5 stroke-yellow-500" />
@@ -271,7 +280,7 @@ export default function FilterComponentActions() {
         <MenubarMenu>
           <MenubarTrigger
             disabled={!selectedResult}
-            className="flex h-full w-14 flex-col items-center justify-center gap-1 rounded-none px-2 py-1 data-[state=open]:bg-accent"
+            className="flex h-full w-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-2 py-1 hover:bg-accent data-[disabled]:cursor-default data-[disabled]:hover:bg-transparent data-[state=open]:bg-accent"
           >
             <span className="text-xs">Skip</span>
             <EyeOff className="h-5 w-5 stroke-orange-500" />
@@ -291,6 +300,20 @@ export default function FilterComponentActions() {
             </MenubarItem>
           </MenubarContent>
         </MenubarMenu>
+
+        {/* Restore - only visible for completed results */}
+        {isCompletedResult && (
+          <>
+            <MenubarSeparator className="mx-1 h-8 w-px" />
+            <button
+              onClick={handlers.restoreFile}
+              className="flex h-full w-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-2 py-1 hover:bg-accent"
+            >
+              <span className="text-xs">Restore</span>
+              <Undo2 className="h-5 w-5 stroke-blue-500" />
+            </button>
+          </>
+        )}
       </Menubar>
 
       {/* Filter Action Modal */}

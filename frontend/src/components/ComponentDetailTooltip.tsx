@@ -60,6 +60,11 @@ function DetectedPurlTooltip({ component, replaced }: { component: entities.Comp
   const isResultRemoved = result?.filter_config?.action === FilterAction.Remove;
   const removedStyles = isResultRemoved || replaced ? 'line-through opacity-70 text-muted-foreground' : '';
 
+  const isPreAppliedReplacement = replaced && component.purl?.[0] !== result?.detected_purl;
+
+  const displayName = result?.detected_name || component.component;
+  const displayUrl = isPreAppliedReplacement ? result?.detected_purl_url : component.url;
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -69,7 +74,7 @@ function DetectedPurlTooltip({ component, replaced }: { component: entities.Comp
               [matchPresentation.accent]: !replaced && !isResultRemoved,
             })}
           >
-            {component.component}
+            {displayName}
           </div>
           <Link className="flex items-center gap-1" to={result?.detected_purl_url as string}>
             {result?.detected_purl}
@@ -83,22 +88,22 @@ function DetectedPurlTooltip({ component, replaced }: { component: entities.Comp
             <p className="font-medium">PURL</p>
             <p className="text-muted-foreground">{result?.detected_purl}</p>
           </div>
-          {component.version && (
+          {!isPreAppliedReplacement && component.version && (
             <div>
               <p className="font-medium">VERSION</p>
               <p className={clsx('text-muted-foreground')}>{component.version}</p>
             </div>
           )}
-          {component.licenses?.length ? (
+          {!isPreAppliedReplacement && component.licenses?.length ? (
             <div>
               <p className="font-medium">LICENSE</p>
               <p className={clsx('text-muted-foreground')}>{component.licenses?.[0].name}</p>
             </div>
           ) : null}
-          {component.url && (
+          {displayUrl && (
             <div>
               <p className="font-medium">URL</p>
-              <Link to={component.url as string}>{component.url}</Link>
+              <Link to={displayUrl as string}>{displayUrl}</Link>
             </div>
           )}
         </div>

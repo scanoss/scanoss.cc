@@ -159,11 +159,19 @@ func (cf ComponentFilter) MatchesPath(path string) bool {
 
 // MatchesAnyPurl checks if the purl constraint is satisfied.
 // Empty purl means no constraint (always satisfied).
+// For replace entries, also matches if the result's purl equals ReplaceWith,
+// since the scanner may have already applied the replacement.
 func (cf ComponentFilter) MatchesAnyPurl(purls []string) bool {
 	if cf.Purl == "" {
 		return true // No constraint
 	}
-	return slices.Contains(purls, cf.Purl)
+	if slices.Contains(purls, cf.Purl) {
+		return true
+	}
+	if cf.ReplaceWith != "" && slices.Contains(purls, cf.ReplaceWith) {
+		return true
+	}
+	return false
 }
 
 // AppliesTo checks if all filter constraints are satisfied by the result.

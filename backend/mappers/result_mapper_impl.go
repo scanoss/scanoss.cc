@@ -74,13 +74,29 @@ func (m *ResultMapperImpl) MapToResultDTO(result entities.Result) entities.Resul
 		detectedPurl = (*result.Purl)[0]
 	}
 
+	// If the scanner already applied the replacement, the detected purl will
+	// equal the replace_with value. In that case, show the original purl from
+	// the BOM entry so the display shows "original -> replacement".
+	scannerPreAppliedReplacement := bomEntry.ReplaceWith != "" && detectedPurl == bomEntry.ReplaceWith && bomEntry.Purl != ""
+	if scannerPreAppliedReplacement {
+		detectedPurl = bomEntry.Purl
+	}
+
+	var detectedName string
+	if scannerPreAppliedReplacement {
+		detectedName = m.componentNameFromPurl(bomEntry.Purl)
+	} else {
+		detectedName = result.ComponentName
+	}
+
 	dto := entities.ResultDTO{
 		MatchType:        entities.MatchType(result.MatchType),
 		Path:             result.Path,
 		DetectedPurl:     detectedPurl,
-		DetectedPurlUrl:  m.mapDetectedPurlUrl(result),
+		DetectedPurlUrl:  m.mapPurlUrl(detectedPurl),
+		DetectedName:     detectedName,
 		ConcludedPurl:    bomEntry.ReplaceWith,
-		ConcludedPurlUrl: m.mapConcludedPurlUrl(result),
+		ConcludedPurlUrl: m.mapPurlUrl(bomEntry.ReplaceWith),
 		ConcludedName:    m.mapConcludedName(result),
 		WorkflowState:    m.mapWorkflowState(result),
 		FilterConfig:     m.mapFilterConfig(result),
@@ -91,9 +107,6 @@ func (m *ResultMapperImpl) MapToResultDTO(result entities.Result) entities.Resul
 	return dto
 }
 
-func (m *ResultMapperImpl) mapConcludedPurl(result entities.Result) string {
-	return m.scanossSettings.SettingsFile.GetBomEntryFromResult(result).ReplaceWith
-}
 
 func (m *ResultMapperImpl) MapToResultDTOList(results []entities.Result) []entities.ResultDTO {
 	output := make([]entities.ResultDTO, len(results))
@@ -128,28 +141,6 @@ func (m *ResultMapperImpl) mapFilterConfig(result entities.Result) entities.Filt
 	return m.scanossSettings.SettingsFile.GetResultFilterConfig(result)
 }
 
-func (m *ResultMapperImpl) mapConcludedPurlUrl(result entities.Result) string {
-	concludedPurl := m.mapConcludedPurl(result)
-	if concludedPurl == "" {
-		return ""
-	}
-
-	purlObject, err := purlutils.PurlFromString(concludedPurl)
-	if err != nil {
-		log.Error().Err(err).Msg("Error parsing concluded purl")
-		return ""
-	}
-
-	// Workaround for github purls until purlutils is updated
-	purlName := purlObject.Name
-	if purlObject.Type == "github" && purlObject.Namespace != "" {
-		purlName = fmt.Sprintf("%s/%s", purlObject.Namespace, purlObject.Name)
-	}
-
-	return m.getProjectURL(concludedPurl, func() (string, error) {
-		return purlutils.ProjectUrl(purlName, purlObject.Type)
-	})
-}
 
 func (m *ResultMapperImpl) getProjectURL(purl string, compute func() (string, error)) string {
 	if cached, ok := purlCache.Load(purl); ok {
@@ -164,16 +155,14 @@ func (m *ResultMapperImpl) getProjectURL(purl string, compute func() (string, er
 	return url
 }
 
-func (m *ResultMapperImpl) mapDetectedPurlUrl(result entities.Result) string {
-	if result.Purl == nil || len(*result.Purl) == 0 {
+func (m *ResultMapperImpl) mapPurlUrl(purl string) string {
+	if purl == "" {
 		return ""
 	}
 
-	detectedPurl := (*result.Purl)[0]
-
-	purlObject, err := purlutils.PurlFromString(detectedPurl)
+	purlObject, err := purlutils.PurlFromString(purl)
 	if err != nil {
-		log.Error().Err(err).Msg("Error parsing detected purl")
+		log.Error().Err(err).Msg("Error parsing purl")
 		return ""
 	}
 	purlName := purlObject.Name
@@ -181,18 +170,22 @@ func (m *ResultMapperImpl) mapDetectedPurlUrl(result entities.Result) string {
 		purlName = fmt.Sprintf("%s/%s", purlObject.Namespace, purlObject.Name)
 	}
 
-	return m.getProjectURL(detectedPurl, func() (string, error) {
+	return m.getProjectURL(purl, func() (string, error) {
 		return purlutils.ProjectUrl(purlName, purlObject.Type)
 	})
 }
 
 func (m *ResultMapperImpl) mapConcludedName(result entities.Result) string {
 	replacedPurl := m.scanossSettings.SettingsFile.GetBomEntryFromResult(result).ReplaceWith
-	if replacedPurl == "" {
+	return m.componentNameFromPurl(replacedPurl)
+}
+
+func (m *ResultMapperImpl) componentNameFromPurl(purl string) string {
+	if purl == "" {
 		return ""
 	}
 
-	purlName, err := purlutils.PurlNameFromString(replacedPurl)
+	purlName, err := purlutils.PurlNameFromString(purl)
 	if err != nil {
 		log.Error().Err(err).Msg("Error getting component name from purl")
 		return ""

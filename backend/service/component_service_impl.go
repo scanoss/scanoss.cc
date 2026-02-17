@@ -75,6 +75,14 @@ func (s *ComponentServiceImpl) setInitialFilters() {
 			Action: entities.Include,
 		})
 	}
+	for _, ignore := range initialFilters.Ignore {
+		s.initialFilters = append(s.initialFilters, entities.ComponentFilterDTO{
+			Path:   ignore.Path,
+			Purl:   ignore.Purl,
+			Usage:  string(ignore.Usage),
+			Action: entities.Ignore,
+		})
+	}
 	for _, remove := range initialFilters.Remove {
 		s.initialFilters = append(s.initialFilters, entities.ComponentFilterDTO{
 			Path:   remove.Path,
@@ -99,10 +107,11 @@ func (s *ComponentServiceImpl) ClearAllFilters() error {
 
 func (s *ComponentServiceImpl) GetInitialFilters() entities.InitialFilters {
 	sf := s.scanossSettingsRepo.GetSettings()
-	include, remove, replace := sf.Bom.Include, sf.Bom.Remove, sf.Bom.Replace
+	include, ignore, remove, replace := sf.Bom.Include, sf.Bom.Ignore, sf.Bom.Remove, sf.Bom.Replace
 
 	return entities.InitialFilters{
 		Include: include,
+		Ignore:  ignore,
 		Remove:  remove,
 		Replace: replace,
 	}

@@ -87,6 +87,7 @@ type FilterAction string
 
 const (
 	Include FilterAction = "include"
+	Ignore  FilterAction = "ignore"
 	Remove  FilterAction = "remove"
 	Replace FilterAction = "replace"
 )
@@ -95,7 +96,7 @@ type ComponentFilterDTO struct {
 	Path        string       `json:"path,omitempty"`
 	Purl        string       `json:"purl,omitempty"`
 	Usage       string       `json:"usage,omitempty"`
-	Action      FilterAction `json:"action" validate:"required,eq=include|eq=remove|eq=replace"`
+	Action      FilterAction `json:"action" validate:"required,eq=include|eq=ignore|eq=remove|eq=replace"`
 	Comment     string       `json:"comment,omitempty"`
 	ReplaceWith string       `json:"replace_with,omitempty" validate:"omitempty,valid-purl"`
 	License     string       `json:"license,omitempty"`

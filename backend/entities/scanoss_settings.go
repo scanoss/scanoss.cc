@@ -72,6 +72,7 @@ type SizesSkipSettings struct {
 
 type Bom struct {
 	Include []ComponentFilter `json:"include,omitempty"`
+	Ignore  []ComponentFilter `json:"ignore,omitempty"`
 	Remove  []ComponentFilter `json:"remove,omitempty"`
 	Replace []ComponentFilter `json:"replace,omitempty"`
 }
@@ -87,6 +88,7 @@ type ComponentFilter struct {
 
 type InitialFilters struct {
 	Include []ComponentFilter
+	Ignore  []ComponentFilter
 	Remove  []ComponentFilter
 	Replace []ComponentFilter
 }
@@ -195,10 +197,11 @@ func (sf *SettingsFile) Equal(other *SettingsFile) (bool, error) {
 
 func (sf *SettingsFile) GetResultWorkflowState(result Result) WorkflowState {
 	included, _ := sf.IsResultIncluded(result)
+	ignored, _ := sf.IsResultIgnored(result)
 	removed, _ := sf.IsResultRemoved(result)
 	replaced, _ := sf.IsResultReplaced(result)
 
-	if included || removed || replaced {
+	if included || ignored || removed || replaced {
 		return Completed
 	}
 
@@ -207,6 +210,10 @@ func (sf *SettingsFile) GetResultWorkflowState(result Result) WorkflowState {
 
 func (sf *SettingsFile) IsResultIncluded(result Result) (bool, int) {
 	return sf.IsResultInList(result, sf.Bom.Include)
+}
+
+func (sf *SettingsFile) IsResultIgnored(result Result) (bool, int) {
+	return sf.IsResultInList(result, sf.Bom.Ignore)
 }
 
 func (sf *SettingsFile) IsResultRemoved(result Result) (bool, int) {
@@ -242,6 +249,9 @@ func (sf *SettingsFile) GetResultFilterConfig(result Result) FilterConfig {
 	if included, i := sf.IsResultIncluded(result); included {
 		filterAction = Include
 		filterType = getResultFilterType(sf.Bom.Include[i])
+	} else if ignored, i := sf.IsResultIgnored(result); ignored {
+		filterAction = Ignore
+		filterType = getResultFilterType(sf.Bom.Ignore[i])
 	} else if removed, i := sf.IsResultRemoved(result); removed {
 		filterAction = Remove
 		filterType = getResultFilterType(sf.Bom.Remove[i])
@@ -272,6 +282,10 @@ func getResultFilterType(cf ComponentFilter) FilterType {
 func (sf *SettingsFile) GetBomEntryFromResult(result Result) ComponentFilter {
 	if included, i := sf.IsResultIncluded(result); included {
 		return sf.Bom.Include[i]
+	}
+
+	if ignored, i := sf.IsResultIgnored(result); ignored {
+		return sf.Bom.Ignore[i]
 	}
 
 	if removed, i := sf.IsResultRemoved(result); removed {

@@ -147,6 +147,18 @@ func (a *App) BuildMenu(keyboardService service.KeyboardService) *menu.Menu {
 		runtime.EventsEmit(a.ctx, string(entities.ActionIncludeComponent))
 	})
 
+	// Ignore submenu
+	IgnoreMenu := ActionsMenu.AddSubmenu("Ignore")
+	IgnoreMenu.AddText("Ignore file", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionIgnoreFile))
+	})
+	IgnoreMenu.AddText("Ignore folder", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionIgnoreFolder))
+	})
+	IgnoreMenu.AddText("Ignore component", nil, func(cd *menu.CallbackData) {
+		runtime.EventsEmit(a.ctx, string(entities.ActionIgnoreComponent))
+	})
+
 	// Dismiss submenu
 	DismissMenu := ActionsMenu.AddSubmenu("Dismiss")
 	DismissMenu.AddText("Dismiss file", nil, func(cd *menu.CallbackData) {

@@ -90,6 +90,21 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     description: 'Open include dialog with folder selected',
     keys: 'alt+shift+i',
   },
+  [entities.Action.IgnoreFile]: {
+    name: 'Ignore file',
+    description: 'Ignore file directly',
+    keys: 'g, f5',
+  },
+  [entities.Action.IgnoreComponent]: {
+    name: 'Ignore component',
+    description: 'Open ignore dialog with component selected',
+    keys: 'shift+g, shift+f5',
+  },
+  [entities.Action.IgnoreFolder]: {
+    name: 'Ignore folder',
+    description: 'Open ignore dialog with folder selected',
+    keys: 'alt+shift+g',
+  },
   [entities.Action.DismissFile]: {
     name: 'Dismiss file',
     description: 'Dismiss file directly',

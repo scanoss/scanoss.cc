@@ -44,6 +44,9 @@ const (
 	ActionIncludeFile      Action = "includeFile"
 	ActionIncludeComponent Action = "includeComponent"
 	ActionIncludeFolder    Action = "includeFolder"
+	ActionIgnoreFile       Action = "ignoreFile"
+	ActionIgnoreComponent  Action = "ignoreComponent"
+	ActionIgnoreFolder     Action = "ignoreFolder"
 	ActionDismissFile      Action = "dismissFile"
 	ActionDismissComponent Action = "dismissComponent"
 	ActionDismissFolder    Action = "dismissFolder"
@@ -100,6 +103,9 @@ var AllShortcutActions = []struct {
 	{ActionIncludeFile, "IncludeFile"},
 	{ActionIncludeComponent, "IncludeComponent"},
 	{ActionIncludeFolder, "IncludeFolder"},
+	{ActionIgnoreFile, "IgnoreFile"},
+	{ActionIgnoreComponent, "IgnoreComponent"},
+	{ActionIgnoreFolder, "IgnoreFolder"},
 	{ActionDismissFile, "DismissFile"},
 	{ActionDismissComponent, "DismissComponent"},
 	{ActionDismissFolder, "DismissFolder"},

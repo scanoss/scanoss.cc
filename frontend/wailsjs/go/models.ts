@@ -12,6 +12,9 @@ export namespace entities {
 	    IncludeFile = "includeFile",
 	    IncludeComponent = "includeComponent",
 	    IncludeFolder = "includeFolder",
+	    IgnoreFile = "ignoreFile",
+	    IgnoreComponent = "ignoreComponent",
+	    IgnoreFolder = "ignoreFolder",
 	    DismissFile = "dismissFile",
 	    DismissComponent = "dismissComponent",
 	    DismissFolder = "dismissFolder",
@@ -50,16 +53,18 @@ export namespace entities {
 	}
 	export class Bom {
 	    include?: ComponentFilter[];
+	    ignore?: ComponentFilter[];
 	    remove?: ComponentFilter[];
 	    replace?: ComponentFilter[];
-	
+
 	    static createFrom(source: any = {}) {
 	        return new Bom(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.include = this.convertValues(source["include"], ComponentFilter);
+	        this.ignore = this.convertValues(source["ignore"], ComponentFilter);
 	        this.remove = this.convertValues(source["remove"], ComponentFilter);
 	        this.replace = this.convertValues(source["replace"], ComponentFilter);
 	    }
@@ -409,16 +414,18 @@ export namespace entities {
 	}
 	export class InitialFilters {
 	    Include: ComponentFilter[];
+	    Ignore: ComponentFilter[];
 	    Remove: ComponentFilter[];
 	    Replace: ComponentFilter[];
-	
+
 	    static createFrom(source: any = {}) {
 	        return new InitialFilters(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.Include = this.convertValues(source["Include"], ComponentFilter);
+	        this.Ignore = this.convertValues(source["Ignore"], ComponentFilter);
 	        this.Remove = this.convertValues(source["Remove"], ComponentFilter);
 	        this.Replace = this.convertValues(source["Replace"], ComponentFilter);
 	    }

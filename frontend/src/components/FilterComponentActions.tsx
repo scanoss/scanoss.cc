@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-import { Check, EyeOff, PackageMinus, Replace } from 'lucide-react';
+import { Ban, Check, EyeOff, PackageMinus, Replace } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
@@ -122,6 +122,11 @@ export default function FilterComponentActions() {
       includeFolder: createModalActionHandler(FilterAction.Include, 'folder'),
       includeComponent: createModalActionHandler(FilterAction.Include, 'component'),
 
+      // Ignore: file applies directly, others open modal
+      ignoreFile: createDirectActionHandler(FilterAction.Ignore),
+      ignoreFolder: createModalActionHandler(FilterAction.Ignore, 'folder'),
+      ignoreComponent: createModalActionHandler(FilterAction.Ignore, 'component'),
+
       // Dismiss: file applies directly, others open modal
       dismissFile: createDirectActionHandler(FilterAction.Remove),
       dismissFolder: createModalActionHandler(FilterAction.Remove, 'folder'),
@@ -149,6 +154,11 @@ export default function FilterComponentActions() {
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeComponent.keys, handlers.includeComponent, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFolder.keys, handlers.includeFolder, { enabled: filterEnabled });
 
+  // Ignore
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.ignoreFile.keys, handlers.ignoreFile, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.ignoreComponent.keys, handlers.ignoreComponent, { enabled: filterEnabled });
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.ignoreFolder.keys, handlers.ignoreFolder, { enabled: filterEnabled });
+
   // Dismiss
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissFile.keys, handlers.dismissFile, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissComponent.keys, handlers.dismissComponent, { enabled: filterEnabled });
@@ -170,6 +180,10 @@ export default function FilterComponentActions() {
     [entities.Action.IncludeFile]: handlers.includeFile,
     [entities.Action.IncludeComponent]: handlers.includeComponent,
     [entities.Action.IncludeFolder]: handlers.includeFolder,
+    // Ignore
+    [entities.Action.IgnoreFile]: handlers.ignoreFile,
+    [entities.Action.IgnoreComponent]: handlers.ignoreComponent,
+    [entities.Action.IgnoreFolder]: handlers.ignoreFolder,
     // Dismiss
     [entities.Action.DismissFile]: handlers.dismissFile,
     [entities.Action.DismissComponent]: handlers.dismissComponent,
@@ -210,6 +224,31 @@ export default function FilterComponentActions() {
             <MenubarItem onSelect={handlers.includeComponent}>
               Component
               <MenubarShortcut>Shift+I</MenubarShortcut>
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+
+        {/* Ignore */}
+        <MenubarMenu>
+          <MenubarTrigger
+            disabled={isDisabled}
+            className="flex h-full w-14 flex-col items-center justify-center gap-1 rounded-none px-2 py-1 data-[state=open]:bg-accent"
+          >
+            <span className="text-xs">Ignore</span>
+            <Ban className="h-5 w-5 stroke-gray-500" />
+          </MenubarTrigger>
+          <MenubarContent align="start" className="min-w-[180px]">
+            <MenubarItem onSelect={handlers.ignoreFile}>
+              File
+              <MenubarShortcut>G</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onSelect={handlers.ignoreFolder}>
+              Folder
+              <MenubarShortcut>Alt+Shift+G</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onSelect={handlers.ignoreComponent}>
+              Component
+              <MenubarShortcut>Shift+G</MenubarShortcut>
             </MenubarItem>
           </MenubarContent>
         </MenubarMenu>

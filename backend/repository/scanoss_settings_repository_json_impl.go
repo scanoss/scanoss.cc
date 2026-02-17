@@ -155,6 +155,8 @@ func (r *ScanossSettingsJsonRepository) AddBomEntry(newEntry entities.ComponentF
 		targetList = &sf.Bom.Remove
 	case "include":
 		targetList = &sf.Bom.Include
+	case "ignore":
+		targetList = &sf.Bom.Ignore
 	case "replace":
 		targetList = &sf.Bom.Replace
 	default:
@@ -173,6 +175,7 @@ func (r *ScanossSettingsJsonRepository) removeDuplicatesFromAllLists(newEntry en
 
 	sf.Bom.Remove = removeDuplicatesFromList(sf.Bom.Remove, newEntry)
 	sf.Bom.Include = removeDuplicatesFromList(sf.Bom.Include, newEntry)
+	sf.Bom.Ignore = removeDuplicatesFromList(sf.Bom.Ignore, newEntry)
 	sf.Bom.Replace = removeDuplicatesFromList(sf.Bom.Replace, newEntry)
 }
 
@@ -196,6 +199,7 @@ func isDuplicate(entry, newEntry entities.ComponentFilter) bool {
 func (r *ScanossSettingsJsonRepository) ClearAllFilters() error {
 	sf := r.GetSettings()
 	sf.Bom.Include = []entities.ComponentFilter{}
+	sf.Bom.Ignore = []entities.ComponentFilter{}
 	sf.Bom.Remove = []entities.ComponentFilter{}
 	sf.Bom.Replace = []entities.ComponentFilter{}
 	return nil
@@ -205,13 +209,15 @@ func (r *ScanossSettingsJsonRepository) GetDeclaredPurls() []string {
 	sf := r.GetSettings()
 
 	includedComponents := extractPurlsFromBom(sf.Bom.Include)
+	ignoredComponents := extractPurlsFromBom(sf.Bom.Ignore)
 	removedComponents := extractPurlsFromBom(sf.Bom.Remove)
 	replacedComponents := extractPurlsFromBom(sf.Bom.Replace)
 
-	totalLength := len(includedComponents) + len(removedComponents) + len(replacedComponents)
+	totalLength := len(includedComponents) + len(ignoredComponents) + len(removedComponents) + len(replacedComponents)
 	declaredPurls := make([]string, 0, totalLength)
 
 	declaredPurls = append(declaredPurls, includedComponents...)
+	declaredPurls = append(declaredPurls, ignoredComponents...)
 	declaredPurls = append(declaredPurls, removedComponents...)
 	declaredPurls = append(declaredPurls, replacedComponents...)
 

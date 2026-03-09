@@ -46,7 +46,8 @@ type SettingsFile struct {
 }
 
 type ScanossSettingsSchema struct {
-	Skip SkipSettings `json:"skip,omitempty"`
+	Skip        SkipSettings        `json:"skip,omitempty"`
+	FileSnippet FileSnippetSettings `json:"file_snippet,omitempty"`
 }
 
 type SkipSettings struct {
@@ -70,15 +71,26 @@ type SizesSkipSettings struct {
 	Max      int      `json:"max,omitempty"`
 }
 
+type FileSnippetSettings struct {
+	RankingEnabled   bool `json:"ranking_enabled,omitempty"`
+	RankingThreshold *int `json:"ranking_threshold,omitempty"`
+	MinSnippetHits   int  `json:"min_snippet_hits,omitempty"`
+	MinSnippetLines  int  `json:"min_snippet_lines,omitempty"`
+	HonourFileExts   bool `json:"honour_file_exts,omitempty"`
+	SkipHeaders      bool `json:"skip_headers,omitempty"`
+	SkipHeadersLimit int  `json:"skip_headers_limit,omitempty"`
+}
+
 type Bom struct {
 	Include []ComponentFilter `json:"include,omitempty"`
 	Remove  []ComponentFilter `json:"remove,omitempty"`
 	Replace []ComponentFilter `json:"replace,omitempty"`
+	Exclude []ComponentFilter `json:"exclude,omitempty"`
 }
 
 type ComponentFilter struct {
 	Path        string               `json:"path,omitempty"`
-	Purl        string               `json:"purl"`
+	Purl        string               `json:"purl,omitempty"`
 	Usage       ComponentFilterUsage `json:"usage,omitempty"`
 	Comment     string               `json:"comment,omitempty"`
 	ReplaceWith string               `json:"replace_with,omitempty"`

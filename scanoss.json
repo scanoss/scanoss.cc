@@ -1,5 +1,10 @@
 {
   "settings": {
+    "file_snippet": {
+      "ranking_enabled": true,
+      "skip_headers": true,
+      "skip_headers_limit": 100
+    },
     "skip": {
       "patterns": {
         "scanning": [

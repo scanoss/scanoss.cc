@@ -45,7 +45,6 @@ var (
 )
 
 const (
-	DEFAULT_API_URL               = "https://api.osskb.org"
 	DEFAULT_RESULTS_FILE          = "results.json"
 	DEFAULT_SCANOSS_SETTINGS_FILE = "scanoss.json"
 	DEFAULT_CONFIG_FILE_NAME      = "scanoss-cc-settings"
@@ -54,6 +53,10 @@ const (
 	SCANOSS_HIDDEN_FOLDER         = ".scanoss"
 	SCANOSS_PREMIUM_API_URL       = "https://api.scanoss.com"
 )
+
+// DefaultAPIURL Build-time overridable default. Can be set with:
+// go build -ldflags "-X 'github.com/scanoss/scanoss.cc/internal/config.DefaultAPIURL=https://...'"
+var DefaultAPIURL = "https://api.osskb.org"
 
 type Config struct {
 	apiToken             string
@@ -324,7 +327,7 @@ func (c *Config) initializeConfigFile(cfgFile string) error {
 	viper.AddConfigPath(c.GetDefaultConfigFolder())
 
 	// Default values
-	viper.SetDefault("apiurl", DEFAULT_API_URL)
+	viper.SetDefault("apiurl", DefaultAPIURL)
 	viper.SetDefault("apitoken", "")
 
 	if err := viper.ReadInConfig(); err != nil {

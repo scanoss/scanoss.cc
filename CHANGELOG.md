@@ -7,15 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.11.1] 2026-02-13
+## [0.12.0] 2026-03-10
 ### Added
-- Restore action: Undo a previous decision (include, dismiss, replace) on a completed result, returning it to pending state
+- Restore action: Undo a previous decision (include, dismiss, replace) on a completed result, returning it to the pending state
 - Keyboard shortcut `U` to restore a file decision
-- Restore button in the action bar for completed results
+- Add support for `file_snippet` settings in `scanoss.json`, including ranking, snippet hit/line thresholds, file extension handling, and header skipping options
+- Add support for `exclude` entries in the scan settings BOM model
+
+### Changed
+- Allow component filters without requiring a `purl`, enabling path-only filter entries to be serialized cleanly
 
 ### Fixed
 - Fix component replacement displaying incorrect purl and component name when the scanner pre-applies the replacement
-- Fix result view not scrolling into view when navigating with keyboard shortcuts
+- Fix the result view not scrolling into view when navigating with keyboard shortcuts
 - Fix action bar buttons not being interactive on completed results that need to be re-evaluated
 
 ## [0.11.0] 2026-01-26
@@ -257,5 +261,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.9.8]: https://github.com/scanoss/scanoss.cc/compare/v0.9.7...v0.9.8
 [0.9.9]: https://github.com/scanoss/scanoss.cc/compare/v0.9.8...v0.9.9
 [0.10.0]: https://github.com/scanoss/scanoss.cc/compare/v0.9.9...v0.10.0
-[0.11.1]: https://github.com/scanoss/scanoss.cc/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/scanoss/scanoss.cc/compare/v0.10.0...v0.11.0
+[0.12.0]: https://github.com/scanoss/scanoss.cc/compare/v0.11.0...v0.12.0

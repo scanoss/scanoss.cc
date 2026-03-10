@@ -635,6 +635,52 @@ func (_c *MockScanossSettingsRepository_Read_Call) RunAndReturn(run func() (enti
 	return _c
 }
 
+// RemoveBomEntry provides a mock function with given fields: entry
+func (_m *MockScanossSettingsRepository) RemoveBomEntry(entry entities.ComponentFilter) error {
+	ret := _m.Called(entry)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RemoveBomEntry")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(entities.ComponentFilter) error); ok {
+		r0 = rf(entry)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockScanossSettingsRepository_RemoveBomEntry_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RemoveBomEntry'
+type MockScanossSettingsRepository_RemoveBomEntry_Call struct {
+	*mock.Call
+}
+
+// RemoveBomEntry is a helper method to define mock.On call
+//   - entry entities.ComponentFilter
+func (_e *MockScanossSettingsRepository_Expecter) RemoveBomEntry(entry interface{}) *MockScanossSettingsRepository_RemoveBomEntry_Call {
+	return &MockScanossSettingsRepository_RemoveBomEntry_Call{Call: _e.mock.On("RemoveBomEntry", entry)}
+}
+
+func (_c *MockScanossSettingsRepository_RemoveBomEntry_Call) Run(run func(entry entities.ComponentFilter)) *MockScanossSettingsRepository_RemoveBomEntry_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(entities.ComponentFilter))
+	})
+	return _c
+}
+
+func (_c *MockScanossSettingsRepository_RemoveBomEntry_Call) Return(_a0 error) *MockScanossSettingsRepository_RemoveBomEntry_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockScanossSettingsRepository_RemoveBomEntry_Call) RunAndReturn(run func(entities.ComponentFilter) error) *MockScanossSettingsRepository_RemoveBomEntry_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveStagedScanningSkipPattern provides a mock function with given fields: path, pattern
 func (_m *MockScanossSettingsRepository) RemoveStagedScanningSkipPattern(path string, pattern string) error {
 	ret := _m.Called(path, pattern)

@@ -6,6 +6,7 @@ SCRIPTS_DIR = scripts
 FRONTEND_DIR = frontend
 ASSETS_DIR = assets
 APP_BUNDLE = "$(BUILD_DIR)/bin/$(APP_NAME).app"
+DEFAULT_API_URL = "https://api.osskb.org"
 
 export GOTOOLCHAIN=go1.23.0
 
@@ -48,11 +49,11 @@ lint-fix: ## Run local instance of Go linting across the code base including aut
 
 run: cp_assets ## Runs the application in development mode
 	$(eval APPARGS := $(ARGS))
-	@wails dev -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "--debug $(APPARGS)")
+	@wails dev -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION) -X github.com/scanoss/scanoss.cc/internal/config.DefaultAPIURL=$(DEFAULT_API_URL)" $(if $(strip $(APPARGS)),-appargs "--debug $(APPARGS)")
 
 run_webkit41: cp_assets ## Runs the application in development mode for Ubuntu 24.04+/Debian 13+
 	$(eval APPARGS := $(ARGS))
-	@wails dev -tags webkit2_41 -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" $(if $(strip $(APPARGS)),-appargs "--debug $(APPARGS)")
+	@wails dev -tags webkit2_41 -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION) -X github.com/scanoss/scanoss.cc/internal/config.DefaultAPIURL=$(DEFAULT_API_URL)" $(if $(strip $(APPARGS)),-appargs "--debug $(APPARGS)")
 
 npm: ## Install NPM dependencies for the frontend
 	@echo "Running npm install for frontend..."
@@ -66,17 +67,17 @@ cp_assets: ## Copy the necessary assets to the build folder
 
 build: clean cp_assets  ## Build the application image for the current platform
 	@echo "Building application image..."
-	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)"
+	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION) -X github.com/scanoss/scanoss.cc/internal/config.DefaultAPIURL=$(DEFAULT_API_URL)"
 
 binary: cp_assets  ## Build application binary only (no package)
 	@echo "Build application binary only..."
-	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" --nopackage
+	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION) -X github.com/scanoss/scanoss.cc/internal/config.DefaultAPIURL=$(DEFAULT_API_URL)" --nopackage
 
 build_macos: clean cp_assets  ## Build the application image for macOS
 	@echo "Building application image for macOS..."
-	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" -platform darwin/universal -o "$(APP_NAME)"
+	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION) -X github.com/scanoss/scanoss.cc/internal/config.DefaultAPIURL=$(DEFAULT_API_URL)" -platform darwin/universal -o "$(APP_NAME)"
 	@echo "Build completed. Result: $(APP_BUNDLE)"
 
 build_webkit41: clean cp_assets  ## Build the application image for Ubuntu 24.04+/Debian 13+ (webkit 4.1)
 	@echo "Building application image with webkit2_41 tags..."
-	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION)" -tags webkit2_41
+	@wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=$(VERSION) -X github.com/scanoss/scanoss.cc/internal/config.DefaultAPIURL=$(DEFAULT_API_URL)" -tags webkit2_41

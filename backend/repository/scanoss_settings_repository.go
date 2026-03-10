@@ -31,6 +31,7 @@ type ScanossSettingsRepository interface {
 	Read() (entities.SettingsFile, error)
 	HasUnsavedChanges() (bool, error)
 	AddBomEntry(newEntry entities.ComponentFilter, filterAction string) error
+	RemoveBomEntry(entry entities.ComponentFilter) error
 	ClearAllFilters() error
 	GetSettings() *entities.SettingsFile
 	GetDeclaredPurls() []string

@@ -168,6 +168,38 @@ func (r *ScanossSettingsJsonRepository) AddBomEntry(newEntry entities.ComponentF
 	return nil
 }
 
+func (r *ScanossSettingsJsonRepository) RemoveBomEntry(entry entities.ComponentFilter) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	sf := r.GetSettings()
+
+	// Build a synthetic Result to use AppliesTo matching.
+	// This correctly handles all cases: file-level restore removing
+	// component-level (purl-only) BOM entries, folder rules, etc.
+	result := entities.Result{Path: entry.Path}
+	if entry.Purl != "" {
+		purls := []string{entry.Purl}
+		result.Purl = &purls
+	}
+
+	removeMatching := func(list []entities.ComponentFilter) []entities.ComponentFilter {
+		filtered := make([]entities.ComponentFilter, 0, len(list))
+		for _, f := range list {
+			if !f.AppliesTo(result) {
+				filtered = append(filtered, f)
+			}
+		}
+		return filtered
+	}
+
+	sf.Bom.Include = removeMatching(sf.Bom.Include)
+	sf.Bom.Remove = removeMatching(sf.Bom.Remove)
+	sf.Bom.Replace = removeMatching(sf.Bom.Replace)
+
+	return nil
+}
+
 func (r *ScanossSettingsJsonRepository) removeDuplicatesFromAllLists(newEntry entities.ComponentFilter) {
 	sf := r.GetSettings()
 

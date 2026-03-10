@@ -129,6 +129,24 @@ func TestComponentFilter_AppliesTo(t *testing.T) {
 			result:   Result{Path: "src/file.js", Purl: nil},
 			expected: false,
 		},
+		{
+			name:     "replace filter applies when result purl matches replace_with",
+			filter:   ComponentFilter{Path: "src/file.js", Purl: "pkg:npm/original@1.0.0", ReplaceWith: "pkg:npm/lodash@1.0.0"},
+			result:   Result{Path: "src/file.js", Purl: &purl},
+			expected: true,
+		},
+		{
+			name:     "replace filter applies when result purl matches original purl",
+			filter:   ComponentFilter{Path: "src/file.js", Purl: "pkg:npm/lodash@1.0.0", ReplaceWith: "pkg:npm/other@2.0.0"},
+			result:   Result{Path: "src/file.js", Purl: &purl},
+			expected: true,
+		},
+		{
+			name:     "replace filter does not apply when neither purl nor replace_with match",
+			filter:   ComponentFilter{Path: "src/file.js", Purl: "pkg:npm/original@1.0.0", ReplaceWith: "pkg:npm/other@2.0.0"},
+			result:   Result{Path: "src/file.js", Purl: &purl},
+			expected: false,
+		},
 	}
 
 	for _, tt := range tests {

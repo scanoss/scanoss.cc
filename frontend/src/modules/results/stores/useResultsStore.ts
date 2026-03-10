@@ -101,8 +101,18 @@ const useResultsStore = create<ResultsStore>()(
 
       set({ pendingResults, completedResults });
 
+      // Sync selectedResults with fresh data so stale objects don't persist
+      if (selectedResults.length) {
+        const allFreshResults = [...pendingResults, ...completedResults];
+        const updatedSelected = selectedResults
+          .map((sel) => allFreshResults.find((r) => r.path === sel.path))
+          .filter((r): r is entities.ResultDTO => r !== undefined);
+        set({ selectedResults: updatedSelected });
+      }
+
       // When the app first loads or if changing the query, select the first result
-      if (!selectedResults.length) {
+      const currentSelectedResults = get().selectedResults;
+      if (!currentSelectedResults.length) {
         const hasPendingResults = pendingResults.length > 0;
         const hasCompletedResults = completedResults.length > 0;
         const firstSelectedResult = hasPendingResults ? pendingResults[0] : hasCompletedResults ? completedResults[0] : null;

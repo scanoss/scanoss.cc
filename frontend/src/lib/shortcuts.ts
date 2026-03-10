@@ -121,6 +121,13 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     keys: 'shift+r',
   },
 
+  // Restore (undo decision on completed result)
+  [entities.Action.RestoreFile]: {
+    name: 'Restore file',
+    description: 'Restore file to pending (undo decision)',
+    keys: 'u',
+  },
+
   // Skip (Scan settings) - always opens modal
   [entities.Action.SkipFile]: {
     name: 'Skip file',

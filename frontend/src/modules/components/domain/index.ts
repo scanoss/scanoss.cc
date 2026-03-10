@@ -26,6 +26,7 @@ export enum FilterAction {
   Include = 'include',
   Remove = 'remove',
   Replace = 'replace',
+  Restore = 'restore',
 }
 
 export type FilterBy = 'path' | 'purl';
@@ -35,6 +36,7 @@ export const filterActionLabelMap: Record<FilterAction, string> = {
   [FilterAction.Include]: 'Include',
   [FilterAction.Remove]: 'Dismiss',
   [FilterAction.Replace]: 'Replace',
+  [FilterAction.Restore]: 'Restore',
 };
 
 export interface OnAddFilterArgs {

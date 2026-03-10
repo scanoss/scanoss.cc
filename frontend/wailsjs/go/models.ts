@@ -18,6 +18,7 @@ export namespace entities {
 	    ReplaceFile = "replaceFile",
 	    ReplaceFolder = "replaceFolder",
 	    ReplaceComponent = "replaceComponent",
+	    RestoreFile = "restoreFile",
 	    SkipFile = "skipFile",
 	    SkipFolder = "skipFolder",
 	    SkipExtension = "skipExtension",
@@ -514,6 +515,7 @@ export namespace entities {
 	    comment?: string;
 	    detected_purl?: string;
 	    detected_purl_url?: string;
+	    detected_name?: string;
 	    concluded_purl?: string;
 	    concluded_purl_url?: string;
 	    concluded_name?: string;
@@ -531,6 +533,7 @@ export namespace entities {
 	        this.comment = source["comment"];
 	        this.detected_purl = source["detected_purl"];
 	        this.detected_purl_url = source["detected_purl_url"];
+	        this.detected_name = source["detected_name"];
 	        this.concluded_purl = source["concluded_purl"];
 	        this.concluded_purl_url = source["concluded_purl_url"];
 	        this.concluded_name = source["concluded_name"];

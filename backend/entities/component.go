@@ -89,13 +89,14 @@ const (
 	Include FilterAction = "include"
 	Remove  FilterAction = "remove"
 	Replace FilterAction = "replace"
+	Restore FilterAction = "restore"
 )
 
 type ComponentFilterDTO struct {
 	Path        string       `json:"path,omitempty"`
 	Purl        string       `json:"purl,omitempty"`
 	Usage       string       `json:"usage,omitempty"`
-	Action      FilterAction `json:"action" validate:"required,eq=include|eq=remove|eq=replace"`
+	Action      FilterAction `json:"action" validate:"required,eq=include|eq=remove|eq=replace|eq=restore"`
 	Comment     string       `json:"comment,omitempty"`
 	ReplaceWith string       `json:"replace_with,omitempty" validate:"omitempty,valid-purl"`
 	License     string       `json:"license,omitempty"`

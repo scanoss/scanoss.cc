@@ -25,10 +25,10 @@ package entities
 
 import "time"
 
-// Gets updated build time using -ldflags
+// AppVersion Gets updated build time using -ldflags.
 var AppVersion = ""
 
-// UpdateInfo contains information about an available update
+// UpdateInfo contains information about an available update.
 type UpdateInfo struct {
 	Version        string    `json:"version"`
 	DownloadURL    string    `json:"download_url"`

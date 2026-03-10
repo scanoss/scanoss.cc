@@ -151,9 +151,16 @@ func (s *ComponentServiceImpl) applyFilters(dto []entities.ComponentFilterDTO) e
 				ReplaceWith: item.ReplaceWith,
 				License:     item.License,
 			}
-			if err := s.scanossSettingsRepo.AddBomEntry(newFilter, string(item.Action)); err != nil {
-				log.Error().Err(err).Msg("Error adding bom entry")
-				errChan <- err
+			if item.Action == entities.Restore {
+				if err := s.scanossSettingsRepo.RemoveBomEntry(newFilter); err != nil {
+					log.Error().Err(err).Msg("Error removing bom entry")
+					errChan <- err
+				}
+			} else {
+				if err := s.scanossSettingsRepo.AddBomEntry(newFilter, string(item.Action)); err != nil {
+					log.Error().Err(err).Msg("Error adding bom entry")
+					errChan <- err
+				}
 			}
 		}(item)
 	}

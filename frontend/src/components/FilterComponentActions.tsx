@@ -21,7 +21,7 @@
  * SOFTWARE.
  */
 
-import { Check, EyeOff, PackageMinus, Replace } from 'lucide-react';
+import { Check, EyeOff, PackageMinus, Replace, Undo2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
@@ -33,7 +33,19 @@ import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
 import { FilterAction } from '@/modules/components/domain';
 import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
 
+import useResultsStore from '@/modules/results/stores/useResultsStore';
+
 import { entities } from '../../wailsjs/go/models';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog';
 import FilterActionModal from './FilterActionModal';
 import SkipActionModal from './SkipActionModal';
 import {
@@ -66,6 +78,9 @@ export default function FilterComponentActions() {
   const [skipModalOpen, setSkipModalOpen] = useState(false);
   const [skipModalInitialSelection, setSkipModalInitialSelection] = useState<SkipInitialSelection>('file');
 
+  // Restore confirmation dialog state
+  const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
+
   const handleFilterComponent = withErrorHandling({
     asyncFn: async (args: OnFilterComponentArgs) => {
       await onFilterComponent(args);
@@ -83,25 +98,25 @@ export default function FilterComponentActions() {
   // Creates handler that opens filter modal with given action and selection
   const createModalActionHandler = useCallback(
     (action: FilterAction, selection: FilterInitialSelection) => () => {
-      if (!selectedResult || isCompletedResult) return;
+      if (!selectedResult) return;
       setFilterModalAction(action);
       setFilterModalInitialSelection(selection);
       setFilterModalOpen(true);
     },
-    [selectedResult, isCompletedResult]
+    [selectedResult]
   );
 
   // Creates handler that applies filter action directly to the current file (no modal)
   const createDirectActionHandler = useCallback(
     (action: FilterAction) => () => {
-      if (!selectedResult || isCompletedResult) return;
+      if (!selectedResult) return;
       handleFilterComponent({
         action,
         filterBy: 'by_file',
         purl: selectedResult.detected_purl ?? '',
       });
     },
-    [selectedResult, isCompletedResult, handleFilterComponent]
+    [selectedResult, handleFilterComponent]
   );
 
   // Creates handler that opens skip modal with given selection
@@ -113,6 +128,39 @@ export default function FilterComponentActions() {
     },
     [selectedResult]
   );
+
+  const confirmRestore = useCallback(() => {
+    if (!selectedResult) return;
+    handleFilterComponent({
+      action: FilterAction.Restore,
+      filterBy: 'by_file',
+      purl: selectedResult.detected_purl ?? '',
+    });
+    setRestoreDialogOpen(false);
+  }, [selectedResult, handleFilterComponent]);
+
+  const restoreDescription = useMemo(() => {
+    if (!selectedResult?.filter_config) return '';
+    const { selectedResults } = useResultsStore.getState();
+
+    if (selectedResults.length > 1) {
+      return `You are about to restore ${selectedResults.length} selected files to pending.`;
+    }
+
+    const filterType = selectedResult.filter_config.type;
+    const purl = selectedResult.detected_purl ?? '';
+
+    if (filterType === 'by_purl') {
+      return `You are about to restore all files matched to component "${purl}" to pending.`;
+    }
+
+    if (filterType === 'by_folder') {
+      return `You are about to restore all files in the matching folder rule to pending.`;
+    }
+
+    // by_file
+    return `You are about to restore file "${selectedResult.path}" to pending.`;
+  }, [selectedResult]);
 
   // Generate all handlers
   const handlers = useMemo(
@@ -136,13 +184,20 @@ export default function FilterComponentActions() {
       skipFile: createModalSkipHandler('file'),
       skipFolder: createModalSkipHandler('folder'),
       skipExtension: createModalSkipHandler('extension'),
+
+      // Restore: opens confirmation dialog before executing
+      restoreFile: () => {
+        if (!selectedResult) return;
+        setRestoreDialogOpen(true);
+      },
     }),
-    [createDirectActionHandler, createModalActionHandler, createModalSkipHandler]
+    [selectedResult, createDirectActionHandler, createModalActionHandler, createModalSkipHandler]
   );
 
   // === Keyboard shortcuts ===
-  const filterEnabled = !isCompletedResult && !!selectedResult;
+  const filterEnabled = !!selectedResult;
   const skipEnabled = !!selectedResult;
+  const restoreEnabled = isCompletedResult && !!selectedResult;
 
   // Include
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFile.keys, handlers.includeFile, { enabled: filterEnabled });
@@ -164,6 +219,9 @@ export default function FilterComponentActions() {
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipFolder.keys, handlers.skipFolder, { enabled: skipEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.skipExtension.keys, handlers.skipExtension, { enabled: skipEnabled });
 
+  // Restore
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.restoreFile.keys, handlers.restoreFile, { enabled: restoreEnabled });
+
   // === Menu bar events ===
   useMenuEvents({
     // Include
@@ -182,9 +240,11 @@ export default function FilterComponentActions() {
     [entities.Action.SkipFile]: handlers.skipFile,
     [entities.Action.SkipFolder]: handlers.skipFolder,
     [entities.Action.SkipExtension]: handlers.skipExtension,
+    // Restore
+    [entities.Action.RestoreFile]: handlers.restoreFile,
   });
 
-  const isDisabled = isCompletedResult || !selectedResult;
+  const isDisabled = !selectedResult;
 
   return (
     <>
@@ -193,7 +253,7 @@ export default function FilterComponentActions() {
         <MenubarMenu>
           <MenubarTrigger
             disabled={isDisabled}
-            className="flex h-full w-14 flex-col items-center justify-center gap-1 rounded-none px-2 py-1 data-[state=open]:bg-accent"
+            className="flex h-full w-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-2 py-1 hover:bg-accent data-[disabled]:cursor-default data-[disabled]:hover:bg-transparent data-[state=open]:bg-accent"
           >
             <span className="text-xs">Include</span>
             <Check className="h-5 w-5 stroke-green-500" />
@@ -218,7 +278,7 @@ export default function FilterComponentActions() {
         <MenubarMenu>
           <MenubarTrigger
             disabled={isDisabled}
-            className="flex h-full w-14 flex-col items-center justify-center gap-1 rounded-none px-2 py-1 data-[state=open]:bg-accent"
+            className="flex h-full w-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-2 py-1 hover:bg-accent data-[disabled]:cursor-default data-[disabled]:hover:bg-transparent data-[state=open]:bg-accent"
           >
             <span className="text-xs">Dismiss</span>
             <PackageMinus className="h-5 w-5 stroke-red-500" />
@@ -243,7 +303,7 @@ export default function FilterComponentActions() {
         <MenubarMenu>
           <MenubarTrigger
             disabled={isDisabled}
-            className="flex h-full w-14 flex-col items-center justify-center gap-1 rounded-none px-2 py-1 data-[state=open]:bg-accent"
+            className="flex h-full w-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-2 py-1 hover:bg-accent data-[disabled]:cursor-default data-[disabled]:hover:bg-transparent data-[state=open]:bg-accent"
           >
             <span className="text-xs">Replace</span>
             <Replace className="h-5 w-5 stroke-yellow-500" />
@@ -271,7 +331,7 @@ export default function FilterComponentActions() {
         <MenubarMenu>
           <MenubarTrigger
             disabled={!selectedResult}
-            className="flex h-full w-14 flex-col items-center justify-center gap-1 rounded-none px-2 py-1 data-[state=open]:bg-accent"
+            className="flex h-full w-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-2 py-1 hover:bg-accent data-[disabled]:cursor-default data-[disabled]:hover:bg-transparent data-[state=open]:bg-accent"
           >
             <span className="text-xs">Skip</span>
             <EyeOff className="h-5 w-5 stroke-orange-500" />
@@ -291,6 +351,20 @@ export default function FilterComponentActions() {
             </MenubarItem>
           </MenubarContent>
         </MenubarMenu>
+
+        {/* Restore - only visible for completed results */}
+        {isCompletedResult && (
+          <>
+            <MenubarSeparator className="mx-1 h-8 w-px" />
+            <button
+              onClick={handlers.restoreFile}
+              className="flex h-full w-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-2 py-1 hover:bg-accent"
+            >
+              <span className="text-xs">Restore</span>
+              <Undo2 className="h-5 w-5 stroke-blue-500" />
+            </button>
+          </>
+        )}
       </Menubar>
 
       {/* Filter Action Modal */}
@@ -315,6 +389,20 @@ export default function FilterComponentActions() {
           initialSelection={skipModalInitialSelection}
         />
       )}
+
+      {/* Restore Confirmation Dialog */}
+      <AlertDialog open={restoreDialogOpen} onOpenChange={setRestoreDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore to pending</AlertDialogTitle>
+            <AlertDialogDescription>{restoreDescription}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRestore}>Restore</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -107,13 +107,12 @@ const useResultsStore = create<ResultsStore>()(
         const updatedSelected = selectedResults
           .map((sel) => allFreshResults.find((r) => r.path === sel.path))
           .filter((r): r is entities.ResultDTO => r !== undefined);
-        if (updatedSelected.length > 0) {
-          set({ selectedResults: updatedSelected });
-        }
+        set({ selectedResults: updatedSelected });
       }
 
       // When the app first loads or if changing the query, select the first result
-      if (!selectedResults.length) {
+      const currentSelectedResults = get().selectedResults;
+      if (!currentSelectedResults.length) {
         const hasPendingResults = pendingResults.length > 0;
         const hasCompletedResults = completedResults.length > 0;
         const firstSelectedResult = hasPendingResults ? pendingResults[0] : hasCompletedResults ? completedResults[0] : null;

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keyboard shortcut `U` to restore a file decision
 - Add support for `file_snippet` settings in `scanoss.json`, including ranking, snippet hit/line thresholds, file extension handling, and header skipping options
 - Add support for `exclude` entries in the scan settings BOM model
+- Add ability to change default API URL during compilation: `make build DEFAULT_API_URL=api.something.else`
 
 ### Changed
 - Allow component filters without requiring a `purl`, enabling path-only filter entries to be serialized cleanly

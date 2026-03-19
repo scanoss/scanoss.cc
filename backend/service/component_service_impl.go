@@ -69,26 +69,36 @@ func (s *ComponentServiceImpl) setInitialFilters() {
 
 	for _, include := range initialFilters.Include {
 		s.initialFilters = append(s.initialFilters, entities.ComponentFilterDTO{
-			Path:   include.Path,
-			Purl:   include.Purl,
-			Usage:  string(include.Usage),
-			Action: entities.Include,
+			Path:            include.Path,
+			Purl:            include.Purl,
+			Usage:           string(include.Usage),
+			Action:          entities.Include,
+			Comment:         include.Comment,
+			Acknowledgement: include.Acknowledgement,
+			License:         include.License,
 		})
 	}
 	for _, remove := range initialFilters.Remove {
 		s.initialFilters = append(s.initialFilters, entities.ComponentFilterDTO{
-			Path:   remove.Path,
-			Purl:   remove.Purl,
-			Usage:  string(remove.Usage),
-			Action: entities.Remove,
+			Path:            remove.Path,
+			Purl:            remove.Purl,
+			Usage:           string(remove.Usage),
+			Action:          entities.Remove,
+			Comment:         remove.Comment,
+			Acknowledgement: remove.Acknowledgement,
+			License:         remove.License,
 		})
 	}
 	for _, replace := range initialFilters.Replace {
 		s.initialFilters = append(s.initialFilters, entities.ComponentFilterDTO{
-			Path:   replace.Path,
-			Purl:   replace.Purl,
-			Usage:  string(replace.Usage),
-			Action: entities.Replace,
+			Path:            replace.Path,
+			Purl:            replace.Purl,
+			Usage:           string(replace.Usage),
+			Action:          entities.Replace,
+			Comment:         replace.Comment,
+			Acknowledgement: replace.Acknowledgement,
+			ReplaceWith:     replace.ReplaceWith,
+			License:         replace.License,
 		})
 	}
 }
@@ -144,12 +154,13 @@ func (s *ComponentServiceImpl) applyFilters(dto []entities.ComponentFilterDTO) e
 		go func(item entities.ComponentFilterDTO) {
 			defer wg.Done()
 			newFilter := entities.ComponentFilter{
-				Path:        item.Path,
-				Purl:        item.Purl,
-				Usage:       entities.ComponentFilterUsage(item.Usage),
-				Comment:     item.Comment,
-				ReplaceWith: item.ReplaceWith,
-				License:     item.License,
+				Path:            item.Path,
+				Purl:            item.Purl,
+				Usage:           entities.ComponentFilterUsage(item.Usage),
+				Comment:         item.Comment,
+				Acknowledgement: item.Acknowledgement,
+				ReplaceWith:     item.ReplaceWith,
+				License:         item.License,
 			}
 			if item.Action == entities.Restore {
 				if err := s.scanossSettingsRepo.RemoveBomEntry(newFilter); err != nil {

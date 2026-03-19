@@ -84,6 +84,7 @@ export default function FilterActionModal({
 
   // Form state
   const [comment, setComment] = useState('');
+  const [acknowledgement, setAcknowledgement] = useState('');
   const [license, setLicense] = useState<string>();
   const [licenseKey, setLicenseKey] = useState(0);
   const [selectedComponent, setSelectedComponent] = useState<entities.DeclaredComponent | null>(null);
@@ -116,6 +117,7 @@ export default function FilterActionModal({
         setSelectedPathIndex(segments.length - 1);
       }
       setComment('');
+      setAcknowledgement('');
       setLicense(undefined);
       setLicenseKey((k) => k + 1);
       setSelectedComponent(null);
@@ -150,6 +152,7 @@ export default function FilterActionModal({
       action,
       filterBy,
       comment: comment || undefined,
+      acknowledgement: acknowledgement || undefined,
       license: license || undefined,
       replaceWith: selectedComponent?.purl,
       folderPath: filterBy === 'by_folder' ? selectedPath : undefined,
@@ -232,6 +235,18 @@ export default function FilterActionModal({
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Add a comment..."
+          />
+        </div>
+
+        {/* Acknowledgement textarea */}
+        <div className="flex flex-col gap-2">
+          <Label>
+            Acknowledgement <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <Textarea
+            value={acknowledgement}
+            onChange={(e) => setAcknowledgement(e.target.value)}
+            placeholder="Add an acknowledgement..."
           />
         </div>
 

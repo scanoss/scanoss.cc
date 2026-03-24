@@ -29,10 +29,11 @@ export namespace entities {
 	}
 	export class ComponentFilter {
 	    path?: string;
-	    purl: string;
+	    purl?: string;
 	    usage?: string;
 	    comment?: string;
 	    acknowledgement?: string;
+	    timestamp?: string;
 	    replace_with?: string;
 	    license?: string;
 	
@@ -47,6 +48,7 @@ export namespace entities {
 	        this.usage = source["usage"];
 	        this.comment = source["comment"];
 	        this.acknowledgement = source["acknowledgement"];
+	        this.timestamp = source["timestamp"];
 	        this.replace_with = source["replace_with"];
 	        this.license = source["license"];
 	    }
@@ -55,6 +57,7 @@ export namespace entities {
 	    include?: ComponentFilter[];
 	    remove?: ComponentFilter[];
 	    replace?: ComponentFilter[];
+	    exclude?: ComponentFilter[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Bom(source);
@@ -65,6 +68,7 @@ export namespace entities {
 	        this.include = this.convertValues(source["include"], ComponentFilter);
 	        this.remove = this.convertValues(source["remove"], ComponentFilter);
 	        this.replace = this.convertValues(source["replace"], ComponentFilter);
+	        this.exclude = this.convertValues(source["exclude"], ComponentFilter);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -165,6 +169,7 @@ export namespace entities {
 	    action: string;
 	    comment?: string;
 	    acknowledgement?: string;
+	    timestamp?: string;
 	    replace_with?: string;
 	    license?: string;
 	
@@ -180,6 +185,7 @@ export namespace entities {
 	        this.action = source["action"];
 	        this.comment = source["comment"];
 	        this.acknowledgement = source["acknowledgement"];
+	        this.timestamp = source["timestamp"];
 	        this.replace_with = source["replace_with"];
 	        this.license = source["license"];
 	    }
@@ -364,6 +370,30 @@ export namespace entities {
 	        this.path = source["path"];
 	        this.content = source["content"];
 	        this.language = source["language"];
+	    }
+	}
+	export class FileSnippetSettings {
+	    ranking_enabled?: boolean;
+	    ranking_threshold?: number;
+	    min_snippet_hits?: number;
+	    min_snippet_lines?: number;
+	    honour_file_exts?: boolean;
+	    skip_headers?: boolean;
+	    skip_headers_limit?: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new FileSnippetSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ranking_enabled = source["ranking_enabled"];
+	        this.ranking_threshold = source["ranking_threshold"];
+	        this.min_snippet_hits = source["min_snippet_hits"];
+	        this.min_snippet_lines = source["min_snippet_lines"];
+	        this.honour_file_exts = source["honour_file_exts"];
+	        this.skip_headers = source["skip_headers"];
+	        this.skip_headers_limit = source["skip_headers_limit"];
 	    }
 	}
 	export class FilterConfig {
@@ -683,6 +713,7 @@ export namespace entities {
 	}
 	export class ScanossSettingsSchema {
 	    skip?: SkipSettings;
+	    file_snippet?: FileSnippetSettings;
 	
 	    static createFrom(source: any = {}) {
 	        return new ScanossSettingsSchema(source);
@@ -691,6 +722,7 @@ export namespace entities {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.skip = this.convertValues(source["skip"], SkipSettings);
+	        this.file_snippet = this.convertValues(source["file_snippet"], FileSnippetSettings);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

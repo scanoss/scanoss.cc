@@ -27,6 +27,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	purlutils "github.com/scanoss/go-purl-helper/pkg"
@@ -75,6 +76,7 @@ func (s *ComponentServiceImpl) setInitialFilters() {
 			Action:          entities.Include,
 			Comment:         include.Comment,
 			Acknowledgement: include.Acknowledgement,
+			Timestamp:       include.Timestamp,
 			License:         include.License,
 		})
 	}
@@ -86,6 +88,7 @@ func (s *ComponentServiceImpl) setInitialFilters() {
 			Action:          entities.Remove,
 			Comment:         remove.Comment,
 			Acknowledgement: remove.Acknowledgement,
+			Timestamp:       remove.Timestamp,
 			License:         remove.License,
 		})
 	}
@@ -97,6 +100,7 @@ func (s *ComponentServiceImpl) setInitialFilters() {
 			Action:          entities.Replace,
 			Comment:         replace.Comment,
 			Acknowledgement: replace.Acknowledgement,
+			Timestamp:       replace.Timestamp,
 			ReplaceWith:     replace.ReplaceWith,
 			License:         replace.License,
 		})
@@ -159,6 +163,7 @@ func (s *ComponentServiceImpl) applyFilters(dto []entities.ComponentFilterDTO) e
 				Usage:           entities.ComponentFilterUsage(item.Usage),
 				Comment:         item.Comment,
 				Acknowledgement: item.Acknowledgement,
+				Timestamp:       time.Now().UTC().Format(time.RFC3339),
 				ReplaceWith:     item.ReplaceWith,
 				License:         item.License,
 			}

@@ -89,12 +89,14 @@ type Bom struct {
 }
 
 type ComponentFilter struct {
-	Path        string               `json:"path,omitempty"`
-	Purl        string               `json:"purl,omitempty"`
-	Usage       ComponentFilterUsage `json:"usage,omitempty"`
-	Comment     string               `json:"comment,omitempty"`
-	ReplaceWith string               `json:"replace_with,omitempty"`
-	License     string               `json:"license,omitempty"`
+	Path            string               `json:"path,omitempty"`
+	Purl            string               `json:"purl,omitempty"`
+	Usage           ComponentFilterUsage `json:"usage,omitempty"`
+	Comment         string               `json:"comment,omitempty"`
+	Acknowledgement string               `json:"acknowledgement,omitempty"`
+	Timestamp       string               `json:"timestamp,omitempty"`
+	ReplaceWith     string               `json:"replace_with,omitempty"`
+	License         string               `json:"license,omitempty"`
 }
 
 type InitialFilters struct {

@@ -41,7 +41,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Textarea } from './ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { useToast } from './ui/use-toast';
+
+import { HelpCircle } from 'lucide-react';
 
 function buildPath(segments: string[], index: number): string {
   const path = segments.slice(0, index + 1).join('/');
@@ -84,6 +87,7 @@ export default function FilterActionModal({
 
   // Form state
   const [comment, setComment] = useState('');
+  const [acknowledgement, setAcknowledgement] = useState('');
   const [license, setLicense] = useState<string>();
   const [licenseKey, setLicenseKey] = useState(0);
   const [selectedComponent, setSelectedComponent] = useState<entities.DeclaredComponent | null>(null);
@@ -116,6 +120,7 @@ export default function FilterActionModal({
         setSelectedPathIndex(segments.length - 1);
       }
       setComment('');
+      setAcknowledgement('');
       setLicense(undefined);
       setLicenseKey((k) => k + 1);
       setSelectedComponent(null);
@@ -150,6 +155,7 @@ export default function FilterActionModal({
       action,
       filterBy,
       comment: comment || undefined,
+      acknowledgement: acknowledgement || undefined,
       license: license || undefined,
       replaceWith: selectedComponent?.purl,
       folderPath: filterBy === 'by_folder' ? selectedPath : undefined,
@@ -224,14 +230,46 @@ export default function FilterActionModal({
 
         {/* Comment textarea - always shown */}
         <div className="flex flex-col gap-2">
-          <Label>
-            Comment <span className="text-xs font-normal text-muted-foreground">(optional)</span>
-          </Label>
+          <div className="flex items-center gap-1.5">
+            <Label>
+              Comment <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-3 w-3 text-muted-foreground hover:cursor-pointer hover:text-primary-foreground" />
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="start" className="w-72">
+                Internal note saved with the decision in scanoss.json. Not included in the SBOM output.
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <Textarea
             ref={commentRef}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Add a comment..."
+          />
+        </div>
+
+        {/* Acknowledgement textarea */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-1.5">
+            <Label>
+              Acknowledgement <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+            </Label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="h-3 w-3 text-muted-foreground hover:cursor-pointer hover:text-primary-foreground" />
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="start" className="w-72">
+                Included in the SBOM to capture any details relevant to the selected component.
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <Textarea
+            value={acknowledgement}
+            onChange={(e) => setAcknowledgement(e.target.value)}
+            placeholder="Add an acknowledgement..."
           />
         </div>
 

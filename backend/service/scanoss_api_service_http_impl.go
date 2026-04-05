@@ -230,7 +230,7 @@ func (s *ScanossApiServiceHttpImpl) GetLicensesByPurl(request entities.Component
 	}
 	var apiResponse entities.GetLicensesByPurlResponse
 	if jsonErr := json.Unmarshal(body, &apiResponse); jsonErr != nil {
-		log.Error().Err(err).Msgf("Failed to decode response body: %v", jsonErr)
+		log.Error().Err(jsonErr).Msgf("Failed to decode response body: %v", jsonErr)
 		return entities.GetLicensesByPurlResponse{}, fmt.Errorf("failed to decode response: %w", jsonErr)
 	}
 	return apiResponse, nil

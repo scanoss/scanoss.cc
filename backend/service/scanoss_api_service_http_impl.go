@@ -178,7 +178,7 @@ func (s *ScanossApiServiceHttpImpl) SearchComponents(request entities.ComponentS
 	}
 	var apiResponse entities.ComponentSearchResponse
 	if jsonErr := json.Unmarshal(body, &apiResponse); jsonErr != nil {
-		log.Error().Err(err).Msgf("Failed to decode response body: %v", jsonErr)
+		log.Error().Err(jsonErr).Msgf("Failed to decode response body: %v", jsonErr)
 		return entities.ComponentSearchResponse{}, fmt.Errorf("failed to decode response: %w", jsonErr)
 	}
 	log.Debug().

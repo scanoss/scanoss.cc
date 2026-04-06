@@ -64,6 +64,7 @@ func (r *FileRepositoryImpl) ReadRemoteFileByMD5(path string, md5 string) (entit
 	headers := make(map[string]string)
 	if token != "" {
 		headers["X-Session"] = token
+		headers["X-API-Key"] = token
 	}
 
 	options := fetch.Options{

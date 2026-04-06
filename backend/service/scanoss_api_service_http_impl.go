@@ -95,20 +95,11 @@ func (s *ScanossApiServiceHttpImpl) buildURL(endpoint string, params QueryParams
 	return u.String(), nil
 }
 
-func (s *ScanossApiServiceHttpImpl) GetWithParams(endpoint string, params QueryParams) (*http.Response, error) {
+func (s *ScanossApiServiceHttpImpl) GetWithParams(ctx context.Context, endpoint string, params QueryParams) (*http.Response, error) {
 	fullURL, err := s.buildURL(endpoint, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build URL: %w", err)
 	}
-
-	ctx := s.ctx
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fullURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -120,9 +111,9 @@ func (s *ScanossApiServiceHttpImpl) GetWithParams(endpoint string, params QueryP
 
 	resp, err := s.client.Do(req)
 	if err != nil {
+		log.Debug().Msgf("Get Request to %s failed: %v", fullURL, err)
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-
 	return resp, nil
 }
 
@@ -132,11 +123,11 @@ func (s *ScanossApiServiceHttpImpl) SearchComponents(request entities.ComponentS
 		log.Error().Err(err).Msg("Invalid component search request")
 		return entities.ComponentSearchResponse{}, fmt.Errorf("invalid search request: %w", err)
 	}
-
 	log.Debug().
 		Str("search", request.Search).
 		Str("vendor", request.Vendor).
 		Str("component", request.Component).
+		Str("package", request.Package).
 		Int32("limit", request.Limit).
 		Msg("Searching components via SCANOSS API")
 
@@ -144,49 +135,52 @@ func (s *ScanossApiServiceHttpImpl) SearchComponents(request entities.ComponentS
 		log.Error().Msg("SCANOSS API key not configured")
 		return entities.ComponentSearchResponse{}, fmt.Errorf("SCANOSS API key not configured")
 	}
-
 	params := QueryParams{
 		"search": request.Search,
 	}
-
 	if request.Vendor != "" {
 		params["vendor"] = request.Vendor
 	}
-
 	if request.Component != "" {
 		params["component"] = request.Component
 	}
-
 	if request.Package != "" {
 		params["package"] = request.Package
 	}
-
 	if request.Limit > 0 {
 		params["limit"] = fmt.Sprintf("%d", request.Limit)
 	}
-
 	if request.Offset > 0 {
 		params["offset"] = fmt.Sprintf("%d", request.Offset)
 	}
-
-	resp, err := s.GetWithParams("/api/v2/components/search", params)
+	if s.ctx == nil {
+		log.Warn().Msg("No context provided, using default context")
+		s.ctx = context.Background()
+	}
+	ctx, cancel := context.WithCancel(s.ctx)
+	defer cancel()
+	// Send the component search request
+	resp, err := s.GetWithParams(ctx, "/v2/components/search", params)
 	if err != nil {
 		log.Error().Err(err).Msg("Error calling SCANOSS component search API")
 		return entities.ComponentSearchResponse{}, fmt.Errorf("API call failed: %w", err)
 	}
 	defer resp.Body.Close()
-
+	body, bodyErr := io.ReadAll(resp.Body)
+	if bodyErr != nil {
+		log.Warn().Err(bodyErr).Msg("Failed to read response body")
+	} else {
+		log.Debug().Msgf("Response body: '%v'", string(body))
+	}
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
 		log.Error().Int("statusCode", resp.StatusCode).Str("body", string(body)).Msg("API returned non-200 status")
 		return entities.ComponentSearchResponse{}, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
 	}
-
 	var apiResponse entities.ComponentSearchResponse
-	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
-		return entities.ComponentSearchResponse{}, fmt.Errorf("failed to decode response: %w", err)
+	if jsonErr := json.Unmarshal(body, &apiResponse); jsonErr != nil {
+		log.Error().Err(jsonErr).Msgf("Failed to decode response body: %v", jsonErr)
+		return entities.ComponentSearchResponse{}, fmt.Errorf("failed to decode response: %w", jsonErr)
 	}
-
 	log.Debug().
 		Int("componentCount", len(apiResponse.Components)).
 		Msg("Successfully retrieved component search results")
@@ -212,24 +206,32 @@ func (s *ScanossApiServiceHttpImpl) GetLicensesByPurl(request entities.Component
 		"purl":        request.Purl,
 		"requirement": request.Requirement,
 	}
-
-	resp, err := s.GetWithParams("/api/v2/licenses/component", params)
+	if s.ctx == nil {
+		log.Warn().Msg("No context provided, using default context")
+		s.ctx = context.Background()
+	}
+	ctx, cancel := context.WithCancel(s.ctx)
+	defer cancel()
+	resp, err := s.GetWithParams(ctx, "/v2/licenses/component", params)
 	if err != nil {
 		log.Error().Err(err).Msg("Error calling SCANOSS component search API")
 		return entities.GetLicensesByPurlResponse{}, fmt.Errorf("API call failed: %w", err)
 	}
 	defer resp.Body.Close()
-
+	body, bodyErr := io.ReadAll(resp.Body)
+	if bodyErr != nil {
+		log.Warn().Err(bodyErr).Msg("Failed to read response body")
+	} else {
+		log.Debug().Msgf("Response body: '%v'", string(body))
+	}
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
 		log.Error().Int("statusCode", resp.StatusCode).Str("body", string(body)).Msg("API returned non-200 status")
 		return entities.GetLicensesByPurlResponse{}, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
 	}
-
 	var apiResponse entities.GetLicensesByPurlResponse
-	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
-		return entities.GetLicensesByPurlResponse{}, fmt.Errorf("failed to decode response: %w", err)
+	if jsonErr := json.Unmarshal(body, &apiResponse); jsonErr != nil {
+		log.Error().Err(jsonErr).Msgf("Failed to decode response body: %v", jsonErr)
+		return entities.GetLicensesByPurlResponse{}, fmt.Errorf("failed to decode response: %w", jsonErr)
 	}
-
 	return apiResponse, nil
 }

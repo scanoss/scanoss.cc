@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1] 2026-04-06
+### Fixed
+- Fixed API key header being set incorrectly in file content requests
+- Changed decoration API prefix from `/api/v2` to `/v2`
+- Fixed an issue reading decoration API response after the context was cancelled
+
 ## [0.12.0] 2026-03-10
 ### Added
 - Restore action: Undo a previous decision (include, dismiss, replace) on a completed result, returning it to the pending state
@@ -264,3 +270,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.10.0]: https://github.com/scanoss/scanoss.cc/compare/v0.9.9...v0.10.0
 [0.11.0]: https://github.com/scanoss/scanoss.cc/compare/v0.10.0...v0.11.0
 [0.12.0]: https://github.com/scanoss/scanoss.cc/compare/v0.11.0...v0.12.0
+[0.12.1]: https://github.com/scanoss/scanoss.cc/compare/v0.12.0...v0.12.1

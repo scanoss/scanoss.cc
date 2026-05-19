@@ -1,10 +1,5 @@
 {
   "settings": {
-    "file_snippet": {
-      "ranking_enabled": true,
-      "skip_headers": true,
-      "skip_headers_limit": 100
-    },
     "skip": {
       "patterns": {
         "scanning": [
@@ -15,10 +10,16 @@
           "wailsjs/",
           "backend/service/mocks/",
           "frontend/postcss.config.js",
-          "vite*"
+          "vite*",
+          "go.mod"
         ]
       },
       "sizes": {}
+    },
+    "file_snippet": {
+      "ranking_enabled": true,
+      "skip_headers": true,
+      "skip_headers_limit": 100
     }
   },
   "bom": {

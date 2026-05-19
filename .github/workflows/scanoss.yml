@@ -27,6 +27,5 @@ jobs:
         uses: scanoss/gha-code-scan@v1
         with:
           policies: undeclared
-          policies.halt_on_failure: 'false'
           api.url: https://api.scanoss.com/scan/direct
           api.key: ${{ secrets.SC_API_KEY }}

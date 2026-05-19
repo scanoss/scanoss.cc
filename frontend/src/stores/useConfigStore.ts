@@ -39,6 +39,7 @@ interface ResultsState {
   resultsFile: string;
   settingsFile: string;
   recentScanRoots: string[];
+  configLoaded: boolean;
 }
 
 interface ResultsActions {
@@ -57,6 +58,7 @@ export default create<ConfigStore>()(
     resultsFile: '',
     settingsFile: '',
     recentScanRoots: [],
+    configLoaded: false,
 
     setScanRoot: async (scanRoot: string) => {
       await SetScanRoot(scanRoot);
@@ -76,7 +78,7 @@ export default create<ConfigStore>()(
       const resultsFile = await GetResultFilePath();
       const settingsFile = await GetScanSettingsFilePath();
       const recentScanRoots = await GetRecentScanRoots();
-      set({ scanRoot, resultsFile, settingsFile, recentScanRoots });
+      set({ scanRoot, resultsFile, settingsFile, recentScanRoots, configLoaded: true });
     },
   }))
 );

@@ -371,12 +371,6 @@ func (c *Config) initializePathConfig(scanRoot, inputFile, scanossSettingsFilePa
 	if scanRoot != "" {
 		c.SetScanRoot(scanRoot)
 	}
-	if inputFile != "" {
-		c.SetResultFilePath(inputFile)
-	}
-	if scanossSettingsFilePath != "" {
-		c.SetScanSettingsFilePath(scanossSettingsFilePath)
-	}
 
 	// Set default values if not set via config file or command line args
 	if c.GetScanRoot() == "" {
@@ -400,6 +394,15 @@ func (c *Config) initializePathConfig(scanRoot, inputFile, scanossSettingsFilePa
 	if c.GetScanSettingsFilePath() == "" {
 		c.SetScanSettingsFilePath(c.getDefaultScanSettingsFilePath(originalWorkDir))
 	}
+
+	// Apply explicit CLI overrides last so they always win over defaults
+	if inputFile != "" {
+		c.SetResultFilePath(inputFile)
+	}
+	if scanossSettingsFilePath != "" {
+		c.SetScanSettingsFilePath(scanossSettingsFilePath)
+	}
+
 	return nil
 }
 

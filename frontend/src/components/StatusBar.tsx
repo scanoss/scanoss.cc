@@ -21,22 +21,12 @@
  * SOFTWARE.
  */
 
-import { useEffect } from 'react';
-
-import useConfigStore from '@/stores/useConfigStore';
-
 import AppSettings from './AppSettings';
 import SelectResultsFile from './SelectResultsFile';
 import SelectScanRoot from './SelectScanRoot';
 import SelectSettingsFile from './SelectSettingsFile';
 
 export default function StatusBar() {
-  const getInitialConfig = useConfigStore((state) => state.getInitialConfig);
-
-  useEffect(() => {
-    getInitialConfig();
-  }, []);
-
   return (
     <div className="flex w-full justify-between bg-background px-4 py-1 text-xs text-muted-foreground">
       <div className="flex items-center gap-4">

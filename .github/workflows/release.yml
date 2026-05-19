@@ -12,8 +12,7 @@ env:
   NODE_OPTIONS: "--max-old-space-size=4096"
   ARTIFACT_NAME_PREFIX: "scanoss-cc"
   APP_NAME: "SCANOSS Code Compare"
-  GOLANG_VERSION: "1.23"
-  NODE_VERSION: "20.x"
+  NODE_VERSION: "24.x"
 
 jobs:
   build_mac:
@@ -22,22 +21,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
       # Setup and configure GoLang
       - name: Setup GoLang
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           check-latest: true
-          go-version: ${{ env.GOLANG_VERSION }}
+          go-version-file: go.mod
       - run: go version
         shell: bash
 
       # Setup and configure NodeJS
       - name: Setup NodeJS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -63,7 +62,7 @@ jobs:
         run: ls -l "build/bin/${{ env.ARTIFACT_NAME_PREFIX }}.app" || (echo ".app not found!" && exit 1)
 
       - name: Import Code-Signing Certificates for macOS
-        uses: Apple-Actions/import-codesign-certs@v3
+        uses: Apple-Actions/import-codesign-certs@v7
         with:
           keychain: signing_app
           keychain-password: ${{ secrets.APPLE_PASSWORD }}
@@ -153,7 +152,7 @@ jobs:
           echo "ZIP SHA256: $SHA256"
 
       - name: Generate GitHub App Token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         id: app-token
         with:
           app-id: ${{ secrets.GH_APP_ID }}
@@ -187,7 +186,7 @@ jobs:
           git commit -m "Update scanoss-code-compare to ${APP_VERSION}"
           git push
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: artifact_m
           path: |
@@ -212,21 +211,21 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
       # Setup and configure GoLang
       - name: Setup GoLang
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           check-latest: true
-          go-version: ${{ env.GOLANG_VERSION }}
+          go-version-file: go.mod
       - run: go version
         shell: bash
       # Setup and configure NodeJS
       - name: Setup NodeJS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -263,7 +262,7 @@ jobs:
         shell: bash
 
       - name: Upload build assets
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifact_l_${{ matrix.variant }}
           path: ./build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-${{ matrix.output_suffix }}.zip
@@ -274,22 +273,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
       # Setup and configure GoLang
       - name: Setup GoLang
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           check-latest: true
-          go-version: ${{ env.GOLANG_VERSION }}
+          go-version-file: go.mod
       - run: go version
         shell: bash
 
       # Setup and configure Node JS
       - name: Setup NodeJS
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -311,7 +310,7 @@ jobs:
           wails build -ldflags "-X github.com/scanoss/scanoss.cc/backend/entities.AppVersion=${{ env.APP_VERSION }}" --platform "windows/amd64" -webview2 download -o "${{ env.ARTIFACT_NAME_PREFIX }}.exe" -windowsconsole
         shell: bash
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: artifact_w_unsigned
           path: build/bin/${{ env.ARTIFACT_NAME_PREFIX }}.exe
@@ -322,7 +321,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact W unsigned
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: artifact_w_unsigned
 
@@ -359,7 +358,7 @@ jobs:
           # Create zip with signed exe
           zip -j "../build/bin/${{ env.ARTIFACT_NAME_PREFIX }}-win.zip" "${{ env.ARTIFACT_NAME_PREFIX }}.exe"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: artifact_w
           path: |
@@ -371,22 +370,22 @@ jobs:
 
     steps:
       - name: Download artifact W
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: artifact_w
 
       - name: Download artifact M
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: artifact_m
 
       - name: Download artifact L (webkit 4.0)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: artifact_l_webkit40
 
       - name: Download artifact L (webkit 4.1)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: artifact_l_webkit41
 

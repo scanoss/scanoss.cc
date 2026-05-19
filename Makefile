@@ -8,8 +8,6 @@ ASSETS_DIR = assets
 APP_BUNDLE = "$(BUILD_DIR)/bin/$(APP_NAME).app"
 DEFAULT_API_URL = "https://api.osskb.org"
 
-export GOTOOLCHAIN=go1.23.0
-
 # HELP
 # This will output the help for each task
 # thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html

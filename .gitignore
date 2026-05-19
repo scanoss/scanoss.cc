@@ -12,5 +12,6 @@ results.json
 *.wfp
 *.actrc
 .env
+*.txt
 
 tmp/

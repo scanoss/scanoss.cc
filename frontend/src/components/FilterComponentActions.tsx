@@ -21,21 +21,22 @@
  * SOFTWARE.
  */
 
-import { Check, EyeOff, PackageMinus, Replace, Undo2 } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import {Check, EyeOff, PackageMinus, Replace, Undo2} from 'lucide-react';
+import {useCallback, useMemo, useState} from 'react';
 
 import useKeyboardShortcut from '@/hooks/useKeyboardShortcut';
-import { useMenuEvents } from '@/hooks/useMenuEvent';
-import { useResults } from '@/hooks/useResults';
+import {useMenuEvents} from '@/hooks/useMenuEvent';
+import {useResults} from '@/hooks/useResults';
 import useSelectedResult from '@/hooks/useSelectedResult';
-import { withErrorHandling } from '@/lib/errors';
-import { KEYBOARD_SHORTCUTS } from '@/lib/shortcuts';
-import { FilterAction } from '@/modules/components/domain';
-import useComponentFilterStore, { OnFilterComponentArgs } from '@/modules/components/stores/useComponentFilterStore';
-
+import {withErrorHandling} from '@/lib/errors';
+import {KEYBOARD_SHORTCUTS} from '@/lib/shortcuts';
+import {FilterAction} from '@/modules/components/domain';
+import useComponentFilterStore, {OnFilterComponentArgs} from '@/modules/components/stores/useComponentFilterStore';
 import useResultsStore from '@/modules/results/stores/useResultsStore';
 
-import { entities } from '../../wailsjs/go/models';
+import {entities} from '../../wailsjs/go/models';
+import FilterActionModal from './FilterActionModal';
+import SkipActionModal from './SkipActionModal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,8 +47,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from './ui/alert-dialog';
-import FilterActionModal from './FilterActionModal';
-import SkipActionModal from './SkipActionModal';
 import {
   Menubar,
   MenubarContent,
@@ -57,7 +56,7 @@ import {
   MenubarShortcut,
   MenubarTrigger,
 } from './ui/menubar';
-import { useToast } from './ui/use-toast';
+import {useToast} from './ui/use-toast';
 
 type FilterInitialSelection = 'file' | 'folder' | 'component';
 type SkipInitialSelection = 'file' | 'folder' | 'extension';
@@ -165,13 +164,15 @@ export default function FilterComponentActions() {
   // Generate all handlers
   const handlers = useMemo(
     () => ({
-      // Include: file applies directly, others open modal
-      includeFile: createDirectActionHandler(FilterAction.Include),
+      // Include: opens modal with shortcut bypass for files
+      includeFileDirectly: createDirectActionHandler(FilterAction.Include),
+      includeFile: createModalActionHandler(FilterAction.Include, 'file'),
       includeFolder: createModalActionHandler(FilterAction.Include, 'folder'),
       includeComponent: createModalActionHandler(FilterAction.Include, 'component'),
 
-      // Dismiss: file applies directly, others open modal
-      dismissFile: createDirectActionHandler(FilterAction.Remove),
+      // Dismiss: opens modal with shortcut bypass for files
+      dismissFileDirectly: createDirectActionHandler(FilterAction.Remove),
+      dismissFile: createModalActionHandler(FilterAction.Remove, 'file'),
       dismissFolder: createModalActionHandler(FilterAction.Remove, 'folder'),
       dismissComponent: createModalActionHandler(FilterAction.Remove, 'component'),
 
@@ -200,11 +201,13 @@ export default function FilterComponentActions() {
   const restoreEnabled = isCompletedResult && !!selectedResult;
 
   // Include
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFileDirectly.keys, handlers.includeFileDirectly, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFile.keys, handlers.includeFile, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeComponent.keys, handlers.includeComponent, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.includeFolder.keys, handlers.includeFolder, { enabled: filterEnabled });
 
   // Dismiss
+  useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissFileDirectly.keys, handlers.dismissFileDirectly, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissFile.keys, handlers.dismissFile, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissComponent.keys, handlers.dismissComponent, { enabled: filterEnabled });
   useKeyboardShortcut(KEYBOARD_SHORTCUTS.dismissFolder.keys, handlers.dismissFolder, { enabled: filterEnabled });
@@ -261,7 +264,7 @@ export default function FilterComponentActions() {
           <MenubarContent align="start" className="min-w-[180px]">
             <MenubarItem onSelect={handlers.includeFile}>
               File
-              <MenubarShortcut>I</MenubarShortcut>
+              <MenubarShortcut>Alt+I</MenubarShortcut>
             </MenubarItem>
             <MenubarItem onSelect={handlers.includeFolder}>
               Folder
@@ -286,7 +289,7 @@ export default function FilterComponentActions() {
           <MenubarContent align="start" className="min-w-[180px]">
             <MenubarItem onSelect={handlers.dismissFile}>
               File
-              <MenubarShortcut>D</MenubarShortcut>
+              <MenubarShortcut>Alt+D</MenubarShortcut>
             </MenubarItem>
             <MenubarItem onSelect={handlers.dismissFolder}>
               Folder

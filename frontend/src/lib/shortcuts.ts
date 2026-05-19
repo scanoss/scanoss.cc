@@ -75,10 +75,15 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
   },
 
   // Actions
-  [entities.Action.IncludeFile]: {
-    name: 'Include file',
+  [entities.Action.IncludeFileDirectly]: {
+    name: 'Include file directly',
     description: 'Include file directly',
     keys: 'i, f1',
+  },
+  [entities.Action.IncludeFile]: {
+    name: 'Include file',
+    description: 'Open include dialog with file selected',
+    keys: 'alt+i, alt+f1',
   },
   [entities.Action.IncludeComponent]: {
     name: 'Include component',
@@ -90,10 +95,15 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
     description: 'Open include dialog with folder selected',
     keys: 'alt+shift+i',
   },
-  [entities.Action.DismissFile]: {
-    name: 'Dismiss file',
+  [entities.Action.DismissFileDirectly]: {
+    name: 'Dismiss file directly',
     description: 'Dismiss file directly',
     keys: 'd, f2',
+  },
+  [entities.Action.DismissFile]: {
+    name: 'Dismiss file',
+    description: 'Open dismiss dialog with file selected',
+    keys: 'alt+d, alt+f2',
   },
   [entities.Action.DismissComponent]: {
     name: 'Dismiss component',

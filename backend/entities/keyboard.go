@@ -41,15 +41,17 @@ const (
 	ActionMoveDown    Action = "moveDown"
 
 	// Filter actions (BOM)
-	ActionIncludeFile      Action = "includeFile"
-	ActionIncludeComponent Action = "includeComponent"
-	ActionIncludeFolder    Action = "includeFolder"
-	ActionDismissFile      Action = "dismissFile"
-	ActionDismissComponent Action = "dismissComponent"
-	ActionDismissFolder    Action = "dismissFolder"
-	ActionReplaceFile      Action = "replaceFile"
-	ActionReplaceFolder    Action = "replaceFolder"
-	ActionReplaceComponent Action = "replaceComponent"
+	ActionIncludeFileDirectly Action = "includeFileDirectly"
+	ActionIncludeFile         Action = "includeFile"
+	ActionIncludeComponent    Action = "includeComponent"
+	ActionIncludeFolder       Action = "includeFolder"
+	ActionDismissFileDirectly Action = "dismissFileDirectly"
+	ActionDismissFile         Action = "dismissFile"
+	ActionDismissComponent    Action = "dismissComponent"
+	ActionDismissFolder       Action = "dismissFolder"
+	ActionReplaceFile         Action = "replaceFile"
+	ActionReplaceFolder       Action = "replaceFolder"
+	ActionReplaceComponent    Action = "replaceComponent"
 
 	// Restore action (undo decision on completed result)
 	ActionRestoreFile Action = "restoreFile"
@@ -100,9 +102,11 @@ var AllShortcutActions = []struct {
 	{ActionSelectAll, "SelectAll"},
 	{ActionMoveUp, "MoveUp"},
 	{ActionMoveDown, "MoveDown"},
+	{ActionIncludeFileDirectly, "IncludeFileDirectly"},
 	{ActionIncludeFile, "IncludeFile"},
 	{ActionIncludeComponent, "IncludeComponent"},
 	{ActionIncludeFolder, "IncludeFolder"},
+	{ActionDismissFileDirectly, "DismissFileDirectly"},
 	{ActionDismissFile, "DismissFile"},
 	{ActionDismissComponent, "DismissComponent"},
 	{ActionDismissFolder, "DismissFolder"},

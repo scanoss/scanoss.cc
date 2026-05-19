@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.2] 2026-05-19
+### Fixed
+- Fixed bug where modal was skipped when including/dismissing files
+
 ## [0.12.1] 2026-04-06
 ### Fixed
 - Fixed API key header being set incorrectly in file content requests
@@ -271,3 +275,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.11.0]: https://github.com/scanoss/scanoss.cc/compare/v0.10.0...v0.11.0
 [0.12.0]: https://github.com/scanoss/scanoss.cc/compare/v0.11.0...v0.12.0
 [0.12.1]: https://github.com/scanoss/scanoss.cc/compare/v0.12.0...v0.12.1
+[0.12.2]: https://github.com/scanoss/scanoss.cc/compare/v0.12.1...v0.12.2

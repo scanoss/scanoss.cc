@@ -165,13 +165,13 @@ export default function FilterComponentActions() {
   // Generate all handlers
   const handlers = useMemo(
     () => ({
-      // Include: file applies directly, others open modal
-      includeFile: createDirectActionHandler(FilterAction.Include),
+      // Include: always opens modal
+      includeFile: createModalActionHandler(FilterAction.Include, 'file'),
       includeFolder: createModalActionHandler(FilterAction.Include, 'folder'),
       includeComponent: createModalActionHandler(FilterAction.Include, 'component'),
 
-      // Dismiss: file applies directly, others open modal
-      dismissFile: createDirectActionHandler(FilterAction.Remove),
+      // Dismiss: always opens modal
+      dismissFile: createModalActionHandler(FilterAction.Remove, 'file'),
       dismissFolder: createModalActionHandler(FilterAction.Remove, 'folder'),
       dismissComponent: createModalActionHandler(FilterAction.Remove, 'component'),
 

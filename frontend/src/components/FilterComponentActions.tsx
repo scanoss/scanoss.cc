@@ -264,7 +264,7 @@ export default function FilterComponentActions() {
           <MenubarContent align="start" className="min-w-[180px]">
             <MenubarItem onSelect={handlers.includeFile}>
               File
-              <MenubarShortcut>I</MenubarShortcut>
+              <MenubarShortcut>Alt+I</MenubarShortcut>
             </MenubarItem>
             <MenubarItem onSelect={handlers.includeFolder}>
               Folder
@@ -289,7 +289,7 @@ export default function FilterComponentActions() {
           <MenubarContent align="start" className="min-w-[180px]">
             <MenubarItem onSelect={handlers.dismissFile}>
               File
-              <MenubarShortcut>D</MenubarShortcut>
+              <MenubarShortcut>Alt+D</MenubarShortcut>
             </MenubarItem>
             <MenubarItem onSelect={handlers.dismissFolder}>
               Folder

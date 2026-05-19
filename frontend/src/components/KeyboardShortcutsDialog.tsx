@@ -40,12 +40,16 @@ export default function KeyboardShortcutsDialog({ open, onOpenChange }: { open: 
     return null;
   }
 
+  const GROUP_ORDER = ['Global', 'Navigation', 'Actions', 'Scan', 'View'];
+
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput placeholder="Filter shortcuts" />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
-        {Object.entries(data).map(([group, shortcuts]) => (
+        {Object.entries(data)
+          .sort(([a], [b]) => GROUP_ORDER.indexOf(a) - GROUP_ORDER.indexOf(b))
+          .map(([group, shortcuts]) => (
           <CommandGroup key={group} heading={group}>
             {Object.entries(shortcuts).map(([shortcutKey, shortcut]) => {
               return (

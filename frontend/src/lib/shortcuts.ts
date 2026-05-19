@@ -118,7 +118,7 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
   [entities.Action.ReplaceFile]: {
     name: 'Replace file',
     description: 'Open replace dialog to select replacement component',
-    keys: 'r, f3',
+    keys: 'r, alt+r, f3, alt+f3',
   },
   [entities.Action.ReplaceFolder]: {
     name: 'Replace folder',
@@ -142,7 +142,7 @@ export const KEYBOARD_SHORTCUTS: Record<entities.Action, KeyboardShortcut> = {
   [entities.Action.SkipFile]: {
     name: 'Skip file',
     description: 'Open skip dialog for file',
-    keys: 's, f4',
+    keys: 's, alt+s, f4, alt+f4',
   },
   [entities.Action.SkipFolder]: {
     name: 'Skip folder',

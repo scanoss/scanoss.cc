@@ -264,7 +264,7 @@ var DefaultShortcuts = []Shortcut{
 	{
 		Name:        "Replace file",
 		Description: "Open replace dialog with file selected",
-		Keys:        "r, f3",
+		Keys:        "r, alt+r, f3, alt+f3",
 		Group:       GroupActions,
 		Action:      ActionReplaceFile,
 	},
@@ -292,7 +292,7 @@ var DefaultShortcuts = []Shortcut{
 	{
 		Name:        "Skip file",
 		Description: "Open skip dialog for file",
-		Keys:        "s, f4",
+		Keys:        "s, alt+s, f4, alt+f4",
 		Group:       GroupActions,
 		Action:      ActionSkipFile,
 	},

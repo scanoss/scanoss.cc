@@ -74,11 +74,15 @@ export default create<ConfigStore>()(
     },
 
     getInitialConfig: async () => {
-      const scanRoot = await GetScanRoot();
-      const resultsFile = await GetResultFilePath();
-      const settingsFile = await GetScanSettingsFilePath();
-      const recentScanRoots = await GetRecentScanRoots();
-      set({ scanRoot, resultsFile, settingsFile, recentScanRoots, configLoaded: true });
+      try {
+        const scanRoot = await GetScanRoot();
+        const resultsFile = await GetResultFilePath();
+        const settingsFile = await GetScanSettingsFilePath();
+        const recentScanRoots = await GetRecentScanRoots();
+        set({ scanRoot, resultsFile, settingsFile, recentScanRoots });
+      } finally {
+        set({ configLoaded: true });
+      }
     },
   }))
 );

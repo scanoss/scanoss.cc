@@ -26,6 +26,7 @@
 package config_test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -37,8 +38,16 @@ import (
 func initConfig(t *testing.T, scanRoot, inputFile, settingsFile, workDir string) *config.Config {
 	t.Helper()
 	config.ResetInstance()
+
+	f, err := os.CreateTemp("", "scanoss-cc-settings-*.json")
+	require.NoError(t, err)
+	_, err = f.WriteString(`{}`)
+	require.NoError(t, err)
+	require.NoError(t, f.Close())
+	t.Cleanup(func() { os.Remove(f.Name()) })
+
 	cfg := config.GetInstance()
-	err := cfg.InitializeConfig("", scanRoot, "", "", inputFile, settingsFile, workDir, false)
+	err = cfg.InitializeConfig(f.Name(), scanRoot, "", "", inputFile, settingsFile, workDir, false)
 	require.NoError(t, err)
 	return cfg
 }

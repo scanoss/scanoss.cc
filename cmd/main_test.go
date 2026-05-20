@@ -35,13 +35,17 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	defer os.Remove(f.Name())
+	tmpFile := f.Name()
 
 	if _, err := f.WriteString(`{}`); err != nil {
 		panic(err)
 	}
-	f.Close()
+	if err := f.Close(); err != nil {
+		panic(err)
+	}
 
-	cfgFile = f.Name()
-	os.Exit(m.Run())
+	cfgFile = tmpFile
+	code := m.Run()
+	_ = os.Remove(tmpFile)
+	os.Exit(code)
 }

@@ -210,9 +210,11 @@ func (c *Config) AddRecentScanRoot(path string) error {
 	if len(c.recentScanRoots) > 10 {
 		c.recentScanRoots = c.recentScanRoots[:10]
 	}
-
 	viper.Set("recentscanroots", c.recentScanRoots)
-
+	if viper.ConfigFileUsed() == "" {
+		log.Warn().Str("path", path).Msg("Config.AddRecentScanRoots is empty")
+		return nil
+	}
 	return viper.WriteConfig()
 }
 

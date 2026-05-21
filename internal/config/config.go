@@ -313,6 +313,9 @@ func (c *Config) setupLogger(debug bool) error {
 }
 
 func (c *Config) initializeConfigFile(cfgFile string) error {
+	viper.SetDefault("apiurl", DefaultAPIURL)
+	viper.SetDefault("apitoken", "")
+
 	if cfgFile != "" {
 		absCfgFile, _ := filepath.Abs(cfgFile)
 		log.Debug().Msgf("Using config file: %s", absCfgFile)
@@ -327,10 +330,6 @@ func (c *Config) initializeConfigFile(cfgFile string) error {
 	viper.SetConfigName(DEFAULT_CONFIG_FILE_NAME)
 	viper.SetConfigType(DEFAULT_CONFIG_FILE_TYPE)
 	viper.AddConfigPath(c.GetDefaultConfigFolder())
-
-	// Default values
-	viper.SetDefault("apiurl", DefaultAPIURL)
-	viper.SetDefault("apitoken", "")
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
@@ -352,6 +351,22 @@ func (c *Config) initializeConfigFile(cfgFile string) error {
 func (c *Config) initializeApiConfig(apiKey, apiUrl string) error {
 	c.SetApiToken(viper.GetString("apitoken"))
 	c.SetApiUrl(viper.GetString("apiurl"))
+
+	// Override with environmental variables
+	if apiUrl == "" {
+		if v := os.Getenv("SCANOSS_SCAN_URL"); v != "" {
+			c.mu.Lock()
+			c.apiUrl = v
+			c.mu.Unlock()
+		}
+	}
+	if apiKey == "" {
+		if v := os.Getenv("SCANOSS_API_KEY"); v != "" {
+			c.mu.Lock()
+			c.apiToken = v
+			c.mu.Unlock()
+		}
+	}
 
 	// Override with command line flags
 	if apiKey != "" {

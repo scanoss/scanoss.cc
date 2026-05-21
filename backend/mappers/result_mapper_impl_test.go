@@ -45,8 +45,8 @@ func TestMapToResultDTO(t *testing.T) {
 		{
 			result: entities.Result{
 				MatchType: "file",
+				Purl:      &[]string{"pkg:github/test/purl-test"},
 				Path:      "path/to/file",
-				Purl:      &[]string{"pkg:purl-test"},
 			},
 			expected: entities.ResultDTO{
 				Path:          "path/to/file",
@@ -62,7 +62,7 @@ func TestMapToResultDTO(t *testing.T) {
 			result: entities.Result{
 				Path:      "another/path/to/file",
 				MatchType: "file",
-				Purl:      &[]string{"pkg:another-purl-test"},
+				Purl:      &[]string{"pkg:github/test/another-purl-test"},
 			},
 			expected: entities.ResultDTO{
 				Path:          "another/path/to/file",
@@ -75,7 +75,7 @@ func TestMapToResultDTO(t *testing.T) {
 			result: entities.Result{
 				Path:      "path/to/removed/file",
 				MatchType: "snippet",
-				Purl:      &[]string{"pkg:removed-file"},
+				Purl:      &[]string{"pkg:github/test/removed-file"},
 			},
 			expected: entities.ResultDTO{
 				Path:          "path/to/removed/file",
@@ -95,11 +95,11 @@ func TestMapToResultDTO(t *testing.T) {
 				Include: []entities.ComponentFilter{
 					{
 						Path: "path/to/file",
-						Purl: "pkg:purl-test",
+						Purl: "pkg:github/test/purl-test",
 					},
 				},
 				Remove: []entities.ComponentFilter{{
-					Purl: "pkg:purl-removed",
+					Purl: "pkg:github/test/purl-removed",
 				}},
 			},
 		},

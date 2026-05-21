@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.1] 2026-05-20
+### Fixed
+- Fixed bug where --input is overridden when --scan-root is not set
+- Fixed Windows specific bug during configuration
+### Changed
+- Moved initial configuration outside of status bar
+
 ## [0.13.0] 2026-05-19
 ### Fixed
 - Fixed bug where modal was skipped when including/dismissing files
@@ -280,3 +287,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.12.0]: https://github.com/scanoss/scanoss.cc/compare/v0.11.0...v0.12.0
 [0.12.1]: https://github.com/scanoss/scanoss.cc/compare/v0.12.0...v0.12.1
 [0.13.0]: https://github.com/scanoss/scanoss.cc/compare/v0.12.1...v0.13.0
+[0.13.1]: https://github.com/scanoss/scanoss.cc/compare/v0.13.0...v0.13.1

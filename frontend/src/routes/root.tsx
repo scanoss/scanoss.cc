@@ -40,8 +40,14 @@ import { EventsOn } from '../../wailsjs/runtime/runtime';
 export default function Root() {
   const { environment } = useEnvironment();
   const scanRoot = useConfigStore((state) => state.scanRoot);
+  const configLoaded = useConfigStore((state) => state.configLoaded);
+  const getInitialConfig = useConfigStore((state) => state.getInitialConfig);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showScanModal, setShowScanModal] = useState(false);
+
+  useEffect(() => {
+    getInitialConfig();
+  }, []);
 
   useEffect(() => {
     const unsubShowKeyboardShortcuts = EventsOn(entities.Action.ShowKeyboardShortcutsModal, () => {
@@ -56,6 +62,10 @@ export default function Root() {
       unsubScanWithOptions();
     };
   }, []);
+
+  if (!configLoaded) {
+    return null;
+  }
 
   if (isDefaultPath(scanRoot, environment?.platform)) {
     return <WelcomeScreen />;

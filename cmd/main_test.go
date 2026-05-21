@@ -1,6 +1,8 @@
+//go:build unit
+
 // SPDX-License-Identifier: MIT
 /*
- * Copyright (C) 2018-2024 SCANOSS.COM
+ * Copyright (C) 2018-2026 SCANOSS.COM
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,31 +23,29 @@
  * SOFTWARE.
  */
 
-import AppSettings from './AppSettings';
-import SelectResultsFile from './SelectResultsFile';
-import SelectScanRoot from './SelectScanRoot';
-import SelectSettingsFile from './SelectSettingsFile';
+package cmd
 
-export default function StatusBar() {
-  return (
-    <div className="flex w-full justify-between bg-background px-4 py-1 text-xs text-muted-foreground">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span>Scan Root:</span>
-          <SelectScanRoot />
-        </div>
-        <div className="flex items-center gap-2">
-          <span>Results File:</span>
-          <SelectResultsFile />
-        </div>
-        <div className="flex items-center gap-2">
-          <span>Settings File:</span>
-          <SelectSettingsFile />
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <AppSettings />
-      </div>
-    </div>
-  );
+import (
+	"os"
+	"testing"
+)
+
+func TestMain(m *testing.M) {
+	f, err := os.CreateTemp("", "scanoss-cc-settings-*.json")
+	if err != nil {
+		panic(err)
+	}
+	tmpFile := f.Name()
+
+	if _, err := f.WriteString(`{}`); err != nil {
+		panic(err)
+	}
+	if err := f.Close(); err != nil {
+		panic(err)
+	}
+
+	cfgFile = tmpFile
+	code := m.Run()
+	_ = os.Remove(tmpFile)
+	os.Exit(code)
 }

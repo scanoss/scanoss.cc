@@ -210,9 +210,11 @@ func (c *Config) AddRecentScanRoot(path string) error {
 	if len(c.recentScanRoots) > 10 {
 		c.recentScanRoots = c.recentScanRoots[:10]
 	}
-
 	viper.Set("recentscanroots", c.recentScanRoots)
-
+	if viper.ConfigFileUsed() == "" {
+		log.Warn().Str("path", path).Msg("Config.AddRecentScanRoots is empty")
+		return nil
+	}
 	return viper.WriteConfig()
 }
 
@@ -371,12 +373,6 @@ func (c *Config) initializePathConfig(scanRoot, inputFile, scanossSettingsFilePa
 	if scanRoot != "" {
 		c.SetScanRoot(scanRoot)
 	}
-	if inputFile != "" {
-		c.SetResultFilePath(inputFile)
-	}
-	if scanossSettingsFilePath != "" {
-		c.SetScanSettingsFilePath(scanossSettingsFilePath)
-	}
 
 	// Set default values if not set via config file or command line args
 	if c.GetScanRoot() == "" {
@@ -400,6 +396,15 @@ func (c *Config) initializePathConfig(scanRoot, inputFile, scanossSettingsFilePa
 	if c.GetScanSettingsFilePath() == "" {
 		c.SetScanSettingsFilePath(c.getDefaultScanSettingsFilePath(originalWorkDir))
 	}
+
+	// Apply explicit CLI overrides last so they always win over defaults
+	if inputFile != "" {
+		c.SetResultFilePath(inputFile)
+	}
+	if scanossSettingsFilePath != "" {
+		c.SetScanSettingsFilePath(scanossSettingsFilePath)
+	}
+
 	return nil
 }
 

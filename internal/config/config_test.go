@@ -52,6 +52,55 @@ func initConfig(t *testing.T, scanRoot, inputFile, settingsFile, workDir string)
 	return cfg
 }
 
+func initConfigWithApiArgs(t *testing.T, apiKey, apiUrl string) *config.Config {
+	t.Helper()
+	config.ResetInstance()
+
+	f, err := os.CreateTemp("", "scanoss-cc-settings-*.json")
+	require.NoError(t, err)
+	_, err = f.WriteString(`{}`)
+	require.NoError(t, err)
+	require.NoError(t, f.Close())
+	t.Cleanup(func() { os.Remove(f.Name()) })
+
+	cfg := config.GetInstance()
+	err = cfg.InitializeConfig(f.Name(), "", apiKey, apiUrl, "", "", "", false)
+	require.NoError(t, err)
+	return cfg
+}
+
+func TestInitializeApiConfig(t *testing.T) {
+	t.Run("defaults when no env vars or CLI args", func(t *testing.T) {
+		cfg := initConfigWithApiArgs(t, "", "")
+		assert.Equal(t, config.DefaultAPIURL, cfg.GetApiUrl())
+		assert.Equal(t, "", cfg.GetApiToken())
+	})
+
+	t.Run("SCANOSS_SCAN_URL env var sets api url when no CLI url", func(t *testing.T) {
+		t.Setenv("SCANOSS_SCAN_URL", "https://custom.example.com")
+		cfg := initConfigWithApiArgs(t, "", "")
+		assert.Equal(t, "https://custom.example.com", cfg.GetApiUrl())
+	})
+
+	t.Run("CLI --apiUrl overrides SCANOSS_SCAN_URL env var", func(t *testing.T) {
+		t.Setenv("SCANOSS_SCAN_URL", "https://env.example.com")
+		cfg := initConfigWithApiArgs(t, "", "https://cli.example.com")
+		assert.Equal(t, "https://cli.example.com", cfg.GetApiUrl())
+	})
+
+	t.Run("SCANOSS_API_KEY env var sets api token when no CLI key", func(t *testing.T) {
+		t.Setenv("SCANOSS_API_KEY", "env-api-key")
+		cfg := initConfigWithApiArgs(t, "", "")
+		assert.Equal(t, "env-api-key", cfg.GetApiToken())
+	})
+
+	t.Run("CLI --apiKey overrides SCANOSS_API_KEY env var", func(t *testing.T) {
+		t.Setenv("SCANOSS_API_KEY", "env-api-key")
+		cfg := initConfigWithApiArgs(t, "cli-api-key", "")
+		assert.Equal(t, "cli-api-key", cfg.GetApiToken())
+	})
+}
+
 func TestInitializePathConfig(t *testing.T) {
 	workDir := "/tmp/workdir"
 

@@ -33,6 +33,7 @@ import (
 	"github.com/scanoss/scanoss.cc/backend/entities"
 	"github.com/scanoss/scanoss.cc/backend/mappers"
 	"github.com/scanoss/scanoss.cc/backend/repository"
+	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/scanoss/scanoss.cc/internal/utils"
 )
 
@@ -61,7 +62,24 @@ func NewComponentServiceImpl(repo repository.ComponentRepository, scanossSetting
 
 	service.setInitialFilters()
 
+	// When a new folder is opened at runtime the config changes, which makes the
+	// settings repository reload the BOM for that folder. We must refresh our
+	// initial filters snapshot to match, otherwise undo would clear all filters
+	// and fail to restore the newly loaded folder's originally-completed files.
+	config.GetInstance().RegisterListener(service.onConfigChange)
+
 	return service
+}
+
+// onConfigChange is triggered when the config changes (e.g. a new scan root /
+// settings file is selected). The undo/redo history belongs to the previous
+// folder's session, so it is discarded along with refreshing the initial
+// filters snapshot from the freshly loaded settings file.
+func (s *ComponentServiceImpl) onConfigChange(_ *config.Config) {
+	s.initialFilters = []entities.ComponentFilterDTO{}
+	s.undoStack = [][]entities.ComponentFilterDTO{}
+	s.redoStack = [][]entities.ComponentFilterDTO{}
+	s.setInitialFilters()
 }
 
 func (s *ComponentServiceImpl) setInitialFilters() {

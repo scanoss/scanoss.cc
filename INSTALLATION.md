@@ -222,7 +222,7 @@ The script automatically:
 SCANOSS Code Compare provides two Linux binaries to support different WebKit versions:
 
 - **Ubuntu 24.04+ / Debian 13+**: Download `scanoss-cc-linux-amd64-webkit41.zip`
-- **All other systems**: Download `scanoss-cc-linux-amd64.zip`
+- **All other systems**: Download `scanoss-cc-linux-amd64-webkit40.zip`
 
 #### Installation Steps
 
@@ -232,8 +232,8 @@ SCANOSS Code Compare provides two Linux binaries to support different WebKit ver
 
 **For Ubuntu 22.04 and older / Debian 12 and older:**
 ```bash
-unzip scanoss-cc-linux-amd64.zip
-sudo mv scanoss-cc-linux-amd64 /usr/local/bin/scanoss-cc
+unzip scanoss-cc-linux-amd64-webkit40.zip
+sudo mv scanoss-cc-linux-amd64-webkit40 /usr/local/bin/scanoss-cc
 ```
 
 **For Ubuntu 24.04+ / Debian 13+:**

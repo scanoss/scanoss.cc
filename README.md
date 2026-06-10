@@ -80,14 +80,14 @@ See [INSTALLATION.md](INSTALLATION.md) for PATH setup and installation to Progra
 <summary><b>Linux</b></summary>
 
 Choose the appropriate binary for your system from the [releases page](https://github.com/scanoss/scanoss.cc/releases):
-- **Ubuntu 22.04 and older / Debian 12 and older**: [scanoss-cc-linux-amd64.zip](https://github.com/scanoss/scanoss.cc/releases/latest/download/scanoss-cc-linux-amd64.zip)
+- **Ubuntu 22.04 and older / Debian 12 and older**: [scanoss-cc-linux-amd64-webkit40.zip](https://github.com/scanoss/scanoss.cc/releases/latest/download/scanoss-cc-linux-amd64-webkit40.zip)
 - **Ubuntu 24.04+ / Debian 13+**: [scanoss-cc-linux-amd64-webkit41.zip](https://github.com/scanoss/scanoss.cc/releases/latest/download/scanoss-cc-linux-amd64-webkit41.zip)
 
 Extract and run:
 ```bash
 # For Ubuntu 22.04 and older
-unzip scanoss-cc-linux-amd64.zip
-sudo mv scanoss-cc-linux-amd64 /usr/local/bin/scanoss-cc
+unzip scanoss-cc-linux-amd64-webkit40.zip
+sudo mv scanoss-cc-linux-amd64-webkit40 /usr/local/bin/scanoss-cc
 
 # For Ubuntu 24.04+ (webkit 4.1)
 unzip scanoss-cc-linux-amd64-webkit41.zip

@@ -61,6 +61,7 @@ func (a *App) Init(ctx context.Context, scanossSettingsService service.ScanossSe
 
 func (a *App) startup() {
 	a.maybeSetWindowTitle()
+	a.restoreWindowGeometry()
 	log.Debug().Msgf("Scan Settings file path: %s", a.cfg.GetScanSettingsFilePath())
 	log.Debug().Msgf("Results file path: %s", a.cfg.GetResultFilePath())
 	log.Debug().Msgf("Scan Root file path: %s", a.cfg.GetScanRoot())
@@ -73,7 +74,99 @@ func (a *App) maybeSetWindowTitle() {
 	}
 }
 
+// restoreWindowGeometry restores the window size/position/maximized state from the
+// previous session, if any, clamped to fit the screen the app is currently opening on.
+// If nothing was saved, the window keeps the WindowStartState configured in main.go.
+func (a *App) restoreWindowGeometry() {
+	bounds, hasSaved := a.cfg.GetWindowBounds()
+	if !hasSaved {
+		return
+	}
+
+	screens, err := runtime.ScreenGetAll(a.ctx)
+	if err != nil || len(screens) == 0 {
+		log.Warn().Err(err).Msg("unable to determine screen bounds; skipping window geometry restore")
+		return
+	}
+	screen := currentScreen(screens)
+
+	width, height := bounds.Width, bounds.Height
+	if width > screen.Size.Width {
+		width = screen.Size.Width
+	}
+	if height > screen.Size.Height {
+		height = screen.Size.Height
+	}
+
+	runtime.WindowUnmaximise(a.ctx)
+	runtime.WindowSetSize(a.ctx, width, height)
+
+	if fitsOnScreen(bounds.X, bounds.Y, width, height, screen) {
+		runtime.WindowSetPosition(a.ctx, bounds.X, bounds.Y)
+	} else {
+		runtime.WindowCenter(a.ctx)
+	}
+
+	if bounds.Fullscreen {
+		runtime.WindowFullscreen(a.ctx)
+	} else if bounds.Maximized {
+		runtime.WindowMaximise(a.ctx)
+	}
+}
+
+func currentScreen(screens []runtime.Screen) runtime.Screen {
+	for _, s := range screens {
+		if s.IsCurrent {
+			return s
+		}
+	}
+	for _, s := range screens {
+		if s.IsPrimary {
+			return s
+		}
+	}
+	return screens[0]
+}
+
+func fitsOnScreen(x, y, width, height int, screen runtime.Screen) bool {
+	return x >= 0 && y >= 0 && x+width <= screen.Size.Width && y+height <= screen.Size.Height
+}
+
+// saveWindowGeometry persists the current window size/position/maximized state so it
+// can be restored on the next launch.
+func (a *App) saveWindowGeometry(ctx context.Context) {
+	maximized := runtime.WindowIsMaximised(ctx)
+	fullscreen := runtime.WindowIsFullscreen(ctx)
+
+	bounds := config.WindowBounds{
+		Maximized:  maximized,
+		Fullscreen: fullscreen,
+	}
+
+	if !maximized && !fullscreen {
+		width, height := runtime.WindowGetSize(ctx)
+		x, y := runtime.WindowGetPosition(ctx)
+
+		bounds.Width = width
+		bounds.Height = height
+		bounds.X = x
+		bounds.Y = y
+	} else {
+		currentConfig, _ := a.cfg.GetWindowBounds()
+		bounds.Width = currentConfig.Width
+		bounds.Height = currentConfig.Height
+		bounds.X = currentConfig.X
+		bounds.Y = currentConfig.Y
+	}
+
+	if err := a.cfg.SetWindowBounds(bounds); err != nil {
+		log.Error().Err(err).Msg("error saving window bounds")
+	}
+}
+
 func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
+	a.saveWindowGeometry(ctx)
+
 	hasUnsavedChanges, err := a.scanossSettingsService.HasUnsavedChanges()
 	if err != nil {
 		log.Error().Msg("Error checking for unsaved changes: " + err.Error())

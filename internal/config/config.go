@@ -58,6 +58,15 @@ const (
 // go build -ldflags "-X 'github.com/scanoss/scanoss.cc/internal/config.DefaultAPIURL=https://...'"
 var DefaultAPIURL = "https://api.osskb.org"
 
+type WindowBounds struct {
+	Width      int  `json:"width"`
+	Height     int  `json:"height"`
+	X          int  `json:"x"`
+	Y          int  `json:"y"`
+	Maximized  bool `json:"maximized"`
+	Fullscreen bool `json:"fullscreen"`
+}
+
 type Config struct {
 	apiToken             string
 	apiUrl               string
@@ -66,18 +75,20 @@ type Config struct {
 	scanSettingsFilePath string
 	recentScanRoots      []string
 	debug                bool
+	windowBounds         *WindowBounds
 	mu                   sync.RWMutex
 	listeners            []func(*Config)
 }
 
 type ConfigDTO struct {
-	ApiToken             string   `json:"apitoken"`
-	ApiUrl               string   `json:"apiurl"`
-	ResultFilePath       string   `json:"resultfilepath,omitempty"`
-	ScanRoot             string   `json:"scanroot,omitempty"`
-	ScanSettingsFilePath string   `json:"scansettingsfilepath,omitempty"`
-	RecentScanRoots      []string `json:"recentscanroots,omitempty"`
-	Debug                bool     `json:"debug,omitempty"`
+	ApiToken             string        `json:"apitoken"`
+	ApiUrl               string        `json:"apiurl"`
+	ResultFilePath       string        `json:"resultfilepath,omitempty"`
+	ScanRoot             string        `json:"scanroot,omitempty"`
+	ScanSettingsFilePath string        `json:"scansettingsfilepath,omitempty"`
+	RecentScanRoots      []string      `json:"recentscanroots,omitempty"`
+	Debug                bool          `json:"debug,omitempty"`
+	WindowBounds         *WindowBounds `json:"windowbounds,omitempty"`
 }
 
 func (c *Config) MarshalJSON() ([]byte, error) {
@@ -89,6 +100,7 @@ func (c *Config) MarshalJSON() ([]byte, error) {
 		ScanSettingsFilePath: c.scanSettingsFilePath,
 		RecentScanRoots:      c.recentScanRoots,
 		Debug:                c.debug,
+		WindowBounds:         c.windowBounds,
 	})
 }
 
@@ -104,6 +116,7 @@ func (c *Config) UnmarshalJSON(data []byte) error {
 	c.scanSettingsFilePath = j.ScanSettingsFilePath
 	c.recentScanRoots = j.RecentScanRoots
 	c.debug = j.Debug
+	c.windowBounds = j.WindowBounds
 	return nil
 }
 
@@ -276,6 +289,28 @@ func (c *Config) SetRecentScanRoots(roots []string) {
 	c.notifyListeners()
 }
 
+// GetWindowBounds returns the last persisted window bounds and whether any were found.
+func (c *Config) GetWindowBounds() (WindowBounds, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.windowBounds == nil {
+		return WindowBounds{}, false
+	}
+	return *c.windowBounds, true
+}
+
+func (c *Config) SetWindowBounds(bounds WindowBounds) error {
+	c.mu.Lock()
+	c.windowBounds = &bounds
+	viper.Set("windowbounds", bounds)
+	c.mu.Unlock()
+	c.notifyListeners()
+	if viper.ConfigFileUsed() == "" {
+		return nil
+	}
+	return viper.WriteConfig()
+}
+
 func (c *Config) GetDefaultConfigFolder() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -382,6 +417,20 @@ func (c *Config) initializeApiConfig(apiKey, apiUrl string) error {
 	return nil
 }
 
+func (c *Config) initializeWindowConfig() {
+	if !viper.IsSet("windowbounds") {
+		return
+	}
+	var bounds WindowBounds
+	if err := viper.UnmarshalKey("windowbounds", &bounds); err != nil {
+		log.Error().Err(err).Msg("error reading persisted window bounds")
+		return
+	}
+	c.mu.Lock()
+	c.windowBounds = &bounds
+	c.mu.Unlock()
+}
+
 func (c *Config) initializePathConfig(scanRoot, inputFile, scanossSettingsFilePath, originalWorkDir string) error {
 	c.SetRecentScanRoots(viper.GetStringSlice("recentscanroots"))
 
@@ -435,6 +484,8 @@ func (c *Config) InitializeConfig(cfgFile, scanRoot, apiKey, apiUrl, inputFile, 
 	if err := c.initializeApiConfig(apiKey, apiUrl); err != nil {
 		return err
 	}
+
+	c.initializeWindowConfig()
 
 	c.SetDebug(debug)
 

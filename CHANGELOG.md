@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.4] 2026-07-28
+### Fixed
+- Fixed bug where the app always launches in a maximised format, now saves window geometry
+
 ## [0.13.3] 2026-06-10
 ### Fixed
 - Fixed bug where undoing a single include reverted all completed files to pending after opening a folder at runtime
@@ -298,3 +302,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.13.1]: https://github.com/scanoss/scanoss.cc/compare/v0.13.0...v0.13.1
 [0.13.2]: https://github.com/scanoss/scanoss.cc/compare/v0.13.1...v0.13.2
 [0.13.3]: https://github.com/scanoss/scanoss.cc/compare/v0.13.2...v0.13.3
+[0.13.4]: https://github.com/scanoss/scanoss.cc/compare/v0.13.3...v0.13.4

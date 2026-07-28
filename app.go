@@ -79,7 +79,14 @@ func (a *App) maybeSetWindowTitle() {
 // If nothing was saved, the window keeps the WindowStartState configured in main.go.
 func (a *App) restoreWindowGeometry() {
 	bounds, hasSaved := a.cfg.GetWindowBounds()
-	if !hasSaved {
+	if !hasSaved || bounds.Width == 0 || bounds.Height == 0 {
+		if hasSaved {
+			if bounds.Fullscreen {
+				runtime.WindowFullscreen(a.ctx)
+			} else if bounds.Maximized {
+				runtime.WindowMaximise(a.ctx)
+			}
+		}
 		return
 	}
 

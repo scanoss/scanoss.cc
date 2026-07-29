@@ -74,19 +74,18 @@ func (a *App) maybeSetWindowTitle() {
 	}
 }
 
-// restoreWindowGeometry restores the window size/position/maximized state from the
-// previous session, if any, clamped to fit the screen the app is currently opening on.
-// If nothing was saved, the window keeps the WindowStartState configured in main.go.
+// restoreWindowGeometry restores the window position saved by the previous
+// session. Size and maximized/fullscreen state are applied when the window is
+// created (see main.go), because Wails applies WindowStartState only once the
+// frontend has loaded and would overwrite anything set here. Position is the
+// one piece that still has to be applied at runtime, as the app options carry
+// no coordinates.
 func (a *App) restoreWindowGeometry() {
 	bounds, hasSaved := a.cfg.GetWindowBounds()
-	if !hasSaved || bounds.Width == 0 || bounds.Height == 0 {
-		if hasSaved {
-			if bounds.Fullscreen {
-				runtime.WindowFullscreen(a.ctx)
-			} else if bounds.Maximized {
-				runtime.WindowMaximise(a.ctx)
-			}
-		}
+	if !hasSaved || bounds.Maximized || bounds.Fullscreen {
+		return
+	}
+	if bounds.Width == 0 || bounds.Height == 0 {
 		return
 	}
 
@@ -97,28 +96,52 @@ func (a *App) restoreWindowGeometry() {
 	}
 	screen := currentScreen(screens)
 
+	// Every path below repositions the window, which is what makes it safe for
+	// windowPositionOrigin to displace it while probing.
+	originX, originY := a.windowPositionOrigin()
+	area := screenRect{
+		x:      originX,
+		y:      originY,
+		width:  screen.Size.Width,
+		height: screen.Size.Height,
+	}
+
+	// The bounds may have been saved on a larger screen than we are opening on.
 	width, height := bounds.Width, bounds.Height
-	if width > screen.Size.Width {
-		width = screen.Size.Width
+	if width > area.width {
+		width = area.width
 	}
-	if height > screen.Size.Height {
-		height = screen.Size.Height
+	if height > area.height {
+		height = area.height
+	}
+	if width != bounds.Width || height != bounds.Height {
+		runtime.WindowSetSize(a.ctx, width, height)
 	}
 
-	runtime.WindowUnmaximise(a.ctx)
-	runtime.WindowSetSize(a.ctx, width, height)
-
-	if fitsOnScreen(bounds.X, bounds.Y, width, height, screen) {
-		runtime.WindowSetPosition(a.ctx, bounds.X, bounds.Y)
-	} else {
+	if !area.contains(bounds.X, bounds.Y, width, height) {
 		runtime.WindowCenter(a.ctx)
+		return
 	}
+	runtime.WindowSetPosition(a.ctx, bounds.X-originX, bounds.Y-originY)
+}
 
-	if bounds.Fullscreen {
-		runtime.WindowFullscreen(a.ctx)
-	} else if bounds.Maximized {
-		runtime.WindowMaximise(a.ctx)
+// windowPositionOrigin reports the coordinates WindowGetPosition returns for the
+// point WindowSetPosition treats as its origin.
+//
+// On Windows the two are different spaces: WindowGetPosition reports absolute
+// virtual-desktop coordinates while WindowSetPosition offsets from the current
+// monitor's work area, so persisted coordinates have to be rebased before being
+// handed back or the window drifts by the work area offset on every launch.
+// Probing the offset keeps this correct without a monitor-origin API, which
+// Wails v2 does not expose. macOS and Linux report and accept the same space,
+// so they need no probe, and skipping it avoids visibly jumping a window that
+// may already be on screen.
+func (a *App) windowPositionOrigin() (int, int) {
+	if runtime.Environment(a.ctx).Platform != "windows" {
+		return 0, 0
 	}
+	runtime.WindowSetPosition(a.ctx, 0, 0)
+	return runtime.WindowGetPosition(a.ctx)
 }
 
 func currentScreen(screens []runtime.Screen) runtime.Screen {
@@ -135,8 +158,15 @@ func currentScreen(screens []runtime.Screen) runtime.Screen {
 	return screens[0]
 }
 
-func fitsOnScreen(x, y, width, height int, screen runtime.Screen) bool {
-	return x >= 0 && y >= 0 && x+width <= screen.Size.Width && y+height <= screen.Size.Height
+// screenRect is a screen's area expressed in the coordinate space that
+// WindowGetPosition reports, so persisted bounds can be tested against it.
+type screenRect struct {
+	x, y, width, height int
+}
+
+func (r screenRect) contains(x, y, width, height int) bool {
+	return x >= r.x && y >= r.y &&
+		x+width <= r.x+r.width && y+height <= r.y+r.height
 }
 
 // saveWindowGeometry persists the current window size/position/maximized state so it

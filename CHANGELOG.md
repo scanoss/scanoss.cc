@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.13.4] 2026-07-28
+## [0.13.4] 2026-07-30
 ### Fixed
 - Fixed bug where the app always launches in a maximised format, now saves window geometry
 

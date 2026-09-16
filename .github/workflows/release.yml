@@ -152,12 +152,10 @@ jobs:
           echo "ZIP SHA256: $SHA256"
 
       - name: Generate GitHub App Token
-        uses: actions/create-github-app-token@v3
+        uses: scanoss/actions/github-app-token@v1
         id: app-token
         with:
-          app-id: ${{ secrets.GH_APP_ID }}
-          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
-          owner: scanoss
+          bws-access-token: ${{ secrets.BWS_ACCESS_TOKEN }}
           repositories: homebrew-dist
 
       - name: Checkout Homebrew Tap

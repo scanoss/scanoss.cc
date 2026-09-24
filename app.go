@@ -61,6 +61,7 @@ func (a *App) Init(ctx context.Context, scanossSettingsService service.ScanossSe
 
 func (a *App) startup() {
 	a.maybeSetWindowTitle()
+	a.restoreWindowGeometry()
 	log.Debug().Msgf("Scan Settings file path: %s", a.cfg.GetScanSettingsFilePath())
 	log.Debug().Msgf("Results file path: %s", a.cfg.GetResultFilePath())
 	log.Debug().Msgf("Scan Root file path: %s", a.cfg.GetScanRoot())
@@ -73,7 +74,136 @@ func (a *App) maybeSetWindowTitle() {
 	}
 }
 
+// restoreWindowGeometry restores the window position saved by the previous
+// session. Size and maximized/fullscreen state are applied when the window is
+// created (see main.go), because Wails applies WindowStartState only once the
+// frontend has loaded and would overwrite anything set here. Position is the
+// one piece that still has to be applied at runtime, as the app options carry
+// no coordinates.
+func (a *App) restoreWindowGeometry() {
+	bounds, hasSaved := a.cfg.GetWindowBounds()
+	if !hasSaved || bounds.Maximized || bounds.Fullscreen {
+		return
+	}
+	if bounds.Width == 0 || bounds.Height == 0 {
+		return
+	}
+
+	screens, err := runtime.ScreenGetAll(a.ctx)
+	if err != nil || len(screens) == 0 {
+		log.Warn().Err(err).Msg("unable to determine screen bounds; skipping window geometry restore")
+		return
+	}
+	screen := currentScreen(screens)
+
+	// Every path below repositions the window, which is what makes it safe for
+	// windowPositionOrigin to displace it while probing.
+	originX, originY := a.windowPositionOrigin()
+	area := screenRect{
+		x:      originX,
+		y:      originY,
+		width:  screen.Size.Width,
+		height: screen.Size.Height,
+	}
+
+	// The bounds may have been saved on a larger screen than we are opening on.
+	width, height := bounds.Width, bounds.Height
+	if width > area.width {
+		width = area.width
+	}
+	if height > area.height {
+		height = area.height
+	}
+	if width != bounds.Width || height != bounds.Height {
+		runtime.WindowSetSize(a.ctx, width, height)
+	}
+
+	if !area.contains(bounds.X, bounds.Y, width, height) {
+		runtime.WindowCenter(a.ctx)
+		return
+	}
+	runtime.WindowSetPosition(a.ctx, bounds.X-originX, bounds.Y-originY)
+}
+
+// windowPositionOrigin reports the coordinates WindowGetPosition returns for the
+// point WindowSetPosition treats as its origin.
+//
+// On Windows the two are different spaces: WindowGetPosition reports absolute
+// virtual-desktop coordinates while WindowSetPosition offsets from the current
+// monitor's work area, so persisted coordinates have to be rebased before being
+// handed back or the window drifts by the work area offset on every launch.
+// Probing the offset keeps this correct without a monitor-origin API, which
+// Wails v2 does not expose. macOS and Linux report and accept the same space,
+// so they need no probe, and skipping it avoids visibly jumping a window that
+// may already be on screen.
+func (a *App) windowPositionOrigin() (int, int) {
+	if runtime.Environment(a.ctx).Platform != "windows" {
+		return 0, 0
+	}
+	runtime.WindowSetPosition(a.ctx, 0, 0)
+	return runtime.WindowGetPosition(a.ctx)
+}
+
+func currentScreen(screens []runtime.Screen) runtime.Screen {
+	for _, s := range screens {
+		if s.IsCurrent {
+			return s
+		}
+	}
+	for _, s := range screens {
+		if s.IsPrimary {
+			return s
+		}
+	}
+	return screens[0]
+}
+
+// screenRect is a screen's area expressed in the coordinate space that
+// WindowGetPosition reports, so persisted bounds can be tested against it.
+type screenRect struct {
+	x, y, width, height int
+}
+
+func (r screenRect) contains(x, y, width, height int) bool {
+	return x >= r.x && y >= r.y &&
+		x+width <= r.x+r.width && y+height <= r.y+r.height
+}
+
+// saveWindowGeometry persists the current window size/position/maximized state so it
+// can be restored on the next launch.
+func (a *App) saveWindowGeometry(ctx context.Context) {
+	maximized := runtime.WindowIsMaximised(ctx)
+	fullscreen := runtime.WindowIsFullscreen(ctx)
+
+	bounds := config.WindowBounds{
+		Maximized:  maximized,
+		Fullscreen: fullscreen,
+	}
+
+	if !maximized && !fullscreen {
+		width, height := runtime.WindowGetSize(ctx)
+		x, y := runtime.WindowGetPosition(ctx)
+
+		bounds.Width = width
+		bounds.Height = height
+		bounds.X = x
+		bounds.Y = y
+	} else {
+		currentConfig, _ := a.cfg.GetWindowBounds()
+		bounds.Width = currentConfig.Width
+		bounds.Height = currentConfig.Height
+		bounds.X = currentConfig.X
+		bounds.Y = currentConfig.Y
+	}
+
+	if err := a.cfg.SetWindowBounds(bounds); err != nil {
+		log.Error().Err(err).Msg("error saving window bounds")
+	}
+}
+
 func (a *App) BeforeClose(ctx context.Context) (prevent bool) {
+	a.saveWindowGeometry(ctx)
+
 	hasUnsavedChanges, err := a.scanossSettingsService.HasUnsavedChanges()
 	if err != nil {
 		log.Error().Msg("Error checking for unsaved changes: " + err.Error())

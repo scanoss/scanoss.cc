@@ -38,6 +38,7 @@ import (
 	"github.com/scanoss/scanoss.cc/backend/repository"
 	"github.com/scanoss/scanoss.cc/backend/service"
 	"github.com/scanoss/scanoss.cc/cmd"
+	"github.com/scanoss/scanoss.cc/internal/config"
 	"github.com/scanoss/scanoss.cc/internal/utils"
 
 	"github.com/wailsapp/wails/v2"
@@ -101,13 +102,34 @@ func run() error {
 	scanService := service.NewScanServicePythonImpl()
 	treeService := service.NewTreeServiceImpl(resultService, scanossSettingsRepository)
 
+	// Window geometry has to be applied through the app options rather than at
+	// OnStartup: Wails applies WindowStartState once the frontend has loaded,
+	// well after OnStartup runs, so adjusting the window from there is silently
+	// overwritten on Windows.
+	windowStartState := options.Maximised
+	windowWidth, windowHeight := 0, 0
+	if bounds, ok := config.GetInstance().GetWindowBounds(); ok {
+		if bounds.Width > 0 && bounds.Height > 0 {
+			windowWidth, windowHeight = bounds.Width, bounds.Height
+			windowStartState = options.Normal
+		}
+		switch {
+		case bounds.Fullscreen:
+			windowStartState = options.Fullscreen
+		case bounds.Maximized:
+			windowStartState = options.Maximised
+		}
+	}
+
 	// Create application with options
 	err = wails.Run(&options.App{
 		Title: "Scanoss Code Compare",
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		WindowStartState: options.Maximised,
+		Width:            windowWidth,
+		Height:           windowHeight,
+		WindowStartState: windowStartState,
 		OnStartup: func(ctx context.Context) {
 			app.Init(ctx, scanossSettingsService, keyboardService)
 			scanService.SetContext(ctx)

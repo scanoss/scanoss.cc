@@ -34,6 +34,8 @@ export namespace entities {
 	    purl?: string;
 	    usage?: string;
 	    comment?: string;
+	    acknowledgement?: string;
+	    timestamp?: string;
 	    replace_with?: string;
 	    license?: string;
 	
@@ -47,6 +49,8 @@ export namespace entities {
 	        this.purl = source["purl"];
 	        this.usage = source["usage"];
 	        this.comment = source["comment"];
+	        this.acknowledgement = source["acknowledgement"];
+	        this.timestamp = source["timestamp"];
 	        this.replace_with = source["replace_with"];
 	        this.license = source["license"];
 	    }
@@ -166,6 +170,8 @@ export namespace entities {
 	    usage?: string;
 	    action: string;
 	    comment?: string;
+	    acknowledgement?: string;
+	    timestamp?: string;
 	    replace_with?: string;
 	    license?: string;
 	
@@ -180,6 +186,8 @@ export namespace entities {
 	        this.usage = source["usage"];
 	        this.action = source["action"];
 	        this.comment = source["comment"];
+	        this.acknowledgement = source["acknowledgement"];
+	        this.timestamp = source["timestamp"];
 	        this.replace_with = source["replace_with"];
 	        this.license = source["license"];
 	    }

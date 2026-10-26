@@ -38,6 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed decoration API prefix from `/api/v2` to `/v2`
 - Fixed an issue reading decoration API response after the context was cancelled
 
+### Added
+- Acknowledgement field in decision dialogs (include, dismiss, replace) — saved in scanoss.json for SBOM export by downstream tools
+- Tooltips on Comment and Acknowledgement fields explaining their purpose
+- Automatic UTC timestamp (ISO 8601) saved with each BOM decision in scanoss.json
+
 ## [0.12.0] 2026-03-10
 ### Added
 - Restore action: Undo a previous decision (include, dismiss, replace) on a completed result, returning it to the pending state

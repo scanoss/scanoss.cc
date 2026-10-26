@@ -40,6 +40,7 @@ export interface OnFilterComponentArgs {
   filterBy: 'by_file' | 'by_purl' | 'by_folder';
   withComment?: boolean;
   comment?: string;
+  acknowledgement?: string;
   license?: string;
   replaceWith?: string;
   folderPath?: string;
@@ -61,7 +62,7 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
     canRedo: false,
 
     onFilterComponent: async (args: OnFilterComponentArgs) => {
-      const { replaceWith, filterBy, action, comment, license, folderPath, purl } = args;
+      const { replaceWith, filterBy, action, comment, acknowledgement, license, folderPath, purl } = args;
 
       if (action === FilterAction.Replace && !replaceWith) {
         throw new Error('There was an error replacing the component. Please try again.');
@@ -88,6 +89,7 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
         const dto: entities.ComponentFilterDTO[] = purlsInFolder.map(folderPurl => ({
           action,
           comment,
+          acknowledgement,
           license,
           purl: folderPurl,
           path: normalizedFolderPath,
@@ -105,6 +107,7 @@ const useComponentFilterStore = create<ComponentFilterStore>()(
       const dto: entities.ComponentFilterDTO[] = selectedResults.map((result) => ({
         action,
         comment,
+        acknowledgement,
         license,
         purl: result.detected_purl ?? '',
         ...(filterBy === 'by_file' && { path: result.path }),

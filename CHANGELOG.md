@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Security
+- Upgraded `golang.org/x/crypto` to v0.53.0, `golang.org/x/net` to v0.56.0, `github.com/go-git/go-git/v5` to v5.19.2 and `github.com/labstack/echo/v4` to v4.15.3 to fix open Dependabot security advisories
 
 ## [0.13.3] 2026-06-10
 ### Fixed

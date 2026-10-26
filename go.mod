@@ -5,7 +5,7 @@ go 1.26.0
 // replace github.com/wailsapp/wails/v2 v2.9.1 => /home/ubuntu/go/pkg/mod
 
 require (
-	github.com/go-git/go-git/v5 v5.19.1
+	github.com/go-git/go-git/v5 v5.19.2
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/rs/zerolog v1.35.1
 	github.com/scanoss/go-purl-helper v0.3.0
@@ -32,7 +32,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jchv/go-winloader v0.0.0-20250406163304-c1995be93bd1 // indirect
-	github.com/labstack/echo/v4 v4.15.2 // indirect
+	github.com/labstack/echo/v4 v4.15.3 // indirect
 	github.com/labstack/gommon v0.5.0 // indirect
 	github.com/leaanthony/go-ansi-parser v1.6.1 // indirect
 	github.com/leaanthony/gosod v1.0.4 // indirect
@@ -60,10 +60,10 @@ require (
 	github.com/wailsapp/go-webview2 v1.0.23 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.51.0 // indirect
-	golang.org/x/net v0.54.0 // indirect
-	golang.org/x/sys v0.44.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/text v0.39.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
